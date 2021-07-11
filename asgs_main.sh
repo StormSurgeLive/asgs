@@ -1868,11 +1868,10 @@ THIS=asgs_main.sh
 source ${SCRIPTDIR}/monitoring/logging.sh
 setSyslogFileName
 #
-hs=0 # hook script counter ; execute START_INIT hooks
-while [[ $hs -lt ${#START_INIT[@]} ]]; do
-   logMessage "$THIS: Executing START_INIT hook $SCRIPTDIR/${START_INIT[$hs]}."
-   $SCRIPTDIR/${START_INIT[$hs]} >> ${SYSLOG} 2>&1
-   hs=$[$hs + 1]
+# execute START_INIT hooks
+for hs in "${START_INIT[@]}" ; do
+   logMessage "$THIS: Executing START_INIT hook $SCRIPTDIR/$hs."
+   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
 done
 #
 # set a trap for a signal to reread the ASGS config file
@@ -2160,10 +2159,8 @@ else
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
-scriptIndex=0
-while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do
-   checkFileExistence $OUTPUTDIR "postprocessing script" ${POSTPROCESS[$scriptIndex]}
-   scriptIndex=$[$scriptIndex + 1]
+for script in "${POSTPROCESS[@]}" ; do
+   checkFileExistence $OUTPUTDIR "postprocessing script" ${POSTPROCESS[$script]}
 done
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
@@ -2226,11 +2223,10 @@ fi
 ADVISDIR=null   # determined below
 HSTIME=null     # determined below
 #
-hs=0 # hook script counter ; execute FINISH_INIT hooks
-while [[ $hs -lt ${#FINISH_INIT[@]} ]]; do
-   logMessage "$THIS: Executing FINISH_INIT hook $SCRIPTDIR/${FINISH_INIT[$hs]}."
-   $SCRIPTDIR/${FINISH_INIT[$hs]} >> ${SYSLOG} 2>&1
-   hs=$[$hs + 1]
+# execute FINISH_INIT hooks
+for hs in "${FINISH_INIT[@]}" ; do
+   logMessage "$THIS: Executing FINISH_INIT hook $SCRIPTDIR/$hs."
+   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
 done
 #
 ###############################
@@ -2242,19 +2238,17 @@ done
 #
 #
 stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
-hs=0 # hook script counter ; execute START_SPINUP_STAGE hooks
-while [[ $hs -lt ${#START_SPINUP_STAGE[@]} ]]; do
-   logMessage "$THIS: Executing START_SPINUP_STAGE hook $SCRIPTDIR/${START_SPINUP_STAGE[$hs]}."
-   $SCRIPTDIR/${START_SPINUP_STAGE[$hs]} >> ${SYSLOG} 2>&1
-   hs=$[$hs + 1]
+# execute START_SPINUP_STAGE hooks
+for hs in "${START_SPINUP_STAGE[@]}" ; do
+   logMessage "$THIS: Executing START_SPINUP_STAGE hook $SCRIPTDIR/$hs."
+   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
 done
 #
 if [[ $START = coldstart ]]; then
-   hs=0 # hook script counter ; execute BUILD_SPINUP hooks
-   while [[ $hs -lt ${#BUILD_SPINUP[@]} ]]; do
-      logMessage "$THIS: Executing BUILD_SPINUP hook $SCRIPTDIR/${BUILD_SPINUP[$hs]}."
-      $SCRIPTDIR/${BUILD_SPINUP[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute BUILD_SPINUP hooks
+   for hs in "${BUILD_SPINUP[@]}" ; do
+      logMessage "$THIS: Executing BUILD_SPINUP hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    CURRENT_EVENT="HIND"
    CURRENT_STATE="INIT"
@@ -2361,11 +2355,10 @@ if [[ $START = coldstart ]]; then
    writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
    echo "hpc.job.${JOBTYPE}.limit.walltime : $HINDCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    #
-   hs=0 # hook script counter ; execute SUBMIT_SPINUP hooks
-   while [[ $hs -lt ${#SUBMIT_SPINUP[@]} ]]; do
-      logMessage "$THIS: Executing SUBMIT_SPINUP hook $SCRIPTDIR/${SUBMIT_SPINUP[$hs]}."
-      $SCRIPTDIR/${SUBMIT_SPINUP[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute SUBMIT_SPINUP hooks
+   for hs in ${SUBMIT_SPINUP[@]} ; do
+      logMessage "$THIS: Executing SUBMIT_SPINUP hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
@@ -2386,11 +2379,10 @@ if [[ $START = coldstart ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "The hindcast run has finished."
    scenarioMessage "$ENSTORM: $THIS: $ENSTORM run finished."
    #
-   hs=0 # hook script counter ; execute FINISH_SPINUP_SCENARIO hooks
-   while [[ $hs -lt ${#FINISH_SPINUP_SCENARIO[@]} ]]; do
-      logMessage "$ENSTORM: $THIS: Executing FINISH_SPINUP_SCENARIO hook $SCRIPTDIR/${FINISH_SPINUP_SCENARIO[$hs]}."
-      $SCRIPTDIR/${FINISH_SPINUP_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute FINISH_SPINUP_SCENARIO hooks
+   for hs in "${FINISH_SPINUP_SCENARIO[@]}" ; do
+      logMessage "$ENSTORM: $THIS: Executing FINISH_SPINUP_SCENARIO hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    cd $ADVISDIR 2>> ${SYSLOG}
@@ -2406,11 +2398,10 @@ if [[ $START = coldstart ]]; then
 else
    # start from   H O T S T A R T   file
    #
-   hs=0 # hook script counter ; execute HOT_SPINUP hooks
-   while [[ $hs -lt ${#HOT_SPINUP[@]} ]]; do
-      logMessage "$THIS: Executing HOT_SPINUP hook $SCRIPTDIR/${HOT_SPINUP[$hs]}."
-      $SCRIPTDIR/${HOT_SPINUP[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute HOT_SPINUP hooks
+   for hs in "${HOT_SPINUP[@]}" ; do
+      logMessage "$THIS: Executing HOT_SPINUP hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    if [[ $hotstartURL = null ]]; then
@@ -2434,11 +2425,10 @@ fi
 CYCLELOG=null
 SCENARIOLOG=null
 #
-hs=0 # hook script counter ; execute FINISH_SPINUP_STAGE hooks
-while [[ $hs -lt ${#FINISH_SPINUP_STAGE[@]} ]]; do
-   logMessage "$THIS: Executing FINISH_SPINUP_STAGE hook $SCRIPTDIR/${FINISH_SPINUP_STAGE[$hs]}."
-   $SCRIPTDIR/${FINISH_SPINUP_STAGE[$hs]} >> ${SYSLOG} 2>&1
-   hs=$[$hs + 1]
+# execute FINISH_SPINUP_STAGE hooks
+for hs in "${FINISH_SPINUP_STAGE[@]}" ; do
+   logMessage "$THIS: Executing FINISH_SPINUP_STAGE hook $SCRIPTDIR/$hs."
+   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
 done
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
@@ -2447,11 +2437,10 @@ while [ true ]; do
    THIS="asgs_main.sh"
    #
    stage="NOWCAST"  # modelling phase : SPINUP, NOWCAST, or FORECAST
-   hs=0 # hook script counter ; execute START_NOWCAST_STAGE hooks
-   while [[ $hs -lt ${#START_NOWCAST_STAGE[@]} ]]; do
-      logMessage "$THIS: Executing START_NOWCAST_STAGE hook $SCRIPTDIR/${START_NOWCAST_STAGE[$hs]}."
-      $SCRIPTDIR/${START_NOWCAST_STAGE[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute START_NOWCAST_STAGE hooks
+   for hs in "${START_NOWCAST_STAGE[@]}" ; do
+      logMessage "$THIS: Executing START_NOWCAST_STAGE hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    CURRENT_EVENT="RSTR"
@@ -2560,11 +2549,10 @@ while [ true ]; do
       fi
       RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
       #
-      hs=0 # hook script counter ; execute NOWCAST_POLLING hooks
-      while [[ $hs -lt ${#NOWCAST_POLLING[@]} ]]; do
-         logMessage "$THIS: Executing NOWCAST_POLLING hook $SCRIPTDIR/${NOWCAST_POLLING[$hs]}."
-         $SCRIPTDIR/${NOWCAST_POLLING[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # execute NOWCAST_POLLING hooks
+      for hs in "${NOWCAST_POLLING[@]}" ; do
+         logMessage "$THIS: Executing NOWCAST_POLLING hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       #
       # download wind data from ftp site every 60 seconds to see if
@@ -2572,11 +2560,10 @@ while [ true ]; do
       downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
       THIS="asgs_main.sh"
       #
-      hs=0 # hook script counter ; execute NOWCAST_TRIGGERED hooks
-      while [[ $hs -lt ${#NOWCAST_TRIGGERED[@]} ]]; do
-         logMessage "$THIS: Executing NOWCAST_TRIGGERED hook $SCRIPTDIR/${NOWCAST_TRIGGERED[$hs]}."
-         $SCRIPTDIR/${NOWCAST_TRIGGERED[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # execute NOWCAST_TRIGGERED hooks
+      for hs in "${NOWCAST_TRIGGERED[@]}" ; do
+         logMessage "$THIS: Executing NOWCAST_TRIGGERED hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       #
       LASTADVISORYNUM=$ADVISORY
@@ -2608,11 +2595,10 @@ while [ true ]; do
       # prepare nowcast met (fort.22) and control (fort.15) files
       cd $NOWCASTDIR 2>> ${SYSLOG}
       #
-      hs=0 # hook script counter ; execute BUILD_NOWCAST_SCENARIO hooks
-      while [[ $hs -lt ${#BUILD_NOWCAST_SCENARIO[@]} ]]; do
-         logMessage "$SCENARIO: $THIS: Executing BUILD_NOWCAST_SCENARIO hook $SCRIPTDIR/${BUILD_NOWCAST_SCENARIO[$hs]}."
-         $SCRIPTDIR/${BUILD_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # execute BUILD_NOWCAST_SCENARIO hooks
+      for hs in "${BUILD_NOWCAST_SCENARIO[@]}" ; do
+         logMessage "$SCENARIO: $THIS: Executing BUILD_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
@@ -2650,22 +2636,20 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
          CURRENT_STATE="WAIT"
          #
-         hs=0 # hook script counter ; execute NOWCAST_POLLING hooks
-         while [[ $hs -lt ${#NOWCAST_POLLING[@]} ]]; do
-            logMessage "$THIS: Executing NOWCAST_POLLING hook $SCRIPTDIR/${NOWCAST_POLLING[$hs]}."
-            $SCRIPTDIR/${NOWCAST_POLLING[$hs]} >> ${SYSLOG} 2>&1
-            hs=$[$hs + 1]
+         # execute NOWCAST_POLLING hooks
+         for hs in "${NOWCAST_POLLING[@]}" ; do
+            logMessage "$THIS: Executing NOWCAST_POLLING hook $SCRIPTDIR/$hs."
+            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
          done
          #
          downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
-         hs=0 # hook script counter ; execute NOWCAST_TRIGGERED hooks
-         while [[ $hs -lt ${#NOWCAST_TRIGGERED[@]} ]]; do
-            logMessage "$THIS: Executing NOWCAST_TRIGGERED hook $SCRIPTDIR/${NOWCAST_TRIGGERED[$hs]}."
-            $SCRIPTDIR/${NOWCAST_TRIGGERED[$hs]} >> ${SYSLOG} 2>&1
-            hs=$[$hs + 1]
+         # execute NOWCAST_TRIGGERED hooks
+         for hs in "${NOWCAST_TRIGGERED[@]}" ; do
+            logMessage "$THIS: Executing NOWCAST_TRIGGERED hook $SCRIPTDIR/$hs."
+            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
          done
          #
          LASTADVISORYNUM=$ADVISORY
@@ -2686,11 +2670,10 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # convert met files to OWI format
          #
-         hs=0 # hook script counter ; execute BUILD_NOWCAST_SCENARIO hooks
-         while [[ $hs -lt ${#BUILD_NOWCAST_SCENARIO[@]} ]]; do
-            logMessage "$SCENARIO: $THIS: Executing BUILD_NOWCAST_SCENARIO hook $SCRIPTDIR/${BUILD_NOWCAST_SCENARIO[$hs]}."
-            $SCRIPTDIR/${BUILD_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-            hs=$[$hs + 1]
+         # execute BUILD_NOWCAST_SCENARIO hooks
+         for hs in "${BUILD_NOWCAST_SCENARIO[@]}" ; do
+            logMessage "$SCENARIO: $THIS: Executing BUILD_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
+            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
          done
          #
          NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP \
@@ -2904,11 +2887,10 @@ while [ true ]; do
 
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       #
-      hs=0 # hook script counter ; execute SUBMIT_NOWCAST_SCENARIO hooks
-      while [[ $hs -lt ${#SUBMIT_NOWCAST_SCENARIO[@]} ]]; do
-         logMessage "$SCENARIO: $THIS: Executing SUBMIT_NOWCAST_SCENARIO hook $SCRIPTDIR/${SUBMIT_NOWCAST_SCENARIO[$hs]}."
-         $SCRIPTDIR/${SUBMIT_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # execute SUBMIT_NOWCAST_SCENARIO hooks
+      for hs in "${SUBMIT_NOWCAST_SCENARIO[@]}" ; do
+         logMessage "$SCENARIO: $THIS: Executing SUBMIT_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       #
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
@@ -2952,11 +2934,10 @@ while [ true ]; do
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast complete for advisory $ADVISORY ."
       logMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
       #
-      hs=0 # hook script counter ; execute FINISH_NOWCAST_SCENARIO hooks
-      while [[ $hs -lt ${#FINISH_NOWCAST_SCENARIO[@]} ]]; do
-         logMessage "$SCENARIO: $THIS: Executing FINISH_NOWCAST_SCENARIO hook $SCRIPTDIR/${FINISH_NOWCAST_SCENARIO[$hs]}."
-         $SCRIPTDIR/${FINISH_NOWCAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # execute FINISH_NOWCAST_SCENARIO hooks
+      for hs in "${FINISH_NOWCAST_SCENARIO[@]}" ; do
+         logMessage "$SCENARIO: $THIS: Executing FINISH_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       cd $ADVISDIR 2>> ${SYSLOG}
    else
@@ -2985,22 +2966,20 @@ while [ true ]; do
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
    #
-   hs=0 # hook script counter ; execute FINISH_NOWCAST_STAGE hooks
-   while [[ $hs -lt ${#FINISH_NOWCAST_STAGE[@]} ]]; do
-      logMessage "$THIS: Executing FINISH_NOWCAST_STAGE hook $SCRIPTDIR/${FINISH_NOWCAST_STAGE[$hs]}."
-      $SCRIPTDIR/${FINISH_NOWCAST_STAGE[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute FINISH_NOWCAST_STAGE hooks
+   for hs in "${FINISH_NOWCAST_STAGE[@]}" ; do
+      logMessage "$THIS: Executing FINISH_NOWCAST_STAGE hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    #  F O R E C A S T
    #
    stage="FORECAST"  # modelling phase : SPINUP, NOWCAST, or FORECAST
    #
-   hs=0 # hook script counter ; execute START_FORECAST_STAGE hooks
-   while [[ $hs -lt ${#START_FORECAST_STAGE[@]} ]]; do
-      logMessage "$THIS: Executing START_FORECAST_STAGE hook $SCRIPTDIR/${START_FORECAST_STAGE[$hs]}."
-      $SCRIPTDIR/${START_FORECAST_STAGE[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute START_FORECAST_STAGE hooks
+   for hs in "${START_FORECAST_STAGE[@]}" ; do
+      logMessage "$THIS: Executing START_FORECAST_STAGE hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    ENSTORM="forecast"
@@ -3024,11 +3003,10 @@ while [ true ]; do
    CURRENT_STATE="WAIT"
    while [ $si -lt $SCENARIOPACKAGESIZE ]; do
       #
-      hs=0 # hook script counter ; execute INITIALIZE_FORECAST_SCENARIO hooks
-      while [[ $hs -lt ${#INITIALIZE_FORECAST_SCENARIO[@]} ]]; do
-         logMessage "$SCENARIO: $THIS: Executing INITIALIZE_FORECAST_SCENARIO hook $SCRIPTDIR/${INITIALIZE_FORECAST_SCENARIO[$hs]}."
-         $SCRIPTDIR/${INITIALIZE_FORECAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # hook script counter ; execute INITIALIZE_FORECAST_SCENARIO hooks
+      for hs in "${INITIALIZE_FORECAST_SCENARIO[@]}" ; do
+         logMessage "$SCENARIO: $THIS: Executing INITIALIZE_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       #
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
@@ -3082,11 +3060,10 @@ while [ true ]; do
       #debugMessage "subDirs is $subDirs" # jgfdebug
       if [[ ! -z $subDirs ]]; then  # see if we have any scenario directories
          #
-         hs=0 # hook script counter ; execute CAPACITY_WAIT hooks
-         while [[ $hs -lt ${#CAPACITY_WAIT[@]} ]]; do
-            logMessage "$THIS: Executing CAPACITY_WAIT hook $SCRIPTDIR/${CAPACITY_WAIT[$hs]}."
-            $SCRIPTDIR/${CAPACITY_WAIT[$hs]} >> ${SYSLOG} 2>&1
-            hs=$[$hs + 1]
+         # execute CAPACITY_WAIT hooks
+         for hs in "${CAPACITY_WAIT[@]}" ; do
+            logMessage "$THIS: Executing CAPACITY_WAIT hook $SCRIPTDIR/$hs."
+            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
          done
          #
          # continuously loop to see if conditions are right to submit the next job
@@ -3139,11 +3116,10 @@ while [ true ]; do
 
       THIS="asgs_main.sh"
       #
-      hs=0 # hook script counter ; execute BUILD_FORECAST_SCENARIO hooks
-      while [[ $hs -lt ${#BUILD_FORECAST_SCENARIO[@]} ]]; do
-         logMessage "$SCENARIO: $THIS: Executing BUILD_FORECAST_SCENARIO hook $SCRIPTDIR/${BUILD_FORECAST_SCENARIO[$hs]}."
-         $SCRIPTDIR/${BUILD_FORECAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-         hs=$[$hs + 1]
+      # execute BUILD_FORECAST_SCENARIO hooks
+      for hs in "${BUILD_FORECAST_SCENARIO[@]}" ; do
+         logMessage "$SCENARIO: $THIS: Executing BUILD_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
+         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
       done
       #
       # turn SWAN hotstarting on or off as appropriate
@@ -3254,7 +3230,7 @@ while [ true ]; do
          if [[ ! -e "$SCENARIODIR/runme" || -e "$SCENARIOIR/forecast-not-needed" ]]; then
             RUNFORECAST=no
             # increment the scenario counter
-            si=`expr $si + 1`
+            si=$[$si + 1]
             if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
                logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to seeking the next nowcast."
             else
@@ -3370,11 +3346,10 @@ while [ true ]; do
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
             #
-            hs=0 # hook script counter ; execute BUILD_FORECAST_SCENARIO hooks
-            while [[ $hs -lt ${#SUBMIT_FORECAST_SCENARIO[@]} ]]; do
-               logMessage "$SCENARIO: $THIS: Executing SUBMIT_FORECAST_SCENARIO hook $SCRIPTDIR/${SUBMIT_FORECAST_SCENARIO[$hs]}."
-               $SCRIPTDIR/${SUBMIT_FORECAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
-               hs=$[$hs + 1]
+            # execute BUILD_FORECAST_SCENARIO hooks
+            for hs "${SUBMIT_FORECAST_SCENARIO[@]}" ; do
+               logMessage "$SCENARIO: $THIS: Executing SUBMIT_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
+               $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
             done
 
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
@@ -3395,12 +3370,11 @@ while [ true ]; do
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
                   scriptIndex=0
-                  while [[ $scriptIndex -lt ${#POSTPROCESS[@]} ]]; do
-                     logMessage "$SCENARIO: $THIS: Executing POSTPROCESS hook ${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]}."
-                     com="${OUTPUTDIR}/${POSTPROCESS[$scriptIndex]} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
-                     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "${POSTPROCESS[$scriptIndex]} $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
+                  for $script in "${POSTPROCESS[@]}" ; do
+                     logMessage "$SCENARIO: $THIS: Executing POSTPROCESS hook ${OUTPUTDIR}/$script."
+                     com="${OUTPUTDIR}/$script $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+                     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "$script $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
                      $com
-                     scriptIndex=$[$scriptIndex + 1]
                   done
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
@@ -3430,11 +3404,10 @@ while [ true ]; do
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
    #
-   hs=0 # hook script counter ; execute FINISH_FORECAST_STAGE hooks
-   while [[ $hs -lt ${#FINISH_FORECAST_STAGE[@]} ]]; do
-      logMessage "$THIS: Executing FINISH_FORECAST_STAGE hook $SCRIPTDIR/${FINISH_FORECAST_STAGE[$hs]}."
-      $SCRIPTDIR/${FINISH_FORECAST_STAGE[$hs]} >> ${SYSLOG} 2>&1
-      hs=$[$hs + 1]
+   # execute FINISH_FORECAST_STAGE hooks
+   for hs in "${FINISH_FORECAST_STAGE[@]}" ; do
+      logMessage "$THIS: Executing FINISH_FORECAST_STAGE hook $SCRIPTDIR/$hs."
+      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
    done
    #
    LASTSUBDIR=null # don't need this any longer
