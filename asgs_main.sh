@@ -28,21 +28,6 @@
 #####################################################################
 #                B E G I N   F U N C T I O N S
 #####################################################################
-#
-# FIXME: Not sure this function still has any use. Deprecate it?
-echoHelp()
-{ clear
-  echo "@@@ Help @@@"
-  echo "Usage:"
-  echo " bash %$0 [-s /full/path/to/statefile] [-c /fullpath/of/asgs_config.sh] -e environment"
-  echo
-  echo "Options:"
-  echo "-c : set location of configuration file"
-  echo "-e (environment): set the computer that the ASGS is running on"
-  echo "-s : start from a previous statefile (used when started by cron)"
-  echo "-h : show help"
-  exit;
-}
 
 # reads/rereads+rebuilds derived variables
 # Sets default values for many different asgs parameters;
@@ -1635,7 +1620,7 @@ writeProperties()
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    THIS=$WASTHIS
    # convert to scenario.json
-   $SCRIPTDIR/metadata.pl --jsonify --metadatafile $STORMDIR/run.properties 
+   $SCRIPTDIR/metadata.pl --jsonify --metadatafile $STORMDIR/run.properties
 }
 #
 # write properties that depend on the scenario but are not known
@@ -1766,6 +1751,12 @@ writeJobResourceRequestProperties()
    CPUREQUEST=`expr $NCPU + $NUMWRITERS`
    if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
       QUEUENAME="single"
+   fi
+   # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the 
+   # "small" queue ... this includes wind-only parallel jobs ... the PPN 
+   # for frontera is 56, so this hack would have to be updated if that changes
+   if [[ $HPCENV = "frontera.tacc.utexas.edu" && $CPUREQUEST -le 112 ]]; then
+      QUEUENAME="small"
    fi
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
@@ -3352,7 +3343,7 @@ while [ true ]; do
                ${SUBMIT_FORECAST_SCENARIO[$hs]} >> ${SYSLOG} 2>&1
                hs=`expr $hs + 1`
             done
-            
+
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
             # monitor for completion and post process in a subshell running
