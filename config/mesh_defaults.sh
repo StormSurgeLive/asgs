@@ -660,12 +660,12 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/PRVI
       GRIDFILE=PRVI15_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=PRVI_fort.15.template  # designed for 2s timestep (any adcirc version)
+      CONTROLTEMPLATE=PRVI15_fort.15.template  # designed for 2s timestep (any adcirc version)
       TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
       # CONTROLTEMPLATE=openwater_adcircv55.fort.15.template # designed for larger timestep (adcirc v55 only)
       # TIMESTEPSIZE=50.0            # adcirc time step size (seconds)
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=PRVI_norough_fort.15.template
+      CONTROLTEMPLATENOROUGH=PRVI15_norough_fort.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
