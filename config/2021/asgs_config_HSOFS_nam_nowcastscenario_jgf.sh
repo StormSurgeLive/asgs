@@ -77,23 +77,24 @@ COLDSTARTDATE=auto
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
 LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021063006/HSOFS/supermic.hpc.lsu.edu/HSOFS_nam_jgf/namforecast
 
-# Scenario packages
+# Scenario packages TO RUN
 
 HINDCASTSCENARIOS=( "hindcast" )
 NOWCASTSCENARIOS=( "nowcastWind10m" "nowcast" )
 FORECASTSCENARIOS=( "namforecastWind10m" "namforecast" )
 
-# Scenario definitions
+# Scenario DEFINITIONS (would need to be in a separate file that we "source" into asgs_main.sh)
+# alternatively, each of these would write a block of json for asgs_main.sh to read and act upon
 case $SCENARIO in
-    # SPINUP
+    # SPINUP scenario definitions
     "hindcast")
         FINISH_SPINUP_SCENARIO=( "output/createOPeNDAPFileList.sh" "output/opendap_post.sh" )   # post spinup to opendap
         OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
         ;;
 
-    # NOWCAST
+    # NOWCAST scenario definitions
     "nowcastWind10m")
-        FINISH_NOWCAST_SCENARIO=( )
+        FINISH_NOWCAST_SCENARIO=( ) # empty the hook script array -- nothing needed for this nowcast scenario
         # need to update $SCRIPTDIR/config/io_defaults.sh for Wind10m layer to nuke out the FINISH_NOWCAST_SCENARIO hook
         source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
         ;;
@@ -102,17 +103,38 @@ case $SCENARIO in
         OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
         ;;
 
-    # FORECAST
+    # FORECAST scenario definitions
     "namforecastWind10m")
         source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
         ;;
     "namforecast")
         # use default settings specified above this case block
         ;;
+    "nhcConsensusWind10m")
+        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+        ;;
+    "nhcConsensus")
+        # use default settings specified above this case block
+        ;;
+    "veerRight100Wind10m")
+        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+        PERCENT=100
+        ;;
+    "veerRight100")
+        PERCENT=100
+        ;;
+    "veerLeft100Wind10m")
+        source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+        PERCENT=-100
+        ;;
+    "veerLeft100")
+        PERCENT=-100
+        ;;
     *)
         echo "CONFIGRATION ERROR: Unknown scenario: '$SCENARIO'."
         ;;
 esac
+# end scenario DEFINITIONS
 
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
