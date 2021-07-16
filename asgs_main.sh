@@ -1460,6 +1460,7 @@ findAndClearOrphans
 umask $UMASK
 #
 RUNDIR=$SCRATCHDIR/asgs$$
+statusDir=$RUNDIR/status    # used to store instantaneous status files
 #
 # RMQMessaging config
 # this verifies that messages can be constructed.  It is possible
@@ -2500,7 +2501,6 @@ while [ true ]; do
    CURRENT_STATE="WAIT"
    while [ $si -lt $SCENARIOPACKAGESIZE ]; do
       #
-
       #
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
       # source config file to pick up any configuration changes, or any
