@@ -67,13 +67,13 @@ NCPUCAPACITY=9999
 # Post processing and publication
 
 INTENDEDAUDIENCE=general   # can also be "developers-only" or "professional"
+hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Monitoring
- 
-hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
-hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+
 RMQMessaging_Enable="off"
 RMQMessaging_Transmit="off"
 enablePostStatus="yes"
