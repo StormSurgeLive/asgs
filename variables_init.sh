@@ -163,4 +163,15 @@ variables_init()
    notifyNow="no"            # used to limit notification to just the FINISH_INIT hook
 
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
+
+   # RMQMessaging defaults
+   RMQMessaging_Enable="off"   # "on"|"off"
+   RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
+   RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+   RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
+   RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
+   RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
+   namedot=${HPCENVSHORT}.
+   RMQMessaging_LocationName=${HPCENV#$namedot}
+   RMQMessaging_ClusterName=$HPCENVSHORT
 }
