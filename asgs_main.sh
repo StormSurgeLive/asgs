@@ -1349,10 +1349,6 @@ handleFailedJob()
    fi
 }
 
-source variables_init.sh
-source writeProperties.sh
-
-
 #####################################################################
 #                 E N D  F U N C T I O N S
 #####################################################################
@@ -1388,7 +1384,9 @@ STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 
 # set the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
-
+source $SCRIPTDIR/variables_init.sh
+source $SCRIPTDIR/writeProperties.sh
+#
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
