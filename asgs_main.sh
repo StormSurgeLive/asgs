@@ -2151,7 +2151,7 @@ fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
 for script in "${POSTPROCESS[@]}" ; do
-   checkFileExistence $OUTPUTDIR "postprocessing script" ${POSTPROCESS[$script]}
+   checkFileExistence $OUTPUTDIR "postprocessing script" $script
 done
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
