@@ -21,7 +21,7 @@
 #------------------------------------------------------------------------
 #
 THIS="output/transmit_rps.sh"
-#
+
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
@@ -41,11 +41,6 @@ else
    ppid=`ps -o ppid $$ | sed '1d'|  sed -r 's/^ *//g'`
    ppid=`ps -o ppid $ppid | sed '1d'|  sed -r 's/^ *//g'`
 fi
-
-#if [[ $# -eq 1 ]]; then
-#   RUNPROPERTIES=$1
-#   SCENARIODIR=`dirname $RUNPROPERTIES`
-#fi
 
 # this script can be called with just one command line option: the
 # full path to the run.properties file
@@ -67,7 +62,7 @@ export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
 export INSTANCENAME=${properties['instancename']}
 
 # RMQMessageRunProp is in monitoring/logging.sh
-RMQMessageRunProp "$SCENARIODIR"  "$ppid"
+RMQMessageRunProp "$SCENARIODIR" "$ppid"
 
 if [ $? == 0 ] ; then
         date > rps.transmit.succeeded
