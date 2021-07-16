@@ -1,0 +1,163 @@
+#!/bin/bash
+#----------------------------------------------------------------
+# variables_init.sh: Called when ASGS first starts up, to declare
+# and initialize variables.
+#----------------------------------------------------------------
+# Copyright(C) 2021 Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+variables_init()
+{
+# Initialize variables accessed from config.sh to reasonable values
+   HPCENVSHORT=${HPCENVSHORT:-null}
+   HPCENV=${HPCENV:-null}
+   BACKGROUNDMET=on
+   TIDEFAC=off
+   TROPICALCYCLONE=off
+   GET_ATCF_SCRIPT=${GET_ATCF_SCRIPT:-"$SCRIPTDIR/get_atcf.pl"}
+   WAVES=off
+   VARFLUX=off
+   MINMAX=reset
+   REINITIALIZESWAN=no
+   USERIVERFILEONLY=${USERIVERFILEONLY:-no}
+   STORMNAME=${STORMNAME:-stormname}
+   RIVERSITE=${RIVERSITE:-"ftp.nssl.noaa.gov"}
+   RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
+   RIVERUSER=${RIVERUSER:-null}
+   RIVERDATAPROTOCOL=${RIVERDATAPROTOCOL:-null}
+   ELEVSTATIONS=null
+   VELSTATIONS=null
+   METSTATIONS=null
+   GRIDFILE=fort.14
+   GRIDNAME=fort14
+   OUTPUTOPTIONS=
+   ARCHIVEBASE=/dev/null
+   ARCHIVEDIR=null
+   FORECASTCYCLE="00,06,12,18"
+   TRIGGER="rss"
+   LASTADVISORYNUM=0
+   ADVISORY=0
+   FORECASTLENGTH=84
+   ALTNAMDIR=null
+   HOTSTARTCOMP=fulldomain
+   HINDCASTWALLTIME=${HINDCASTWALLTIME:-"10:00:00"}
+   ADCPREPWALLTIME=${ADCPREPWALLTIME:-"00:30:00"}
+   NOWCASTWALLTIME=${NOWCASTWALLTIME:-"02:00:00"}
+   FORECASTWALLTIME=${FORECASTWALLTIME:-"05:00:00"}
+   WALLTIMEFORMAT="hh:mm:ss" # "hh:mm:ss" or "minutes"
+   TIMESTEPSIZE=1.0
+   SWANDT=600
+   UMASK=002
+   GROUP=""
+   STORM=0
+   YEAR=null
+   CSDATE=null
+   HOTORCOLD=coldstart
+   LASTSUBDIR=null
+   FTPSITE=null
+   ADCIRCDIR=${ADCIRCDIR:-null} # will respect ADCIRCDIR if already sent in the environment
+   # if not set, try to set SCRATCHDIR to SCRATCH (if set); otherwise default to "null"
+   # "SCRATCH" is set on TACC platforms in a USER's default environment; init-asgs.sh sets
+   # it for all others to provide some consistency
+   if [ -z "$SCRATCHDIR" ]; then
+     SCRATCHDIR=${SCRATCH:-null}
+   fi
+   MAILINGLIST=null
+   INTENDEDAUDIENCE=${INTENDEDAUDIENCE:-"developers-only"} # "general" | "developers-only" | "professional"
+   QUEUESYS=null
+   QUEUENAME=${QUEUENAME:-null}
+   SERQUEUE=${SERQUEUE:-null}
+   ACCOUNT=${ACCOUNT:-desktop}
+   PPN=${PPN:-1}
+   QCHECKCMD=null
+   NCPU=null
+   JOBTYPE=null
+   NUMWRITERS=0
+   SUBMITSTRING=null
+   NOTIFYUSER=null
+   RUNDIR=${RUNDIR:-null}
+   INPUTDIR=$SCRIPTDIR/input/meshes/null
+   OUTPUTDIR=$SCRIPTDIR/output
+   HOTSTARTFORMAT=null
+   STORMDIR=stormdir
+   SSHKEY=null
+   VELOCITYMULTIPLIER=1.0
+   HOTSWAN=off
+   ONESHOT=no      # yes if ASGS is launched by cron
+   NCPUCAPACITY=2  # total number of CPUs available to run jobs
+   si=0       # scenario index for ; -1 indicates non-forecast
+   STATEFILE=null
+   ENSTORM=hindcast
+   CYCLETIMELIMIT="05:00:00"
+   IMAGEMAGICKBINPATH=null
+   VORTEXMODEL=GAHM
+   STORMTRACKOPTIONS="--strengthPercent null"
+   PSEUDOSTORM=n
+   MESHPROPERTIES=null
+   CONTROLPROPERTIES=null
+   NAPROPERTIES=null
+   EMAILNOTIFY=no # set to yes to have host platform email notifications
+   NOTIFY_SCRIPT=null_notify.sh
+   ACTIVATE_LIST=null
+   NEW_ADVISORY_LIST=null
+   POST_INIT_LIST=null
+   POST_LIST=null
+   JOB_FAILED_LIST=null
+   NOTIFYUSER=null
+   RESERVATION=null # for SLURM
+   CONSTRAINT=null # for SLURM
+   QOS=null
+   PERIODICFLUX=null
+   SPATIALEXTRAPOLATIONRAMP=yes
+   SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
+   STATICOFFSET=null # (m), nonzero assumes unit offset file is available
+   UNITOFFSETFILE=null
+   ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
+   SCENARIOPACKAGESIZE=null
+   # TODO: write all this configuration to the run.properties file
+   declare -a INITPOST=( null_post.sh )
+   declare -a subshellPIDs  # list of process IDs of subshells
+   declare -a logFiles      # list of log files to be tailed onto scenario.log
+   PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
+   # start and finish hooks
+   startFinishHooks=( START_INIT FINISH_INIT EXIT_STAGE )
+   # spinup hooks
+   spinupHooks=( START_SPINUP_STAGE BUILD_SPINUP SUBMIT_SPINUP )
+   spinupHooks+=( FINISH_SPINUP_SCENARIO HOT_SPINUP FINISH_SPINUP_STAGE )
+   # nowcast hooks
+   nowcastHooks=( START_NOWCAST_STAGE NOWCAST_POLLING NOWCAST_TRIGGERED BUILD_NOWCAST_SCENARIO )
+   nowcastHooks+=( SUBMIT_NOWCAST_SCENARIO FINISH_NOWCAST_SCENARIO FINISH_NOWCAST_STAGE )
+   # forecast hooks
+   forecastHooks=( START_FORECAST_STAGE INITIALIZE_FORECAST_SCENARIO CAPACITY_WAIT )
+   forecastHooks+=( BUILD_FORECAST_SCENARIO SUBMIT_FORECAST_SCENARIO FINISH_FORECAST_STAGE )
+   # status properties
+   declare -A hooksTimes    # time each hook is executed
+   declare -A hooksScripts  # space-delimited string of scripts to execute at each hook
+   previousStatusFile="null"
+   latestHook="null"
+   stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
+# RMQMessaging defaults
+   RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"
+   RMQMessaging_Transmit=${RMQMessaging_Transmit:-off} # enables message transmission ("on" | "off")
+   RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+   RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
+   RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
+   RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
+   namedot=${HPCENVSHORT}.
+   RMQMessaging_LocationName=${HPCENV#$namedot}
+   RMQMessaging_ClusterName=$HPCENVSHORT
+}
