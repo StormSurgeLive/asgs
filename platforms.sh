@@ -32,6 +32,9 @@
 #
 # alias lsta='ls -lth *.state | head'
 #
+
+source ${SCRIPTDIR}/monitoring/logging.sh
+
 init_supermike()
 { #<- can replace the following with a custom script
   THIS="platforms.sh>env_dispatch()>init_supermike()"
