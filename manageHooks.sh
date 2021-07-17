@@ -26,7 +26,7 @@ nullifyHooksTimes()
 {
     local THIS="asgs_main->manageHooks->nullifyHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
-    for k in ${initHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]} EXIT_STAGE ; do
+    for k in ${allHooks[@]} ; do
         hooksTimes[$k]="null"
         logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
@@ -38,7 +38,7 @@ nullifyHooksScenarios()
 {
     local THIS="asgs_main->manageHooks->nullifyHooksScenarios()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
-    for k in ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]}  ; do
+    for k in ${allHooks[@]} ; do
         hooksScenarios[$k]="null"
         logMessage "$THIS: Setting hooksScenarios[$k] to ${hooksScenarios[$k]}"
     done
