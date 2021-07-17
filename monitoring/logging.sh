@@ -378,7 +378,7 @@ writeASGSInstanceStatus()
 {
     local THIS="asgs_main->manageHooks.sh->writeASGSInstanceStatus()"
     statfile="$statusDir/asgs.instance.status.properties"
-    jsonfile="$statusDir/asgs.instance.status.json"
+    jsonfile="asgs.instance.status.json"
     logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
     #
     # update time stamp
@@ -386,6 +386,8 @@ writeASGSInstanceStatus()
     echo "time.status.lastupdated : $dateTime" > $statfile  # <--<< OVERWRITE
     echo "status.file.previous : $previousStatusFile" >> $statfile
     echo "status.hook.latest : $latestHook" >> $statfile
+    echo "cycle : $CYCLE" >> $statfile
+    echo "scenario : $SCENARIO" >> $statfile
     # basic asgs configuration
     echo "config.file : $CONFIG" >> $statfile
     echo "instancename : $INSTANCENAME" >> $statfile

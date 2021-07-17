@@ -1365,6 +1365,7 @@ source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
 CURRENT_EVENT="STRT" # used for RMQ messages
 CURRENT_STATE="INIT" # used for RMQ messages
 RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
+SCENARIO="null"
 #
 # Option Summary
 #
@@ -1791,17 +1792,18 @@ executeHookScripts "FINISH_INIT"
 #
 #
 stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
+CYCLE="initialize"
 executeHookScripts "START_SPINUP_STAGE"
 #
 if [[ $START = coldstart ]]; then
+   ENSTORM=hindcast
+   SCENARIO=$ENSTORM
    executeHookScripts "BUILD_SPINUP"
    CURRENT_EVENT="HIND"
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Starting hindcast."
    logMessage "$THIS: Starting hindcast."
    HOTSWAN=off
-   ENSTORM=hindcast
-   SCENARIO=$ENSTORM
    si=-2      # represents a hindcast
    readConfig
    THIS=asgs_main.sh
@@ -1966,6 +1968,7 @@ while [ true ]; do
    THIS="asgs_main.sh"
    #
    stage="NOWCAST"  # modelling phase : SPINUP, NOWCAST, or FORECAST
+   CYCLE="null"     # don't know the cycle until we successfully download it
    executeHookScripts "START_NOWCAST_STAGE"
    #
    CURRENT_EVENT="RSTR"
@@ -2081,12 +2084,12 @@ while [ true ]; do
       downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
       THIS="asgs_main.sh"
       #
-      executeHookScripts "NOWCAST_TRIGGERED"
-      #
       LASTADVISORYNUM=$ADVISORY
       # pull the latest advisory number from the statefile
       logMessage "$ENSTORM: $THIS: Pulling latest advisory number from the state file ${STATEFILE}."
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+      CYCLE=$ADVISORY
+      executeHookScripts "NOWCAST_TRIGGERED"
       ADVISDIR=$RUNDIR/${ADVISORY}
       if [ ! -d $ADVISDIR ]; then
           mkdir $ADVISDIR 2>> ${SYSLOG}
