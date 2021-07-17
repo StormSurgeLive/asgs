@@ -1357,6 +1357,11 @@ handleFailedJob()
       fi
    fi
 }
+source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/platforms.sh       # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/variables_init.sh
+source $SCRIPTDIR/writeProperties.sh
+source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
 
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1393,15 +1398,12 @@ STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 
 # set the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
-source $SCRIPTDIR/variables_init.sh
-source $SCRIPTDIR/writeProperties.sh
+
+variables_init # Initialize variables
 #
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
-#
-# Initialize variables
-variables_init
 #
 while getopts "c:e:s:h" optname; do
    case $optname in
@@ -1422,16 +1424,24 @@ while getopts "c:e:s:h" optname; do
 done
 #
 # determine hpc environment via function from platforms.sh
-source ${SCRIPTDIR}/platforms.sh
+
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
+# RMQMessaging defaults
+RMQMessaging_Enable="off"   # "on"|"off"
+RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
+RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
+RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
+RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
+namedot=${HPCENVSHORT}.
+RMQMessaging_LocationName=${HPCENV#$namedot}
+RMQMessaging_ClusterName=$HPCENVSHORT
+#
 readConfig # now we have the instancename and can name the asgs log file after it
-# set the value of SYSLOG (in monitoring/logging.sh)
-source ${SCRIPTDIR}/monitoring/logging.sh
-setSyslogFileName
-source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
-nullifyHooksTimes      # in manageHooks.sh
+setSyslogFileName  # set the value of SYSLOG in monitoring/logging.sh
+nullifyHooksTimes  # in manageHooks.sh
 #
 executeHookScripts "START_INIT"
 #

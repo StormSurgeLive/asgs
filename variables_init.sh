@@ -129,9 +129,9 @@ variables_init()
    ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
    SCENARIOPACKAGESIZE=null
    # TODO: write all this configuration to the run.properties file
-   declare -a INITPOST=( null_post.sh )
-   declare -a subshellPIDs  # list of process IDs of subshells
-   declare -a logFiles      # list of log files to be tailed onto scenario.log
+   declare -g -a INITPOST=( null_post.sh )
+   declare -g -a subshellPIDs  # list of process IDs of subshells
+   declare -g -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
    # start and finish hooks
    startFinishHooks=( START_INIT FINISH_INIT EXIT_STAGE )
@@ -145,8 +145,8 @@ variables_init()
    forecastHooks=( START_FORECAST_STAGE INITIALIZE_FORECAST_SCENARIO CAPACITY_WAIT )
    forecastHooks+=( BUILD_FORECAST_SCENARIO SUBMIT_FORECAST_SCENARIO FINISH_FORECAST_STAGE )
    # status properties
-   declare -A hooksTimes    # time each hook is executed
-   declare -A hooksScripts  # space-delimited string of scripts to execute at each hook
+   declare -g -A hooksTimes    # time each hook is executed
+   declare -g -A hooksScripts  # space-delimited string of scripts to execute at each hook
    previousStatusFile="null"
    latestHook="null"
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST

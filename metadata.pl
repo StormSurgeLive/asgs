@@ -45,6 +45,7 @@ my %mapping;                # deserialized hash
 my $file_content;           # entire file as slurped
 my $yaml;                   # content as string
 my $jsonify = 0;            # true if run.properties should be converted to scenario.json (overwriting any existing scenario.json)
+my $convertedFileName = "scenario.json"; # default name of converted file (without full path)
 #
 # the following properties from run.properties are deprecated and should
 # not be used or stored in scenario.json
@@ -102,6 +103,7 @@ GetOptions(
            "metadatafile=s" => \$metadatafile,    
            "keys=s" => \$keys,
            "mapsacalar=s" => \$mapscalar,
+           "converted-file-name=s" => \$convertedFileName,
            "jsonify" => \$jsonify           
           );
 # open metadata file
@@ -151,7 +153,7 @@ if ( $type eq ".json" ) {
         }
     }
 #
-#  R U N . P R O P E R T I E S
+#  P R O P E R T I E S
 } elsif ( $type eq ".properties" ) {
     unless (open(RUNPROP,"<$metadatafile")) {
         &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
@@ -179,7 +181,14 @@ if ( $type eq ".json" ) {
         } 
         exit;
     }
-    # convert the run.properties file to scenario.json, creating json arrays
+    # if there are leading and trailing parentheses, add this
+    # to our list of paren properties
+    foreach my $k (keys %properties) {
+       if ( substr($properties{$k},0,1) eq "(" && substr($properties{$k},-1,1) eq ")" ) {
+          push(@paren_properties,$k)
+       }
+    }
+    # convert the properties file to json, creating json arrays
     # and subarrays in the appropriate places 
     if ( $jsonify ) {
         foreach my $pp (@paren_properties) {
@@ -225,7 +234,7 @@ if ( $type eq ".json" ) {
         } 
         $properties{"adcirc.files.output"} = \@outputlist;
         # now encode as json and write out
-        unless ( open(SJ,">$dirpath/scenario.json") ) {
+        unless ( open(SJ,">$dirpath/$convertedFileName") ) {
             &stderrMessage("ERROR","Could not open '$dirpath/scenario.json' for writing: $!.");
         }
         my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
