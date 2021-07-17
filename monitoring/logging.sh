@@ -2,8 +2,8 @@
 #----------------------------------------------------------------
 #
 # logging.sh: This file contains functions required for logging.
-# It is sourced by asgs_main.sh and any other shell script that 
-# requires logging capabilities. 
+# It is sourced by asgs_main.sh and any other shell script that
+# requires logging capabilities.
 #
 #----------------------------------------------------------------
 # Copyright(C) 2012--2019 Jason Fleming
@@ -26,8 +26,8 @@
 #
 # Log file will be in the directory where the asgs was executed
 #
-
-# set up logging so that output from various processes within a scenario 
+#
+# set up logging so that output from various processes within a scenario
 # is also sent to scenario.log file for centralized logging
 initCentralizedScenarioLogging() {
    unset logFiles
@@ -57,14 +57,14 @@ initCentralizedScenarioLogging() {
       # add this process ID to the list of background subshell jobs
       subshellPIDs+=($!)
    done
-   # write the logging PIDs to the run.properties file so they can be 
+   # write the logging PIDs to the run.properties file so they can be
    # cleaned up later
    SUBSHELLPIDSTRING="("
    for string in ${subshellPIDs[*]}; do
       SUBSHELLPIDSTRING="$SUBSHELLPIDSTRING $string"
    done
    SUBSHELLPIDSTRING="$SUBSHELLPIDSTRING )"
-   echo "hpc.job.${JOBTYPE}.subshellpids : $SUBSHELLPIDSTRING" >> $STORMDIR/run.properties   
+   echo "hpc.job.${JOBTYPE}.subshellpids : $SUBSHELLPIDSTRING" >> $STORMDIR/run.properties
 }
 
 # terminate centralized logging subshell processes
@@ -72,13 +72,13 @@ finalizeCentralizedScenarioLogging() {
    unset subshellPIDs
    # grab list of associated subshell PIDs from run.properties file
    declare -a subshellPIDs=`grep hpc.job.$JOBTYPE.subshellpids run.properties | cut -d':' -f 2- | sed -n 's/^\s*//p'`
-   # loop over subshell processes 
+   # loop over subshell processes
    for pid in ${subshellPIDs[*]}; do
       # terminate each one
       echo "Terminating previously spawned subshell process ID ${pid}." | awk -v level=INFO -v this=logging.sh -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
       kill -TERM $pid 2>&1 | awk -v this=logging.sh -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
    done
-   unset subshellPIDs  
+   unset subshellPIDs
 }
 
 # send SIGTERM to tail processes owned by this Operator that are children
@@ -130,8 +130,8 @@ function IncrementNCEPCycle()
 	#echo Next NCEP Cycle = $cy
 }
 
-RMQMessageStartup() 
-{ 
+RMQMessageStartup()
+{
   _CONFIG=$1
   if [[ ${RMQMessaging_Enable} == "on" && -e "${RMQMessaging_StartupScript}" && -e "${_CONFIG}" ]];
   then
@@ -149,7 +149,7 @@ RMQMessageStartup()
 
 # MTYPE EVENT PROCESS STATE MSG PCTCOM
 RMQMessage()
-{ 
+{
   # short circuit if not enabled or start up script is not defined or doesn't exist
   if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_StartupScript}" ]]
   then
@@ -183,13 +183,13 @@ RMQMessage()
 	return
   fi
 
-  re='^[0-9]+([.][0-9]+)?$' 
+  re='^[0-9]+([.][0-9]+)?$'
   if ! [[ $PCTCOM =~ $re ]]
   then
-      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." 
+      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..."
       appMessage "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." $APPLOGFILE
   else
-     printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS} "${MSG}" 
+     printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS} "${MSG}"
 
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
      ${RMQMessaging_Script} \
@@ -214,7 +214,7 @@ RMQMessage()
 
 # send run.properties as a message to the asgs monitor queue
 RMQMessageRunProp()
-{ 
+{
   if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_StartupScript}" ]]
   then
     return
@@ -240,25 +240,25 @@ RMQMessageRunProp()
 
 #  send message when shutting down on INT and clear all processes
 sigint() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..." 
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..."
    allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down."
-   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
    exit 0
 }
 
-#  send message when shutting down on TERM and clear all processes 
+#  send message when shutting down on TERM and clear all processes
 sigterm() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..." 
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..."
    allMessage "Received SIGTERM. Shutting ASGS instance $INSTANCENAME down."
-   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
    exit 0
 }
 
 # send message when shutting down on EXIT and clear all processes
 sigexit() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..." 
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..."
    allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
-   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group 
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
    exit 0
 }
 
@@ -266,7 +266,7 @@ sigexit() {
 setSyslogFileName()
 {
    SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log
-} 
+}
 #
 # write an INFO-level message to the main asgs log file
 logMessage()
@@ -292,7 +292,7 @@ cycleMessage()
 #
 # write an INFO-level message to the cycle (or advisory log file)
 scenarioMessage()
-{ 
+{
   LOGMESSAGE=$1
   EXTRALOGFILE=$2
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -309,7 +309,7 @@ scenarioMessage()
 # but come in very handy for occasional troubleshooting) ... the
 # suggested name of the log file is the script or executable name followed by .log
 appMessage()
-{ 
+{
   LOGMESSAGE=$1
   APPLOGFILE=$2
   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -331,7 +331,7 @@ consoleMessage()
 }
 #
 # send INFO message to main asgs log file, cycle (advisory) log file, as well
-# as scenario log file 
+# as scenario log file
 allMessage()
 {
 #   consoleMessage $@
@@ -352,7 +352,7 @@ warn()
   #echo ${MSG}  # send to console
 }
 #
-# log an error message, notify Operator 
+# log an error message, notify Operator
 error()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] ERROR: $1"
@@ -366,7 +366,7 @@ error()
   # email the operator
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
      echo $MSG | mail -s "[ASGS] Attn: Error for $INSTANCENAME" "${ASGSADMIN}"
-  fi 
+  fi
 }
 #
 # log an error message, execution halts
@@ -394,4 +394,29 @@ debugMessage()
         echo ${MSG} >> $debuglogfile
      fi
   done
+}
+
+#  send message when shutting down on INT and clear all processes
+sigint() {
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..."
+   allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down."
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
+   exit 0
+}
+#
+#  send message when shutting down on TERM and clear all processes
+sigterm() {
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..."
+   allMessage "Received SIGTERM. Shutting ASGS instance $INSTANCENAME down."
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
+   exit 0
+}
+
+#
+# send message when shutting down on EXIT and clear all processes
+sigexit() {
+   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..."
+   allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
+   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
+   exit 0
 }

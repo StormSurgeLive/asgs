@@ -26,9 +26,11 @@ nullifyHooksTimes()
 {
     local THIS="asgs_main->manageHooks->nullifyHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
-    for k in "${startFinishHooks[@]}" "${spinupHooks[@]}" "${nowcastHooks[@]}" "${forecastHooks[@]}"  ; do
-        hooksTimes["$k"]="null"
+    for k in ${startFinishHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]}  ; do
+        hooksTimes[$k]="null"
+        logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
+    logMessage "There are ${#hooksTimes[@]} elements in hooksTimes."
 }
 # nullify just the nowcast and forecast hook times;
 # executed when a new nowcast/forecast cycle starts
@@ -48,7 +50,7 @@ timestampHook()
     local THIS="asgs_main->manageHooks->timestampHook()"
     logMessage "$THIS: Updating timestamp for the $hook hook."
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    if [[ ${hooksTimes[$hook]} = "null" ]]; then
+    if [[ ${hooksTimes[$hook]} == "null" ]]; then
         hooksTimes[$hook]=$dateTime  # nuke out the null entry
     else
         hooksTimes[$hook]+=" $dateTime"
@@ -120,8 +122,8 @@ writeASGSInstanceStatus()
     #
     # write the time value(s) associated with each hook; will be null
     # if that hook has not been reached for this cycle
-    for k in "${!hooksTimes[@]}" ; do
-        echo "time.monitoring.hook.$k : ( $hooksTimes[$k] )" >> $statfile
+    for k in ${!hooksTimes[@]} ; do
+        echo "time.monitoring.hook.$k : ( ${hooksTimes[$k]} )" >> $statfile
     done
     # convert to scenario.json
     $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile
@@ -142,7 +144,9 @@ executeHookScripts()
         writeASGSInstanceStatus
     fi
     for hs in ${hooksScripts[$hook]} ; do
-        logMessage "$THIS: Executing $hook hook script $SCRIPTDIR/$hs."
+        if [[ $hook != "START_INIT" ]]; then
+           logMessage "$THIS: Executing $hook hook script $SCRIPTDIR/$hs."
+	fi
         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
     done
 }
