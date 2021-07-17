@@ -133,8 +133,8 @@ variables_init()
    declare -g -a subshellPIDs  # list of process IDs of subshells
    declare -g -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
-   # start and finish hooks
-   startFinishHooks=( START_INIT FINISH_INIT EXIT_STAGE )
+   # init and exit hooks
+   initHooks=( START_INIT FINISH_INIT )
    # spinup hooks
    spinupHooks=( START_SPINUP_STAGE BUILD_SPINUP SUBMIT_SPINUP )
    spinupHooks+=( FINISH_SPINUP_SCENARIO HOT_SPINUP FINISH_SPINUP_STAGE )
@@ -145,9 +145,13 @@ variables_init()
    forecastHooks=( START_FORECAST_STAGE INITIALIZE_FORECAST_SCENARIO CAPACITY_WAIT )
    forecastHooks+=( BUILD_FORECAST_SCENARIO SUBMIT_FORECAST_SCENARIO FINISH_FORECAST_STAGE )
    # status properties
-   declare -g -A hooksTimes    # time each hook is executed
-   declare -g -A hooksScripts  # space-delimited string of scripts to execute at each hook
+   declare -g -A hooksTimes      # time each hook is executed
+   declare -g -A hooksScenarios  # scenario name in effect when hook was executed
+   declare -g -A hooksScripts    # space-delimited string of scripts to execute at each hook
+   declare -g -a allHooks
+   allHooks=( ${initHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]} EXIT_STAGE )
    previousStatusFile="null"
+   previousHookStatusFile="null"
    latestHook="null"
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 # RMQMessaging defaults

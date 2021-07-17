@@ -26,12 +26,25 @@ nullifyHooksTimes()
 {
     local THIS="asgs_main->manageHooks->nullifyHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
-    for k in ${startFinishHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]}  ; do
+    for k in ${initHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]} EXIT_STAGE ; do
         hooksTimes[$k]="null"
         logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
     logMessage "There are ${#hooksTimes[@]} elements in hooksTimes."
 }
+#
+# Executed upon startup initialization
+nullifyHooksScenarios()
+{
+    local THIS="asgs_main->manageHooks->nullifyHooksScenarios()"
+    logMessage "$THIS: Nullifying the time values associated with each hook."
+    for k in ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]}  ; do
+        hooksScenarios[$k]="null"
+        logMessage "$THIS: Setting hooksScenarios[$k] to ${hooksScenarios[$k]}"
+    done
+    logMessage "There are ${#hooksScenarios[@]} elements in hooksScenarios."
+}
+#
 # nullify just the nowcast and forecast hook times;
 # executed when a new nowcast/forecast cycle starts
 nullifyNowcastForecastHooksTimes()
@@ -53,80 +66,47 @@ timestampHook()
     if [[ ${hooksTimes[$hook]} == "null" ]]; then
         hooksTimes[$hook]=$dateTime  # nuke out the null entry
     else
-        hooksTimes[$hook]+=" $dateTime"
+        hooksTimes[$hook]+=", $dateTime"  # add it to the list
     fi
     latestHook=$hook  # to be written into the status file
-
+    if [[ ${hooksScenarios[$hook]} == "null" ]]; then
+        hooksScenarios[$hook]=$SCENARIO  # nuke out the null entry
+    else
+        hooksScenarios[$hook]+=", $SCENARIO" # add it to the list
+    fi
 }
-# includes asgs configuration that is not expected to vary
-# between scenarios (mesh, machine, operator, config file, etc)
-writeASGSInstanceStatus()
+#
+writeHookStatus()
 {
-    local THIS="asgs_main->monitorinbg/writeStatus.sh->writeASGSInstanceStatus()"
-    statfile="$statusDir/asgs.instance.status.properties"
-    logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
-    #
-    # update time stamp
-    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.status.last.updated : $dateTime" > $statfile  # <--<< OVERWRITE
-    echo "status.file.previous : $previousStatusFile" >> $statfile
-    echo "status.hook.latest : $latestHook" >> $statfile
-    # basic asgs configuration
-    echo "config.file : $CONFIG" >> $statfile
-    echo "instancename : $INSTANCENAME" >> $statfile
-    echo "operator : $operator" >> $statfile
-    echo "adcirc.time.coldstartdate : $CSDATE" >> $statfile
-    echo "path.adcircdir : $ADCIRCDIR" >> $statfile
-    echo "path.scriptdir : $SCRIPTDIR" >> $statfile
-    echo "path.inputdir : $INPUTDIR" >> $statfile
-    echo "path.outputdir : $OUTPUTDIR" >> $statfile
-    echo "path.scratchdir : $SCRATCHDIR" >> $statfile
-    echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $statfile
-    echo "coupling.waves : $WAVES" >> $statfile
-    # static hpc environment properties
-    echo "hpc.hpcenv : $HPCENV" >> $statfile
-    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $statfile
-    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $statfile
-    echo "hpc.job.default.account : $ACCOUNT" >> $statfile
-    echo "hpc.job.default.queuename : $QUEUENAME" >> $statfile
-    echo "hpc.job.default.serqueue : $SERQUEUE" >> $statfile
-    # static input files, templates, and property files
-    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $statfile
-    echo "adcirc.gridname : $GRIDNAME" >> $statfile
-    echo "adcirc.file.input.nafile : $NAFILE" >> $statfile
-    echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $statfile
-    echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $statfile
-    echo "adcirc.file.velstations : $VELSTATIONS" >> $statfile
-    echo "adcirc.file.metstations : $METSTATIONS" >> $statfile
-    # other adcirc specific
-    echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $statfile
-    echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $statfile
-    echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $statfile
-    # notification
-    echo "notification.emailnotify : $EMAILNOTIFY" >> $statfile
-    echo "notification.email.asgsadmin : $ASGSADMIN" >> $statfile
-    # monitoring (includes logging)
-    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $statfile
-    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $statfile
-    # archiving
-    echo "archive.executable.archive : $ARCHIVE" >> $statfile
-    echo "archive.path.archivebase : $ARCHIVEBASE" >> $statfile
-    echo "archive.path.archivedir : $ARCHIVEDIR" >> $statfile
-    # runtime
-    echo "path.rundir : $RUNDIR" >> $statfile
-    # forecast scenario package size
-    echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
-    #
-    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
-    echo "adcirc.version : $ADCIRCVERSION" >> $statfile
+    local THIS="asgs_main->manageHooks.sh->writeHookStatus()"
+    jsonfile="$statusDir/hook.status.json"
+    logMessage "$THIS: Writing status associated with ASGS hooks to $jsonfile."
     #
     # write the time value(s) associated with each hook; will be null
     # if that hook has not been reached for this cycle
-    for k in ${!hooksTimes[@]} ; do
-        echo "time.monitoring.hook.$k : ( ${hooksTimes[$k]} )" >> $statfile
+    echo "{" > $jsonfile # <-<< OVERWRITE
+    for k in ${allHooks[@]} ; do
+        echo "\"monitoring.hook.$k\" : ["              >> $jsonfile
+        echo "    \"time\" : ["                        >> $jsonfile
+        read -a timesarr <<< "${hooksTimes[$k]}"
+        for t in ${timesarr[@]} ; do
+        echo "        \"$t\""                          >> $jsonfile
+        done
+        echo "     ],"                                 >> $jsonfile
+        echo "    \"scenario\" : ["                    >> $jsonfile
+        read -a scenarioarr <<< "${hooksScenarios[$k]}"
+        for s in ${scenarioarr[@]} ; do
+        echo "        \"$s\""                          >> $jsonfile
+        done
+        echo "     ],"                                 >> $jsonfile
+        echo "],"                                      >> $jsonfile
     done
-    # convert to scenario.json
-    $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile
+    # update time stamp
+    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    echo \""time.hook.status.lastupdated\" : \"$dateTime\","      >> $jsonfile
+    echo \""hook.status.file.previous\" : \"$previousStatusFile\"," >> $jsonfile
+    echo \""status.hook.latest\" : \"$latestHook\"" >> $jsonfile
+    echo "}" >> $jsonfile
 }
 #
 # execute hook scripts
@@ -142,11 +122,12 @@ executeHookScripts()
         # (can't write status file immediately for the START_INIT script
         # b/c RUNDIR not established yet)
         writeASGSInstanceStatus
+        writeHookStatus
     fi
     for hs in ${hooksScripts[$hook]} ; do
         if [[ $hook != "START_INIT" ]]; then
            logMessage "$THIS: Executing $hook hook script $SCRIPTDIR/$hs."
-	fi
+	    fi
         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
     done
 }
