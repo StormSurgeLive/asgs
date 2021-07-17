@@ -1430,7 +1430,7 @@ readConfig # now we have the instancename and can name the asgs log file after i
 # set the value of SYSLOG (in monitoring/logging.sh)
 source ${SCRIPTDIR}/monitoring/logging.sh
 setSyslogFileName
-source manageHooks.sh  # depends on monitoring/logging.sh
+source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
 nullifyHooksTimes      # in manageHooks.sh
 #
 executeHookScripts "START_INIT"
@@ -1520,8 +1520,10 @@ else
 fi
 # see if the storm directory already exists in the scratch space
 for dir in $RUNDIR $statusDir ; do
+   allMessage "Making directory $dir"
    if [ ! -d $dir ]; then
-      mkdir -p $dir   fi
+      mkdir -p $dir
+   fi
 done
 
 logMessage                                           "$THIS: The ADCIRC Surge/Spill Guidance System is activated."

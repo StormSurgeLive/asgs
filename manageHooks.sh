@@ -113,7 +113,7 @@ writeASGSInstanceStatus()
     # runtime
     echo "path.rundir : $RUNDIR" >> $statfile
     # forecast scenario package size
-    echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
+    echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
     #
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
