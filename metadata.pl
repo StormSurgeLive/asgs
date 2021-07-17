@@ -235,7 +235,7 @@ if ( $type eq ".json" ) {
         $properties{"adcirc.files.output"} = \@outputlist;
         # now encode as json and write out
         unless ( open(SJ,">$dirpath/$convertedFileName") ) {
-            &stderrMessage("ERROR","Could not open '$dirpath/scenario.json' for writing: $!.");
+            &stderrMessage("ERROR","Could not open '$dirpath/$convertedFileName' for writing: $!.");
         }
         my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
         print SJ $json;

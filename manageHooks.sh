@@ -39,7 +39,7 @@ nullifyHooksScenarios()
     local THIS="asgs_main->manageHooks->nullifyHooksScenarios()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
     for k in ${allHooks[@]} ; do
-        hooksScenarios[$k]="null"
+        hooksScenarios[$k]=\"null\"
         logMessage "$THIS: Setting hooksScenarios[$k] to ${hooksScenarios[$k]}"
     done
     logMessage "There are ${#hooksScenarios[@]} elements in hooksScenarios."
@@ -52,7 +52,7 @@ nullifyNowcastForecastHooksTimes()
     local THIS="asgs_main->manageHooks->nullifyNowcastForecastHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each nowcast and forecast hook."
     for k in "${nowcastHooks[@]}" "${forecastHooks[@]}" ; do
-        hooksTimes["$k"]="null"
+        hooksTimes["$k"]=\"null\"
     done
 }
 #
@@ -64,15 +64,15 @@ timestampHook()
     logMessage "$THIS: Updating timestamp for the $hook hook."
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     if [[ ${hooksTimes[$hook]} == "null" ]]; then
-        hooksTimes[$hook]=$dateTime  # nuke out the null entry
+        hooksTimes[$hook]="\"$dateTime\""  # nuke out the null entry
     else
-        hooksTimes[$hook]+=", $dateTime"  # add it to the list
+        hooksTimes[$hook]+=", \"$dateTime\""  # add it to the list
     fi
     latestHook=$hook  # to be written into the status file
     if [[ ${hooksScenarios[$hook]} == "null" ]]; then
-        hooksScenarios[$hook]=$SCENARIO  # nuke out the null entry
+        hooksScenarios[$hook]=\"$SCENARIO\"  # nuke out the null entry
     else
-        hooksScenarios[$hook]+=", $SCENARIO" # add it to the list
+        hooksScenarios[$hook]+=", \"$SCENARIO\"" # add it to the list
     fi
 }
 #
@@ -86,20 +86,7 @@ writeHookStatus()
     # if that hook has not been reached for this cycle
     echo "{" > $jsonfile # <-<< OVERWRITE
     for k in ${allHooks[@]} ; do
-        echo "\"monitoring.hook.$k\" : ["              >> $jsonfile
-        echo "    \"time\" : ["                        >> $jsonfile
-        read -a timesarr <<< "${hooksTimes[$k]}"
-        for t in ${timesarr[@]} ; do
-        echo "        \"$t\""                          >> $jsonfile
-        done
-        echo "     ],"                                 >> $jsonfile
-        echo "    \"scenario\" : ["                    >> $jsonfile
-        read -a scenarioarr <<< "${hooksScenarios[$k]}"
-        for s in ${scenarioarr[@]} ; do
-        echo "        \"$s\""                          >> $jsonfile
-        done
-        echo "     ],"                                 >> $jsonfile
-        echo "],"                                      >> $jsonfile
+        echo "\"monitoring.hook.$k\" : [ \"time\" : [ ${hooksTimes[$k]} ],  \"scenario\" : [ ${hooksScenarios[$k]} ],  ],"   >> $jsonfile
     done
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -127,7 +114,8 @@ executeHookScripts()
     for hs in ${hooksScripts[$hook]} ; do
         if [[ $hook != "START_INIT" ]]; then
            logMessage "$THIS: Executing $hook hook script $SCRIPTDIR/$hs."
-	    fi
+        fi
         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
     done
 }
+
