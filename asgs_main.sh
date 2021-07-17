@@ -1431,8 +1431,9 @@ RMQMessaging_LocationName=${HPCENV#$namedot}
 RMQMessaging_ClusterName=$HPCENVSHORT
 #
 readConfig # now we have the instancename and can name the asgs log file after it
-setSyslogFileName  # set the value of SYSLOG in monitoring/logging.sh
-nullifyHooksTimes  # in manageHooks.sh
+setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
+nullifyHooksTimes     # in manageHooks.sh
+nullifyHooksScenarios # in manageHooks.sh
 #
 executeHookScripts "START_INIT"
 #

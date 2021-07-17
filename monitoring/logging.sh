@@ -238,30 +238,6 @@ RMQMessageRunProp()
      --output_filename "$RPDIR/run.properties.json" >> ${SYSLOG} 2>&1
 }
 
-#  send message when shutting down on INT and clear all processes
-sigint() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..."
-   allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down."
-   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
-   exit 0
-}
-
-#  send message when shutting down on TERM and clear all processes
-sigterm() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..."
-   allMessage "Received SIGTERM. Shutting ASGS instance $INSTANCENAME down."
-   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
-   exit 0
-}
-
-# send message when shutting down on EXIT and clear all processes
-sigexit() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..."
-   allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
-   trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
-   exit 0
-}
-
 # set the name of the asgs log file
 setSyslogFileName()
 {
@@ -396,6 +372,72 @@ debugMessage()
   done
 }
 
+# includes asgs configuration that is not expected to vary
+# between scenarios (mesh, machine, operator, config file, etc)
+writeASGSInstanceStatus()
+{
+    local THIS="asgs_main->manageHooks.sh->writeASGSInstanceStatus()"
+    statfile="$statusDir/asgs.instance.status.properties"
+    jsonfile="$statusDir/asgs.instance.status.json"
+    logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
+    #
+    # update time stamp
+    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    echo "time.status.lastupdated : $dateTime" > $statfile  # <--<< OVERWRITE
+    echo "status.file.previous : $previousStatusFile" >> $statfile
+    echo "status.hook.latest : $latestHook" >> $statfile
+    # basic asgs configuration
+    echo "config.file : $CONFIG" >> $statfile
+    echo "instancename : $INSTANCENAME" >> $statfile
+    echo "operator : $operator" >> $statfile
+    echo "adcirc.time.coldstartdate : $CSDATE" >> $statfile
+    echo "path.adcircdir : $ADCIRCDIR" >> $statfile
+    echo "path.scriptdir : $SCRIPTDIR" >> $statfile
+    echo "path.inputdir : $INPUTDIR" >> $statfile
+    echo "path.outputdir : $OUTPUTDIR" >> $statfile
+    echo "path.scratchdir : $SCRATCHDIR" >> $statfile
+    echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $statfile
+    echo "coupling.waves : $WAVES" >> $statfile
+    # static hpc environment properties
+    echo "hpc.hpcenv : $HPCENV" >> $statfile
+    echo "hpc.hpcenvshort : $HPCENVSHORT" >> $statfile
+    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $statfile
+    echo "hpc.job.default.account : $ACCOUNT" >> $statfile
+    echo "hpc.job.default.queuename : $QUEUENAME" >> $statfile
+    echo "hpc.job.default.serqueue : $SERQUEUE" >> $statfile
+    # static input files, templates, and property files
+    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $statfile
+    echo "adcirc.gridname : $GRIDNAME" >> $statfile
+    echo "adcirc.file.input.nafile : $NAFILE" >> $statfile
+    echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $statfile
+    echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $statfile
+    echo "adcirc.file.velstations : $VELSTATIONS" >> $statfile
+    echo "adcirc.file.metstations : $METSTATIONS" >> $statfile
+    # other adcirc specific
+    echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $statfile
+    echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $statfile
+    echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $statfile
+    # notification
+    echo "notification.emailnotify : $EMAILNOTIFY" >> $statfile
+    echo "notification.email.asgsadmin : $ASGSADMIN" >> $statfile
+    # monitoring (includes logging)
+    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $statfile
+    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $statfile
+    # archiving
+    echo "archive.executable.archive : $ARCHIVE" >> $statfile
+    echo "archive.path.archivebase : $ARCHIVEBASE" >> $statfile
+    echo "archive.path.archivedir : $ARCHIVEDIR" >> $statfile
+    # runtime
+    echo "path.rundir : $RUNDIR" >> $statfile
+    # forecast scenario package size
+    echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
+    #
+    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
+    echo "adcirc.version : $ADCIRCVERSION" >> $statfile
+    # convert to scenario.json
+    $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile --converted-file-name $jsonfile
+}
+#
 #  send message when shutting down on INT and clear all processes
 sigint() {
    RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..."
