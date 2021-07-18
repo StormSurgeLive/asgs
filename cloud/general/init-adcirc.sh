@@ -273,11 +273,11 @@ fi
 
 # first class ADCIRC related binaries
 ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
-ADCIRC_MAKE_CMD="make $ADCIRC_BINS compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_MAKE_CMD="make $ADCIRC_BINS swan=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} NETCDFROOT=${NETCDFROOT} MACHINENAME=${ASGS_MACHINE_NAME}"
 
-# for building coupled adcswan/padcswan (no netCDF)
+# for building coupled adcswan/padcswan (no netCDF, no 'swan=enable')
 ADCSWAN_BINS="adcswan padcswan"
-ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS SWAN=enable compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
 
 # SWAN related utilities other than adcswan/padcswan
 SWAN_UTIL_BINS="unhcat.exe"
