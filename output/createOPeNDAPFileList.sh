@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
-THIS=output/createOPeNDAPFileList.sh
+THIS=$(basename -- $0)
 # Count command line arguments; use them if provided or use
 # run.properties if not.
 declare -A properties

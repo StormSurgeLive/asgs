@@ -25,7 +25,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------------------
-THIS="output/cpra_postproc/createPPT.sh"
+THIS=$(basename -- $0)
 batchJOBTYPE=cpra.figuregen
 postJOBTYPE=cpra.post
 #

@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------
 #
-THIS=output/includeWind10m.sh
+THIS=$(basename -- $0)
 # Count command line arguments; use them if provided or use 
 # run.properties if not.
 declare -A properties
@@ -70,7 +70,6 @@ source ${SCRIPTDIR}/monitoring/logging.sh
 source ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${HPCENVSHORT}
-THIS=output/includeWind10m.sh
 allMessage "$SCENARIO: $THIS: Starting post processing."
 scenarioMessage "$THIS: SCENARIO=$SCENARIO ; SCENARIODIR=$SCENARIODIR"
 cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not change directory to $SCENARIODIR: `cat $errmsg`"

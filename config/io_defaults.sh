@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-THIS=config/io_defaults.sh
+THIS=$(basename -- $0)
 allMessage "$THIS: Setting default parameters for input/output."
 #
 # water surface elevation station output

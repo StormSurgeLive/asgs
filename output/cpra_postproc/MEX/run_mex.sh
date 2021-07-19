@@ -5,7 +5,7 @@
 # the specified command.
 #--------------------------------------------------------------------------
 #
-THIS=output/cpra_postproc/MEX/run_mex.sh
+THIS=$(basename -- $0)
 # give usage statement and exit if there are no command line options 
 if [[ $# -lt 1 ]]; then
   echo "$THIS: Usage:"
