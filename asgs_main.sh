@@ -2499,7 +2499,7 @@ while [ true ]; do
    CURRENT_STATE="WAIT"
    while [ $si -lt $SCENARIOPACKAGESIZE ]; do
       #
-      executeHookScripts "INITIALIZE_FORECAST_SCENARIO"
+
       #
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
       # source config file to pick up any configuration changes, or any
@@ -2508,6 +2508,8 @@ while [ true ]; do
       ENSTORM=forecast
       # grab the config specified by the operator
       readConfig
+      SCENARIO=$ENSTORM
+      executeHookScripts "INITIALIZE_FORECAST_SCENARIO" # now that we know the name of the scenario
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file
@@ -2881,11 +2883,14 @@ while [ true ]; do
    THIS="asgs_main.sh"
    # allow all scenarios and associated post processing to complete
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All scenario members have been submitted."
-   logMessage "$ENSTORM: $THIS: All scenarios have been submitted."
+   logMessage "$ENSTORM: $THIS: All forecast scenarios have been submitted."
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
    #
    executeHookScripts "FINISH_FORECAST_STAGE"
+   previousHookStatusFile=${ADVISORY}.hook.status.json
+   mv $RUNDIR/status/hook.status.json $RUNDIR/status/$previousHookStatusFile 2>> $SYSLOG
+   nullifyNowcastForecastHooks # clears out the timestamps and statuses of these hooks
    #
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes
