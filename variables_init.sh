@@ -143,7 +143,6 @@ variables_init()
    forecastHooks+=( BUILD_FORECAST_SCENARIO SUBMIT_FORECAST_SCENARIO FINISH_FORECAST_STAGE )
    # status properties
    declare -g -A hooksTimes      # time each hook is executed
-   declare -g -A hooksScenarios  # scenario name in effect when hook was executed
    declare -g -A hooksScripts    # space-delimited string of scripts to execute at each hook
    declare -g -a allHooks
    allHooks=( ${initHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]} EXIT_STAGE )
