@@ -30,7 +30,6 @@ nullifyHooks()
         hooksTimes[$k]='"null"'
         logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
-    logMessage "There are ${#hooksTimes[@]} elements in hooksTimes."
 }
 #
 # nullify just the nowcast and forecast hook times;
