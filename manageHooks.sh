@@ -40,6 +40,7 @@ nullifyNowcastForecastHooks()
     logMessage "$THIS: Nullifying the time values associated with each nowcast and forecast hook."
     for k in "${nowcastHooks[@]}" "${forecastHooks[@]}" ; do
         hooksTimes["$k"]='"null"'
+        logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
 }
 #
@@ -52,36 +53,36 @@ timestampHook()
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     status="null"
     statusURL="null"
-    case ${hooksTimes[$hook]} in
+    case $hook in
     "START_INIT")
-        mypath=$SCRIPTDIR
+        mypath="null"
         ;;
     "FINISH_INIT")
-        mypath=$RUNDIR
+        mypath="status"
         ;;
     "START_SPINUP_STAGE"|"HOT_SPINUP"|"FINISH_SPINUP_STAGE")
-        mypath=$RUNDIR/initialize
+        mypath="initialize"
         ;;
     "BUILD_SPINUP"|"SUBMIT_SPINUP"|"FINISH_SPINUP_SCENARIO")
-        mypath=$RUNDIR/initialize/hindcast
+        mypath="initialize/hindcast"
         ;;
     "START_NOWCAST_STAGE"|"NOWCAST_POLLING")
-        mypath=$RUNDIR
+        mypath="status"
         ;;
     "NOWCAST_TRIGGERED"|"BUILD_NOWCAST_SCENARIO"|"SUBMIT_NOWCAST_SCENARIO"|"FINISH_NOWCAST_SCENARIO")
-        mypath=$RUNDIR/$ADVISORY/nowcast
+        mypath="$ADVISORY/nowcast"
         ;;
     "FINISH_NOWCAST_STAGE"|"START_FORECAST_STAGE")
-        mypath=$RUNDIR/$ADVISORY
+        mypath="$ADVISORY"
         ;;
     "INITIALIZE_FORECAST_SCENARIO"|"CAPACITY_WAIT"|"BUILD_FORECAST_SCENARIO"|"SUBMIT_FORECAST_SCENARIO")
-        mypath=$RUNDIR/$ADVISORY/$SCENARIO
+        mypath=$ADVISORY/$SCENARIO
         ;;
     "FINISH_FORECAST_STAGE")
-        mypath=$RUNDIR/$ADVISORY
+        mypath=$ADVISORY
         ;;
     "EXIT_STAGE")
-        mypath=$RUNDIR
+        mypath="status"
         ;;
     *)
         warn "$THIS: Unrecognized hook ${hooksTimes[$hook]}."
@@ -92,11 +93,21 @@ timestampHook()
     if [[ -e $mypath/status.json ]]; then
         status=$mypath/status.json
     fi
-    json="[ \"time\" : \"$dateTime\",  \"path\" : \"$mypath\", \"statusfile\" : \"$status\", \"statusURL\" : \"$statusURL\"  ]"
+    json="{ \"time\" : \"$dateTime\", \"path\" : \"$mypath\", \"statusfile\" : \"$status\", \"statusURL\" : \"$statusURL\" }"
+    # determine number of spaces required to get the status objects to line up
+    longestHookKey=0
+    for h in ${allHooks[@]} ; do
+        if [[ ${#h} -gt $longestHookKey ]]; then longestHookKey=${#h} ; fi
+    done
+    len=$[ 11 + $longestHookKey ]
     if [[ ${hooksTimes[$hook]} == '"null"' ]]; then
-        hooksTimes[$hook]=$json   # nuke out the null entry
+        firstlen=$[ $longestHookKey - ${#hook} ]
+        printf -v spaces "%*s%s" $firstlen " "
+        if [[ ${#hook} -eq $longestHookKey ]]; then spaces="" ; fi
+        hooksTimes[$hook]="$spaces$json"   # nuke out the null entry
     else
-        hooksTimes[$hook]+=", $json"  # add it to the list
+        printf -v spaces "%*s%s" $len " "
+        hooksTimes[$hook]+=",\n$spaces$json"  # add it to the list
     fi
     latestHook=$hook  # to be written into the status file
 }
@@ -110,13 +121,27 @@ writeHookStatus()
     # write the time value(s) associated with each hook; will be null
     # if that hook has not been reached for this cycle
     echo "{" > $jsonfile # <-<< OVERWRITE
+    echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
+    echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
+    echo \""path.rundir\" : \"$RUNDIR\"," >> $jsonfile
+    echo \""config.file\" : \"$CONFIG\"," >> $jsonfile
+    echo \""path.scriptdir\" : \"$SCRIPTDIR\"," >> $jsonfile
+    echo "\"monitoring.hook\" : {" >> $jsonfile
     for k in ${allHooks[@]} ; do
-        echo "\"monitoring.hook.$k\" : $hooksTimes[$k]," >> $jsonfile
+        comma="," ; if [[ $k == "EXIT_STAGE" ]]; then comma="" ; fi
+        if [[ ${hooksTimes[$k]} != '"null"' ]]; then  
+            echo -n "    \"$k\" : [ "           >> $jsonfile
+            echo -e "${hooksTimes[$k]} ]$comma" >> $jsonfile
+        else
+            json="    \"$k\" : [ { \"time\" : \"null\",  \"path\" : \"null\", \"statusfile\" : \"null\", \"statusURL\" : \"null\" } ]$comma"
+            echo "$json" >> $jsonfile
+        fi
     done
+    echo "}," >> $jsonfile
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo \""time.hook.status.lastupdated\" : \"$dateTime\","      >> $jsonfile
-    echo \""hook.status.file.previous\" : \"$previousStatusFile\"," >> $jsonfile
+    echo \""hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
     echo \""status.hook.latest\" : \"$latestHook\"" >> $jsonfile
     echo "}" >> $jsonfile
 }
