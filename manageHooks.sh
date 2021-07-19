@@ -22,37 +22,24 @@
 #----------------------------------------------------------------
 #
 # Executed upon startup initialization
-nullifyHooksTimes()
+nullifyHooks()
 {
     local THIS="asgs_main->manageHooks->nullifyHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
     for k in ${allHooks[@]} ; do
-        hooksTimes[$k]="null"
+        hooksTimes[$k]='"null"'
         logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
-    logMessage "There are ${#hooksTimes[@]} elements in hooksTimes."
-}
-#
-# Executed upon startup initialization
-nullifyHooksScenarios()
-{
-    local THIS="asgs_main->manageHooks->nullifyHooksScenarios()"
-    logMessage "$THIS: Nullifying the time values associated with each hook."
-    for k in ${allHooks[@]} ; do
-        hooksScenarios[$k]=\"null\"
-        logMessage "$THIS: Setting hooksScenarios[$k] to ${hooksScenarios[$k]}"
-    done
-    logMessage "There are ${#hooksScenarios[@]} elements in hooksScenarios."
 }
 #
 # nullify just the nowcast and forecast hook times;
 # executed when a new nowcast/forecast cycle starts
-nullifyNowcastForecastHooksTimes()
+nullifyNowcastForecastHooks()
 {
     local THIS="asgs_main->manageHooks->nullifyNowcastForecastHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each nowcast and forecast hook."
     for k in "${nowcastHooks[@]}" "${forecastHooks[@]}" ; do
-        hooksTimes["$k"]=\"null\"
+        hooksTimes["$k"]='"null"'
     done
 }
 #
@@ -63,17 +50,55 @@ timestampHook()
     local THIS="asgs_main->manageHooks->timestampHook()"
     logMessage "$THIS: Updating timestamp for the $hook hook."
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    if [[ ${hooksTimes[$hook]} == "null" ]]; then
-        hooksTimes[$hook]="\"$dateTime\""  # nuke out the null entry
+    status="null"
+    statusURL="null"
+    case ${hooksTimes[$hook]} in
+    "START_INIT")
+        mypath=$SCRIPTDIR
+        ;;
+    "FINISH_INIT")
+        mypath=$RUNDIR
+        ;;
+    "START_SPINUP_STAGE"|"HOT_SPINUP"|"FINISH_SPINUP_STAGE")
+        mypath=$RUNDIR/initialize
+        ;;
+    "BUILD_SPINUP"|"SUBMIT_SPINUP"|"FINISH_SPINUP_SCENARIO")
+        mypath=$RUNDIR/initialize/hindcast
+        ;;
+    "START_NOWCAST_STAGE"|"NOWCAST_POLLING")
+        mypath=$RUNDIR
+        ;;
+    "NOWCAST_TRIGGERED"|"BUILD_NOWCAST_SCENARIO"|"SUBMIT_NOWCAST_SCENARIO"|"FINISH_NOWCAST_SCENARIO")
+        mypath=$RUNDIR/$ADVISORY/nowcast
+        ;;
+    "FINISH_NOWCAST_STAGE"|"START_FORECAST_STAGE")
+        mypath=$RUNDIR/$ADVISORY
+        ;;
+    "INITIALIZE_FORECAST_SCENARIO"|"CAPACITY_WAIT"|"BUILD_FORECAST_SCENARIO"|"SUBMIT_FORECAST_SCENARIO")
+        mypath=$RUNDIR/$ADVISORY/$SCENARIO
+        ;;
+    "FINISH_FORECAST_STAGE")
+        mypath=$RUNDIR/$ADVISORY
+        ;;
+    "EXIT_STAGE")
+        mypath=$RUNDIR
+        ;;
+    *)
+        warn "$THIS: Unrecognized hook ${hooksTimes[$hook]}."
+        ;;
+    esac
+    # TODO: go to that directory and get the statusURL from the status.json file
+    # and put the statusURL into this status.json file
+    if [[ -e $mypath/status.json ]]; then
+        status=$mypath/status.json
+    fi
+    json="[ \"time\" : \"$dateTime\",  \"path\" : \"$mypath\", \"statusfile\" : \"$status\", \"statusURL\" : \"$statusURL\"  ]"
+    if [[ ${hooksTimes[$hook]} == '"null"' ]]; then
+        hooksTimes[$hook]=$json   # nuke out the null entry
     else
-        hooksTimes[$hook]+=", \"$dateTime\""  # add it to the list
+        hooksTimes[$hook]+=", $json"  # add it to the list
     fi
     latestHook=$hook  # to be written into the status file
-    if [[ ${hooksScenarios[$hook]} == "null" ]]; then
-        hooksScenarios[$hook]=\"$SCENARIO\"  # nuke out the null entry
-    else
-        hooksScenarios[$hook]+=", \"$SCENARIO\"" # add it to the list
-    fi
 }
 #
 writeHookStatus()
@@ -86,7 +111,7 @@ writeHookStatus()
     # if that hook has not been reached for this cycle
     echo "{" > $jsonfile # <-<< OVERWRITE
     for k in ${allHooks[@]} ; do
-        echo "\"monitoring.hook.$k\" : [ \"time\" : [ ${hooksTimes[$k]} ],  \"scenario\" : [ ${hooksScenarios[$k]} ],  ],"   >> $jsonfile
+        echo "\"monitoring.hook.$k\" : $hooksTimes[$k]," >> $jsonfile
     done
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -118,4 +143,3 @@ executeHookScripts()
         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
     done
 }
-
