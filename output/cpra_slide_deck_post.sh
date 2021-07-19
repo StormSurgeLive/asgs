@@ -36,7 +36,7 @@
 #                        S E T U P 
 #--------------------------------------------------------------------------
 umask 002
-THIS="output/cpra_slide_deck_post.sh"
+THIS=$(basename -- $0)
 batchJOBTYPE=cpra.figuregen
 postJOBTYPE=cpra.post
 # SCENARIODIR: path where this ensemble member is supposed to run 

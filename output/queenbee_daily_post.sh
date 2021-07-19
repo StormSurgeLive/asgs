@@ -38,7 +38,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
-THIS=queenbee_daily_post.sh
+THIS=$(basename -- $0)
 # get the forecast ensemble member number for use in CERA load balancing
 # as well as picking up any bespoke configuration for this ensemble
 # member in the configuration files

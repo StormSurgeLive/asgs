@@ -36,7 +36,7 @@ OUTPUTDIR=${11}
 SYSLOG=${12}
 SSHKEY=${13}
 #
-THIS=ut-post2017.sh
+THIS=$(basename -- $0)
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
 # get the forecast ensemble member number for use in CERA load balancing
