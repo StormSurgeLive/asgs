@@ -2,7 +2,7 @@
 ! gfortran -g -O0 -Wall -ffree-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -o eddyvis.x -I/home/jason/asgs/trunk/output -I/usr/include  eddyvis.f90  -lnetcdff
 !
 ! Example of compiling with gfortran with optimization turned on:
-! gfortran -O3 -ffree-line-length-none -o submergence_eddyvis.x -I/home/jason/asgs/trunk/output -I/usr/include eddyvis.f90 -lnetcdff
+! gfortran -O2 -ffree-line-length-none -o submergence_eddyvis.x -I/home/jason/asgs/trunk/output -I/usr/include eddyvis.f90 -lnetcdff
 !
 include 'adcmesh.f90'
 include 'nodalattr.f90'

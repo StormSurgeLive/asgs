@@ -113,10 +113,10 @@ endif
 # wLDFLAGS has the directory/name of the library
 
 ifeq ($(notdir $(CC)),gcc)
-   wCPPFLAGS+=-Wall -Wmissing-prototypes -Wold-style-definition -ffast-math  -O3 -g
+   wCPPFLAGS+=-Wall -Wmissing-prototypes -Wold-style-definition -ffast-math  -O2 -g
 endif
 ifeq ($(notdir $(CC)),opencc)
-   wCPPFLAGS+=-O3 -Wall -ffast-math -opencc
+   wCPPFLAGS+=-O2 -Wall -ffast-math -opencc
 endif
 ifeq ($(notdir $(CC)),icc)
    wCPPFLAGS+=-O2
@@ -127,11 +127,11 @@ ifeq ($(notdir $(CC)),pgcc)
    $(error ERROR, makefile does not make jasper correctly with portland compiler)
 endif
 ifeq ($(notdir $(CC)),xlc_r)
-   wCPPFLAGS+=-O3
+   wCPPFLAGS+=-O2
 endif
 
 ifndef wCPPFLAGS
-   wCPPFLAGS+=-O3
+   wCPPFLAGS+=-O2
 endif
 
 wLDFLAGS:=
