@@ -129,7 +129,7 @@ writeHookStatus()
     echo "\"monitoring.hook\" : {" >> $jsonfile
     for k in ${allHooks[@]} ; do
         comma="," ; if [[ $k == "EXIT_STAGE" ]]; then comma="" ; fi
-        if [[ ${hooksTimes[$k]} != '"null"' ]]; then  
+        if [[ ${hooksTimes[$k]} != '"null"' ]]; then
             echo -n "    \"$k\" : [ "           >> $jsonfile
             echo -e "${hooksTimes[$k]} ]$comma" >> $jsonfile
         else
@@ -140,12 +140,14 @@ writeHookStatus()
     echo "}," >> $jsonfile
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo \""time.hook.status.lastupdated\" : \"$dateTime\","      >> $jsonfile
-    echo \""hook.status.url\" : \"$hookStatusURL\"," >> $jsonfile
+    echo \""asgs.instance.status.file\" : \"asgs.instance.status.json\"," >> $jsonfile
+    echo \""asgs.instance.status.url\" : \"null\","                >> $jsonfile
+    echo \""time.hook.status.lastupdated\" : \"null\","            >> $jsonfile
+    echo \""hook.status.url\" : \"$hookStatusURL\","                    >> $jsonfile
     echo \""hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
-    echo \""hook.status.url.previous\" : \"$previousHookStatusURL\"," >> $jsonfile
-    echo \""hook.status.latest\" : \"$latestHook\"" >> $jsonfile
-    echo "}" >> $jsonfile
+    echo \""hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
+    echo \""hook.status.latest\" : \"$latestHook\""                     >> $jsonfile
+    echo "}"                                                            >> $jsonfile
 }
 #
 # execute hook scripts
@@ -169,4 +171,9 @@ executeHookScripts()
         fi
         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
     done
+    if [[ $hook == "FINISH_FORECAST_STAGE" ]]; then
+        previousHookStatusFile=${ADVISORY}.hook.status.json
+        mv $RUNDIR/status/hook.status.json $RUNDIR/status/$previousHookStatusFile 2>> $SYSLOG
+        nullifyNowcastForecastHooks # clears out the timestamps and statuses of these hooks
+    fi
 }

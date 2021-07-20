@@ -154,6 +154,7 @@ variables_init()
    hookStatusURL="null"
    previousHookStatusURL="null"
    latestHook="null"
+   statusNotify="null"
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 # RMQMessaging defaults
    RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"

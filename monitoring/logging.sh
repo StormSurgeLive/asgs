@@ -394,10 +394,6 @@ writeASGSInstanceStatus()
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "time.status.lastupdated : $dateTime" > $statfile  # <--<< OVERWRITE
-    echo "status.file.previous : $previousStatusFile" >> $statfile
-    echo "status.hook.latest : $latestHook" >> $statfile
-    echo "cycle : $CYCLE" >> $statfile
-    echo "scenario : $SCENARIO" >> $statfile
     # basic asgs configuration
     echo "config.file : $CONFIG" >> $statfile
     echo "instancename : $INSTANCENAME" >> $statfile
@@ -409,6 +405,8 @@ writeASGSInstanceStatus()
     echo "path.outputdir : $OUTPUTDIR" >> $statfile
     echo "path.scratchdir : $SCRATCHDIR" >> $statfile
     echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $statfile
+    echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $statfile
+    echo "forcing.backgroundmet : $BACKGROUNDMET" >> $statfile
     echo "coupling.waves : $WAVES" >> $statfile
     # static hpc environment properties
     echo "hpc.hpcenv : $HPCENV" >> $statfile
@@ -432,6 +430,7 @@ writeASGSInstanceStatus()
     # notification
     echo "notification.emailnotify : $EMAILNOTIFY" >> $statfile
     echo "notification.email.asgsadmin : $ASGSADMIN" >> $statfile
+    echo "intendedAudience : $INTENDEDAUDIENCE" >> $statfile
     # monitoring (includes logging)
     echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $statfile
     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $statfile
@@ -441,6 +440,25 @@ writeASGSInstanceStatus()
     echo "archive.path.archivedir : $ARCHIVEDIR" >> $statfile
     # runtime
     echo "path.rundir : $RUNDIR" >> $statfile
+    echo "path.statusdir : $RUNDIR/status" >> $statfile
+    echo "path.lastsubdir : $LASTSUBDIR" >> $statfile
+    echo "asgs.instance.status.url : TODO" >> $statfile
+    echo "hook.status.url : TODO" >> $statfile
+    echo "hook.status.url.previous : TODO" >> $statfile
+    echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
+    echo "post.opendap.target : $TARGET" >> $statfile
+    echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
+    echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
+    echo "post.opendap.files : ( asgs.instance.status.json hook.status.json $previousHookStatusFile $SYSLOG )" >> $statfile
+    echo "status.file.previous : $previousStatusFile" >> $statfile
+    echo "status.hook.latest : $latestHook" >> $statfile
+    echo "monitoring.logging.file.syslog : $SYSLOG" >> $statfile   # for use in opendap_post.sh
+    echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post.sh
+    echo "monitoring.logging.file.scenariolog : null" >> $statfile # for use in opendap_post.sh
+    echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post.sh
+    echo "path.advisdir : null" >> $statfile             # for use in opendap_post.sh
+    echo "advisory : null" >> $statfile                  # for use in opendap_post.sh
+    echo "InitialHotStartTime : null" >> $statfile       # for use in opendap_post.sh
     # forecast scenario package size
     echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
     #
