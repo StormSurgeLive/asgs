@@ -2880,9 +2880,6 @@ while [ true ]; do
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
    #
    executeHookScripts "FINISH_FORECAST_STAGE"
-   previousHookStatusFile=${ADVISORY}.hook.status.json
-   mv $RUNDIR/status/hook.status.json $RUNDIR/status/$previousHookStatusFile 2>> $SYSLOG
-   nullifyNowcastForecastHooks # clears out the timestamps and statuses of these hooks
    #
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes
