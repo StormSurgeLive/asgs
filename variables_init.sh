@@ -151,5 +151,6 @@ variables_init()
    hookStatusURL="null"
    previousHookStatusURL="null"
    latestHook="null"
+   statusNotify="null"
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 }
