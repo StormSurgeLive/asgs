@@ -118,6 +118,7 @@ for server in ${SERVERS[*]}; do
    writeTDSProperties $server  # this writes to a local run.properties file
    if [[ $SCENARIO == "asgs.instance.status" ]]; then
       cat run.properties >> $RUNPROPERTIES
+      rm run.properties # so we don't keep appending to it
       $SCRIPTDIR/metadata.pl --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json
    fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
@@ -159,6 +160,7 @@ for server in ${SERVERS[*]}; do
       YEAR=${COLDSTARTDATE:0:4}
       STORMNAMEPATH=$YEAR/status
       OPENDAPSUFFIX=$HPCENV/$INSTANCENAME
+      enableStatusNotify=${properties["notification.opendap.email.enable"]}
    else
       OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
    fi
@@ -251,19 +253,27 @@ for server in ${SERVERS[*]}; do
    subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
    if [[ "$SCENARIO" == "asgs.instance.status" ]]; then
+      logfile=`basename $SYSLOG`
+      subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
+      echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
 The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
 
 The instance status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
 The hook status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+The log file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 or wget the file with the following commands
 
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 END
+      if [[ $enableStatusNotify == "no" ]]; then
+          opendapEmailSent=yes # this will prevent this script from sending the notification email
+      fi
       $SCRIPTDIR/metadata.pl --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt

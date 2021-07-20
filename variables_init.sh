@@ -133,6 +133,9 @@ variables_init()
    declare -g -a subshellPIDs  # list of process IDs of subshells
    declare -g -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
+   #
+   #  H O O K S
+   # 
    # init and exit hooks
    initHooks=( START_INIT FINISH_INIT )
    # spinup hooks
@@ -154,7 +157,11 @@ variables_init()
    hookStatusURL="null"
    previousHookStatusURL="null"
    latestHook="null"
-   statusNotify="null"
+   enablePostStatus="no"     # yes if asgs instance status should be posted to local opendap
+   enableStatusNotify="no"   # turn asgs instance status notification on and off
+   statusNotify="null"       # comma separated list of email addresses
+   notifyNow="no"            # used to limit notification to just the FINISH_INIT hook
+
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 # RMQMessaging defaults
    RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"

@@ -63,12 +63,13 @@ my @deprecated_properties = qw( forecast.ensemblesize asgs.path.fromdir
 # run.properties file with ( ) and should be stored as an array in json
 # e.g.:
 # post.executable.postprocess : (  createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-my @paren_properties = qw ( post.executable.postprocess post.opendap.tds 
-   hpc.job.padcswan.jobenv hpc.job.prep15.jobenv hpc.job.prep15.subshellpids
-   hpc.job.prep15.nodelist hpc.job.padcswan.jobenv hpc.job.padcswan.subshellpids 
-   hpc.job.padcswan.nodelist post.opendap.files post.opendap.lsu_tds.linkablehosts
-   post.opendap.lsu_tds.copyablehosts
-);
+my @paren_properties; 
+# = qw ( post.executable.postprocess post.opendap.tds 
+#   hpc.job.padcswan.jobenv hpc.job.prep15.jobenv hpc.job.prep15.subshellpids
+#   hpc.job.prep15.nodelist hpc.job.padcswan.jobenv hpc.job.padcswan.subshellpids 
+#   hpc.job.padcswan.nodelist post.opendap.files post.opendap.lsu_tds.linkablehosts
+#   post.opendap.lsu_tds.copyablehosts
+#);
 # the following properties from run.properties are array valued and designated
 # in run.properties as comma separated and should be stored as an array in json
 my @comma_properties = qw( notification.email.activate_list

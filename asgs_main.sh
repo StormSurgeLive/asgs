@@ -2170,7 +2170,7 @@ while [ true ]; do
          ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
-         executeHookScripts "NOWCAST_TRIGGERED"
+         executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
          ADVISDIR=$RUNDIR/${ADVISORY}
          CYCLEDIR=$ADVISDIR
          CYCLELOG=$CYCLEDIR/cycle.log
