@@ -329,13 +329,13 @@ END
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
             # this operation is expected to fail on the top level directory
-            # (the year) on most (but not all) thredds servers, so only need 
-            # to try this once on the top level directory 
-            # to avoid filling log files with unhelpful and somewhat 
+            # (the year) on most (but not all) thredds servers, so only need
+            # to try this once on the top level directory
+            # to avoid filling log files with unhelpful and somewhat
             # alarming error messages
             if [[ `basename $partialPath` == $YEAR || `basename $partialPath` == "nam" ]]; then
                 # avoid retrying and associated log messages
-                retry=$timeoutRetryLimit   
+                retry=$timeoutRetryLimit
             fi
             ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
