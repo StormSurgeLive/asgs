@@ -376,7 +376,7 @@ debugMessage()
 # between scenarios (mesh, machine, operator, config file, etc)
 writeASGSInstanceStatus()
 {
-    local THIS="asgs_main->manageHooks.sh->writeASGSInstanceStatus()"
+    local THIS="asgs_main->monitoring/logging.sh->writeASGSInstanceStatus()"
     statfile="$statusDir/asgs.instance.status.properties"
     jsonfile="asgs.instance.status.json"
     logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
@@ -436,15 +436,20 @@ writeASGSInstanceStatus()
     echo "hook.status.url : TODO" >> $statfile
     echo "hook.status.url.previous : TODO" >> $statfile
     echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
-    echo "post.opendap.target : $TARGET" >> $statfile
+    echo "post.opendap.target : $TARGET" >> $statfile # not sure this is still used
     echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
     echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
-    echo "post.opendap.files : ( asgs.instance.status.json hook.status.json $previousHookStatusFile $SYSLOG )" >> $statfile
+    echo "notification.opendap.email.enable : $notifyNow" >> $statfile
+    statusFiles="asgs.instance.status.json hook.status.json $SYSLOG" 
+    if [[ $previousHookStatusFile != "null" ]]; then 
+        statusFiles+=" $previousHookStatusFile" 
+    fi
+    echo "post.opendap.files : ( $statusFiles )" >> $statfile
     echo "status.file.previous : $previousStatusFile" >> $statfile
     echo "status.hook.latest : $latestHook" >> $statfile
     echo "monitoring.logging.file.syslog : $SYSLOG" >> $statfile   # for use in opendap_post.sh
     echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post.sh
-    echo "monitoring.logging.file.scenariolog : null" >> $statfile # for use in opendap_post.sh
+    echo "monitoring.logging.file.scenariolog : asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
     echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post.sh
     echo "path.advisdir : null" >> $statfile             # for use in opendap_post.sh
     echo "advisory : null" >> $statfile                  # for use in opendap_post.sh
@@ -456,6 +461,14 @@ writeASGSInstanceStatus()
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
     # convert to scenario.json
     $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile --converted-file-name $jsonfile
+}
+#
+# post the asgs instance status and hook status files to opendap
+postStatus() {
+    local THIS="asgs_main->monitoring/logging.sh->postStatus()"
+    statfile="$statusDir/asgs.instance.status.properties"
+    logMessage "$THIS: Posting status associated with ASGS configuration and hooks in $statfile to opendap."
+    $SCRIPTDIR/output/opendap_post.sh $statfile
 }
 #
 #  send message when shutting down on INT and clear all processes

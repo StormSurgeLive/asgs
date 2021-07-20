@@ -162,8 +162,16 @@ executeHookScripts()
         # wants to post the status file somewhere
         # (can't write status file immediately for the START_INIT script
         # b/c RUNDIR not established yet)
+        if [[ $hook == "FINISH_INIT" ]]; then
+            notifyNow=$enableStatusNotify
+        else
+            notifyNow="no"
+        fi
         writeASGSInstanceStatus
         writeHookStatus
+        if [[ $enablePostStatus == "yes" ]]; then
+            postStatus
+        fi
     fi
     for hs in ${hooksScripts[$hook]} ; do
         if [[ $hook != "START_INIT" ]]; then
