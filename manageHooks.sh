@@ -141,8 +141,10 @@ writeHookStatus()
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo \""time.hook.status.lastupdated\" : \"$dateTime\","      >> $jsonfile
+    echo \""hook.status.url\" : \"$hookStatusURL\"," >> $jsonfile
     echo \""hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
-    echo \""status.hook.latest\" : \"$latestHook\"" >> $jsonfile
+    echo \""hook.status.url.previous\" : \"$previousHookStatusURL\"," >> $jsonfile
+    echo \""hook.status.latest\" : \"$latestHook\"" >> $jsonfile
     echo "}" >> $jsonfile
 }
 #

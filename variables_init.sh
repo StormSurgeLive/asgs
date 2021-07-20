@@ -151,6 +151,8 @@ variables_init()
    allHooks=( ${initHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]} EXIT_STAGE )
    previousStatusFile="null"
    previousHookStatusFile="null"
+   hookStatusURL="null"
+   previousHookStatusURL="null"
    latestHook="null"
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 # RMQMessaging defaults
