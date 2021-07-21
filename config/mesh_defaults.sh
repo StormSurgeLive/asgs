@@ -90,6 +90,35 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
+   "LAv21a")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a # <--<< SAME DIRECTORY AS LAST YEAR
+      GRIDFILE=LA_v21a-WithUpperAtch_chk.grd   # mesh (fort.14) file
+      OLDGRIDFILE="LA_v20a-WithUpperAtch_chk.grd"
+      MESHPROPERTIES=${OLDGRIDFILE}.properties
+      CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template # <--<< SAME FORT.15 as last year
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=combined_stations_20200929.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=LA_v21a-WithUpperAtch_chk.13
+      OLDNAFILE="LA_v20a-WithUpperAtch_chk.13"
+      NAPROPERTIES=${OLDNAFILE}.properties
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;
       #
    "ec95d"|"EC95d")
       #
