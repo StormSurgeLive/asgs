@@ -1,4 +1,4 @@
-!     setenv FFLAGS "-O3 -FR -w -xT"
+!     setenv FFLAGS "-O2 -FR -w -xT"
 !     ifort $FFLAGS -c TimerClass.F
 !     ifort $FFLAGS -FI -132 -o surface_roughness_calc surface_roughness_calc_v9.f *.o
 !     ./surface_roughness_calc >& src.out &

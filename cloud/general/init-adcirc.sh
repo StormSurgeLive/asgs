@@ -32,10 +32,12 @@ fi
 
 ADCIRCS=(
 "v53release"
+"v53release-issue-549"
 "v53release-gfortran-10"
 "v53release-testsuite"
 "v53release-adcircpolate"
 "v55release"
+"v55release-issue-549"
 "v55release-swan-gfortran"
 "v55release-swan-gfortran-10"
 "v55.00"
@@ -44,17 +46,30 @@ NUM_ADC=${#ADCIRCS[@]}
 
 _show_supported_versions()
 {
-  echo  '                                              ||ASGS Supported ADCIRC versions||'
-  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
-  echo  '|1. v53release                 | standard version + updated platform support   |'
-  echo  '|2. v53release-gfortran-10     | v53 with makefile support for gfortran 10     |'
-  echo  '|3. v53release-testsuite       | v53 with tools supporting testsuite           |'
-  echo  '|4. v53release-adcircpolate    | v53 with required ADCIRCpolate support        |'
-  echo  '|5. v55release                 | standard version + updated platform support   |'
-  echo  '|6. v55release-swan-gfortran   | v55release with gfortran default for swan     |'
-  echo  '|7. v55release-swan-gfortran-10| v55release with gfortran 10 default for swan  |'
-  echo  '|8. v55.00                     | latest upstream                               |'
-  echo  '\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/'
+  local num=0
+  echo  '                                               ||ASGS Supported ADCIRC versions||'
+  echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
+  num=$(($num+1))
+  printf "|%-2s) v53release                 | standard version + updated platform support   |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v53release-issue-549       | base patched v53release + -O2 instead of -O3  |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v53release-gfortran-10     | v53 with makefile support for gfortran 10     |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v53release-testsuite       | v53 with tools supporting testsuite           |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v53release-adcircpolate    | v53 with required ADCIRCpolate support        |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v55release                 | standard version + updated platform support   |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v55release-issue-549       | based patched v55release + -O2 instead of -O3 |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v55release-swan-gfortran   | v55release with gfortran default for swan     |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v55release-swan-gfortran-10| v55release with gfortran 10 default for swan  |\n" $num
+  num=$(($num+1))
+  printf "|%-2s) v55.00                     | latest upstream                               |\n" $num
+  echo  "\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/"
   echo
   if [ "${1}" != "noexit" ]; then
     # exits on error if '1' is optionally passed, defaults to 0 (no error)
@@ -131,14 +146,20 @@ if [ "$INTERACTIVE" == "yes" ]; then
   PATCHSET_NAME=
   PATCHSET_DIR=
   case "${ADCIRC_GIT_BRANCH}" in
-    v53release-gfortran-10)
-      PATCHSET_NAME="v53release-gfortran-10"
+    v53release)
+      PATCHSET_NAME="v53release"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=v53release
       ;;
-    v53release)
-      PATCHSET_NAME="v53release"
+    v53release-issue-549)
+      PATCHSET_NAME="v53release-issue-549"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=v53release
+      ;;
+    v53release-gfortran-10)
+      PATCHSET_NAME="v53release-gfortran-10"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=v53release
@@ -157,6 +178,12 @@ if [ "$INTERACTIVE" == "yes" ]; then
       ;;
     v55release)
       PATCHSET_NAME="v55release"
+      PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
+      # update to proper base branch
+      ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
+      ;;
+    v55release-issue-549)
+      PATCHSET_NAME="v55release-issue-549"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
       ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
@@ -219,13 +246,13 @@ fi
   # and potential patching of ADCIRC or SWAN
   __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
   case "${ADCIRC_GIT_BRANCH}" in
-    v53release|v53release-gfortran-10|v53release-adcircpolate)
+    v53release|v53release-issue-549|v53release-gfortran-10|v53release-adcircpolate)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
     v54release)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
-    v55.00|v55release|v55release-swan-gfortran|v55release-swan-gfortran-10|92ccdb974b7fb150)
+    v55.00|v55release|v55release-issue-549|v55release-swan-gfortran|v55release-swan-gfortran-10|92ccdb974b7fb150)
       # Note v55release = sha256:92ccdb974b7fb150bb42b2536fce4d8c0bcee726
       SWANDIR=${ADCIRCBASE}/thirdparty/swan
       ;;   

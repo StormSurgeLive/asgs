@@ -1,5 +1,5 @@
 ! example of compiling with gfortran with optimization turned on
-! gfortran -O3 -ffree-line-length-none -o totalWaterDepthGradient.x -I/home/jason/asgs/trunk/output -I/usr/include  totalWaterDepthGradient.f90
+! gfortran -O2 -ffree-line-length-none -o totalWaterDepthGradient.x -I/home/jason/asgs/trunk/output -I/usr/include  totalWaterDepthGradient.f90
 !
 program totalWaterDepthGradient
 use adcmesh
