@@ -1063,8 +1063,8 @@ monitorJobs()
       # execute the FortCheck.py code to get a %complete status, but only
       # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
       if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
-         if [[ $RMQMessaging_Enable = on ]]; then
-            pc=`${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc 2>> $SYSLOG`
+         if [[ "$RMQMessaging_Enable" == "on" ]]; then
+            pc=$(${SCRIPTDIR}/monitoring/FortCheck.py fort.61.nc 2>> $SYSLOG)
             if [ ! -z "$pc" ] ; then
                 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job for Adv=${ADVISORY} is running. $pc complete ..." $pc
             fi
@@ -1482,7 +1482,8 @@ variables_init()
    # exit hook
    declare -a EXIT_STAGE=( )
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
-# RMQMessaging defaults
+
+   # RMQMessaging defaults
    RMQMessaging_Enable="off"   # "on"|"off"
    RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
    RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
@@ -1566,14 +1567,18 @@ writeProperties()
    echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR/run.properties
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
    # monitoring (includes logging)
-   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
-   echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
-   echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
+   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable" >> $STORMDIR/run.properties
+   # only record other RMQ parameters if it's actually "on"
+   if [ "$RMQMessaging_Enable" == "on" ]
+   then
+     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
+     echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
+   fi
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
@@ -1884,20 +1889,17 @@ RUNDIR=$SCRATCHDIR/asgs$$
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
 # calls to RMQMessage will return without doing anything
-if [[ $RMQMessaging_Enable = "on" ]] ; then
+if [[ "$RMQMessaging_Enable" == "on" ]] ; then
    THIS="monitoring/asgs-msgr.sh"
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    THIS="asgs_main.sh"
    allMessage "RMQ Messaging enabled."
-else
-   allMessage "RMQ Messaging disabled."
 fi
 
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
-temp=$(cat $CONFIG | sed '/^#/d' | sed '/^$/d')
-RMQMessageStartup "$temp"
+RMQMessageStartup "$CONFIG"
 
 #
 # set a RunParams string for messaging
