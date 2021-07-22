@@ -272,16 +272,19 @@ fi
 # ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
 # first class ADCIRC related binaries
+# + the SWAN=enable is only relevant to adcprep but 
+#   should not cause any issues for the other targets 
 ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
 ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME}"
 
-# for building coupled adcswan/padcswan (no netCDF, no 'SWAN=enable')
+# for building coupled adcswan/padcswan (include all netCDF flags, no 'SWAN=enable')
 ADCSWAN_BINS="adcswan padcswan"
-ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable"
+ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME}"
 
 # SWAN related utilities other than adcswan/padcswan
+#  + do not include anything related to netCDF
 SWAN_UTIL_BINS="unhcat.exe"
-SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME}"
+SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
 
 if [ ! -d ${ADCIRCBASE} ]; then
   if [ "$INTERACTIVE" == "yes" ]; then
