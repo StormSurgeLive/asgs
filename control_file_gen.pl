@@ -144,6 +144,7 @@ my $periodicflux="null";  # the name of a file containing the periodic flux unit
 my $fluxdata;
 my $staticoffset = "null";
 my $unitoffsetfile = "null";
+our $addHours; # duration of the run (hours)
 GetOptions("controltemplate=s" => \$controltemplate,
            "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
@@ -316,6 +317,7 @@ $fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
 $fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
 my $fort7172specifier = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
 my $fort7374specifier = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
+
 # Casey 121009: Debug for sparse output.
 if ( defined $sparseoutput ) {
    unless ( defined $fort7374netcdf ) {
@@ -679,7 +681,7 @@ sub writeFileName () {
    my $specifier = shift;
    #
    my $format = "ascii"; # default output file format
-   my $filename = $identifier; # default (ascii) name of output file
+   my $f = $identifier; # default (ascii) name of output file
    #
    # if there won't be any output of this type, just return without
    # writing anything to the run.properties file
@@ -715,16 +717,34 @@ sub writeFileName () {
    $ids_descs{"maxinundepth.63"} = "Maximum Inundation Depth";
    $ids_descs{"everdried.63"} = "Ever Dried";
    $ids_descs{"endrisinginun.63"} = "End Rising Inundation";
-   #
+
+   # number of data sets
+   if ( $f eq "fort.61") { $nds = $addHours/($fort61freq/3600.0); }
+   elsif ( $f eq "fort.62") { $nds = $addHours/($fort62freq/3600.0); }
+   elsif ( $f eq "fort.63") { $nds = $addHours/($fort63freq/3600.0); }
+   elsif ( $f eq "fort.64") { $nds = $addHours/($fort64freq/3600.0); }
+   elsif ( $f eq "fort.71" || $f eq "fort.72" ) {
+      $nds = $addHours/($fort7172freq/3600.0);
+   }
+   elsif ( $f eq "fort.73" || $f eq "fort.74"
+        || $f eq "swan_DIR.63" || $f eq "swan_HS.63" || $f eq "swan_TMM10.63" || $f eq "swan_TPS.63" ) {
+      $nds = $addHours/($fort7374freq/3600.0);
+   }
+   else {
+      $nds = 1;
+   }
+
+   # format specifier
    if ( abs($specifier) == 3 || abs($specifier) == 5 ) {
-      $filename = $filename . ".nc";
+      $f = $f . ".nc";
       $format = "netcdf";
    }
    if ( abs($specifier) == 4 ) {
       $format = "sparse-ascii";
    }
-   printf RUNPROPS "$ids_descs{$identifier} File Name : $filename\n";
+   printf RUNPROPS "$ids_descs{$identifier} File Name : $f\n";
    printf RUNPROPS "$ids_descs{$identifier} Format : $format\n";
+   printf RUNPROPS "file.adcirc.output.$f.numdatasets : $nds\n";
 }
 #
 #
@@ -1032,7 +1052,7 @@ sub owiParameters () {
            = Date::Calc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $ey,$em,$ed,$eh,0,0);
-   my $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
+   $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
    $ensembleid = $addHours . " hour " . $enstorm . " run";
    $NHSINC = int(($RNDAY*86400.0)/$dt);
    #
@@ -1295,6 +1315,7 @@ sub vortexModelParameters () {
       printf RUNME "$runlengthHours hour nowcast\n";
       close(RUNME);
    }
+   $addHours=$runlengthHours; # for reporting the predicted number of datasets in each file
    #
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
