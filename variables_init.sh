@@ -135,7 +135,7 @@ variables_init()
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
    #
    #  H O O K S
-   # 
+   #
    # init and exit hooks
    initHooks=( START_INIT FINISH_INIT )
    # spinup hooks
@@ -156,6 +156,7 @@ variables_init()
    previousHookStatusFile="null"
    hookStatusURL="null"
    previousHookStatusURL="null"
+   asgsInstanceStatusURL="null"
    latestHook="null"
    enablePostStatus="no"     # yes if asgs instance status should be posted to local opendap
    enableStatusNotify="no"   # turn asgs instance status notification on and off

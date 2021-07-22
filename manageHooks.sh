@@ -141,8 +141,8 @@ writeHookStatus()
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo \""asgs.instance.status.file\" : \"asgs.instance.status.json\"," >> $jsonfile
-    echo \""asgs.instance.status.url\" : \"null\","                >> $jsonfile
-    echo \""time.hook.status.lastupdated\" : \"null\","            >> $jsonfile
+    echo \""asgs.instance.status.url\" : \"$asgsInstanceStatusURL\","   >> $jsonfile
+    echo \""time.hook.status.lastupdated\" : \"$dateTime\","            >> $jsonfile
     echo \""hook.status.url\" : \"$hookStatusURL\","                    >> $jsonfile
     echo \""hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
     echo \""hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
@@ -181,6 +181,7 @@ executeHookScripts()
     done
     if [[ $hook == "FINISH_FORECAST_STAGE" ]]; then
         previousHookStatusFile=${ADVISORY}.hook.status.json
+        previousHookStatusURL=$hookStatusURL
         mv $RUNDIR/status/hook.status.json $RUNDIR/status/$previousHookStatusFile 2>> $SYSLOG
         nullifyNowcastForecastHooks # clears out the timestamps and statuses of these hooks
     fi
