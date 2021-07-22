@@ -162,6 +162,12 @@ for server in ${SERVERS[*]}; do
       STORMNAMEPATH=$YEAR/status
       OPENDAPSUFFIX=$HPCENV/$INSTANCENAME
       enableStatusNotify=${properties["notification.opendap.email.enable"]}
+      # update the url properties in the status json files before posting them
+      # and save the url for keeping track of the previous url
+      hookStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+       awk -v u=\"$hookStatusURL\", '$1~"hook.status.url" { print $1" "$2" "u }' hook.status.json
+      asgsInstanceStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
+      awk -v u=\"$asgsInstanceStatusURL\", '$1~"asgs.instance.status.url" { print $1" "$2" "u }' hook.status.json
    else
       OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
    fi

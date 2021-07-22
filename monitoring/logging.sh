@@ -6,7 +6,7 @@
 # requires logging capabilities.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2019 Jason Fleming
+# Copyright(C) 2012--2021 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -432,17 +432,17 @@ writeASGSInstanceStatus()
     echo "path.rundir : $RUNDIR" >> $statfile
     echo "path.statusdir : $RUNDIR/status" >> $statfile
     echo "path.lastsubdir : $LASTSUBDIR" >> $statfile
-    echo "asgs.instance.status.url : TODO" >> $statfile
-    echo "hook.status.url : TODO" >> $statfile
-    echo "hook.status.url.previous : TODO" >> $statfile
+    echo "asgs.instance.status.url : $asgsInstanceStatusURL" >> $statfile
+    echo "hook.status.url : $hookStatusURL" >> $statfile
+    echo "hook.status.url.previous : $previousHookStatusURL" >> $statfile
     echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
     echo "post.opendap.target : $TARGET" >> $statfile # not sure this is still used
     echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
     echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
     echo "notification.opendap.email.enable : $notifyNow" >> $statfile
-    statusFiles="asgs.instance.status.json hook.status.json $SYSLOG" 
-    if [[ $previousHookStatusFile != "null" ]]; then 
-        statusFiles+=" $previousHookStatusFile" 
+    statusFiles="asgs.instance.status.json hook.status.json $SYSLOG"
+    if [[ $previousHookStatusFile != "null" ]]; then
+        statusFiles+=" $previousHookStatusFile"
     fi
     echo "post.opendap.files : ( $statusFiles )" >> $statfile
     echo "status.file.previous : $previousStatusFile" >> $statfile
