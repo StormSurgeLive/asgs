@@ -3019,6 +3019,7 @@ while [ true ]; do
          case $BACKGROUNDMET in
             on|NAM)
                writeNAMProperties $RUNDIR
+               echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
                ;;
             *) # other values are allowed but don't have properties that need to be written in advance
                ;;
