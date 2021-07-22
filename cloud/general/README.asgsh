@@ -124,7 +124,7 @@ The following interaction is an example interaction:
 
 	About to build ADCIRC in /work/$USER/adcirc-cg-demo with the following command:
 
-	make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default NETCDFROOT= MACHINENAME=queenbee
+	make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee
 
 	Type 'no' to stop build [continue]. 
 
@@ -175,7 +175,7 @@ with the "v53release-intel" build are:
 	export ADCIRC_GIT_URL=git@github.com:adcirc
 	export ADCIRC_GIT_REPO=adcirc-cg
 	export ASGS_MAKEJOBS=1
-	export ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee'
+	export ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINENAME=queenbee'
 	export ADCIRC_PROFILE_NAME=v53release-intel
 
 3. the 'list adcirc' command shows the different ADCIRC builds that are available to

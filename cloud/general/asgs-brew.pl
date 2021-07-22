@@ -757,7 +757,6 @@ sub get_steps {
             # augment existing %ENV (cumulative)
             export_ENV => {
                 NETCDFHOME     => { value => qq{$asgs_install_path},         how => q{replace} },
-                NETCDFROOT     => { value => qq{$asgs_install_path},         how => q{replace} },    # used by SWAN's
                 NETCDF4_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },    # needed for netCDF4 python module
                 NETCDF4_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },    # needed for netCDF4 python module
                 NETCDF4_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },    # needed for netCDF4 python module
