@@ -20,8 +20,8 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 #
-THIS="output/transmit_rps.sh"
-
+THIS=$(basename -- $0)
+#
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties

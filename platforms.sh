@@ -37,7 +37,7 @@ source ${SCRIPTDIR}/monitoring/logging.sh
 
 init_supermike()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_supermike()"
+  local THIS="platforms.sh>env_dispatch()>init_supermike()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=mike.hpc.lsu.edu
   QUEUESYS=PBS
@@ -62,7 +62,7 @@ init_supermike()
 #
 init_queenbee()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_queenbee()"
+  local THIS="platforms.sh>env_dispatch()>init_queenbee()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=queenbee.loni.org
   QUEUESYS=PBS
@@ -98,7 +98,7 @@ init_queenbee()
 #
 init_rostam()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_rostam()"
+  local THIS="platforms.sh>env_dispatch()>init_rostam()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=rostam.cct.lsu.edu
   QUEUESYS=SLURM
@@ -126,7 +126,7 @@ init_rostam()
 }
 init_supermic()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_supermic()"
+  local THIS="platforms.sh>env_dispatch()>init_supermic()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=supermic.hpc.lsu.edu
   QUEUESYS=PBS
@@ -148,7 +148,7 @@ init_supermic()
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
-  THIS="platforms.sh>env_dispatch()>init_supermic()"
+  local THIS="platforms.sh>env_dispatch()>init_supermic()"
   SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
@@ -167,7 +167,7 @@ init_supermic()
 # propagates in the ASGS Shell environment
 
 init_queenbeeC()
-{ THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
+{ local THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=qbc.loni.org
   QUEUESYS=SLURM
@@ -193,7 +193,7 @@ init_queenbeeC()
 
 init_pod()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_pod()"
+  local THIS="platforms.sh>env_dispatch()>init_pod()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=pod.penguincomputing.com
   QUEUESYS=PBS
@@ -213,7 +213,7 @@ init_pod()
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome="$HOME/local"
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  THIS="platforms.sh>env_dispatch()>init_pod()"
+  local THIS="platforms.sh>env_dispatch()>init_pod()"
   SSHKEY=~/.ssh/id_rsa.pub
   RESERVATION=null
   PPN=28
@@ -225,7 +225,7 @@ init_pod()
 }
 init_hatteras()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_hatteras()"
+  local THIS="platforms.sh>env_dispatch()>init_hatteras()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=hatteras.renci.org
   QUEUESYS=SLURM
@@ -268,7 +268,7 @@ init_hatteras()
 #
 init_frontera()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_frontera()"
+  local THIS="platforms.sh>env_dispatch()>init_frontera()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=frontera.tacc.utexas.edu
   QUEUESYS=SLURM
@@ -298,7 +298,7 @@ init_frontera()
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
-  THIS="platforms.sh>env_dispatch()>init_frontera()"
+  local THIS="platforms.sh>env_dispatch()>init_frontera()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used?
@@ -308,7 +308,7 @@ init_frontera()
 #
 init_stampede2()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_stampede2()"
+  local THIS="platforms.sh>env_dispatch()>init_stampede2()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=stampede2.tacc.utexas.edu
   QUEUESYS=SLURM
@@ -334,7 +334,7 @@ init_stampede2()
   RMQMessaging_Enable="on"              # "on"|"off"
   RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
-  THIS="platforms.sh>env_dispatch()>init_stampede2()"
+  local THIS="platforms.sh>env_dispatch()>init_stampede2()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
@@ -344,7 +344,7 @@ init_stampede2()
 #
 init_lonestar5()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_lonestar5()"
+  local THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=lonestar5.tacc.utexas.edu
   QUEUESYS=SLURM
@@ -373,7 +373,7 @@ init_lonestar5()
   RMQMessaging_Enable="on"      # "on"|"off"
   RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
   RMQMessaging_NcoHome=$WORK/local
-  THIS="platforms.sh>env_dispatch()>init_lonestar5()"
+  local THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
@@ -384,7 +384,7 @@ init_lonestar5()
 # docker bootstrap
 init_docker()
 {
-  THIS="platforms.sh>env_dispatch()>init_docker()"
+  local THIS="platforms.sh>env_dispatch()>init_docker()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=docker.local
   QUEUESYS=mpiexec
@@ -406,7 +406,7 @@ init_vagrant() {
 
 init_desktop()
 {
-  THIS="platforms.sh>env_dispatch()>init_desktop()"
+  local THIS="platforms.sh>env_dispatch()>init_desktop()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
@@ -425,7 +425,7 @@ init_desktop()
 
 init_desktop_serial() # changed from init_desktop-serial due to bash complaints
 {
-  THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
+  local THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=jason-desktop-serial
   QUEUESYS=serial
@@ -459,7 +459,7 @@ init_Poseidon()
 }
 init_penguin()
 { #<- can replace the following with a custom script
-  THIS="platforms.sh>env_dispatch()>init_penguin()"
+  local THIS="platforms.sh>env_dispatch()>init_penguin()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=pod.penguincomputing.com
   #HOSTNAME=login-29-45.pod.penguincomputing.com
@@ -483,7 +483,7 @@ init_test()
 # and the THREDDS data server the results are to be posted to.
 writeTDSProperties()
 {
-   THIS="platforms.sh>writeTDSProperties()"
+   local THIS="platforms.sh>writeTDSProperties()"
    scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
    operator=$USER
    SERVER=$1
@@ -576,7 +576,7 @@ writeTDSProperties()
 #
 # set the values of HPCENV and HPCENVSHORT
 set_hpc() {
-   THIS="platforms.sh>set_hpc()"
+   local THIS="platforms.sh>set_hpc()"
    echo "$THIS: Setting the values of HPCENV and HPCENVSHORT."
    fqdn=`hostname --long`
    echo "$THIS: The fully qualified domain name is ${fqdn}."
@@ -643,7 +643,7 @@ set_hpc() {
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
- THIS="platforms.sh>env_dispatch()"
+ local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  echo "(info)    $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in

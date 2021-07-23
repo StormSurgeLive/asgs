@@ -38,7 +38,7 @@ SSHKEY=${13}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR}
-THIS=ncfs_archive.sh
+THIS=$(basename -- $0)
 #
 # grab all config info
 . ${CONFIG} 

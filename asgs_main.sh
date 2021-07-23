@@ -24,6 +24,8 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
+THIS=$(basename -- $0) 
+
 #
 #####################################################################
 #                B E G I N   F U N C T I O N S
@@ -65,7 +67,7 @@ checkFileExistence()
 { FPATH=$1
   FTYPE=$2
   FNAME=$3
-  THIS="asgs_main.sh>checkFileExistence()"
+  local THIS="asgs_main.sh>checkFileExistence()"
   if [[ -z $FNAME ]]; then
      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
      fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
@@ -1501,8 +1503,7 @@ variables_init()
 writeProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeProperties()"
+   local THIS="asgs_main->writeProperties()"
    logMessage "$THIS: Writing properties associated with ASGS configuration to $1/run.properties."
    # this is the first set of properties that will be written; if there is
    # a stray file from a previous (interrupted) asgs execution, this function
@@ -1624,7 +1625,6 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   THIS=$WASTHIS
    # convert to scenario.json
    $SCRIPTDIR/metadata.pl --jsonify --metadatafile $STORMDIR/run.properties
 }
@@ -1634,8 +1634,7 @@ writeProperties()
 writeScenarioProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeScenarioProperties()"
+   local THIS="asgs_main->writeScenarioProperties()"
    logMessage "$THIS: Writing properties associated with this scenario to $1/run.properties."
    echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
@@ -1647,7 +1646,6 @@ writeScenarioProperties()
    echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
    echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
-   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1655,8 +1653,7 @@ writeScenarioProperties()
 writeNAMProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeNAMProperties()"
+   local THIS="asgs_main->writeNAMProperties()"
    logMessage "$THIS: Writing properties associated with meterorological forcing with the NAM model to $1/run.properties."
    echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
    echo "forcing.stormname : NA" >> $STORMDIR/run.properties
@@ -1677,7 +1674,6 @@ writeNAMProperties()
    echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
    echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
    echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
-   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1685,8 +1681,7 @@ writeNAMProperties()
 writeTropicalCycloneProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeTropicalCycloneProperties()"
+   local THIS="asgs_main->writeTropicalCycloneProperties()"
    logMessage "$THIS: Writing properties associated with meterorological forcing configuration with a parametric vortex model to $1/run.properties."
    echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
    echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
@@ -1709,7 +1704,6 @@ writeTropicalCycloneProperties()
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
-   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1717,14 +1711,12 @@ writeTropicalCycloneProperties()
 writeTropicalCycloneForecastProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeTropicalCycloneForecastProperties()"
+   local THIS="asgs_main->writeTropicalCycloneForecastProperties()"
    logMessage "$THIS: Writing properties associated with a particular forecast using a parametric vortex model to $1/run.properties."
     # write the start and end dates of the forecast to the run.properties file
     if [[ -e $RUNDIR/forecast.properties ]]; then
       cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
     fi
-   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1732,8 +1724,7 @@ writeTropicalCycloneForecastProperties()
 writeWaveCouplingProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeWaveCouplingProperties()"
+   local THIS="asgs_main->writeWaveCouplingProperties()"
    logMessage "$THIS: Writing properties associated with wave coupling to $1/run.properties."
    echo "path.swandir : $SWANDIR" >> $STORMDIR/run.properties
    echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
@@ -1741,7 +1732,6 @@ writeWaveCouplingProperties()
    echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
    echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
    echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR/run.properties
-   THIS=$WASTHIS
 }
 #
 # write properties to the run.properties file that are associated with
@@ -1749,8 +1739,7 @@ writeWaveCouplingProperties()
 writeJobResourceRequestProperties()
 {
    STORMDIR=$1
-   WASTHIS=$THIS
-   THIS="asgs_main->writeJobResourceRequestProperties()"
+   local THIS="asgs_main->writeJobResourceRequestProperties()"
    logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
    # on queenbeeC, if a parallel job uses 48 or fewer cores, it
    # should be submitted to the single queue to avoid "low utilization" emails
@@ -1787,7 +1776,6 @@ writeJobResourceRequestProperties()
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
    echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
-   THIS=$WASTHIS
 }
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1796,7 +1784,6 @@ writeJobResourceRequestProperties()
 #####################################################################
 #               B E G I N     E X E C U T I O N
 #####################################################################
-THIS="asgs_main.sh"
 
 CURRENT_EVENT="STRT" # used for RMQ messages
 CURRENT_STATE="INIT" # used for RMQ messages
@@ -1859,7 +1846,6 @@ if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
 readConfig # now we have the instancename and can name the asgs log file after it
-THIS=asgs_main.sh
 # set the value of SYSLOG (in monitoring/logging.sh)
 source ${SCRIPTDIR}/monitoring/logging.sh
 setSyslogFileName
@@ -2135,7 +2121,6 @@ if [[ $HOTORCOLD = hotstart ]]; then
    fi
 fi
 #
-THIS="asgs_main.sh"
 if [[ -e ${RUNARCHIVEBASE}/${PREPPEDARCHIVE} ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Found archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}."
    logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}."
@@ -2158,7 +2143,6 @@ done
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
 
-THIS="asgs_main.sh"
 #
 if [[ $PERIODICFLUX != null ]]; then
    logMessage "$THIS: checking for FLUXCALCULATOR script"
@@ -2171,7 +2155,6 @@ fi
 #if [[ $TROPICALCYCLONE != off ]]; then
 #   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
 #fi
-THIS="asgs_main.sh"
 #
 # Check for any issues or inconsistencies in configuration parameters.
 if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
