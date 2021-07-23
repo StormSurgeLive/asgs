@@ -23,7 +23,8 @@
 # This script gets all the information it needs from the
 # run.properties file instead of using command line arguments.
 #----------------------------------------------------------------
-THIS=archive/enstorm_pedir_removal.sh
+THIS=$(basename -- $0)
+
 # this assumes this script is executed in the dirctory that is to be archived
 SCENARIODIR=$PWD
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' run.properties`

@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-THIS=config/mesh_defaults.sh
+THIS=$(basename -- $0)
 allMessage "$THIS: Setting default values for the mesh ${MESH}."
 MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes

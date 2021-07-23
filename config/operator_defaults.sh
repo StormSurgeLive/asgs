@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-THIS=config/operator_defaults.sh
+THIS=$(basename -- $0)
 allMessage "$THIS is deprecated and will be removed in the future. In the meantime, source'ing $HOME/.asgsh_profile if it is present."
 
 if [ -e $HOME/.asgsh_profile ]; then

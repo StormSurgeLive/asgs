@@ -28,7 +28,8 @@
 # (e.g., the scenario package counter variable $si) or
 # anything associated exclusively with the initialization of
 # asgs (e.g., HPCENV).  
-THIS="config/config_defaults.sh"
+THIS=$(basename -- $0)
+
    BACKGROUNDMET=on
    TIDEFAC=off
    TROPICALCYCLONE=off

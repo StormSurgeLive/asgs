@@ -35,7 +35,7 @@ SYSLOG=${12}
 #
 STORMDIR=${ADVISDIR}/${ENSTORM}       # shorthand
 cd ${STORMDIR} 2>> ${SYSLOG}
-THIS=ncfs_post.sh
+THIS=$(basename -- $0)
 # get the forecast ensemble member number 
 ENMEMNUM=`grep "forecastEnsembleMemberNumber" ${STORMDIR}/run.properties | sed 's/forecastEnsembleMemberNumber.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
 #
