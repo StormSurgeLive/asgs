@@ -212,10 +212,29 @@ for server in ${SERVERS[*]}; do
    opendapEmailSent=no
    #
    runStartTime=${properties["RunStartTime"]}
+
+   # dev NOTE: we should not get crazy here with all of the options of
+   # passing metadata via subject; the following does little but gives
+   # an indication of the chaos that can ensue if we perpetuate this
+   # method - if email subject modification is requested again, be sure
+   # bring it up for discussion during team deliberations
+
+   # default primary subject
    subject="ADCIRC POSTED for $runStartTime"
-   if [[ $TROPICALCYCLONE = on ]]; then
-      subject=${subject}" (TC)"
+
+   # modify primary subject
+   if [[ "$SCENARIO" == "nowcast" ]]; then
+     subject="ADCIRC NOWCAST POSTED for $runStartTime"
+   elif [[ "$SCENARIO" == "hindcast" ]]; then
+     subject="ADCIRC HINDCAST POSTED for $runStartTime"
    fi
+
+   # decorate subject (append or prepend) - so works with any value of primary
+   #  "$subject" as it's determined above
+   if [[ $TROPICALCYCLONE == "on" ]]; then
+      subject="${subject} (TC)"
+   fi
+
    #Click on the link:
    #
    #$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
