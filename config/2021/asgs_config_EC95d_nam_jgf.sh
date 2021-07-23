@@ -60,7 +60,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=19                    # number of compute CPUs for all simulations
+NCPU=19               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 
@@ -74,7 +74,7 @@ OPENDAPNOTIFY="jason.g.fleming@gmail.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021060400
+COLDSTARTDATE=2021062000
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
