@@ -1,5 +1,7 @@
 #!/bin/bash
 
+THIS=$(basename -- $0)
+
 echo "RMQMessaging:Validating Message Service..."
 
 RMQMessaging_Python=$(which python); # should be using python provided by ASGS environment

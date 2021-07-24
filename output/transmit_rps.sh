@@ -56,15 +56,19 @@ source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh
 
 export SYSLOG=${properties['monitoring.logging.file.syslog']}
-export RMQMessaging_Script_RP=${properties['monitoring.rmqmessaging.scriptrp']}
-export RMQMessaging_LocationName=${properties['monitoring.rmqmessaging.locationname']}
-export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
 export INSTANCENAME=${properties['instancename']}
 
-# RMQMessageRunProp is in monitoring/logging.sh
+if [[ ${RMQMessaging_Enable} == "on" ]]; then
+  export RMQMessaging_Script_RP=${properties['monitoring.rmqmessaging.scriptrp']}
+  export RMQMessaging_LocationName=${properties['monitoring.rmqmessaging.locationname']}
+  export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
+fi
+
+# RMQMessageRunProp is in monitoring/logging.sh, 'RMQMessaging_enable'
+# is checked in this function
 RMQMessageRunProp "$SCENARIODIR" "$ppid"
 
-if [ $? == 0 ] ; then
+if [ $? == 0 ]; then
         date > rps.transmit.succeeded
 else
         date > rps.transmit.failed
