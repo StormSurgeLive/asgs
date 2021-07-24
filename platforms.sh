@@ -76,11 +76,11 @@ init_queenbee()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  RMQMessaging_LocationName="LONI"
-  RMQMessaging_ClusterName="Queenbee"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$HOME/local"
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="LONI"
+    RMQMessaging_ClusterName="Queenbee"
+    RMQMessaging_NcoHome="$HOME/local"
+  fi
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   TDS=( lsu_tds )
@@ -140,11 +140,11 @@ init_supermic()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  RMQMessaging_LocationName="LSU"
-  RMQMessaging_ClusterName="SuperMIC"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$HOME/local"
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="LSU"
+    RMQMessaging_ClusterName="SuperMIC"
+    RMQMessaging_NcoHome="$HOME/local"
+  fi
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
@@ -179,11 +179,11 @@ init_queenbeeC()
   SUBMITSTRING=sbatch
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  RMQMessaging_LocationName="LONI"
-  RMQMessaging_ClusterName="QueenbeeC"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome=$WORK/local
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="LONI"
+    RMQMessaging_ClusterName="QueenbeeC"
+    RMQMessaging_NcoHome=$WORK/local
+  fi
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -207,11 +207,11 @@ init_pod()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  RMQMessaging_LocationName="Penguin"
-  RMQMessaging_ClusterName="POD"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="$HOME/local"
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="Penguin"
+    RMQMessaging_ClusterName="POD"
+    RMQMessaging_NcoHome="$HOME/local"
+  fi
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   local THIS="platforms.sh>env_dispatch()>init_pod()"
   SSHKEY=~/.ssh/id_rsa.pub
@@ -290,11 +290,11 @@ init_frontera()
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
   #
-  RMQMessaging_LocationName="TACC"
-  RMQMessaging_ClusterName="Frontera"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome=$WORK/local
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="TACC"
+    RMQMessaging_ClusterName="Frontera"
+    RMQMessaging_NcoHome=$WORK/local
+  fi
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
@@ -329,11 +329,11 @@ init_stampede2()
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
   ALLOCCHECKCMD=null
-  RMQMessaging_LocationName="TACC"
-  RMQMessaging_ClusterName="Stampede2"
-  RMQMessaging_Enable="on"              # "on"|"off"
-  RMQMessaging_Transmit="on"            #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome=$WORK/local
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="TACC"
+    RMQMessaging_ClusterName="Stampede2"
+    RMQMessaging_NcoHome=$WORK/local
+  fi
   local THIS="platforms.sh>env_dispatch()>init_stampede2()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
@@ -368,11 +368,11 @@ init_lonestar5()
   # matlab
   MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   #
-  RMQMessaging_LocationName="TACC"
-  RMQMessaging_ClusterName="Lonestar5"
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome=$WORK/local
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="TACC"
+    RMQMessaging_ClusterName="Lonestar5"
+    RMQMessaging_NcoHome=$WORK/local
+  fi
   local THIS="platforms.sh>env_dispatch()>init_lonestar5()"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
