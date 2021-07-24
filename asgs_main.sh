@@ -1578,8 +1578,8 @@ writeProperties()
      echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
      echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
      echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
-     echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
    fi
+   echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
