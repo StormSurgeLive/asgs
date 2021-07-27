@@ -703,19 +703,23 @@ EOF
 # TODO: This should be refactored and streamlined as described in the TODO
 # above the prep() function above.
 prepFile()
-{   JOBTYPE=$1
-    NCPU=$2
-    ACCOUNT=$3
-    WALLTIME=$4
-    THIS="asgs_main.sh>prepFile()"
-    CURRENT_STATE="WAIT"
+{  JOBTYPE=$1
+   NCPU=$2
+   ACCOUNT=$3
+   WALLTIME=$4
+   THIS="asgs_main.sh>prepFile()"
+   CURRENT_STATE="WAIT"
 
-    echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
-    echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
-    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
+
+   SERQUEUE=$(HPCQueueHints "$SERQUEUE" "$HPCENV" 1)
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+
+   # Note - could use another "HPCxHints" function like "HPCQueueHints" (immediately above)
    # FIXME: there is a hack in qscript.pl to change this to 20 for the priority queue on
    # queenbee and supermic per LONI/LSU requirements (idiosyncracy on those platforms)
    echo "hpc.job.${JOBTYPE}.ppn : 1" >> $STORMDIR/run.properties
@@ -1348,6 +1352,8 @@ handleFailedJob()
 variables_init()
 {
 # Initialize variables accessed from config.sh to reasonable values
+   HPCENVSHORT=${HPCENVSHORT:-null}
+   HPCENV=${HPCENV:-null}
    BACKGROUNDMET=on
    TIDEFAC=off
    TROPICALCYCLONE=off
@@ -1356,7 +1362,7 @@ variables_init()
    MINMAX=reset
    REINITIALIZESWAN=no
    USERIVERFILEONLY=${USERIVERFILEONLY:-no}
-   STORMNAME=stormname
+   STORMNAME=${STORMNAME:-stormname}
    RIVERSITE=${RIVERSITE:-"ftp.nssl.noaa.gov"}
    RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
    RIVERUSER=${RIVERUSER:-null}
@@ -1747,15 +1753,11 @@ writeJobResourceRequestProperties()
    # on queenbeeC, if a parallel job uses 48 or fewer cores, it
    # should be submitted to the single queue to avoid "low utilization" emails
    CPUREQUEST=`expr $NCPU + $NUMWRITERS`
-   if [[ $HPCENV = "qbc.loni.org" && $CPUREQUEST -le 48 ]]; then
-      QUEUENAME="single"
-   fi
-   # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
-   # "small" queue ... this includes wind-only parallel jobs ... the PPN
-   # for frontera is 56, so this hack would have to be updated if that changes
-   if [[ $HPCENV = "frontera.tacc.utexas.edu" && $CPUREQUEST -le 112 ]]; then
-      QUEUENAME="small"
-   fi
+
+   # adjusts $QUEUENAME, if criteria is met; otherwise returns current value as the default;
+   # 'HPCQueueHints' is defined in platforms.sh
+   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
+
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
@@ -1812,9 +1814,7 @@ EXIT_OK=0
 si=-2  # storm index for forecast scenario; -1 indicates nowcast, -2 hindcast
 # need to determine standard time format to be used for pasting log files
 STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-HPCENVSHORT=null
-HPCENV=null
-#
+
 # set the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
 
