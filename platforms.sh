@@ -711,3 +711,42 @@ env_dispatch() {
     source $HOME/.asgsh_profile
   fi
 }
+
+# This bash function uses:
+# * local variables
+# * doesn't affect environmenta "by reference" (implicitly)
+# * echo's "return" so it can be captured by called using $() syntax
+# e.g.,
+#   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
+HPCQueueHints()
+{
+   local DEFAULT_QUEUENAME=$1 # default, returned if conditions not met
+   local HPCENV=$2
+   local CPUREQUEST=$3 
+   case "$HPCENV" in 
+   "frontera.tacc.utexas.edu")
+     # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
+     # "small" queue ... this includes wind-only parallel jobs ... the PPN
+     # for frontera is 56, so this hack would have to be updated if that changes
+     if [[ $CPUREQUEST -eq 1 ]]; then
+       echo "small"
+     elif [[ $CPUREQUEST -le 112 ]]; then
+       echo "small"
+     else
+       echo $DEFAULT_QUEUENAME
+     fi
+   ;;
+   "qbc.loni.org")
+     if [[ $CPUREQUEST -eq 1 ]]; then
+       echo "single"
+     elif [[ $CPUREQUEST -le 48 ]]; then
+       echo "single"
+     else
+       echo $DEFAULT_QUEUENAME
+     fi 
+   ;; 
+   *)
+     echo $DEFAULT_QUEUENAME
+   ;;
+   esac
+}
