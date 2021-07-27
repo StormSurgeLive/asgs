@@ -173,6 +173,7 @@ RMQMessage()
   # adding log file specific to RMQMessaging to augment and eventually maybe
   # replace echoing messages to the console
 
+
   APPLOGFILE=$RUNDIR/RMQMessaging.log
 
   if [[ 10#$RMQADVISORY -lt 0 ]]

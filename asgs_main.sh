@@ -1485,18 +1485,21 @@ variables_init()
    declare -a EXIT_STAGE=( )
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 
-   # RMQMessaging defaults
-   RMQMessaging_Enable="off"   # "on"|"off"
-   RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
-   RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-   RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
-   RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
-   RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
-   namedot=${HPCENVSHORT}.
-   RMQMessaging_LocationName=${HPCENV#$namedot}
-   RMQMessaging_ClusterName=$HPCENVSHORT
+   # RMQMessaging defaults (can be set in $CONFIG)
+   RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"
+   RMQMessaging_Transmit=${RMQMessaging_Transmit:-off} # enables message transmission ("on" | "off")
+   # only set these if enabled in $CONFIG
+   if [[ ${RMQMessaging_Enable} == "on" ]]; then
+     RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
+     RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
+     RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
+     namedot=${HPCENVSHORT}.
+     RMQMessaging_LocationName=${HPCENV#$namedot}
+     RMQMessaging_ClusterName=$HPCENVSHORT
+     unset namedot
+   fi
 }
-#
+
 # Write general properties to the run.properties file that are associated with
 # the ASGS configuration as well as real time properties specific to this
 # scenario.
@@ -1875,10 +1878,8 @@ RUNDIR=$SCRATCHDIR/asgs$$
 # this verifies that messages can be constructed.  It is possible
 # that asgs-msgr.sh will set RMQMessaging to "off", in which case
 # calls to RMQMessage will return without doing anything
-if [[ "$RMQMessaging_Enable" == "on" ]] ; then
-   THIS="monitoring/asgs-msgr.sh"
+if [[ "$RMQMessaging_Enable" == "on" ]]; then
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
-   THIS="asgs_main.sh"
    allMessage "RMQ Messaging enabled."
 fi
 
