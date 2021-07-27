@@ -67,15 +67,15 @@ NCPUCAPACITY=9999
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=developers-only    # can also be "developers-only" or "professional"
+INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 FINISH_NOWCAST_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 FINISH_SPINUP_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021060400
+COLDSTARTDATE=2021062500
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
@@ -86,11 +86,11 @@ SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
 -2)
    ENSTORM=hindcast
-   OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+   OPENDAPNOTIFY="jason.g.fleming@gmail.com"
    ;;
 -1)
    ENSTORM=nowcast
-   OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+   OPENDAPNOTIFY="jason.g.fleming@gmail.com"
    ;;
 0)
    ENSTORM=namforecastWind10m
