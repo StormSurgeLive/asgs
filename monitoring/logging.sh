@@ -91,7 +91,7 @@ finalizeCentralizedScenarioLogging() {
 
 findAndClearOrphans() {
    for pid in $(ps -eo pid,ppid,user,command | grep [t]ail | grep -v '/dev/null' | awk -v user=$USER '$3==user && $2==1 { print $1 } '); do
-      logMessage "Found orphan 'tail -f' process ID $pid and now clearing it." 
+      logMessage "Found orphan 'tail -f' process ID $pid and now clearing it."
       kill $pid
    done
 }
@@ -272,7 +272,7 @@ logMessage()
 { DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $1"
   for syslogfile in $SYSLOG $2 ; do
-    if [[ -e $syslogfile ]]; then
+    if [[ -f $syslogfile ]]; then
       echo ${MSG} >> $syslogfile
     fi
   done
