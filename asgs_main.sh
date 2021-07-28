@@ -1460,7 +1460,6 @@ findAndClearOrphans
 umask $UMASK
 #
 RUNDIR=$SCRATCHDIR/asgs$$
-statusDir=$RUNDIR/status    # used to store instantaneous status files
 #
 # RMQMessaging config
 # this verifies that messages can be constructed.  It is possible
