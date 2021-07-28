@@ -148,6 +148,8 @@ writeHookStatus()
     echo \""hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
     echo \""hook.status.latest\" : \"$latestHook\""                     >> $jsonfile
     echo "}"                                                            >> $jsonfile
+    # obscure the username for security
+    sed --in-place "s/$USER/%USER%/g" $jsonfile
 }
 #
 # execute hook scripts

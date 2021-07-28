@@ -1425,7 +1425,7 @@ while getopts "c:e:s:h" optname; do
 done
 #
 # determine hpc environment via function from platforms.sh
-
+echo "HPCENVSHORT is '$HPCENVSHORT'"
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
@@ -1460,7 +1460,6 @@ findAndClearOrphans
 umask $UMASK
 #
 RUNDIR=$SCRATCHDIR/asgs$$
-statusDir=$RUNDIR/status    # used to store instantaneous status files
 #
 # RMQMessaging config
 # this verifies that messages can be constructed.  It is possible
@@ -1536,6 +1535,8 @@ for dir in $RUNDIR $statusDir ; do
       mkdir -p $dir
    fi
 done
+ # used to store instantaneous status files
+statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 
 logMessage                                           "$THIS: The ADCIRC Surge/Spill Guidance System is activated."
 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "The ADCIRC Surge/Spill Guidance System is activated."

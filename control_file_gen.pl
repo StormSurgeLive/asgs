@@ -145,6 +145,7 @@ my $fluxdata;
 my $staticoffset = "null";
 my $unitoffsetfile = "null";
 our $addHours; # duration of the run (hours)
+our $nds;      # number of datasets expected to be placed in a file
 GetOptions("controltemplate=s" => \$controltemplate,
            "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
@@ -744,7 +745,7 @@ sub writeFileName () {
    }
    printf RUNPROPS "$ids_descs{$identifier} File Name : $f\n";
    printf RUNPROPS "$ids_descs{$identifier} Format : $format\n";
-   printf RUNPROPS "file.adcirc.output.$f.numdatasets : $nds\n";
+   printf RUNPROPS "adcirc.file.output.$f.numdatasets : $nds\n";
 }
 #
 #
@@ -1309,6 +1310,7 @@ sub vortexModelParameters () {
    }
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart
+   my $runlengthHours;
    if ( $enstorm eq "nowcast" && $goodRunlength == 1 ) {
       my $runlengthHours = ( $RNDAY*86400.0 - $hstime ) / 3600.0;
       open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";

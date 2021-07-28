@@ -31,6 +31,8 @@ variables_init()
    GET_ATCF_SCRIPT=${GET_ATCF_SCRIPT:-"$SCRIPTDIR/get_atcf.pl"}
    WAVES=off
    VARFLUX=off
+   HPCENV=${HPCENV:-"null"}
+   HPCENVSHORT=${HPCENVSHORT:-"null"}
    MINMAX=reset
    REINITIALIZESWAN=no
    USERIVERFILEONLY=${USERIVERFILEONLY:-no}
