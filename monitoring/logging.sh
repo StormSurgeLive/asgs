@@ -459,6 +459,8 @@ writeASGSInstanceStatus()
     #
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
+    # obscure username
+    sed --in-place "s/$USER/%USER%/g" $statfile
     # convert to scenario.json
     $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile --converted-file-name $jsonfile
 }
