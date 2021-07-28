@@ -28,6 +28,8 @@ variables_init()
    TROPICALCYCLONE=off
    WAVES=off
    VARFLUX=off
+   HPCENV=${HPCENV:-"null"}
+   HPCENVSHORT=${HPCENVSHORT:-"null"}
    MINMAX=reset
    REINITIALIZESWAN=no
    USERIVERFILEONLY=${USERIVERFILEONLY:-no}

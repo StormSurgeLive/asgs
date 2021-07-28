@@ -329,9 +329,18 @@ END
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
+            # this operation is expected to fail on the top level directory
+            # (the year) on most (but not all) thredds servers, so only need 
+            # to try this once on the top level directory 
+            # to avoid filling log files with unhelpful and somewhat 
+            # alarming error messages
+            if [[ `basename $partialPath` == $YEAR || `basename $partialPath` == "nam" ]]; then
+                # avoid retrying and associated log messages
+                retry=$timeoutRetryLimit   
+            fi
             ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
-               warn "$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+               scenarioMessage "$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
                threddsPostStatus=fail
             else
                scenarioMessage "$SCENARIO: $_THIS: Successfully changed permissions to a+wx on '$partialPath'."
