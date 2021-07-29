@@ -53,7 +53,7 @@ BACKGROUNDMET=on      # NAM download/forcing
 TROPICALCYCLONE=off   # tropical cyclone forcing
    STORM=07           # storm number, e.g. 05=ernesto in 2006
    YEAR=2020          # year of the storm
-WAVES=off             # wave forcing
+WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -61,7 +61,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959              # number of compute CPUs for all simulations
+NCPU=4031              # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 
