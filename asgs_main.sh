@@ -716,7 +716,7 @@ prepFile()
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
 
-   SERQUEUE=$(HPCQueueHints "$SERQUEUE" "$HPCENV" 1)
+   SERQUEUE=$(HPCQueueHints "$SERQUEUE" "$HPCENV" "$QOS" "1")
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
 
    # Note - could use another "HPCxHints" function like "HPCQueueHints" (immediately above)
@@ -1756,7 +1756,7 @@ writeJobResourceRequestProperties()
 
    # adjusts $QUEUENAME, if criteria is met; otherwise returns current value as the default;
    # 'HPCQueueHints' is defined in platforms.sh
-   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
+   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST") 
 
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
