@@ -718,7 +718,7 @@ env_dispatch() {
 # * echo's "return" so it can be captured by called using $() syntax
 # e.g.,
 #   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
-HPCQueueHints()
+HPC_Queue_Hint()
 {
    local DEFAULT_QUEUENAME=$1 # default, returned if conditions not met
    local HPCENV=$2
@@ -747,6 +747,36 @@ HPCQueueHints()
    ;; 
    *)
      echo $DEFAULT_QUEUENAME
+   ;;
+   esac
+}
+
+# encapsulated potentially hairy logic for adjusting PPN for
+# certain platforms and based on more than one variable
+HPC_PPN_Hint()
+{
+   local QUEUEKIND=$1
+   local QUEUENAME=$2
+   local HPCENV=$3
+   local QOS=$4
+   local DEFAULT_PPN=$5 # default, returned if conditions not met
+   case "$HPCENV" in 
+   "supermic.hpc.lsu.edu")
+     if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
+       echo 20
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
+   "queenbee.loni.org")
+     if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
+       echo 20
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;; 
+   *)
+     echo $DEFAULT_PPN
    ;;
    esac
 }

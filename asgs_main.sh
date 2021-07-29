@@ -716,13 +716,19 @@ prepFile()
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
 
-   SERQUEUE=$(HPCQueueHints "$SERQUEUE" "$HPCENV" 1)
+   # adjusts $SERQUEUE, if criteria is met; othewise returns current value as the defaults;
+   SERQUEUE=$(HPC_Queue_Hint "$SERQUEUE" "$HPCENV" 1)
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   
+   # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
+   # $PPN is not adjusted
+   _PPN=$(HPC_PPN_Hint "serial" "$SERQUEUE" "$HPCENV" "$QOS" "1")
+   echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR/run.properties
+   unset _PPN
 
    # Note - could use another "HPCxHints" function like "HPCQueueHints" (immediately above)
    # FIXME: there is a hack in qscript.pl to change this to 20 for the priority queue on
    # queenbee and supermic per LONI/LSU requirements (idiosyncracy on those platforms)
-   echo "hpc.job.${JOBTYPE}.ppn : 1" >> $STORMDIR/run.properties
    if [[ $QUEUESYS = "SLURM" ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
@@ -1750,13 +1756,10 @@ writeJobResourceRequestProperties()
    STORMDIR=$1
    local THIS="asgs_main->writeJobResourceRequestProperties()"
    logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
-   # on queenbeeC, if a parallel job uses 48 or fewer cores, it
-   # should be submitted to the single queue to avoid "low utilization" emails
-   CPUREQUEST=`expr $NCPU + $NUMWRITERS`
 
    # adjusts $QUEUENAME, if criteria is met; otherwise returns current value as the default;
-   # 'HPCQueueHints' is defined in platforms.sh
-   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
+   CPUREQUEST=$(($NCPU + $NUMWRITERS))
+   QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
 
    echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
@@ -1771,12 +1774,19 @@ writeJobResourceRequestProperties()
    echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties
    echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties
+
+   # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
+   # $PPN is not adjusted
+   _PPN=$(HPC_PPN_Hint "parallel" "$SERQUEUE" "$HPCENV" "$QOS" "$PPN")
+   echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR/run.properties
+   unset _PPN
+
    if [[ $QUEUESYS = SLURM ]]; then
       echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
-   echo "hpc.job.${JOBTYPE}.ppn : $PPN" >> $STORMDIR/run.properties
+
    # legacy properties
    echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
