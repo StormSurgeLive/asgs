@@ -387,8 +387,8 @@ debugMessage()
 writeASGSInstanceStatus()
 {
     local THIS="asgs_main->monitoring/logging.sh->writeASGSInstanceStatus()"
-    statfile="$statusDir/asgs.instance.status.properties"
-    jsonfile="asgs.instance.status.json"
+    local statfile="$statusDir/asgs.instance.status.properties"
+    local jsonfile="asgs.instance.status.json"
     logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
     #
     # update time stamp
@@ -397,7 +397,6 @@ writeASGSInstanceStatus()
     # basic asgs configuration
     echo "config.file : $CONFIG" >> $statfile
     echo "instancename : $INSTANCENAME" >> $statfile
-    echo "operator : $operator" >> $statfile
     echo "adcirc.time.coldstartdate : $CSDATE" >> $statfile
     echo "path.adcircdir : $ADCIRCDIR" >> $statfile
     echo "path.scriptdir : $SCRIPTDIR" >> $statfile
@@ -418,18 +417,14 @@ writeASGSInstanceStatus()
     # static input files, templates, and property files
     echo "adcirc.file.input.gridfile : $GRIDFILE" >> $statfile
     echo "adcirc.gridname : $GRIDNAME" >> $statfile
-    echo "adcirc.file.input.nafile : $NAFILE" >> $statfile
-    echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $statfile
     echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $statfile
     echo "adcirc.file.velstations : $VELSTATIONS" >> $statfile
     echo "adcirc.file.metstations : $METSTATIONS" >> $statfile
     # other adcirc specific
     echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $statfile
-    echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $statfile
     echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $statfile
     # notification
     echo "notification.emailnotify : $EMAILNOTIFY" >> $statfile
-    echo "notification.email.asgsadmin : $ASGSADMIN" >> $statfile
     echo "intendedAudience : $INTENDEDAUDIENCE" >> $statfile
     # monitoring (includes logging)
     echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $statfile
@@ -445,8 +440,6 @@ writeASGSInstanceStatus()
     echo "asgs.instance.status.url : $asgsInstanceStatusURL" >> $statfile
     echo "hook.status.url : $hookStatusURL" >> $statfile
     echo "hook.status.url.previous : $previousHookStatusURL" >> $statfile
-    echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
-    echo "post.opendap.target : $TARGET" >> $statfile # not sure this is still used
     echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
     echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
     echo "notification.opendap.email.enable : $notifyNow" >> $statfile
@@ -454,6 +447,7 @@ writeASGSInstanceStatus()
     if [[ $previousHookStatusFile != "null" ]]; then
         statusFiles+=" $previousHookStatusFile"
     fi
+    echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
     echo "post.opendap.files : ( $statusFiles )" >> $statfile
     echo "status.file.previous : $previousStatusFile" >> $statfile
     echo "status.hook.latest : $latestHook" >> $statfile
@@ -461,18 +455,18 @@ writeASGSInstanceStatus()
     echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post.sh
     echo "monitoring.logging.file.scenariolog : asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
     echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post.sh
-    echo "path.advisdir : null" >> $statfile             # for use in opendap_post.sh
-    echo "advisory : null" >> $statfile                  # for use in opendap_post.sh
-    echo "InitialHotStartTime : null" >> $statfile       # for use in opendap_post.sh
+    echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post.sh
+    echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post.sh
+    echo "InitialHotStartTime : $HSTIME" >> $statfile    # for use in opendap_post.sh
     # forecast scenario package size
     echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
     #
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
-    # obscure username
-    sed --in-place "s/$USER/%USER%/g" $statfile
     # convert to scenario.json
     $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile --converted-file-name $jsonfile
+    # obscure username
+    sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile
 }
 #
 # post the asgs instance status and hook status files to opendap
