@@ -1519,15 +1519,15 @@ else
       echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    fi
 fi
+# used to store instantaneous status files
+statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 # see if the storm directory already exists in the scratch space
 for dir in $RUNDIR $statusDir ; do
-   allMessage "Making directory $dir"
+   allMessage "$THIS: Making directory $dir"
    if [ ! -d $dir ]; then
       mkdir -p $dir
    fi
 done
- # used to store instantaneous status files
-statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 
 logMessage                                           "$THIS: The ADCIRC Surge/Spill Guidance System is activated."
 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "The ADCIRC Surge/Spill Guidance System is activated."
