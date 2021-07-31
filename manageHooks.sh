@@ -115,7 +115,7 @@ timestampHook()
 writeHookStatus()
 {
     local THIS="asgs_main->manageHooks.sh->writeHookStatus()"
-    jsonfile="$statusDir/hook.status.json"
+    local jsonfile="$statusDir/hook.status.json"
     logMessage "$THIS: Writing status associated with ASGS hooks to $jsonfile."
     #
     # write the time value(s) associated with each hook; will be null
@@ -148,7 +148,7 @@ writeHookStatus()
     echo \""hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
     echo \""hook.status.latest\" : \"$latestHook\""                     >> $jsonfile
     echo "}"                                                            >> $jsonfile
-    # obscure the username for security
+    # redact the username for security
     sed --in-place "s/$USER/\$USER/g" $jsonfile
 }
 #
