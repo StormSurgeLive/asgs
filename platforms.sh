@@ -717,12 +717,13 @@ env_dispatch() {
 # * doesn't affect environmenta "by reference" (implicitly)
 # * echo's "return" so it can be captured by called using $() syntax
 # e.g.,
-#   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$CPUREQUEST") 
+#   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
 HPCQueueHints()
 {
    local DEFAULT_QUEUENAME=$1 # default, returned if conditions not met
    local HPCENV=$2
-   local CPUREQUEST=$3 
+   local QOS=$3
+   local CPUREQUEST=$4
    case "$HPCENV" in 
    "frontera.tacc.utexas.edu")
      # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
