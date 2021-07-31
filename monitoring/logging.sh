@@ -465,7 +465,7 @@ writeASGSInstanceStatus()
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
     # convert to scenario.json
     $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile --converted-file-name $jsonfile
-    # obscure username
+    # redact username
     sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile
 }
 #
