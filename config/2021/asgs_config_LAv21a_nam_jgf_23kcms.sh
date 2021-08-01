@@ -72,6 +72,8 @@ NCPUCAPACITY=9999
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+RMQMessaging_Enable=off
+RMQMessaging_Transmit=off
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 

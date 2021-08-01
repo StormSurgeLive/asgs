@@ -68,7 +68,7 @@ NCPUCAPACITY=9999
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 FINISH_SPINUP_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 FINISH_NOWCAST_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
