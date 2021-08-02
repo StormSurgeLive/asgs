@@ -380,6 +380,8 @@ writeASGSInstanceStatus()
     local statfile="$statusDir/asgs.instance.status.properties"
     local jsonfile="asgs.instance.status.json"
     logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
+    local logfile=$(basename -- $SYSLOG)
+    local textlog="${logfile%.*}.txt" # directly viewable in web browser
     #
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -433,7 +435,7 @@ writeASGSInstanceStatus()
     echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
     echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
     echo "notification.opendap.email.enable : $notifyNow" >> $statfile
-    statusFiles="asgs.instance.status.json hook.status.json $SYSLOG"
+    statusFiles="asgs.instance.status.json hook.status.json $textlog"
     if [[ $previousHookStatusFile != "null" ]]; then
         statusFiles+=" $previousHookStatusFile"
     fi
@@ -454,8 +456,12 @@ writeASGSInstanceStatus()
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
     # convert to scenario.json
-    $SCRIPTDIR/metadata.pl --jsonify --metadatafile $statfile --converted-file-name $jsonfile
+    #echo "$SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile"
+    # FIXME: why doesn't this remove the opendapnotify property?
+    $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile
     # redact username
+    # FIXME: why doesn't this remove the username? 
+    #echo "sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile"
     sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile
 }
 #
@@ -464,6 +470,11 @@ postStatus() {
     local THIS="asgs_main->monitoring/logging.sh->postStatus()"
     statfile="$statusDir/asgs.instance.status.properties"
     logMessage "$THIS: Posting status associated with ASGS configuration and hooks in $statfile to opendap."
+    # redact username from log file and rename with .txt extension so 
+    # we can review it directly in a web browser
+    local logfile=$(basename -- $SYSLOG)
+    textlog="${logfile%.*}.txt"
+    sed "s/$USER/\$USER/g" $SYSLOG > $statusDir/$textlog
     $SCRIPTDIR/output/opendap_post.sh $statfile
 }
 #

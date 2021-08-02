@@ -45,7 +45,11 @@ my %mapping;                # deserialized hash
 my $file_content;           # entire file as slurped
 my $yaml;                   # content as string
 my $jsonify = 0;            # true if run.properties should be converted to scenario.json (overwriting any existing scenario.json)
+my $redact = 0;             # true if email addresses should be removed
 my $convertedFileName = "scenario.json"; # default name of converted file (without full path)
+#
+# the following property values are considered sensitve
+my @redacted_properties = qw( notification.opendap.email.opendapnotify );
 #
 # the following properties from run.properties are deprecated and should
 # not be used or stored in scenario.json
@@ -105,7 +109,8 @@ GetOptions(
            "keys=s" => \$keys,
            "mapsacalar=s" => \$mapscalar,
            "converted-file-name=s" => \$convertedFileName,
-           "jsonify" => \$jsonify
+           "jsonify" => \$jsonify,
+           "redact" => \$redact
           );
 # open metadata file
 if ($metadatafile eq "null") {
@@ -172,6 +177,14 @@ if ( $type eq ".json" ) {
     # filter out deprecated properties
     foreach my $dp (@deprecated_properties) {
         delete $properties{$dp};
+    }
+    # filter out redacted properties if requested
+    if ( $redact ) {
+        foreach my $rp (@redacted_properties) {
+            if ( exists($properties{$rp}) ) {
+                delete $properties{$rp};
+            }
+        }
     }
     # if a property value was requested, write the value to stdout and exit
     if ($keys ne "null") {

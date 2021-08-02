@@ -165,9 +165,10 @@ for server in ${SERVERS[*]}; do
       # update the url properties in the status json files before posting them
       # and save the url for keeping track of the previous url
       hookStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
-       awk -v u=\"$hookStatusURL\", '$1~"hook.status.url" { print $1" "$2" "u }' hook.status.json
       asgsInstanceStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
-      awk -v u=\"$asgsInstanceStatusURL\", '$1~"asgs.instance.status.url" { print $1" "$2" "u }' hook.status.json
+      cp -f hook.status.json tmp.hook.status.json
+      awk -f $SCRIPTDIR/monitoring/replaceURL.awk -v u=\"$hookStatusURL\" -v i=\"$asgsInstanceStatusURL\" tmp.hook.status.json > hook.status.json 
+      rm tmp.hook.status.json
    else
       OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
    fi
@@ -380,7 +381,7 @@ END
       fi
       fileIndex=1 # skip the opening "("
       while [[ $fileIndex -lt `expr ${#FILES[@]} - 1` ]] ; do  # skip the closing "("
-         file=${FILES[$fileIndex]}
+         file="${FILES[$fileIndex]}"
          if [[ $file = '(' || $file = ')' ]]; then
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
@@ -403,7 +404,7 @@ END
          scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
-            scp $file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+            scp ./$file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                warn "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -480,11 +481,11 @@ END
          partialPath=`dirname $partialPath`
       done
       for file in ${FILES[*]}; do
-         if [[ $file = "(" || $file = ")" ]]; then
+         if [[ "$file" = "(" || $file = ")" ]]; then
             continue
          fi
          # send opendap posting notification email early if directed
-         if [[ $file = "sendNotification" ]]; then
+         if [[ "$file" = "sendNotification" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
             # use asgs sendmail if Operator has set it up
             if [[ $OPENDAPMAILSERVER = "aws" ]]; then
@@ -495,9 +496,9 @@ END
             opendapEmailSent=yes
             continue
          fi
-         chmod +r $file 2>> $SYSLOG
+         chmod +r "$file" 2>> $SYSLOG
          scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-         rsync ${rsyncOptions} ${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+         rsync ${rsyncOptions} ./${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             warn "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -553,11 +554,11 @@ END
          ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
       fi
       for file in ${FILES[*]}; do
-         if [[ $file = "(" || $file = ")" ]]; then
+         if [[ "$file" = "(" || $file = ")" ]]; then
             continue
          fi
          # send opendap posting notification email early if directed
-         if [[ $file = "sendNotification" ]]; then
+         if [[ "$file" = "sendNotification" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
             # use asgs sendmail if Operator has set it up
             if [[ $OPENDAPMAILSERVER = "aws" ]]; then

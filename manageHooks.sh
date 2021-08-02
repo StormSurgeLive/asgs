@@ -124,8 +124,10 @@ writeHookStatus()
     echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
     echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
     echo \""path.rundir\" : \"$RUNDIR\"," >> $jsonfile
-    echo \""config.file\" : \"$CONFIG\"," >> $jsonfile
     echo \""path.scriptdir\" : \"$SCRIPTDIR\"," >> $jsonfile
+    echo \""path.lastsubdir\" : \"$LASTSUBDIR\"," >> $jsonfile 
+    echo \""monitoring.logging.file.syslog\" : \"$SYSLOG\"," >> $jsonfile 
+    echo \""config.file\" : \"$CONFIG\"," >> $jsonfile
     echo "\"monitoring.hook\" : {" >> $jsonfile
     for k in ${allHooks[@]} ; do
         comma="," ; if [[ $k == "EXIT_STAGE" ]]; then comma="" ; fi
