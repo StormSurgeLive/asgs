@@ -72,7 +72,6 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
    exit
 fi
 OPENDAPNOTIFY="${properties['notification.opendap.email.opendapnotify']}"
-echo "OPENDAPNOTIFY is $OPENDAPNOTIFY"
 #
 SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
 cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
@@ -331,7 +330,7 @@ END
             continue
          fi
          # send opendap posting notification email early if directed
-         if [[ $file = "sendNotification" ]]; then
+         if [[ $file == "sendNotification" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
             # use asgs sendmail if Operator has set it up
             if [[ $OPENDAPMAILSERVER = "aws" ]]; then
@@ -429,7 +428,7 @@ END
             continue
          fi
          # send opendap posting notification email early if directed
-         if [[ $file = "sendNotification" ]]; then
+         if [[ $file = "sendNotification"  && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
             # use asgs sendmail if Operator has set it up
             if [[ $OPENDAPMAILSERVER = "aws" ]]; then
@@ -502,7 +501,7 @@ END
             continue
          fi
          # send opendap posting notification email early if directed
-         if [[ $file = "sendNotification" ]]; then
+         if [[ $file = "sendNotification" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
             # use asgs sendmail if Operator has set it up
             if [[ $OPENDAPMAILSERVER = "aws" ]]; then
@@ -538,7 +537,7 @@ END
    #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
    #   cat ${SCENARIODIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
    #else
-   if [[ $opendapEmailSent = "no" ]]; then
+   if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
       scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
       # use asgs sendmail if Operator has set it up
       if [[ $OPENDAPMAILSERVER = "aws" ]]; then
