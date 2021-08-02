@@ -72,6 +72,8 @@ POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmi
 FINISH_SPINUP_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 FINISH_NOWCAST_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+RMQMessaging_Enable="on"
+RMQMessaging_Transmit="on"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 

@@ -11,9 +11,20 @@ if [[ ! -e ${RMQMessaging_Python} ]] ; then
 	RMQMessaging_Enable="off"
 	return 1
 fi
+RMQMessaging_Script=${RMQMessaging_Script:-$SCRIPTDIR/monitoring/asgs-msgr.py}
+RMQMessaging_Script_RP=${RMQMessaging_Script_RP:-$SCRIPTDIR/monitoring/rp2json.py}
+RMQMessaging_StartupScript=${RMQMessaging_StartupScript:-${SCRIPTDIR}/monitoring/asgs-msgr_startup.py}
+namedot=${HPCENVSHORT}.
+RMQMessaging_LocationName=${RMQMessaging_LocationName:-${HPCENV#$namedot}}
+RMQMessaging_ClusterName=${RMQMessaging_ClusterName:-$HPCENVSHORT}
+unset namedot
+
 echo "RMQMessaging:Python=$RMQMessaging_Python"
 echo "RMQMessaging:Script=$RMQMessaging_Script"
 echo "RMQMessaging:Script_RP=$RMQMessaging_Script_RP"
+echo "RMQMessaging:StartipScript=$RMQMessaging_StartupScript"
+echo "RMQMessaging:LocationName=$RMQMessaging_LocationName"
+echo "RMQMessaging:ClusterName=$RMQMessaging_ClusterName"
 
 if [[ ! -e ${RMQMessaging_Script} ]] ; then 
 	echo "Messaging script not found. Turning off RMQMessaging."
