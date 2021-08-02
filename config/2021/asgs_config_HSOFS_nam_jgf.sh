@@ -68,8 +68,10 @@ NCPUCAPACITY=9999
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="null"
+RMQMessaging_Enable=off
+RMQMessaging_Transmit=off
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
