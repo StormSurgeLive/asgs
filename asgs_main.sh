@@ -1499,16 +1499,6 @@ variables_init()
    # RMQMessaging defaults (can be set in $CONFIG)
    RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"
    RMQMessaging_Transmit=${RMQMessaging_Transmit:-off} # enables message transmission ("on" | "off")
-   # only set these if enabled in $CONFIG
-   if [[ ${RMQMessaging_Enable} == "on" ]]; then
-     RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-     RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
-     RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
-     namedot=${HPCENVSHORT}.
-     RMQMessaging_LocationName=${HPCENV#$namedot}
-     RMQMessaging_ClusterName=$HPCENVSHORT
-     unset namedot
-   fi
 }
 
 # Write general properties to the run.properties file that are associated with
