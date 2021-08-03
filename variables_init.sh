@@ -164,6 +164,26 @@ variables_init()
    enableStatusNotify="no"   # turn asgs instance status notification on and off
    statusNotify="null"       # comma separated list of email addresses
    notifyNow="no"            # used to limit notification to just the FINISH_INIT hook
+   #
+   #  F I L E   S T A T U S
+   #
+   declare -a -g fileStatusList
+   # water surface elevation and water velocity
+   fileStatusList+=( fort.61.nc fort.62.nc fort.63.nc fort.64.nc )
+   # barometric pressure and wind velocity
+   fileStatusList+=( fort.71.nc fort.72.nc fort.73.nc fort.74.nc )
+   # inundation
+   fileStatusList+=( initiallydry.63.nc inundationtime.63.nc endrisinginun.63.nc everdried.63.nc maxinundepth.63.nc )
+   # adcirc min/max files
+   fileStatusList+=( maxele.63.nc maxvel.63.nc maxwvel.63.nc minpr.63.nc )
+   # swan files
+   fileStatusList+=( swan_TPS.63.nc swan_TMM10.63.nc swan_HS.63.nc swan_DIR.63.nc rads.64.nc )
+   # swan max files
+   fileStatusList+=( maxrs.63.nc swan_TPS_max.63.nc swan_TMM10_max.63.nc swan_HS_max.63.nc swan_DIR_max.63.nc )
+   # files without datasets
+   declare -g -a fileStatusCheckList=( scenario.log partmesh.txt )
+   # files first updated
+   declare -g -A filesFirstTimeUpdated
 
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 # RMQMessaging defaults
