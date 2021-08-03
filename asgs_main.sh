@@ -1039,11 +1039,12 @@ monitorJobs()
    #
    ENSTORM_TEMP=${JOBTYPE}.${ENSTORM}
    THIS="asgs_main.sh>monitorJobs()"
+   jobCheckIntervalSeconds=60
    #
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY}."
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
-      sleep 10
+      sleep $jobCheckIntervalSeconds
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY} ..."
    done
    CURRENT_STATE="RUNN"
@@ -1051,7 +1052,6 @@ monitorJobs()
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
    retries=0  # count resubmits on hatteras due to io errors
-   jobCheckIntervalSeconds=15
    #
    # Keep checking every $jobCheckIntervalSeconds to see if the job has
    # (a) timed out; (b) written a .finish file; or (c) written a .error file.
@@ -1066,6 +1066,7 @@ monitorJobs()
    #
    while [[ 1 ]]; do
       sleep $jobCheckIntervalSeconds
+      writeScenarioFilesStatus
       # execute the FortCheck.py code to get a %complete status, but only
       # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
       if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
@@ -1080,7 +1081,8 @@ monitorJobs()
       # check job run status
       if ! checkTimeLimit $startTime $WALLTIME ; then
          THIS="asgs_main.sh>monitorJobs()"
-         echo "$THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "[$DATETIME] $THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error  # <-OVERWRITE
          # if this job was submitted by mpiexec, then terminate it; otherwise,
          # it could run for a long time, delaying the continued execution
          # of the ASGS (the ASGS won't start the next cycle until all forecast
@@ -1091,26 +1093,27 @@ monitorJobs()
          case $QUEUESYS in
          "mpiexec")
             logMessage "$ENSTORM: $THIS: Detecting mpiexec subshell pid."
-            pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
+            local pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
             #logMessage "Terminating the $ENSTORM_TEMP job with the command 'kill -TERM `ps --ppid $pid -o pid --no-headers'."
             # need to kill the mpiexec process, but don't know its process ID
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$pid\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
             ;;
          "serial")
-            pid=`grep 'serial $JOBTYPE job subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/serial $JOBTYPE job subshell pid.*://' | sed 's/^\s//'`
+            local pid=`grep 'serial $JOBTYPE job subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/serial $JOBTYPE job subshell pid.*://' | sed 's/^\s//'`
             # need to kill the serial process, but don't know its process ID
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$pid\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
             ;;
          *)
             # if we are over the wall clock limit, wait until the operating
             # system has had a chance to write the job log file, or
             # until 5 minutes have passed
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
             overLimitTime=`date +%s`
             until [[ -e ${ENSTORM_TEMP}.out ]]; do
                logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
@@ -1141,6 +1144,8 @@ monitorJobs()
                for jobtype in padcirc padcswan; do
                   if [[ -e ${jobtype}.slurm ]]; then
                      sbatch ${jobtype}.slurm >> $SYSLOG 2>&1
+                     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                     echo "\"jobtype\" : \"$jobtype\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> jobs.status
                      break
                   fi
                done
@@ -1149,7 +1154,7 @@ monitorJobs()
                # there was an error under a SLURM system, but not
                # an error we can get around by resubmitting
                error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this scenario for this advisory."
-            cat ${ENSTORM_TEMP}.run.error >> jobFailed
+               cat ${ENSTORM_TEMP}.run.error >> jobFailed
                break
             fi
          else

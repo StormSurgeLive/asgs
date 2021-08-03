@@ -462,7 +462,7 @@ writeASGSInstanceStatus()
     # FIXME: why doesn't this remove the opendapnotify property?
     $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile
     # redact username
-    # FIXME: why doesn't this remove the username? 
+    # FIXME: why doesn't this remove the username?
     #echo "sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile"
     sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile
 }
@@ -472,12 +472,84 @@ postStatus() {
     local THIS="asgs_main->monitoring/logging.sh->postStatus()"
     statfile="$statusDir/asgs.instance.status.properties"
     logMessage "$THIS: Posting status associated with ASGS configuration and hooks in $statfile to opendap."
-    # redact username from log file and rename with .txt extension so 
+    # redact username from log file and rename with .txt extension so
     # we can review it directly in a web browser
     local logfile=$(basename -- $SYSLOG)
     textlog="${logfile%.*}.txt"
     sed "s/$USER/\$USER/g" $SYSLOG > $statusDir/$textlog
     $SCRIPTDIR/output/opendap_post.sh $statfile
+}
+# Executed at the start of a scenario
+nullifyFilesFirstTimeUpdated()
+{
+    local THIS="asgs_main->monitoring/logging.sh->nullifyFilesFirstTimeUpdated()"
+    logMessage "$THIS: Nullifying the first updated times associated with each output file."
+    for k in ${fileStatusList[@]} ${fileStatusCheckList[@]} ; do
+        filesFirstTimeUpdated[$k]='"null"'
+    done
+}
+
+# includes asgs configuration that is not expected to vary
+# between scenarios (mesh, machine, operator, config file, etc)
+writeScenarioFilesStatus()
+{
+   local THIS="asgs_main->monitoring/logging.sh->writeScenarioFilesStatus()"
+   local jsonfile="files.status.json"
+   #
+   # update time stamp
+   dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+   # write the status associated with each file
+   echo "{" > $jsonfile # <-<< OVERWRITE
+   echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
+   echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
+   echo \""cycle\" : \"$ADVISORY\"," >> $jsonfile
+   echo \""scenario\" : \"$SCENARIO\"," >> $jsonfile
+   echo \""time.files.status.lastupdated\" : \"$dateTime\"," >> $jsonfile
+   # these are all netcdf files
+   for f in ${fileStatusList[@]} ; do
+      local e="false"
+      local found=0 # number of datasets actually found in the file
+      local first="null"  # first modification time
+      local last="null"   # most recent modification time
+      if [[ -e $f ]]; then
+         e="true"
+         # number of datasets expected in this file at the end of the run
+         local ne=$(awk -v file=adcirc.file.output.$f.numdatasets 'BEGIN { FS=":" } $1~file { print $2 }' run.properties)
+         if [[ $ne="" ]]; then
+            ne=0
+         fi
+         # number of datasets actually in the file
+         found=$(ncdump $f | grep currently | grep -Eo [0-9]+)
+         if [[ $found == "" ]]; then
+            found=0
+         fi
+         if [[ ${filesFirstTimeUpdated[$f]} == "null" ]]; then
+            filesFirstTimeUpdated[$f]=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+         fi
+         last=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+      fi
+      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" },"  >> $jsonfile
+   done
+   for f in ${fileStatusCheckList[@]} ; do
+      e="false"
+      first="null"  # first modification time
+      last="null"   # most recent modification time
+      if [[ -e $f ]]; then
+         e="true"
+         if [[ ${filesFirstTimeUpdated[$f]} == "null" ]]; then
+            filesFirstTimeUpdated[$f]=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+         fi
+         last=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+      fi
+      comma="," ; if [[ $f == "EXIT_STAGE" ]]; then comma="" ; fi
+      echo -n \""$f\" : { \"exists\" : $e, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" }" >> $jsonfile
+      if [[ $f != ${fileStatusCheckList[-1]} ]] then
+         echo "," >> $jsonfile # comma then newline
+      else
+         echo " " >> $jsonfile # just newline
+      fi
+   done
+   echo " }" >> $jsonfile # end of files.status.json file
 }
 #
 #  send message when shutting down on INT and clear all processes
