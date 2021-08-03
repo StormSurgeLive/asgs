@@ -1223,8 +1223,7 @@ submitJob()
    "serial")
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
-      echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "$ENSTORM: $THIS: Submitting job via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
+      logMessage "$ENSTORM: $THIS: Submitting ${JOBTYPE}.${ENSTORM} job in $PWD via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the serial job in a subshell
       (
          # initialize log files so they can be centralized
@@ -1235,8 +1234,11 @@ submitJob()
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+         else
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          fi
-         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
          # terminate redirect processes for centralized logging
          sleep 30 # give buffers a chance to flush to the filesystem
@@ -1244,7 +1246,10 @@ submitJob()
       ) &
       # write the process id to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
-      echo "serial $JOBTYPE job subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      local subshellPID=$!
+      echo "serial $JOBTYPE job subshell pid : $subshellPID" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      echo "\"start\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start #<-OVERWRITE
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    #
    #  SLURM PBS SGE LoadLeveler LSF
@@ -1256,10 +1261,11 @@ submitJob()
       # initialize log files so they can be centralized
       initCentralizedScenarioLogging
       #
-      # submit job, check to make sure qsub succeeded, and if not, retry
+      # submit job, check to make sure qsub succeeded, and if not, retry (forever)
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
+         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> ${SYSLOG} 2>&1
          if [[ $? = 0 ]]; then
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} successful."
@@ -1284,14 +1290,16 @@ submitJob()
          # initialize log files so they can be centralized
          initCentralizedScenarioLogging
          $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
-
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+         else
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          fi
-         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
          # terminate redirect processes for centralized logging
          sleep 30 # give buffers a chance to flush to the filesystem
@@ -1300,6 +1308,8 @@ submitJob()
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
       echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      echo "\"start\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start #<-OVERWRITE
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    *)
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "Queueing system $QUEUESYS unrecognized."
