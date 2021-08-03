@@ -450,8 +450,10 @@ writeASGSInstanceStatus()
     echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "InitialHotStartTime : $HSTIME" >> $statfile    # for use in opendap_post.sh
-    # forecast scenario package size
+    # forecast scenario package 
     echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
+    local myscenarios=$(str="( " ; si=0 ; while [[ $si -lt $SCENARIOPACKAGESIZE ]]; do source $ASGS_CONFIG ; str+="$ENSTORM " ; si=$(($si + 1)) ; done ; str+=")" ; echo $str )
+    echo "forecast.scenarios : $myscenarios" >> $statfile
     #
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
