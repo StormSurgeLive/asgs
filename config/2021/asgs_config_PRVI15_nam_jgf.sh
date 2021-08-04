@@ -69,8 +69,6 @@ NCPUCAPACITY=9999
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-FINISH_SPINUP_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
-FINISH_NOWCAST_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
@@ -88,10 +86,14 @@ SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
  -2)
    ENSTORM=hindcast
+   FINISH_SPINUP_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
+   OPENDAPNOTIFY="null"
    ;;
 -1)
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
+   FINISH_NOWCAST_SCENARIO=( output/createOPeNDAPFileList.sh output/opendap_post.sh )
+   OPENDAPNOTIFY="null"
    ;;
  0)
    ENSTORM=namforecastWind10m
