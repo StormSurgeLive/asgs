@@ -1182,6 +1182,7 @@ monitorJobs()
    # terminate redirect processes for centralized logging
    sleep 30 # give buffers a chance to flush to the filesystem
    finalizeCentralizedScenarioLogging
+   writeScenarioFilesStatus  # final status update for files
    #
    # final messages
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Finished monitoring $ENSTORM_TEMP job."
@@ -1270,14 +1271,16 @@ submitJob()
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> ${SYSLOG} 2>&1
-         if [[ $? = 0 ]]; then
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> ${SYSLOG} 2>&1 | tee jobID
+         if [[ $? == 0 ]]; then
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} successful."
+            # FIXME: need to capture the job ID
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
             RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WARN" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
             warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed; will retry in 60 seconds."
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             sleep 60
          fi
       done
@@ -1406,7 +1409,8 @@ STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 # set the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
 
-variables_init # Initialize variables
+variables_init           # initialize variables
+initFileStatusMonitoring # initialize variables
 #
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
@@ -1814,6 +1818,7 @@ if [[ $START = coldstart ]]; then
    ENSTORM=hindcast
    SCENARIO=$ENSTORM
    executeHookScripts "BUILD_SPINUP"
+   nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
    CURRENT_EVENT="HIND"
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Starting hindcast."
@@ -1843,6 +1848,7 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    writeProperties $STORMDIR
    writeScenarioProperties $SCENARIODIR
+   writeScenarioFilesStatus $SCENARIODIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2131,6 +2137,7 @@ while [ true ]; do
       cd $NOWCASTDIR 2>> ${SYSLOG}
       #
       executeHookScripts "BUILD_NOWCAST_SCENARIO"
+      nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
@@ -2516,6 +2523,7 @@ while [ true ]; do
       readConfig
       SCENARIO=$ENSTORM
       executeHookScripts "INITIALIZE_FORECAST_SCENARIO" # now that we know the name of the scenario
+      nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file
@@ -2614,6 +2622,7 @@ while [ true ]; do
       THIS="asgs_main.sh"
       #
       executeHookScripts "BUILD_FORECAST_SCENARIO"
+
       #
       # turn SWAN hotstarting on or off as appropriate
       HOTSWAN=off
@@ -2806,6 +2815,7 @@ while [ true ]; do
          fi
       done
       if [[ $RUNFORECAST = yes ]]; then
+
          writeJobResourceRequestProperties $SCENARIODIR 2>> $SYSLOG
          # set up post processing for the forecast, including initiation
          # of real time post processing

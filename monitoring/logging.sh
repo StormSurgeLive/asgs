@@ -479,13 +479,40 @@ postStatus() {
     sed "s/$USER/\$USER/g" $SYSLOG > $statusDir/$textlog
     $SCRIPTDIR/output/opendap_post.sh $statfile
 }
+
+initFileStatusMonitoring() {
+   #
+   #  F I L E   S T A T U S
+   #
+   declare -a -g fileStatusList
+   # water surface elevation and water velocity
+   fileStatusList+=( fort.61.nc fort.62.nc fort.63.nc fort.64.nc )
+   # barometric pressure and wind velocity
+   fileStatusList+=( fort.71.nc fort.72.nc fort.73.nc fort.74.nc )
+   # inundation
+   fileStatusList+=( initiallydry.63.nc inundationtime.63.nc endrisinginun.63.nc everdried.63.nc maxinundepth.63.nc )
+   # adcirc min/max files
+   fileStatusList+=( maxele.63.nc maxvel.63.nc maxwvel.63.nc minpr.63.nc )
+   # swan files
+   fileStatusList+=( swan_TPS.63.nc swan_TMM10.63.nc swan_HS.63.nc swan_DIR.63.nc rads.64.nc )
+   # swan max files
+   fileStatusList+=( maxrs.63.nc swan_TPS_max.63.nc swan_TMM10_max.63.nc swan_HS_max.63.nc swan_DIR_max.63.nc )
+   # files without datasets
+   declare -g -a fileStatusCheckList=( scenario.log partmesh.txt )
+   # files first detected 
+   declare -g -A filesFirstTimeDetected
+   # files first updated
+   declare -g -A filesFirstTimeUpdated
+}
+
 # Executed at the start of a scenario
 nullifyFilesFirstTimeUpdated()
 {
     local THIS="asgs_main->monitoring/logging.sh->nullifyFilesFirstTimeUpdated()"
     logMessage "$THIS: Nullifying the first updated times associated with each output file."
     for k in ${fileStatusList[@]} ${fileStatusCheckList[@]} ; do
-        filesFirstTimeUpdated[$k]='"null"'
+        filesFirstTimeDetected[$k]="null"
+        filesFirstTimeUpdated[$k]="null"
     done
 }
 
@@ -494,7 +521,11 @@ nullifyFilesFirstTimeUpdated()
 writeScenarioFilesStatus()
 {
    local THIS="asgs_main->monitoring/logging.sh->writeScenarioFilesStatus()"
-   local jsonfile="files.status.json"
+   local fileStatusPath="."
+   if [[ $# -gt 0 ]]; then 
+      fileStatusPath=$1
+   fi 
+   local jsonfile=$fileStatusPath/files.status.json
    #
    # update time stamp
    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -508,25 +539,31 @@ writeScenarioFilesStatus()
    # these are all netcdf files
    for f in ${fileStatusList[@]} ; do
       local e="false"
-      local found=0 # number of datasets actually found in the file
+      local found=0       # number of datasets actually found in the file
       local first="null"  # first modification time
       local last="null"   # most recent modification time
-      if [[ -e $f ]]; then
+      local ne=0          # number of expected datasets (when run is complete) 
+      if [[ -e $fileStatusPath/$f ]]; then
          e="true"
-         # number of datasets expected in this file at the end of the run
-         local ne=$(awk -v file=adcirc.file.output.$f.numdatasets 'BEGIN { FS=":" } $1~file { print $2 }' run.properties)
-         if [[ $ne="" ]]; then
-            ne=0
-         fi
+         # determine number of datasets expected in this file at the end of the run
+         if [[ -e $fileStatusPath/run.properties ]]; then 
+             ne=$(awk -v prop=adcirc.file.output.${f}.numdatasets 'BEGIN { FS=":" } $1~prop { print $2 }' ${fileStatusPath}/run.properties)
+             if [[ $ne == "" ]]; then
+                # echo "run.properties returned no data"
+                ne=0
+             fi
+         else
+             ne=0
+         fi   
          # number of datasets actually in the file
-         found=$(ncdump $f | grep currently | grep -Eo [0-9]+)
+         found=$(ncdump -h $fileStatusPath/$f | grep currently | grep -Eo [0-9]+)
          if [[ $found == "" ]]; then
             found=0
          fi
          if [[ ${filesFirstTimeUpdated[$f]} == "null" ]]; then
-            filesFirstTimeUpdated[$f]=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
          fi
-         last=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+         last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
       fi
       echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" },"  >> $jsonfile
    done
@@ -534,16 +571,17 @@ writeScenarioFilesStatus()
       e="false"
       first="null"  # first modification time
       last="null"   # most recent modification time
-      if [[ -e $f ]]; then
+      local fileSize=0
+      if [[ -e $fileStatusPath/$f ]]; then
          e="true"
          if [[ ${filesFirstTimeUpdated[$f]} == "null" ]]; then
-            filesFirstTimeUpdated[$f]=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
          fi
-         last=$(date -r $f +'%Y-%h-%d-T%H:%M:%S%z')
+         last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+         fileSize=$(stat --printf='%s' $fileStatusPath/$f)
       fi
-      comma="," ; if [[ $f == "EXIT_STAGE" ]]; then comma="" ; fi
-      echo -n \""$f\" : { \"exists\" : $e, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" }" >> $jsonfile
-      if [[ $f != ${fileStatusCheckList[-1]} ]] then
+      echo -n \""$f\" : { \"exists\" : $e, \"size.bytes\" : $fileSize, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" }" >> $jsonfile
+      if [[ $f != ${fileStatusCheckList[-1]} ]]; then
          echo "," >> $jsonfile # comma then newline
       else
          echo " " >> $jsonfile # just newline
