@@ -878,6 +878,7 @@ sub getPeriodicFlux {
 sub hindcastParameters () {
     $rundesc = "cs:$csdate"."0000 cy: ASGS hindcast";
     $RNDAY = $endtime; #FIX: this should be a date, not days
+    $addHours = $RNDAY*24.0;  # used to calculate number of datasets in files
     $NHSINC = int(($RNDAY*86400.0)/$dt);
     ($ey,$em,$ed,$eh,$emin,$es) =
        Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
