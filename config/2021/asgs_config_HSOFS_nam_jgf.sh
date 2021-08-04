@@ -68,8 +68,10 @@ NCPUCAPACITY=9999
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com"
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+OPENDAPNOTIFY="null"
+RMQMessaging_Enable=off
+RMQMessaging_Transmit=off
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
@@ -85,13 +87,13 @@ case $si in
  -2)
    ENSTORM=hindcast
    FINISH_SPINUP_SCENARIO=( "output/createOPeNDAPFileList.sh" "output/opendap_post.sh" )   # post spinup to opendap
-   OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+   OPENDAPNOTIFY="null"
    ;;
 -1)
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    FINISH_NOWCAST_SCENARIO=( "output/createOPeNDAPFileList.sh" "output/opendap_post.sh" )  # post nowcast to opendap
-   OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+   OPENDAPNOTIFY="null"
    ;;
  0)
    ENSTORM=namforecastWind10m
