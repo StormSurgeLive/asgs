@@ -51,8 +51,8 @@ timestampHook()
     local THIS="asgs_main->manageHooks->timestampHook()"
     logMessage "$THIS: Updating timestamp for the $hook hook."
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    status="null"
-    statusURL="null"
+    local status="null"
+    local statusURL="null"
     case $hook in
     "START_INIT")
         mypath="null"
@@ -90,9 +90,19 @@ timestampHook()
     esac
     # TODO: go to that directory and get the statusURL from the status.json file
     # and put the statusURL into this status.json file
-    if [[ -e $mypath/status.json ]]; then
-        status=$mypath/status.json
-    fi
+    for file in cycle.status.json scenario.status.json ; do 
+        if [[ -e $RUNDIR/$mypath/$file ]]; then
+           status=$mypath/$file
+           # the URL should be in the $SCENARIODIR/status/run.properties file  
+           # as the downloadurl property
+           if [[ $file == "scenario.status.json" || -e $RUNDIR/$mypath/status/run.properties ]]; then
+               local downloadurl=$(grep downloadurl $RUNDIR/$mypath/status/run.properties)
+               if [[ ! -z $downloadurl && $downloadurl != "" ]]; then 
+                   statusURL=${downloadurl##downloadurl : }/$file  
+               fi           
+           fi 
+        fi
+    done
     json="{ \"time\" : \"$dateTime\", \"path\" : \"$mypath\", \"statusfile\" : \"$status\", \"statusURL\" : \"$statusURL\" }"
     # determine number of spaces required to get the status objects to line up
     longestHookKey=0

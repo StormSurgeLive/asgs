@@ -18,7 +18,7 @@ $1 ~ "jobtype" && FNR == 1 {
 $1 ~ "jobtype" && ($9 != jobid && jobid !~ "null")  {
    # write the line of json data when the job id changes from 
    # one non-null value to another
-   print "{ \"jobtype\" : "jobtype" \"submit\" : "submit" \"jobid\" : "jobid" \"start\" : "start" \"finish\" : "finish" \"error\" : "error" },"
+   print "{ \"jobtype\" : "jobtype" \"time.submit\" : "submit" \"jobid\" : "jobid" \"time.start\" : "start" \"time.finish\" : "finish" \"time.error\" : "error" },"
    # reset variables to values on the current line
    jobtype=$3 
    submit=$6
@@ -29,7 +29,7 @@ $1 ~ "jobtype" && ($9 != jobid && jobid !~ "null")  {
 }
 #  if there is no jobid, this indicates the job submission failed
 $1 ~ "jobtype" && $9 ~ "null" {
-   print "{ \"jobtype\" : "$3" \"submit\" : "$6" \"jobid\" : "$9" \"start\" : "$12" \"finish\" : "$15" \"error\" : "$18" },"
+   print "{ \"jobtype\" : "$3" \"time.submit\" : "$6" \"jobid\" : "$9" \"time.start\" : "$12" \"time.finish\" : "$15" \"time.error\" : "$18" },"
    jobtype=$3
    submit=$6
    jobid=$9
@@ -52,8 +52,10 @@ $1 ~ "jobtype" {
 END {
    if ( $1 ~ "jobtype" ) {
       # need to write the final job data
-      print "{ \"jobtype\" : "jobtype" \"submit\" : "submit" \"jobid\" : "jobid" \"start\" : "start" \"finish\" : "finish" \"error\" : "error" }"
-      print "]" # end of jobs.status array
+      print "{ \"jobtype\" : "jobtype" \"time.submit\" : "submit" \"jobid\" : "jobid" \"time.start\" : "start" \"time.finish\" : "finish" \"time.error\" : "error" }"
+      print "]," # end of jobs.status array
+      date=strftime("%Y-%m-%d-T%H:%M:%S%z")
+      print "\"time.scenario.status.lastupdated\" : \""date"\""
       print "}" # end of scenario.status.json
    }
 }

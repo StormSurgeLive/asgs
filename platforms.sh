@@ -484,9 +484,13 @@ init_test()
 writeTDSProperties()
 {
    local THIS="platforms.sh>writeTDSProperties()"
+   SERVER=$1
+   RUNPROPERTIES=run.properties
+   if [[ $# -eq 2 ]]; then
+      RUNPROPERTIES=$2
+   fi
    scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
    operator=$USER
-   SERVER=$1
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
    OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
@@ -501,8 +505,8 @@ writeTDSProperties()
       OPENDAPPORT=":8080"
       OPENDAPPROTOCOL="http"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> $RUNPROPERTIES
       #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
       #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
       #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
@@ -515,8 +519,8 @@ writeTDSProperties()
       OPENDAPPORT=":443"
       OPENDAPPROTOCOL="https"
       OPENDAPBASEDIR=/data/opendap
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> $RUNPROPERTIES
       ;;
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
@@ -528,8 +532,8 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs/ASGS-2019
       DOWNLOADPREFIX=/asgs/ASGS-2019
       OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> $RUNPROPERTIES
       ;;
    #
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
@@ -542,8 +546,8 @@ writeTDSProperties()
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
    "tacc_tds2")
       THREDDSHOST=chg-1.oden.tacc.utexas.edu # WWW hostname for emailed links
@@ -553,25 +557,25 @@ writeTDSProperties()
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> run.properties
+      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
    *)
       echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
    esac
    # now write properties
-   echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
-   echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> run.properties
-   echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
+   echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> $RUNPROPERTIES
+   echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> $RUNPROPERTIES
+   echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> $RUNPROPERTIES
+   echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> $RUNPROPERTIES
+   echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> $RUNPROPERTIES
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is
    # set up and ready to use
    # FIXME: create something more reliable/repeatable
    if [[ -e $HOME/asgs-global.conf ]]; then
       OPENDAPMAILSERVER=aws
    fi
-   echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> run.properties
+   echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $RUNPROPERTIES
 }
 #
 # set the values of HPCENV and HPCENVSHORT
