@@ -445,7 +445,11 @@ writeASGSInstanceStatus()
     echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
     echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
     echo "notification.opendap.email.enable : $notifyNow" >> $statfile
-    statusFiles="asgs.instance.status.json hook.status.json $textlog"
+    # the syslog file can get pretty big, I don't think we want to 
+    # send it every 60 seconds, need to figure out how we can just send
+    # the extra increment each time and append on the remote server
+    statusFiles="asgs.instance.status.json hook.status.json"
+    #statusFiles="asgs.instance.status.json hook.status.json $textlog"
     if [[ $previousHookStatusFile != "null" ]]; then
         statusFiles+=" $previousHookStatusFile"
     fi
@@ -509,8 +513,6 @@ initFileStatusMonitoring() {
    fileStatusList+=( maxrs.63.nc swan_TPS_max.63.nc swan_TMM10_max.63.nc swan_HS_max.63.nc swan_DIR_max.63.nc )
    # files without datasets
    declare -g -a fileStatusCheckList=( scenario.log partmesh.txt )
-   # files first detected 
-   declare -g -A filesFirstTimeDetected
    # files first updated
    declare -g -A filesFirstTimeUpdated
 }
@@ -521,7 +523,6 @@ nullifyFilesFirstTimeUpdated()
     local THIS="asgs_main->monitoring/logging.sh->nullifyFilesFirstTimeUpdated()"
     logMessage "$THIS: Nullifying the first updated times associated with each output file."
     for k in ${fileStatusList[@]} ${fileStatusCheckList[@]} ; do
-        filesFirstTimeDetected[$k]="null"
         filesFirstTimeUpdated[$k]="null"
     done
 }
@@ -543,9 +544,10 @@ writeScenarioFilesStatus()
    echo "{" > $jsonfile # <-<< OVERWRITE
    echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
    echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
-   echo \""cycle\" : \"$ADVISORY\"," >> $jsonfile
+   echo \""cycle\" : $ADVISORY," >> $jsonfile
    echo \""scenario\" : \"$SCENARIO\"," >> $jsonfile
    echo \""time.files.status.lastupdated\" : \"$dateTime\"," >> $jsonfile
+   echo \""files.status\" : {" >> $jsonfile
    # these are all netcdf files
    for f in ${fileStatusList[@]} ; do
       local e="false"
@@ -575,7 +577,7 @@ writeScenarioFilesStatus()
          fi
          last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
       fi
-      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" },"  >> $jsonfile
+      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" } },"  >> $jsonfile
    done
    for f in ${fileStatusCheckList[@]} ; do
       e="false"
@@ -590,14 +592,38 @@ writeScenarioFilesStatus()
          last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
          fileSize=$(stat --printf='%s' $fileStatusPath/$f)
       fi
-      echo -n \""$f\" : { \"exists\" : $e, \"size.bytes\" : $fileSize, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" }" >> $jsonfile
+      echo -n \""$f\" : { \"exists\" : $e, \"size.bytes\" : $fileSize, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" } }" >> $jsonfile
       if [[ $f != ${fileStatusCheckList[-1]} ]]; then
          echo "," >> $jsonfile # comma then newline
       else
-         echo " " >> $jsonfile # just newline
+         echo " " >> $jsonfile # just new line
       fi
    done
-   echo " }" >> $jsonfile # end of files.status.json file
+   echo "}" >> $jsonfile # end of files.status.json file
+   # collect the scenario files and scenario jobs into one json file
+   if [[ -e $fileStatusPath/jobs.status ]]; then
+      awk -f $SCRIPTDIR/monitoring/scenarioStatus.awk $jsonfile $fileStatusPath/jobs.status > $fileStatusPath/scenario.status.json 2>>$SYSLOG
+   else
+      cp $jsonfile $fileStatusPath/scenario.status.json
+   fi
+}
+#
+# post the asgs instance status and hook status files to opendap
+postScenarioStatus() {
+    local THIS="asgs_main->monitoring/logging.sh->postScenarioStatus()"
+    scenarioStatusDir=$SCENARIODIR/status
+    logMessage "$THIS: Posting status associated with scenario $SCENARIO in $scenarioStatusDir for opendap service."
+    if [[ ! -d $scenarioStatusDir ]]; then
+       mkdir -p $scenarioStatusDir 2>> $SYSLOG
+    fi
+    cp $SCENARIODIR/scenario.status.json $scenarioStatusDir 2>> $SYSLOG
+    cp $SCENARIODIR/run.properties $scenarioStatusDir 2>> $SYSLOG
+    # FIXME: need to have a better way of separating the list of 
+    # files to be posted to opendap on any particular execution of 
+    # output/opendap_post.sh from the run.properties file
+    echo "post.opendap.files : ( scenario.status.json )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG 
+    echo "notification.opendap.email.enable : no" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
+    $SCRIPTDIR/output/opendap_post.sh $scenarioStatusDir/run.properties
 }
 #
 #  send message when shutting down on INT and clear all processes

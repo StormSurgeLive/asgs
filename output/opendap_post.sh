@@ -87,6 +87,10 @@ INSTANCENAME=${properties["instancename"]}
 HPCENVSHORT=${properties["hpc.hpcenvshort"]}
 TROPICALCYCLONE=${properties["forcing.tropicalcyclone"]}
 BACKGROUNDMET=${properties["forcing.backgroundmet"]}
+enableStatusNotify=${properties["notification.opendap.email.enable"]}
+if [[ -z $enableStatusNotify || $enableStatusNotify = "" ]]; then
+   enableStatusNotify="no"
+fi
 # get the scenario number from Operator config
 case $SCENARIO in
 "hindcast")
@@ -115,7 +119,7 @@ for server in ${SERVERS[*]}; do
    scenarioMessage "Setting opendap server parameters with writeTDSProperties ${server}."
    # write platform-dependent properties related to posting to thredds server for
    # opendap service  (from platforms.sh)
-   writeTDSProperties $server  # this writes to a local run.properties file
+   writeTDSProperties $server $RUNPROPERTIES  # this writes to a local run.properties file
    if [[ $SCENARIO == "asgs.instance.status" ]]; then
       cat run.properties >> $RUNPROPERTIES
       rm run.properties # so we don't keep appending to it
@@ -160,7 +164,6 @@ for server in ${SERVERS[*]}; do
       YEAR=${COLDSTARTDATE:0:4}
       STORMNAMEPATH=$YEAR/status
       OPENDAPSUFFIX=$HPCENV/$INSTANCENAME
-      enableStatusNotify=${properties["notification.opendap.email.enable"]}
       # update the url properties in the status json files before posting them
       # and save the url for keeping track of the previous url
       hookStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
@@ -231,6 +234,9 @@ for server in ${SERVERS[*]}; do
    # @jasonfleming: Hack in the ability to send the notification email
    # before all the files have been posted.
    opendapEmailSent=no
+   if [[ $enableStatusNotify == "no" ]]; then
+       opendapEmailSent=yes # hack to prevent this script from sending the notification email
+   fi
    #
    runStartTime=${properties["RunStartTime"]}
 
@@ -278,9 +284,6 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 END
-      if [[ $enableStatusNotify == "no" ]]; then
-          opendapEmailSent=yes # this will prevent this script from sending the notification email
-      fi
       $SCRIPTDIR/metadata.pl --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt

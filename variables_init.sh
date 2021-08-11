@@ -176,4 +176,7 @@ variables_init()
    namedot=${HPCENVSHORT}.
    RMQMessaging_LocationName=${HPCENV#$namedot}
    RMQMessaging_ClusterName=$HPCENVSHORT
+
+   SCENARIO="null"
+   SCENARIODIR="null"
 }

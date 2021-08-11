@@ -754,11 +754,14 @@ prepFile()
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
          # submit job , capture stdout from sbatch and direct it
          # to scenario.log; capture stderr and send to all logs
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr | tee jobID | tee -a scenario.log
          if [[ $? = 0 ]]; then
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
+            awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
             warn "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             sleep 60
          fi
       done
@@ -771,10 +774,16 @@ prepFile()
       ;;
    *)
       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"$DATETIME\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$!\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       # check to see if adcprep completed successfully
       if [[ $? != 0 ]]; then
          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
       fi
       ;;
@@ -1054,6 +1063,8 @@ monitorJobs()
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
       sleep $jobCheckIntervalSeconds
+      writeScenarioFilesStatus
+      postScenarioStatus
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY} ..."
    done
    CURRENT_STATE="RUNN"
@@ -1076,6 +1087,7 @@ monitorJobs()
    while [[ 1 ]]; do
       sleep $jobCheckIntervalSeconds
       writeScenarioFilesStatus
+      postScenarioStatus
       # execute the FortCheck.py code to get a %complete status, but only
       # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
       if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
@@ -1152,9 +1164,9 @@ monitorJobs()
                done
                for jobtype in padcirc padcswan; do
                   if [[ -e ${jobtype}.slurm ]]; then
-                     sbatch ${jobtype}.slurm >> $SYSLOG 2>&1
+                     sbatch ${jobtype}.slurm >jobID 2>jobErr | tee -a scenario.log
                      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-                     echo "\"jobtype\" : \"$jobtype\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> jobs.status
+                     echo "\"jobtype\" : \"$jobtype\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> jobs.status
                      break
                   fi
                done
@@ -1192,6 +1204,7 @@ monitorJobs()
    sleep 30 # give buffers a chance to flush to the filesystem
    finalizeCentralizedScenarioLogging
    writeScenarioFilesStatus  # final status update for files
+   postScenarioStatus
    #
    # final messages
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Finished monitoring $ENSTORM_TEMP job."
@@ -1249,9 +1262,9 @@ submitJob()
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          else
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          fi
          echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
@@ -1280,7 +1293,7 @@ submitJob()
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> ${SYSLOG} 2>&1 | tee jobID
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
          if [[ $? == 0 ]]; then
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} successful."
             # FIXME: need to capture the job ID
@@ -1312,9 +1325,9 @@ submitJob()
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          else
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          fi
          echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
