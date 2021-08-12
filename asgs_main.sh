@@ -1461,16 +1461,6 @@ echo "HPCENVSHORT is '$HPCENVSHORT'"
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
-# RMQMessaging defaults
-RMQMessaging_Enable="off"   # "on"|"off"
-RMQMessaging_Transmit="off" #  enables message transmission ("on" | "off")
-RMQMessaging_Script="${SCRIPTDIR}/monitoring/asgs-msgr.py"
-RMQMessaging_Script_RP="${SCRIPTDIR}/monitoring/rp2json.py"
-RMQMessaging_StartupScript="${SCRIPTDIR}/monitoring/asgs-msgr_startup.py"
-RMQMessaging_NcoHome="/set/RMQMessaging_NcoHome/in/asgs/config"
-namedot=${HPCENVSHORT}.
-RMQMessaging_LocationName=${HPCENV#$namedot}
-RMQMessaging_ClusterName=$HPCENVSHORT
 #
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
