@@ -1062,10 +1062,10 @@ monitorJobs()
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY}."
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
-      sleep $jobCheckIntervalSeconds
       writeScenarioFilesStatus
       postScenarioStatus
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY} ..."
+      sleep $jobCheckIntervalSeconds
    done
    CURRENT_STATE="RUNN"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job has started."
@@ -1085,7 +1085,6 @@ monitorJobs()
    # resubmit it without the ASGS noticing or being disturbed.
    #
    while [[ 1 ]]; do
-      sleep $jobCheckIntervalSeconds
       writeScenarioFilesStatus
       postScenarioStatus
       # execute the FortCheck.py code to get a %complete status, but only
@@ -1189,6 +1188,7 @@ monitorJobs()
          logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
          break
       fi
+      sleep $jobCheckIntervalSeconds
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
@@ -1201,10 +1201,10 @@ monitorJobs()
    fi
    #
    # terminate redirect processes for centralized logging
-   sleep 30 # give buffers a chance to flush to the filesystem
-   finalizeCentralizedScenarioLogging
    writeScenarioFilesStatus  # final status update for files
    postScenarioStatus
+   sleep 30 # give buffers a chance to flush to the filesystem
+   finalizeCentralizedScenarioLogging
    #
    # final messages
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Finished monitoring $ENSTORM_TEMP job."
