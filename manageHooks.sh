@@ -152,13 +152,13 @@ writeHookStatus()
     echo "}," >> $jsonfile
     # update time stamp
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo \""asgs.instance.status.file\" : \"asgs.instance.status.json\"," >> $jsonfile
-    echo \""asgs.instance.status.url\" : \"$asgsInstanceStatusURL\","   >> $jsonfile
-    echo \""time.hook.status.lastupdated\" : \"$dateTime\","            >> $jsonfile
-    echo \""hook.status.url\" : \"$hookStatusURL\","                    >> $jsonfile
-    echo \""hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
-    echo \""hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
-    echo \""hook.status.latest\" : \"$latestHook\""                     >> $jsonfile
+    echo "\"asgs.instance.status.file\" : \"asgs.instance.status.json\"," >> $jsonfile
+    echo "\"asgs.instance.status.url\" : \"$asgsInstanceStatusURL\","   >> $jsonfile
+    echo "\"time.hook.status.lastupdated\" : \"$dateTime\","            >> $jsonfile
+    echo "\"hook.status.url\" : \"$hookStatusURL\","                    >> $jsonfile
+    echo "\"hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
+    echo "\"hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
+    echo "\"hook.status.latest\" : \"$latestHook\""                     >> $jsonfile
     echo "}"                                                            >> $jsonfile
     # redact the username for security
     sed --in-place "s/$USER/\$USER/g" $jsonfile

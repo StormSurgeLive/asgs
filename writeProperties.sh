@@ -149,8 +149,6 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   # convert to scenario.json
-   $SCRIPTDIR/metadata.pl --jsonify --metadatafile $STORMDIR/run.properties
 }
 #
 # write properties that depend on the scenario but are not known

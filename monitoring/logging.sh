@@ -135,7 +135,7 @@ RMQMessageStartup()
   _CONFIG=$1
   if [[ ${RMQMessaging_Enable} == "on" && -e "${RMQMessaging_StartupScript}" && -e "${_CONFIG}" ]];
   then
-    DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
+    local DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
     CONFIG_DUMP=$(cat "$_CONFIG" | sed '/^#/d' | sed '/^$/d')
     ${RMQMessaging_StartupScript}                      \
          --Uid "$$"                                    \
@@ -161,7 +161,7 @@ RMQMessage()
   PROCESS=$3
   STATE=$4
   MSG=$5
-  DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
+  local DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
   #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
   PCTCOM=0
 
@@ -225,7 +225,7 @@ RMQMessageRunProp()
 
   RPDIR=$1
   ASGS_PID=$2
-  DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
+  local DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
 
   # adding log file specific to RMQMessaging to augment and eventually maybe
   # replace echoing messages to the console
@@ -256,7 +256,7 @@ setSyslogFileName()
 #
 # write an INFO-level message to the main asgs log file
 logMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $1"
   for syslogfile in $SYSLOG $2 ; do
     if [[ -f $syslogfile ]]; then
@@ -267,7 +267,7 @@ logMessage()
 #
 # write an INFO-level message to the cycle (or advisory log file)
 cycleMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $1"
   for cyclelogfile in $CYCLELOG $2 ; do
     if [[ -e $cyclelogfile ]]; then
@@ -281,7 +281,7 @@ scenarioMessage()
 {
   LOGMESSAGE=$1
   EXTRALOGFILE=$2
-  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] INFO: $LOGMESSAGE"
   for scenariologfile in $SCENARIOLOG $EXTRALOGFILE ; do
      if [[ -e $scenariologfile ]]; then
@@ -298,7 +298,7 @@ appMessage()
 {
   LOGMESSAGE=$1
   APPLOGFILE=$2
-  DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] DEBUG: $LOGMESSAGE"
   if [[ -e $RUNDIR ]]; then
      echo ${MSG} >> $APPLOGFILE
@@ -308,7 +308,7 @@ appMessage()
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)
 consoleMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] ATTN: $1"
   echo ${MSG}
   if [[ -e $2 ]]; then
@@ -328,7 +328,7 @@ allMessage()
 #
 # log a warning message, execution continues
 warn()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $1"
   for warnlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
     if [[ -e $warnlogfile ]]; then
@@ -340,7 +340,7 @@ warn()
 #
 # log an error message, notify Operator
 error()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] ERROR: $1"
   echo ${MSG}  # send to console
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
@@ -357,7 +357,7 @@ error()
 #
 # log an error message, execution halts
 fatal()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] FATAL ERROR: $1"
   for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $fatallogfile ]]; then
@@ -373,7 +373,7 @@ fatal()
 #
 # log a debug message
 debugMessage()
-{ DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] DEBUG: $1"
   for debuglogfile in $SCENARIOLOG $2; do
      if [[ -e $debuglogfile ]]; then
@@ -471,13 +471,8 @@ writeASGSInstanceStatus()
     #
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
-    # convert to scenario.json
-    #echo "$SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile"
-    # FIXME: why doesn't this remove the opendapnotify property?
-    $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile
-    # redact username
-    # FIXME: why doesn't this remove the username?
-    #echo "sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile"
+    # convert to asgs.instance.status.json
+    $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile 2>> $SYSLOG
     sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile
 }
 #
@@ -572,7 +567,7 @@ writeScenarioFilesStatus()
          if [[ $found == "" ]]; then
             found=0
          fi
-         if [[ ${filesFirstTimeUpdated[$f]} == "null" ]]; then
+         if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
             filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
          fi
          last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
@@ -586,7 +581,7 @@ writeScenarioFilesStatus()
       local fileSize=0
       if [[ -e $fileStatusPath/$f ]]; then
          e="true"
-         if [[ ${filesFirstTimeUpdated[$f]} == "null" ]]; then
+         if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
             filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
          fi
          last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')

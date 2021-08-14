@@ -268,9 +268,17 @@ while(<TEMPLATE>) {
     }
     if ( $queuesys eq "SLURM" ) {
        # the SLURM reservation
-       s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
+       $reservation =  $properties{"hpc.slurm.job.$jobtype.reservation"};
+       if ( $reservation eq "null" ) {
+          $reservation = "noLineHere";
+       }
+       s/%reservation%/$reservation/g;
        # the SLURM constraint
-       s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
+       $constraint =  $properties{"hpc.slurm.job.$jobtype.constraint"};
+       if ( $constraint eq "null" ) {
+          $constraint = "noLineHere";
+       }
+       s/%constraint%/$constraint/g;
        # partition is not here b/c it is synonym for queuename
        #
        # fill in command to be executed

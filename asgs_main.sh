@@ -749,6 +749,7 @@ prepFile()
       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this=$QSCRIPTGEN -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )
       # submit adcprep job, check to make sure queue script submission
       # succeeded, and if not, retry
+      local jobSubmitInterval=60
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
@@ -756,13 +757,14 @@ prepFile()
          # to scenario.log; capture stderr and send to all logs
          $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr | tee jobID | tee -a scenario.log
          if [[ $? = 0 ]]; then
+            ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
             awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
             warn "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-            sleep 60
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\", \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            sleep $jobSubmitInterval
          fi
       done
       CURRENT_STATE="WAIT"
@@ -1288,6 +1290,7 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
       initCentralizedScenarioLogging
+      local jobSubmitInterval=60
       #
       # submit job, check to make sure qsub succeeded, and if not, retry (forever)
       while [ true ];  do
@@ -1296,16 +1299,20 @@ submitJob()
          $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
          if [[ $? == 0 ]]; then
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} successful."
-            # FIXME: need to capture the job ID
+            ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
             RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WARN" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
-            warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed; will retry in 60 seconds."
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-            sleep 60
+            warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"null\", \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            writeScenarioFilesStatus  # final status update for files
+            postScenarioStatus
+            sleep $jobSubmitInterval
          fi
       done
+      writeScenarioFilesStatus  # final status update for files
+      postScenarioStatus
       ;;
 #
 #  No queueing system, just mpiexec (used on standalone computers)

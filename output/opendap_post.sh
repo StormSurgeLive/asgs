@@ -123,7 +123,8 @@ for server in ${SERVERS[*]}; do
    if [[ $SCENARIO == "asgs.instance.status" ]]; then
       cat run.properties >> $RUNPROPERTIES
       rm run.properties # so we don't keep appending to it
-      $SCRIPTDIR/metadata.pl --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json
+      $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
    fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post.sh-->$server"
@@ -284,7 +285,8 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 END
-      $SCRIPTDIR/metadata.pl --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json
+      $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
