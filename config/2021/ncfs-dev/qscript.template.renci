@@ -1,0 +1,118 @@
+#!/bin/bash
+#----------------------------------------------------------------------------
+#            Q U E U E   S Y S T E M   D I R E C T I V E S
+#----------------------------------------------------------------------------
+#PBS -N %jobtype%.%scenario%
+#PBS -l walltime=%walltime%
+#PBS -l nodes=%nnodes%:ppn=%ppn%
+#PBS -q %queuename%
+#PBS -A %account%
+#PBS -o %advisdir%/%scenario%/%jobtype%.out
+#PBS -V
+#PBS -j oe
+#PBS -m a
+#PBS -M %notifyuser%
+#SBATCH --job-name="%jobtype%.%scenario%"
+#SBATCH --time=%walltime%
+#SBATCH --ntasks-per-node=%ppn%
+#SBATCH --ntasks=%totalcpu%
+#SBATCH --nodes=%nnodes%
+#SBATCH --partition=%queuename%
+#SBATCH --reservation=%reservation%
+#SBATCH --constraint=%constraint%
+#SBATCH --account=%account%
+#SBATCH --qos=%qos%
+#SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
+#SBATCH --mail-type=FAIL,TIME_LIMIT
+#SBATCH --mail-user=%notifyuser%
+echo "------------------------------------------------------------------------"
+#
+#----------------------------------------------------------------------------
+#  I N I T I A L I Z E   D I R E C T O R Y   A N D   F I L E   N A M E S
+#----------------------------------------------------------------------------
+THIS=%jobtype%.%queuesyslc%  # name of this script for use in log messages
+SCRIPTDIR=%scriptdir%
+SYSLOG=%syslog%
+CYCLEDIR=%advisdir%
+CYCLE=`basename %advisdir%`
+CYCLELOG=$CYCLEDIR/cycle.log
+SCENARIO=%scenario%
+SCENARIODIR=$CYCLEDIR/$SCENARIO
+SCENARIOLOG=$SCENARIODIR/scenario.log
+#
+cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a $SYSLOG | tee -a $CYCLELOG | tee -a $SCENARIOLOG )
+#----------------------------------------------------------------------------
+#            C R E A T E   J O B   E N V I R O N M E N T
+#----------------------------------------------------------------------------
+module purge
+module load intelc/18.0.0 intelfort/18.0.0 zlib/1.2.11_intel-18.0.0 hdf5/1.10.4_intel-18.0.0 
+module load netcdf-C/4.5.0_intel-18.0.0 netcdf-Fortran/4.4.0_intel-18.0.0 mvapich2/2.3b_intel-18.0.0_ch3_ofed-4.1
+module list
+#
+#----------------------------------------------------------------------------
+#        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
+#----------------------------------------------------------------------------
+echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.start
+# record which cluster nodes we have to scenario.log
+echo "INFO: $THIS: %JOBNODES%: $%JOBNODES%"
+echo "INFO: $THIS: hostname: "`hostname`
+echo "INFO: $THIS: PATH : $PATH"
+echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
+#
+#----------------------------------------------------------------------------
+#               W R I T E   J O B   P R O P E R T I E S
+#----------------------------------------------------------------------------
+# job properties (TODO: Add json propertes)
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
+echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> run.properties
+echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> run.properties
+echo "hpc.job.%jobtype%.hostname : $HOSTNAME" >> run.properties
+echo "hpc.job.%jobtype%.qnnodes : $%JOBNNODES%" >> run.properties
+echo "hpc.job.%jobtype%.qntasks-per-node : $%JOBNTASKSPERNODE%" >> run.properties
+echo "hpc.job.%jobtype%.qntasks : $%JOBNTASKS%" >> run.properties
+echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> run.properties
+#
+#----------------------------------------------------------------------------
+#                  E X E C U T E   T H E   J O B
+#----------------------------------------------------------------------------
+# log the command to run
+CMD="%cmd%"
+echo "cycle $CYCLE: $SCENARIO: $THIS: %jobtype%.%scenario% job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.start
+$CMD
+#
+#----------------------------------------------------------------------------
+#           C H E C K   S T A T U S   O F   R E S U L T S
+#----------------------------------------------------------------------------
+ERROMSG=""
+RUNSUFFIX="finish"
+ERROVALUE=$?  # capture exit status
+if [ $ERROVALUE == 0 ] ; then
+   if [[ $JOBTYPE = adcirc || $JOBTYPE = adcswan || $JOBTYPE = padcirc || $JOBTYPE = padcswan ]]; then
+      # look for numerical instability errors in the stdout/stderr files
+      for file in adcirc.log $SCENARIOLOG ; do
+         if [ -e $file ]; then
+            numMsg=`grep WarnElev $file | wc -l`
+            if [ $numMsg = 0 ]; then
+               echo "$THIS: No numerical instability detected in $file after completion of %jobtype%.%scenario% job ${%JOBID%}." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
+            else
+               ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in $file after completion of %jobtype%.%scenario% job ${%JOBID%}."
+               RUNSUFFIX="error"
+            fi
+         fi
+      done
+   fi
+else
+   ERROMSG="$ERROMSG The %jobtype%.%scenario% job ended with an exit status that indicates an error occurred."
+   RUNSUFFIX="error"
+fi
+#
+echo "cycle $CYCLE: $SCENARIO: $THIS: %jobtype%.%scenario% job $%JOBID% finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.${RUNSUFFIX}
+#
+#  write reason for job failure
+if [ $ERROVALUE != 0 ]; then
+   echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG | tee --append %jobtype%.%scenario%.run.${RUNSUFFIX}
+fi
+DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties
+echo "-----------------------------------------------------------------------"

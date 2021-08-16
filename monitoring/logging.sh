@@ -215,9 +215,9 @@ RMQMessage()
 # send run.properties as a message to the asgs monitor queue
 RMQMessageRunProp()
 { 
-  if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_StartupScript}" ]]
+  if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_Script_RP}" ]]
   then
-    return
+    return 1
   fi
 
   RPDIR=$1
