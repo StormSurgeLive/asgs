@@ -82,7 +82,7 @@ GetOptions(
 # hindcast scenarios for use in validation
 my @files = `find $root_data_dir -name $datafile -print | grep -E 'nowcast|hindcast' | sort`;
 foreach my $f (@files) {
-   #stderrMessage("DEBUG","$f");
+   &stderrMessage("DEBUG","$f");
 }
 #
 # check to see if the initialize/hindcast scenario is present; if so,
@@ -96,21 +96,36 @@ if ( $path_parts[-2] eq "hindcast" ) {
    my $hindcast_scenario = pop(@files);
    unshift(@files,$hindcast_scenario);
 }
+# get rid of directories that have been moved out of the way, like 2021072206.old
+my @filtered_directories;
+foreach my $fullpath (@files) {
+   @path_parts = split("/",$fullpath);
+   my $dir = $path_parts[-3];  
+   if ( $dir ne "initialize" && ( int($dir) ne $dir ) ) {
+      &stderrMessage("INFO","Skipping the directory $dir.");   
+   } else {
+      push(@filtered_directories,$fullpath);
+   }
+}
 #
 # now reverse the order so it is reverse chronological
-my @reverse_files = reverse(@files);
+my @reverse_files = reverse(@filtered_directories);
+foreach my $f (@reverse_files) {
+   &stderrMessage("DEBUG","$f");
+}
 #
 # find the final or target date if it was not given
 if ( $target_date eq "null" ) {
    my $target_path = $reverse_files[0];
-   print "target_path is $target_path\n";
+   &stderrMessage("DEBUG","target_path is $target_path");
    # remove the part of the path that precedes the target directory
    my $sub_target_path = substr($target_path,length($root_data_dir));
-   print "sub_target_path is $sub_target_path\n";
+   &stderrMessage("DEBUG","sub_target_path is $sub_target_path");
    my @target_path_parts = split("/", $sub_target_path) ;
-   $target_date = $target_path_parts[3];
+   $target_date = $target_path_parts[1];
 }
-print "target_date is $target_date\n";
+&stderrMessage("DEBUG","target_date is $target_date");
+&stderrMessage("DEBUG","int(target_date) is ".int($target_date));
 #
 # go through the list of files and build up the
 # concatenated file
@@ -132,7 +147,8 @@ foreach my $f (@reverse_files) {
         shift(@target_path_parts);
     }
     # skip files in the list that are later than the target date
-    stderrMessage("DEBUG","target_path_parts[datePathLocation] > target_date ... $target_path_parts[$datePathLocation] > $target_date");
+    stderrMessage("DEBUG","target_path_parts[$datePathLocation] > target_date ... $target_path_parts[$datePathLocation] > $target_date");
+    &stderrMessage("DEBUG","int(target_path_parts[$datePathLocation]) is ".int($target_path_parts[$datePathLocation]));
     if ( $target_path_parts[$datePathLocation] > $target_date ) {
         next;
     }
