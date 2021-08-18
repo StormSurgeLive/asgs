@@ -27,10 +27,11 @@ SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
 
 if [ -e "$RUNPROPERTIES" ] ; then
-        echo "Found run.properties file"
+    echo "Found run.properties file"
+    allMessage "transmit_rps.sh found the run.properties file."
 else
-        echo "run.properties not found file"
-        exit 1
+    allMessage "transmit_rps.sh did NOT find the run.properties file."
+    return 1
 fi
 
 if [[ $# -eq 1 ]]; then
@@ -63,15 +64,20 @@ if [[ ${RMQMessaging_Enable} == "on" ]]; then
     export RMQMessaging_Script_RP=${properties['monitoring.rmqmessaging.scriptrp']}
     export RMQMessaging_LocationName=${properties['monitoring.rmqmessaging.locationname']}
     export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
+else
+    allMessage "transmit_rps.sh is returning to caller because RMQMessaging_Enable is not on."
+    return 1
 fi
 
 # RMQMessageRunProp is in monitoring/logging.sh, 'RMQMessaging_enable'
 # is checked in this function
 RMQMessageRunProp "$SCENARIODIR" "$ppid"
 
+err=0
 if [ $? == 0 ]; then
     date > rps.transmit.succeeded
 else
     date > rps.transmit.failed
+    err=1
 fi
-
+return $err
