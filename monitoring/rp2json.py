@@ -12,9 +12,10 @@ def ReadRPToDict(input_filename, uid, instance_name, physical_location):
     param_list=[]
     with open(input_filename) as f:
         for line in f:
-            (key, val) = line.split(' : ')
-            key=key.replace(' ','_')
+            (key, val) = line.split(':',1)
+            key=key.strip()
             val=val.strip()
+            key=key.replace(' ','_')
             param_list.append([key,val])
     rp['param_list']=param_list
     return rp
