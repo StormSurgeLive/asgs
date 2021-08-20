@@ -26,11 +26,15 @@ declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
 
-if [ -e "$RUNPROPERTIES" ] ; then
-        echo "Found run.properties file"
-else
-        echo "run.properties not found file"
-        exit 1
+# get ASGS functions
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+source $SCRIPTDIR/properties.sh
+source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/platforms.sh
+
+if [ ! -e "$RUNPROPERTIES" ] ; then
+    allMessage "transmit_rps.sh did NOT find the run.properties file."
+    exit 1
 fi
 
 if [[ $# -eq 1 ]]; then
@@ -45,15 +49,9 @@ fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
 
-# get loadProperties function
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
-
-source $SCRIPTDIR/properties.sh
 
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
-source $SCRIPTDIR/monitoring/logging.sh
-source $SCRIPTDIR/platforms.sh
 
 export RMQMessaging_Enable=${properties['monitoring.rmqmessaging.enable']}
 export SYSLOG=${properties['monitoring.logging.file.syslog']}
@@ -63,6 +61,9 @@ if [[ ${RMQMessaging_Enable} == "on" ]]; then
     export RMQMessaging_Script_RP=${properties['monitoring.rmqmessaging.scriptrp']}
     export RMQMessaging_LocationName=${properties['monitoring.rmqmessaging.locationname']}
     export RMQMessaging_Transmit=${properties['monitoring.rmqmessaging.transmit']}
+else
+    allMessage "transmit_rps.sh is returning to caller because RMQMessaging_Enable is not on."
+    exit 1
 fi
 
 # RMQMessageRunProp is in monitoring/logging.sh, 'RMQMessaging_enable'
@@ -74,4 +75,3 @@ if [ $? == 0 ]; then
 else
     date > rps.transmit.failed
 fi
-

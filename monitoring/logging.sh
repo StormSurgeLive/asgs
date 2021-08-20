@@ -217,6 +217,9 @@ RMQMessageRunProp()
 { 
   if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_Script_RP}" ]]
   then
+    estr="warn: RMQMessageRunProp did not send rp message because either RMQMessaging_Enable is off or RMQMessaging_Script_RP not found. "
+	echo $estr
+	allMessage $estr
     return 1
   fi
 
@@ -236,6 +239,13 @@ RMQMessageRunProp()
      --Transmit "${RMQMessaging_Transmit}"         \
      --input_filename "$RPDIR/run.properties"      \
      --output_filename "$RPDIR/run.properties.json" >> ${SYSLOG} 2>&1
+
+  if [ $? == 0 ] ; then
+    allMessage "${RMQMessaging_Script_RP} returned a 0 status."
+  else
+    allMessage "${RMQMessaging_Script_RP} returned a non-0 status, with these parameters: $ASGS_PID, $INSTANCENAME, $RPDIR, ${RMQMessaging_Transmit}" 
+  fi 
+
 }
 
 #  send message when shutting down on INT and clear all processes
