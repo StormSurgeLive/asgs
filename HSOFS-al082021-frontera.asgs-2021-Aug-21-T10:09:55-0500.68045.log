@@ -1,0 +1,45 @@
+[2021-Aug-21-T10:10:00-0500] INFO: asgs_main.sh: The ADCIRC Surge/Spill Guidance System is activated.
+[2021-Aug-21-T10:10:00-0500] INFO: asgs_main.sh: Please see ASGS log file for detailed information regarding system progress.
+[2021-Aug-21-T10:10:01-0500] INFO: asgs_main.sh: ASGS Start Up MSG: [SYSLOG] The log file is /work2/06482/estrabd/frontera/asgs/HSOFS-al082021-frontera.asgs-2021-Aug-21-T10:09:55-0500.68045.log
+[2021-Aug-21-T10:10:01-0500] INFO: asgs_main.sh: ASGS Start Up MSG: [PROCID] 68045
+[2021-Aug-21-T10:10:01-0500] INFO: asgs_main.sh: ASGS Start Up MSG: [SYSLOG] /work2/06482/estrabd/frontera/asgs/HSOFS-al082021-frontera.asgs-2021-Aug-21-T10:09:55-0500.68045.log
+[2021-Aug-21-T10:10:02-0500] INFO: asgs_main.sh: Set permissions with the following umask: 002.
+[2021-Aug-21-T10:10:02-0500] INFO: asgs_main.sh: Configured the ASGS for the frontera.tacc.utexas.edu platform.
+[2021-Aug-21-T10:10:02-0500] INFO: asgs_main.sh: Configured the ASGS according to the file /work2/06482/estrabd/frontera/asgs/config/2021/HSOFS-al082021-frontera.sh.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh: ASGS state file is /scratch1/06482/estrabd/HSOFS-al082021-frontera.state.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkDirExistence(): The directory for input files '/work2/06482/estrabd/frontera/asgs/input/meshes/hsofs' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkDirExistence(): The directory for post processing scripts '/work2/06482/estrabd/frontera/asgs/output' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkFileExistence(): The ADCIRC preprocessing executable '/work2/06482/estrabd/frontera/adcirc-cg-v53release-intel/work/adcprep' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkFileExistence(): The ADCIRC parallel executable '/work2/06482/estrabd/frontera/adcirc-cg-v53release-intel/work/padcirc' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkFileExistence(): The hotstart time extraction executable '/work2/06482/estrabd/frontera/adcirc-cg-v53release-intel/work/hstime' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkFileExistence(): The tide_factor executable '/work2/06482/estrabd/frontera/asgs/tides/tide_fac.x' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: asgs_main.sh>checkFileExistence(): The tidal nodal factors and equilibrium arguments executable '/work2/06482/estrabd/frontera/asgs/tides/tide_fac.x' was found.
+[2021-Aug-21-T10:10:03-0500] INFO: Downloading ADCIRC mesh file from https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes/hsofs.14.xz.
+curl 7.29.0 (x86_64-redhat-linux-gnu) libcurl/7.29.0 NSS/3.44 zlib/1.2.7 libidn/1.28 libssh2/1.8.0
+Protocols: dict file ftp ftps gopher http https imap imaps ldap ldaps pop3 pop3s rtsp scp sftp smtp smtps telnet tftp 
+Features: AsynchDNS GSS-Negotiate IDN IPv6 Largefile NTLM NTLM_WB SSL libz unix-sockets 
+[2021-Aug-21-T10:10:05-0500] INFO: THIS: Uncompressing /work2/06482/estrabd/frontera/asgs/input/meshes/hsofs/hsofs.14.xz.
+[2021-Aug-21-T10:10:08-0500] INFO: asgs_main.sh>checkFileExistence(): The ADCIRC template fort.15 file '/work2/06482/estrabd/frontera/asgs/input/meshes/hsofs/hsofs.nowindreduction.15.template' was found.
+[2021-Aug-21-T10:10:08-0500] INFO: asgs_main.sh>checkFileExistence(): The ADCIRC elevation stations file '/work2/06482/estrabd/frontera/asgs/input/meshes/hsofs/hsofs_stations_20180907.txt' was found.
+[2021-Aug-21-T10:10:08-0500] INFO: asgs_main.sh>checkFileExistence(): The ADCIRC velocity stations file '/work2/06482/estrabd/frontera/asgs/input/meshes/hsofs/hsofs_stations_20180907.txt' was found.
+[2021-Aug-21-T10:10:08-0500] INFO: asgs_main.sh>checkFileExistence(): The ADCIRC meteorological stations file '/work2/06482/estrabd/frontera/asgs/input/meshes/hsofs/hsofs_stations_20180907.txt' was found.
+[2021-Aug-21-T10:10:08-0500] INFO: Attempting to download ADCIRC nodal attributes (fort.13) file from https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes/hsofs.13.xz.
+[2021-Aug-21-T10:10:10-0500] INFO: THIS: Uncompressing /work2/06482/estrabd/frontera/asgs/input/meshes/hsofs/hsofs.13.xz.
+[2021-Aug-21-T10:10:14-0500] INFO: Downloading run.properties file associated with hotstart file from http://tds.renci.org:8080/thredds/fileServer/2021/nam/2021081606/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nhcConsensus.
+[2021-Aug-21-T10:10:14-0500] INFO: nhcConsensusWind10m: asgs_main.sh>checkDirExistence(): Detecting cold start date from /scratch1/06482/estrabd/asgs68045/from.run.properties.
+[2021-Aug-21-T10:10:14-0500] INFO: The cold start datetime associated with the remote hotstart file is .
+[2021-Aug-21-T10:10:14-0500] INFO: Downloaded hotstart file fort.68.nc from http://tds.renci.org:8080/thredds/fileServer/2021/nam/2021081606/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nhcConsensus to /scratch1/06482/estrabd/asgs68045/fort.67.nc.
+[2021-Aug-21-T10:10:14-0500] INFO: Now checking hotstart file content.
+[2021-Aug-21-T10:10:15-0500] INFO: asgs_main.sh>checkHotstart(): The hotstart file '/scratch1/06482/estrabd/asgs68045/fort.67.nc' was found and it contains 627 bytes.
+ ERROR: hstime: 
+ NetCDF: Unknown file format                                                    
+  
+ null
+[2021-Aug-21-T10:10:16-0500] FATAL ERROR: asgs_main.sh>checkHotstart(): The hstime utility could not read the ADCIRC time from the file '/scratch1/06482/estrabd/asgs68045/fort.67.nc'. The output from hstime was as follows: ' ERROR: hstime: NetCDF: Unknown file format null'.
+[2021-Aug-21-T10:10:16-0500] INFO: Received
+[2021-Aug-21-T10:10:59-0500] INFO: platforms.sh>env_dispatch():
+[2021-Aug-21-T10:10:59-0500] INFO: asgs_main.sh
+[2021-Aug-21-T10:10:59-0500] INFO: asgs_main.sh:
+[2021-Aug-21-T10:10:59-0500] INFO: asgs_main.sh:
+[2021-Aug-21-T10:10:59-0500] INFO: asgs_main.sh:
+[2021-Aug-21-T10:10:59-0500] INFO: asgs_main.sh:
