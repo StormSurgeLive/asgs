@@ -48,7 +48,7 @@ cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/t
 DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
 echo "\"start\" : \"$DATETIME\", \"jobid\" : \"${%JOBID%}\"" > %jobtype%.%scenario%.run.start # <-OVERWRITE
-echo "\"jobtype\" : \"%jobtype%\", \"submit\" : \"null\", \"jobid\" : \"${%JOBID%}\", \"start\" : \"$DATETIME\", \"finish\" : \"null\", \"error\" : \"null\"" >> jobs.status
+echo "\"jobtype\" : \"%jobtype%\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> jobs.status
 # record which cluster nodes we have to scenario.log
 echo "INFO: $THIS: %JOBNODES%: $%JOBNODES%"
 echo "INFO: $THIS: hostname: "`hostname`
@@ -112,9 +112,9 @@ echo "cycle $CYCLE: $SCENARIO: $THIS: %jobtype%.%scenario% job $%JOBID% finished
 if [ $ERROVALUE != 0 ]; then
    echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"message\" : \"$ERROMSG\"" > %jobtype%.%scenario%.run.${RUNSUFFIX}  # <-OVERWRITE
-   echo "\"jobtype\" : \"%jobtype%\", \"submit\" : \"null\", \"jobid\" : \"${%JOBID%}\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
+   echo "\"jobtype\" : \"%jobtype%\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
 else
-   echo "\"jobtype\" : \"%jobtype%\", \"submit\" : \"null\", \"jobid\" : \"${%JOBID%}\", \"start\" : \"null\", \"finish\" : \"$DATETIME\", \"error\" : \"null\"" >> jobs.status
+   echo "\"jobtype\" : \"%jobtype%\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> jobs.status
    echo "\"$RUNSUFFIX\" : \"$DATETIME\"" > %jobtype%.%scenario%.run.$RUNSUFFIX
 fi
 echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties

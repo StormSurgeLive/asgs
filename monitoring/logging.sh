@@ -568,11 +568,11 @@ writeScenarioFilesStatus()
             found=0
          fi
          if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
-            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+            filesFirstTimeUpdated[$f]=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
          fi
-         last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+         last=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
       fi
-      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" } },"  >> $jsonfile
+      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : ${filesFirstTimeUpdated[$f]}, \"last\" : $last } },"  >> $jsonfile
    done
    for f in ${fileStatusCheckList[@]} ; do
       e="false"
@@ -582,12 +582,12 @@ writeScenarioFilesStatus()
       if [[ -e $fileStatusPath/$f ]]; then
          e="true"
          if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
-            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+            filesFirstTimeUpdated[$f]=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
          fi
-         last=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+         last=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
          fileSize=$(stat --printf='%s' $fileStatusPath/$f)
       fi
-      echo -n \""$f\" : { \"exists\" : $e, \"size.bytes\" : $fileSize, \"time.updated\" : { \"first\" : \"${filesFirstTimeUpdated[$f]}\", \"last\" : \"$last\" } }" >> $jsonfile
+      echo -n \""$f\" : { \"exists\" : $e, \"size.bytes\" : $fileSize, \"time.updated\" : { \"first\" : ${filesFirstTimeUpdated[$f]}, \"last\" : $last } }" >> $jsonfile
       if [[ $f != ${fileStatusCheckList[-1]} ]]; then
          echo "," >> $jsonfile # comma then newline
       else

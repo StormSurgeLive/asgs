@@ -27,7 +27,7 @@ nullifyHooks()
     local THIS="asgs_main->manageHooks->nullifyHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
     for k in ${allHooks[@]} ; do
-        hooksTimes[$k]='"null"'
+        hooksTimes[$k]="null"
         logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
 }
@@ -39,7 +39,7 @@ nullifyNowcastForecastHooks()
     local THIS="asgs_main->manageHooks->nullifyNowcastForecastHooksTimes()"
     logMessage "$THIS: Nullifying the time values associated with each nowcast and forecast hook."
     for k in "${nowcastHooks[@]}" "${forecastHooks[@]}" ; do
-        hooksTimes["$k"]='"null"'
+        hooksTimes["$k"]="null"
         logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
     done
 }
@@ -76,7 +76,7 @@ timestampHook()
         mypath="$ADVISORY"
         ;;
     "INITIALIZE_FORECAST_SCENARIO"|"CAPACITY_WAIT"|"BUILD_FORECAST_SCENARIO"|"SUBMIT_FORECAST_SCENARIO")
-        mypath=$ADVISORY/$SCENARIO
+        mypath="$ADVISORY/$SCENARIO"
         ;;
     "FINISH_FORECAST_STAGE")
         mypath=$ADVISORY
@@ -91,26 +91,29 @@ timestampHook()
     # TODO: go to that directory and get the statusURL from the status.json file
     # and put the statusURL into this status.json file
     for file in cycle.status.json scenario.status.json ; do 
-        if [[ -e $RUNDIR/$mypath/$file ]]; then
-           status=$mypath/$file
+        if [[ $mypath != "null" && -e $RUNDIR/$mypath/$file ]]; then
+           status=\"${mypath}/${file}\"
            # the URL should be in the $SCENARIODIR/status/run.properties file  
            # as the downloadurl property
            if [[ $file == "scenario.status.json" || -e $RUNDIR/$mypath/status/run.properties ]]; then
                local downloadurl=$(grep downloadurl $RUNDIR/$mypath/status/run.properties)
                if [[ ! -z $downloadurl && $downloadurl != "" ]]; then 
-                   statusURL=${downloadurl##downloadurl : }/$file  
+                   statusURL=\"${downloadurl##downloadurl : }/$file\"
                fi           
            fi 
         fi
     done
-    json="{ \"time\" : \"$dateTime\", \"path\" : \"$mypath\", \"statusfile\" : \"$status\", \"statusURL\" : \"$statusURL\" }"
+    if [[ $mypath != "null" ]]; then
+        mypath=\"$mypath\"
+    fi
+    json="{ \"time\" : \"$dateTime\", \"path\" : $mypath, \"statusfile\" : $status, \"statusURL\" : $statusURL }"
     # determine number of spaces required to get the status objects to line up
     longestHookKey=0
     for h in ${allHooks[@]} ; do
         if [[ ${#h} -gt $longestHookKey ]]; then longestHookKey=${#h} ; fi
     done
     len=$[ 11 + $longestHookKey ]
-    if [[ ${hooksTimes[$hook]} == '"null"' ]]; then
+    if [[ ${hooksTimes[$hook]} == "null" ]]; then
         firstlen=$[ $longestHookKey - ${#hook} ]
         printf -v spaces "%*s%s" $firstlen " "
         if [[ ${#hook} -eq $longestHookKey ]]; then spaces="" ; fi
@@ -135,17 +138,21 @@ writeHookStatus()
     echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
     echo \""path.rundir\" : \"$RUNDIR\"," >> $jsonfile
     echo \""path.scriptdir\" : \"$SCRIPTDIR\"," >> $jsonfile
-    echo \""path.lastsubdir\" : \"$LASTSUBDIR\"," >> $jsonfile 
+    if [[ $LASTSUBDIR != "null" ]]; then 
+       echo \""path.lastsubdir\" : \"$LASTSUBDIR\"," >> $jsonfile 
+    else
+       echo \""path.lastsubdir\" : null," >> $jsonfile 
+    fi
     echo \""monitoring.logging.file.syslog\" : \"$SYSLOG\"," >> $jsonfile 
     echo \""config.file\" : \"$CONFIG\"," >> $jsonfile
     echo "\"monitoring.hook\" : {" >> $jsonfile
     for k in ${allHooks[@]} ; do
         comma="," ; if [[ $k == "EXIT_STAGE" ]]; then comma="" ; fi
-        if [[ ${hooksTimes[$k]} != '"null"' ]]; then
+        if [[ ${hooksTimes[$k]} != "null" ]]; then
             echo -n "    \"$k\" : [ "           >> $jsonfile
             echo -e "${hooksTimes[$k]} ]$comma" >> $jsonfile
         else
-            json="    \"$k\" : [ { \"time\" : \"null\",  \"path\" : \"null\", \"statusfile\" : \"null\", \"statusURL\" : \"null\" } ]$comma"
+            json="    \"$k\" : [ { \"time\" : null,  \"path\" : null, \"statusfile\" : null, \"statusURL\" : null } ]$comma"
             echo "$json" >> $jsonfile
         fi
     done

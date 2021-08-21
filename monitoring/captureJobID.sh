@@ -31,7 +31,9 @@ case $HPCENVSHORT in
 "stampede2"|"frontera")
    # lots of info here that we don't need, but has
    # been appended to the scenario.log file
-   grep 'batch job' jobID | grep -Eo [0-9]+ > jobID
+   mv jobID jobID.tmp
+   grep 'batch job' jobID.tmp | grep -Eo [0-9]+ > jobID
+   rm jobID.tmp
    ;;
 *)
    # on queenbee2 at least, the jobID file contains only

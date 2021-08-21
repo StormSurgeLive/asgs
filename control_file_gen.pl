@@ -1318,7 +1318,10 @@ sub vortexModelParameters () {
       printf RUNME "$runlengthHours hour nowcast\n";
       close(RUNME);
    }
-   $addHours=$runlengthHours; # for reporting the predicted number of datasets in each file
+   $addHours=$RNDAY*24.0; # for reporting the predicted number of datasets in each file
+   if ( $hstime ) { 
+      $addHours-=$hstime/3600.0; 
+   }
    #
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
