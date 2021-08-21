@@ -3,7 +3,6 @@
 OPT=${1-$ASGS_INSTALL_PATH}
 COMPILER=$2
 JOBS=${3-1}
-TMP=/tmp/$USER-asgs
 
 if [ "$COMPILER" == "clean" ]; then 
   echo cleaning units
@@ -14,14 +13,14 @@ if [ "$COMPILER" == "clean" ]; then
   cd $OPT/share/man/man1
   rm -rvf units.1
   cd $OPT/share/man/man3
-  cd $TMP
+  cd $_ASGS_TMP
   exit
 fi
 
 UNITS_VERSION=2.21
 UNITS_DIR=units-${UNITS_VERSION}
 UNITS_TGZ=${UNITS_DIR}.tar.gz
-cd $TMP
+cd $_ASGS_TMP
 
 if [ ! -e ${UNITS_TGZ} ]; then
   wget https://ftp.gnu.org/gnu/units/${UNITS_TGZ}
@@ -39,6 +38,6 @@ make install
 # no errors, so clean up
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
-  cd $TMP
+  cd $_ASGS_TMP
   rm -rfv units* 
 fi

@@ -3,7 +3,6 @@
 OPT=${1-$HOME/opt}
 COMPILER=${2-gfortran}
 JOBS=${3-1}
-TMP=/tmp/$USER-asgs
 
 OPENMPI_MAJOR_VERSION=1.8
 OPENMPI_MINOR_VERSION=1
@@ -36,8 +35,8 @@ fi
 OPT=${OPT}/$COMPILER
 echo "--prefix adjusted to $OPT"
 
-mkdir -p $TMP 2> /dev/null
-chmod 700 $TMP
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
 
 if [ ! -d $OPT ]; then
   mkdir -p $OPT
@@ -47,12 +46,12 @@ else
     exit 0  
   fi
 fi
-cd $TMP
+cd $_ASGS_TMP
 
 if [ ! -e ${OPENMPI_FULL_VERSION}.tar.gz ]; then 
   wget https://www.open-mpi.org/software/ompi/v${OPENMPI_MAJOR_VERSION}/downloads/${OPENMPI_FULL_VERSION}.tar.gz
 else
-  echo Found $TMP/${OPENMPI_FULL_VERSION}.tar.gz
+  echo Found $_ASGS_TMP/${OPENMPI_FULL_VERSION}.tar.gz
   rm -rf ./${OPENMPI_FULL_VERSION} >/dev/null 2>&1
 fi
 tar -xvf $OPENMPI_FULL_VERSION.tar.gz

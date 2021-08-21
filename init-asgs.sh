@@ -18,6 +18,9 @@
 
 BATCH=$1
 
+# can tweak _ASGS_TMP default if TMPDIR is set in the environment
+_ASGS_TMP=${TMPDIR:-/tmp/$USER-asgs}
+
 echo "pod            - POD (Penguin)"
 echo "hatteras       - Hatteras (RENCI)"    # ht4
 echo "supermike      - Supermike (LSU)"
@@ -73,6 +76,7 @@ case "$platform" in
   hatteras)
     WORK=${WORK:-$HOME}
     SCRATCH=${SCRATCH:-"/projects/$USER"}
+    _ASGS_TMP=${TMPDIR:-$WORK/asgs-build-tmp}
     ;;
   queenbee|queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
@@ -93,6 +97,7 @@ case "$platform" in
 esac
 export WORK
 export SCRATCH
+export _ASGS_TMP
 
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
@@ -102,9 +107,10 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
 fi
 
 echo
-echo "Platform name: $platform"
-echo "WORK         : $WORK"
-echo "SCRATCH      : $SCRATCH"
+echo "Platform name       : $platform"
+echo "WORK                : $WORK"
+echo "SCRATCH             : $SCRATCH"
+echo "ASGS Build directory: $_ASGS_TMP"
 echo
 
 # Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
