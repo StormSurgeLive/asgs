@@ -3,7 +3,6 @@
 OPT=${1-$ASGS_INSTALL_PATH}
 COMPILER=${2-intel}
 JOBS=${3-1}
-TMP=/tmp/$USER-asgs
 
 if [ $2 == "clean" ]; then 
   echo Cleaning NetCDF libraries and utilities
@@ -13,8 +12,8 @@ if [ $2 == "clean" ]; then
   rm -fv libnetcdf*
   cd $OPT/include
   rm -fv netcdf*
-  rm -rvf $TMP/netcdf-4.2.1.1*
-  rm -rvf $TMP/netcdf-fortran-4.2*
+  rm -rvf $_ASGS_TMP/netcdf-4.2.1.1*
+  rm -rvf $_ASGS_TMP/netcdf-fortran-4.2*
   cd $OPT/share/info
   rm -rvf netcfg*
   cd $OPT/share/man/man1
@@ -35,9 +34,9 @@ if [ $COMPILER == "gfortran" ]; then
   export CXX=g++
 fi
 
-mkdir -p $TMP 2> /dev/null
-chmod 700 $TMP
-cd $TMP
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
+cd $_ASGS_TMP
 
 if [ ! -e netcdf-4.2.1.1.tar.gz ]; then
   wget --verbose https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-4.2.1.1.tar.gz

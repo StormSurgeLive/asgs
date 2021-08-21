@@ -3,7 +3,6 @@
 OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
 JOBS=${3-1}
-TMP=/tmp/$USER-asgs
 
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
@@ -13,7 +12,7 @@ if [ $2 == "clean" ]; then
   rm -fv libhd5* libhdf5*
   cd $OPT/include
   rm -fv H5* h5* hd5* HD5* hdf* typesizes.mod
-  rm -rvf $TMP/hdf5-1.8.12*
+  rm -rvf $_ASGS_TMP/hdf5-1.8.12*
   cd $OPT/share
   rm -rvf hdf5_examples
   exit
@@ -30,9 +29,9 @@ if [ $COMPILER == "gfortran" ]; then
   export CXX=g++
 fi
 
-mkdir -p $TMP 2> /dev/null
-chmod 700 $TMP
-cd $TMP
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
+cd $_ASGS_TMP
 
 if [ ! -e hdf5-1.8.12.tar.gz ]; then
   wget --verbose https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-1.8.12.tar.gz
