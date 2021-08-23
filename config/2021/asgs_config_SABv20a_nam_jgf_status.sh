@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=SABv20a_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=SABv20a_nam_jgf_status  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -70,22 +70,22 @@ NCPUCAPACITY=9999
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com"
+hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
 
 # Monitoring
 
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
-hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
-hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
 enablePostStatus="yes"
-enableStatusNotify="yes"
-statusNotify="jason.g.fleming@gmail.com,jason.fleming@seahorsecoastal.com"
+enableStatusNotify="no"
+statusNotify="null"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021062500
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=/scratch1/00976/jgflemin/asgs303932/2021081506
 
 # Scenario package
 
@@ -94,11 +94,9 @@ SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
 -2)
    ENSTORM=hindcast
-   OPENDAPNOTIFY="null"
    ;;
 -1)
    ENSTORM=nowcast
-   OPENDAPNOTIFY="null"
    ;;
 0)
    ENSTORM=namforecastWind10m
