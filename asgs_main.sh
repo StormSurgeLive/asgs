@@ -763,7 +763,7 @@ prepFile()
          else
             awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
             warn "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             sleep $jobSubmitInterval
          fi
       done
@@ -785,7 +785,7 @@ prepFile()
       if [[ $? != 0 ]]; then
          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"null\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
       fi
       ;;
@@ -1121,7 +1121,7 @@ monitorJobs()
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$pid\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$pid\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
             ;;
          "serial")
             local pid=`grep 'serial $JOBTYPE job subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/serial $JOBTYPE job subshell pid.*://' | sed 's/^\s//'`
@@ -1129,13 +1129,13 @@ monitorJobs()
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"$pid\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$pid\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
             ;;
          *)
             # if we are over the wall clock limit, wait until the operating
             # system has had a chance to write the job log file, or
             # until 5 minutes have passed
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"null\", \"jobid\" : \"null\", \"start\" : \"null\", \"finish\" : \"null\", \"error\" : \"$DATETIME\"" >> jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
             overLimitTime=`date +%s`
             until [[ -e ${ENSTORM_TEMP}.out ]]; do
                logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
@@ -1305,7 +1305,7 @@ submitJob()
          else
             RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WARN" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
             warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"null\", \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             writeScenarioFilesStatus  # final status update for files
             postScenarioStatus
             sleep $jobSubmitInterval
