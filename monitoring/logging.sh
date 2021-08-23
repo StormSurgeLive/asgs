@@ -568,11 +568,12 @@ writeScenarioFilesStatus()
             found=0
          fi
          if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
-            filesFirstTimeUpdated[$f]=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
+            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
          fi
+         first=\"${filesFirstTimeUpdated[$f]}\"
          last=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
       fi
-      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : ${filesFirstTimeUpdated[$f]}, \"last\" : $last } },"  >> $jsonfile
+      echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : $first, \"last\" : $last } },"  >> $jsonfile
    done
    for f in ${fileStatusCheckList[@]} ; do
       e="false"
