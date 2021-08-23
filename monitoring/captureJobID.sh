@@ -1,8 +1,8 @@
 #!/bin/bash
 #----------------------------------------------------------------
-# captureJobID.sh: Do the right thing on this platform to 
+# captureJobID.sh: Do the right thing on this platform to
 # capture the job ID from stdout from a successful batch
-# job submision. 
+# job submission.
 #----------------------------------------------------------------
 # Copyright(C) 2021 Jason Fleming
 #
@@ -26,7 +26,7 @@ HPCENVSHORT=$1
 
 # This script expects to be executed in the directory where
 # the queue script was submitted, and the file "jobID" has
-# been used to capture stdout. 
+# been used to capture stdout.
 case $HPCENVSHORT in
 "stampede2"|"frontera")
    # lots of info here that we don't need, but has
@@ -37,6 +37,6 @@ case $HPCENVSHORT in
    ;;
 *)
    # on queenbee2 at least, the jobID file contains only
-   # the jobID, so nothing needs to be done. 
+   # the jobID, so nothing needs to be done.
    ;;
 esac

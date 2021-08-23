@@ -445,7 +445,7 @@ writeASGSInstanceStatus()
     echo "post.opendap.tds : ( ${TDS[@]} )" >> $statfile
     echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $statfile
     echo "notification.opendap.email.enable : $notifyNow" >> $statfile
-    # the syslog file can get pretty big, I don't think we want to 
+    # the syslog file can get pretty big, I don't think we want to
     # send it every 60 seconds, need to figure out how we can just send
     # the extra increment each time and append on the remote server
     statusFiles="asgs.instance.status.json hook.status.json"
@@ -464,7 +464,7 @@ writeASGSInstanceStatus()
     echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "InitialHotStartTime : $HSTIME" >> $statfile    # for use in opendap_post.sh
-    # forecast scenario package 
+    # forecast scenario package
     echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
     local myscenarios=$(str="( " ; si=0 ; while [[ $si -lt $SCENARIOPACKAGESIZE ]]; do source $ASGS_CONFIG ; str+="$ENSTORM " ; si=$(($si + 1)) ; done ; str+=")" ; echo $str )
     echo "forecast.scenarios : $myscenarios" >> $statfile
@@ -522,15 +522,15 @@ nullifyFilesFirstTimeUpdated()
     done
 }
 
-# includes asgs configuration that is not expected to vary
-# between scenarios (mesh, machine, operator, config file, etc)
+# includes asgs configuration that is expected to vary
+# between scenarios (file status, job status, etc)
 writeScenarioFilesStatus()
 {
    local THIS="asgs_main->monitoring/logging.sh->writeScenarioFilesStatus()"
    local fileStatusPath="."
-   if [[ $# -gt 0 ]]; then 
+   if [[ $# -gt 0 ]]; then
       fileStatusPath=$1
-   fi 
+   fi
    local jsonfile=$fileStatusPath/files.status.json
    #
    # update time stamp
@@ -549,11 +549,11 @@ writeScenarioFilesStatus()
       local found=0       # number of datasets actually found in the file
       local first="null"  # first modification time
       local last="null"   # most recent modification time
-      local ne=0          # number of expected datasets (when run is complete) 
+      local ne=0          # number of expected datasets (when run is complete)
       if [[ -e $fileStatusPath/$f ]]; then
          e="true"
          # determine number of datasets expected in this file at the end of the run
-         if [[ -e $fileStatusPath/run.properties ]]; then 
+         if [[ -e $fileStatusPath/run.properties ]]; then
              ne=$(awk -v prop=adcirc.file.output.${f}.numdatasets 'BEGIN { FS=":" } $1~prop { print $2 }' ${fileStatusPath}/run.properties)
              if [[ $ne == "" ]]; then
                 # echo "run.properties returned no data"
@@ -561,7 +561,7 @@ writeScenarioFilesStatus()
              fi
          else
              ne=0
-         fi   
+         fi
          # number of datasets actually in the file
          found=$(ncdump -h $fileStatusPath/$f | grep currently | grep -Eo [0-9]+)
          if [[ $found == "" ]]; then
@@ -613,10 +613,10 @@ postScenarioStatus() {
     fi
     cp $SCENARIODIR/scenario.status.json $scenarioStatusDir 2>> $SYSLOG
     cp $SCENARIODIR/run.properties $scenarioStatusDir 2>> $SYSLOG
-    # FIXME: need to have a better way of separating the list of 
-    # files to be posted to opendap on any particular execution of 
+    # FIXME: need to have a better way of separating the list of
+    # files to be posted to opendap on any particular execution of
     # output/opendap_post.sh from the run.properties file
-    echo "post.opendap.files : ( scenario.status.json )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG 
+    echo "post.opendap.files : ( scenario.status.json )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     echo "notification.opendap.email.enable : no" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     $SCRIPTDIR/output/opendap_post.sh $scenarioStatusDir/run.properties
 }
