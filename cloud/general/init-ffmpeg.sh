@@ -3,7 +3,6 @@
 OPT=${1-$ASGS_INSTALL_PATH}
 COMPILER=$2
 JOBS=${3-1}
-TMP=/tmp/$USER-asgs
 
 if [ "$COMPILER" == "clean" ]; then 
   echo cleaning NASM and ffmpeg libraries and utilities
@@ -22,7 +21,7 @@ if [ "$COMPILER" == "clean" ]; then
     ffmpeg-formats.1 ffmpeg-filters.1 ffmpeg-devices.1 ffmpeg-codecs.1 ffmpeg-bitstream-filters.1 ffmpeg-all.1 ffmpeg.1
   cd $OPT/share/man/man3
   rm -rfv libswscale.3 libswresample.3 libavutil.3 libavformat.3 libavfilter.3 libavdevice.3 libavcodec.3
-  cd $TMP
+  cd $_ASGS_TMP
   rm -rfv nasm* ffmpeg*
   exit
 fi
@@ -36,7 +35,7 @@ FFMPEG_TAR=ffmpeg-${FFMPEG_VERSION}.tar
 FFMPEG_BZ2=${FFMPEG_TAR}.bz2
 FFMPEG_DIR=ffmpeg
 
-cd $TMP
+cd $_ASGS_TMP
 
 # requires NASM 
 if [ ! -e ${NASM_TGZ} ]; then
@@ -51,7 +50,7 @@ make
 make install
 
 # now fetch and build/install ffmpeg
-cd $TMP
+cd $_ASGS_TMP
 
 if [ ! -e ${FFMPEG_BZ2} ]; then
   wget https://ffmpeg.org/releases/${FFMPEG_BZ2}
@@ -70,6 +69,6 @@ make install
 # no errors, so clean up
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
-  cd $TMP
+  cd $_ASGS_TMP
   rm -rfv nasm* ffmpeg*
 fi
