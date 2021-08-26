@@ -20,7 +20,7 @@
  1                                     ! NRAMP - RAMP FUNCTION OPTION (0=NO, 1=YES)
  9.81                                  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
  -3                                    ! TAU0 - WEIGHTING FACTOR IN GWCE
- 1                                     ! DT - TIME STEP (IN SECONDS)
+ %DT%                                  ! DT - TIME STEP (IN SECONDS)
  0.0                                   ! STATIM - STARTING TIME
  0.0                                   ! REFTIME - STARTING REFERENCE TIME (IN DAYS)
  %WTIMINC%                             ! WTIMINC - met data time increment, Geofactor=1 for NWS=20
