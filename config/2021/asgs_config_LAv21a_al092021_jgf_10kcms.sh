@@ -54,7 +54,7 @@ FORECASTCYCLE="06"
 TROPICALCYCLONE=on   # tropical cyclone forcing
 STORM=09             # storm number, e.g. 05=ernesto in 2006
 YEAR=2021            # year of the storm
-WAVES=off            # wave forcing
+WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
