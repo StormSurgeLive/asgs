@@ -83,7 +83,7 @@ LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021082606/L
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=4 # number of storms in the ensemble
+SCENARIOPACKAGESIZE=8 # <====<<!!EIGHT TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
@@ -107,6 +107,24 @@ case $si in
 3)
    ENSTORM=veerRight50
    PERCENT=50
+   ;;
+4)
+   ENSTORM=overlandSpeed20Wind10m
+   PERCENT=20
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+5)
+   ENSTORM=overlandSpeed20
+   PERCENT=20
+   ;;
+6)
+   ENSTORM=veerLeft50Wind10m
+   PERCENT=-50
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+7)
+   ENSTORM=veerLeft50
+   PERCENT=-50
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
