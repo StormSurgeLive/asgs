@@ -2,7 +2,6 @@
 
 OPT=${1-$ASGS_INSTALL_PATH}
 JOBS=${2-$ASGS_MAKEJOBS}
-TMP=/tmp/$USER-asgs
 
 IMAGEMAGICK_VERSION="7.0.11-10"
 
@@ -29,8 +28,8 @@ if [ "$2" == "clean" ]; then
   exit
 fi
 
-mkdir -p $TMP 2> /dev/null
-chmod 700 $TMP
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
 
 if [ ! -d $OPT ]; then
   mkdir -p $OPT
@@ -40,12 +39,12 @@ else
     exit 0  
   fi
 fi
-cd $TMP
+cd $_ASGS_TMP
 
 if [ ! -e ${IMAGEMAGICK_VERSION}.tar.gz ]; then 
   wget https://github.com/ImageMagick/ImageMagick/archive/${IMAGEMAGICK_VERSION}.tar.gz
 else
-  echo Found $TMP/${IMAGEMAGICK_VERSION}.tar.gz
+  echo Found $_ASGS_TMP/${IMAGEMAGICK_VERSION}.tar.gz
   rm -rf ./ImageMagic-${IMAGEMAGICK_VERSION} >/dev/null 2>&1
 fi
 tar -xvf $IMAGEMAGICK_VERSION.tar.gz
