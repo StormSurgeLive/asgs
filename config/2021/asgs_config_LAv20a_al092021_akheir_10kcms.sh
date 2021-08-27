@@ -36,11 +36,11 @@
 
 # Fundamental
 
-INSTANCENAME=LAv21a_al092021_akheir_10kcms  # "name" of this ASGS process
+INSTANCENAME=LAv20a_al092021_akheir_10kcms  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=LAv21a
+GRIDNAME=LA_v20a-WithUpperAtch_chk
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
@@ -78,14 +78,15 @@ RMQMessaging_Transmit="on"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-#HINDCASTENDDATE=20210822
+#HINDCASTENDDATE=20210823
 #COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
-#HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-#LASTSUBDIR=null
+COLDSTARTDATE=2021072800
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021082606/LAv21a/qbc.loni.org/LAv21a_nam_akheir_10kcms/namforecast/
+#COLDSTARTDATE=auto
+#HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+#LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021082606/LAv21a/qbc.loni.org/LAv21a_nam_akheir_10kcms/namforecast/
 
 
 # Scenario package 
