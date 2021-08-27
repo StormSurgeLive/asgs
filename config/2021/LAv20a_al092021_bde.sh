@@ -51,12 +51,12 @@ RMQMessaging_Transmit="on"
 
 TIDEFAC=on               # tide factor recalc
    HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+BACKGROUNDMET=off        # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
-TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=07              # storm number, e.g. 05=ernesto in 2006
+TROPICALCYCLONE=on       # tropical cyclone forcing
+   STORM=09              # storm number, e.g. 05=ernesto in 2006
    YEAR=2021             # year of the storm
-WAVES=off                # wave forcing
+WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
 #STATICOFFSET=0.30
@@ -81,7 +81,7 @@ TDS=( tacc_tds2 )
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=5
+SCENARIOPACKAGESIZE=8
 case $si in
    -2)
        ENSTORM=hindcast
@@ -92,19 +92,35 @@ case $si in
        ;;
     0)
        ENSTORM=nhcConsensusWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
        ENSTORM=nhcConsensus
        ;;
     2)
+       ENSTORM=veerRight50Wind10m
+       PERCENT=50
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    3)
        ENSTORM=veerRight50
        PERCENT=50
        ;;
-    3)
+    4)
+       ENSTORM=overlandSpeed20Wind10m
+       PERCENT=20
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    5)
        ENSTORM=overlandSpeed20
        PERCENT=20
        ;;
-    4)
+    6)
+       ENSTORM=veerLeft50Wind10m
+       PERCENT=-50
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ;;
+    7)
        ENSTORM=veerLeft50
        PERCENT=-50
        ;;
@@ -112,7 +128,6 @@ case $si in
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
 #
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
