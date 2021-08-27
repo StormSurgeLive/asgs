@@ -60,6 +60,10 @@ REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
+# !! NHC ftp site seems to be unreachable
+FTPSITE="filesystem"       # hindcast/nowcast ATCF formatted files
+HDIR="/work2/00976/jgflemin/frontera/asgs/input/sample_advisories/2021/al09"                 # hindcast dir on nhc ftp site
+
 # Computational Resources (related defaults set in platforms.sh)
 
 NCPU=1919                     # number of compute CPUs for all simulations
