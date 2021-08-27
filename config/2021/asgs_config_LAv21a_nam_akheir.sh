@@ -75,7 +75,7 @@ OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,cera.asgs.tk@gm
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-HINDCASTENDDATE=20210727
+HINDCASTENDDATE=20210820
 COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
