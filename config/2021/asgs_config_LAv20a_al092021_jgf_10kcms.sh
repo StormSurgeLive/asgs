@@ -84,7 +84,7 @@ LASTSUBDIR=null
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=8 # <====<<!!EIGHT TOTAL!! # number of scenarios
+SCENARIOPACKAGESIZE=6 # <====<<!!EIGHT TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
@@ -101,31 +101,22 @@ case $si in
    ENSTORM=nhcConsensus
    ;;
 2)
-   ENSTORM=veerRight50Wind10m
-   PERCENT=50
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 3)
-   ENSTORM=veerRight50
-   PERCENT=50
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 4)
-   ENSTORM=overlandSpeed20Wind10m
-   PERCENT=20
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 5)
-   ENSTORM=overlandSpeed20
-   PERCENT=20
-   ;;
-6)
-   ENSTORM=veerLeft50Wind10m
-   PERCENT=-50
-   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-   ;;
-7)
-   ENSTORM=veerLeft50
-   PERCENT=-50
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
