@@ -84,7 +84,7 @@ LASTSUBDIR=null
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # <====<<!!EIGHT TOTAL!! # number of scenarios
+SCENARIOPACKAGESIZE=6 # <====<<!!SIX TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
