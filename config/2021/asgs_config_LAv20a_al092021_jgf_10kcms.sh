@@ -84,7 +84,7 @@ LASTSUBDIR=null
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=6 # <====<<!!SIX TOTAL!! # number of scenarios
+SCENARIOPACKAGESIZE=10 # <====<<!!TEN TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
@@ -93,30 +93,48 @@ case $si in
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    ;;
- 0)
-   ENSTORM=nhcConsensusWind10m
+0)
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=nhcConsensus
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 2)
-   ENSTORM=veerRight50Wind10m
-   PERCENT=50
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 3)
-   ENSTORM=veerRight50
-   PERCENT=50
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 4)
+   ENSTORM=nhcConsensusWind10m
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+5)
+   ENSTORM=nhcConsensus
+   ;;
+6)
    ENSTORM=veerLeft50Wind10m
    PERCENT=-50
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
-5)
+7)
    ENSTORM=veerLeft50
    PERCENT=-50
+   ;;
+8)
+   ENSTORM=veerRight50Wind10m
+   PERCENT=50
+   source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+   ;;
+9)
+   ENSTORM=veerRight50
+   PERCENT=50
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
