@@ -782,3 +782,40 @@ HPC_PPN_Hint()
    ;;
    esac
 }
+
+
+# This bash function uses:
+# * local variables
+# * doesn't affect environments "by reference" (implicitly)
+# * echo's "return" so it can be captured by called using $() syntax
+# e.g.,
+#   RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST") 
+HPC_Reservation_Hint()
+{
+   # default, returned if conditions not met
+   local DEFAULT_RESERVATION=$1
+   local HPCENV=$2
+   local QOS=$3
+   local CPUREQUEST=$4
+   case "$HPCENV" in 
+   "frontera.tacc.utexas.edu")
+     # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
+     # "small" queue ... this includes wind-only parallel jobs ... the PPN
+     # for frontera is 56, so this hack would have to be updated if that changes
+     # ... a reservation on Frontera that was created for parallel jobs will
+     # not work on the "small" queue i.e., jobs (whether serial or parallel)
+     # that use only 1 or 2 compute nodes
+     if [[ $CPUREQUEST -eq 1 ]]; then
+       echo "null"
+     elif [[ $CPUREQUEST -le 112 ]]; then
+       echo "null"
+     else
+       echo $DEFAULT_RESERVATION  # this is the reservation created by TACC for the Operator to use for parallel jobs
+     fi
+   ;;
+   *)
+     echo $DEFAULT_RESERVATION
+   ;;
+   esac
+}
+

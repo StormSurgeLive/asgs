@@ -729,10 +729,14 @@ prepFile()
    unset _PPN
 
    if [[ $QUEUESYS = "SLURM" ]]; then
-      echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
+      # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
+      _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "1")
+      echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR/run.properties
+      unset _RESERVATION
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
+
    #
    # start log redirect processes for centralized logging
    initCentralizedScenarioLogging
@@ -1773,7 +1777,10 @@ writeJobResourceRequestProperties()
    unset _PPN
 
    if [[ $QUEUESYS = SLURM ]]; then
-      echo "hpc.slurm.job.${JOBTYPE}.reservation : $RESERVATION" >> $STORMDIR/run.properties
+      # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
+      _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
+      echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR/run.properties
+      unset _RESERVATION
       echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
       echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    fi
