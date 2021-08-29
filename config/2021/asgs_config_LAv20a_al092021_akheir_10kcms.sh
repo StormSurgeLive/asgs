@@ -63,7 +63,7 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=1919                     # number of compute CPUs for all simulations
+NCPU=1439                    # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 
@@ -118,22 +118,22 @@ case $si in
    PERCENT=50
    ;;
 4)
-   ENSTORM=overlandSpeed20Wind10m
-   PERCENT=20
+   ENSTORM=veerRight100Wind10m
+   PERCENT=100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 5)
-   ENSTORM=overlandSpeed20
-   PERCENT=20
+   ENSTORM=veerRight100
+   PERCENT=100
    ;;
 6)
-   ENSTORM=veerLeft50Wind10m
-   PERCENT=-50
+   ENSTORM=veerLeft100Wind10m
+   PERCENT=-100
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 7)
-   ENSTORM=veerLeft50
-   PERCENT=-50
+   ENSTORM=veerLeft100
+   PERCENT=-100
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
