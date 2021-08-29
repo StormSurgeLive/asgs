@@ -81,7 +81,7 @@ TDS=( tacc_tds2 )
 # Scenario package
 #
 #PERCENT=default
-SCENARIOPACKAGESIZE=10
+SCENARIOPACKAGESIZE=6
 case $si in
    -2)
        ENSTORM=hindcast
@@ -114,24 +114,6 @@ case $si in
     5)
        ENSTORM=veerLeft50
        PERCENT=-50
-       ;;
-    6)
-       ENSTORM=veerRight100Wind10m
-       PERCENT=100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    7)
-       ENSTORM=veerRight100
-       PERCENT=100
-       ;;
-    8)
-       ENSTORM=veerLeft100Wind10m
-       PERCENT=-100
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
-       ;;
-    9)
-       ENSTORM=veerLeft100
-       PERCENT=-100
        ;;
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
