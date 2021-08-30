@@ -802,7 +802,7 @@ downloadCycloneData()
     STATEFILE=${12}
     #
     THIS="asgs_main.sh>downloadCycloneData()"
-    APPLOGFILE=$RUNDIR/get_atcf.pl.log
+    APPLOGFILE=$RUNDIR/get_atcf.log
 #    activity_indicator "Checking remote site for new advisory..." &
     logMessage "$THIS: Checking remote site for new advisory..." $APPLOGFILE
 #    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
@@ -818,7 +818,7 @@ downloadCycloneData()
        rm forecast.properties 2>> ${SYSLOG}
     fi
     OPTIONS="--storm $STORM --year $YEAR --ftpsite $FTPSITE --fdir $FDIR --hdir $HDIR --rsssite $RSSSITE --trigger $TRIGGER --adv $ADVISORY"
-    logMessage "$THIS: Options for get_atcf.pl are as follows : $OPTIONS" $APPLOGFILE
+    logMessage "$THIS: Options for $GET_ATCF_SCRIPT are as follows : $OPTIONS" $APPLOGFILE
     if [ "$START" = coldstart ]; then
        RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE"  "Downloading initial hindcast/forecast."
        logMessage "$THIS: Downloading initial hindcast/forecast."
@@ -829,8 +829,8 @@ downloadCycloneData()
 
     while [ $newAdvisory = false ]; do
        if [[ $TRIGGER != "atcf" ]]; then
-          appMessage "perl $SCRIPTDIR/get_atcf.pl $OPTIONS"  $APPLOGFILE
-          newAdvisoryNum=`perl $SCRIPTDIR/get_atcf.pl $OPTIONS 2>> $SYSLOG`
+          appMessage "perl $GET_ATCF_SCRIPT $OPTIONS"  $APPLOGFILE
+          newAdvisoryNum=$($GET_ATCF_SCRIPT $OPTIONS 2>> $SYSLOG)
        fi
        # check to see if we have a new one, and if so, determine the
        # new advisory number correctly
@@ -860,7 +860,7 @@ downloadCycloneData()
           fi
           ;;
        "rss" | "rssembedded" )
-          # if there was a new advisory, the get_atcf.pl script
+          # if there was a new advisory, the $GET_ATCF_SCRIPT script (default is get_atcf.pl)
           # would have returned the advisory number in stdout
           if [[ ! -z $newAdvisoryNum && $newAdvisoryNum != null ]]; then
              newAdvisory="true"
@@ -1366,6 +1366,7 @@ variables_init()
    BACKGROUNDMET=on
    TIDEFAC=off
    TROPICALCYCLONE=off
+   GET_ATCF_SCRIPT=${GET_ATCF_SCRIPT:-"$SCRIPTDIR/get_atcf.pl"}
    WAVES=off
    VARFLUX=off
    MINMAX=reset
@@ -1541,6 +1542,7 @@ writeProperties()
    echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR/run.properties
    echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
    echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
+   echo "hpc.executable.get_atcf_script : $GET_ATCF_SCRIPT" >> $STORMDIR/run.properties
    echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
    echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
    echo "hpc.job.default.account : $ACCOUNT" >> $STORMDIR/run.properties
