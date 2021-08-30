@@ -36,11 +36,11 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_al092021_jgf_10kcms  # "name" of this ASGS process
+INSTANCENAME=LAv21c_al092021_jgf_10kcms  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=LAv20a
+GRIDNAME=LAv21c
 
 CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 source $SCRIPTDIR/config/mesh_defaults.sh
@@ -77,14 +77,14 @@ RMQMessaging_Transmit="on"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021072800
-HOTORCOLD=coldstart      # "hotstart" or "coldstart"
-LASTSUBDIR=null
+COLDSTARTDATE=auto
+HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+LASTSUBDIR=https://fortytwo.cct.lsu.edu/thredds/fileServer/2021/nam/2021082606/LAv21a/qbc.loni.org/LAv21a_nam_akheir_10kcms/namforecast
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # <====<<!!TEN TOTAL!! # number of scenarios
+SCENARIOPACKAGESIZE=2   # <====<<!!iTWO TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
