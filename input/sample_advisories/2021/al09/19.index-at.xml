@@ -1,0 +1,919 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:georss="http://www.georss.org/georss"
+ xmlns:gml="http://www.opengis.net/gml"
+ xmlns:nhc="https://www.nhc.noaa.gov">
+<channel>
+<pubDate>Mon, 30 Aug 2021 20:39:09 GMT</pubDate>
+<title>NHC Atlantic</title>
+<description>Active tropical cyclones in the Atlantic, Caribbean, and the Gulf of Mexico</description>
+<link>https://www.nhc.noaa.gov/</link>
+<copyright>none</copyright>
+<managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+<language>en-us</language>
+<webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+<image>
+<url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+<link>https://www.nhc.noaa.gov/</link>
+<title>NHC Atlantic</title>
+<description>NOAA logo</description>
+<width>95</width>
+<height>45</height>
+</image>
+<item>
+<title>Atlantic Tropical Weather Outlook</title>
+<description>
+<![CDATA[
+<br/>
+000<br/>
+ABNT20 KNHC 301744<br/>
+TWOAT <br/>
+<br/>
+Tropical Weather Outlook<br/>
+NWS National Hurricane Center Miami FL<br/>
+200 PM EDT Mon Aug 30 2021<br/>
+<br/>
+For the North Atlantic...Caribbean Sea and the Gulf of Mexico:<br/>
+<br/>
+The National Hurricane Center is issuing advisories on Tropical  <br/>
+Storm Ida, located inland over western Mississippi, and on recently <br/>
+upgraded Tropical Storm Kate, located over the central tropical <br/>
+Atlantic.<br/>
+<br/>
+Satellite-derived wind data and satellite imagery indicate that an <br/>
+area of low pressure has formed over the far eastern Tropical <br/>
+Atlantic in association with a tropical wave that recently moved off <br/>
+the west coast of Africa.  Environmental conditions are conducive <br/>
+for development, and a tropical depression is likely to form within <br/>
+the next couple of days while the system moves west-northwestward at <br/>
+10 to 15 mph over the eastern tropical Atlantic. <br/>
+* Formation chance through 48 hours...high...70 percent.<br/>
+* Formation chance through 5 days...high...90 percent.<br/>
+<br/>
+A broad area of low pressure is expected to form in the southern <br/>
+Caribbean Sea by midweek. Environmental conditions appear to be <br/>
+favorable for some slow development by the end of the week, as long <br/>
+as the system remains over water.  This system is expected to move <br/>
+gradually west-northwestward or northwestward at 5 to 10 mph over <br/>
+the western Caribbean Sea near the east coast of Central America. <br/>
+* Formation chance through 48 hours...low...near 0 percent. <br/>
+* Formation chance through 5 days...low...20 percent.<br/>
+<br/>
+$$<br/>
+Forecaster Reinhart<br/>
+]]>
+</description>
+<pubDate>Mon, 30 Aug 2021 17:45:02 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/gtwo.php?basin=atlc</link>
+<guid>https://www.nhc.noaa.gov/gtwo.php?basin=atlc&amp;202108301745</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Depression Ida (AT4/AL092021)</title>
+ <guid isPermaLink="false">summary-al092021-202108302037</guid>
+ <pubDate>Mon, 30 Aug 2021 20:37:33 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/302037.shtml</link>
+ <description>
+  ...IDA BECOMES A TROPICAL DEPRESSION OVER MISSISSIPPI... ...HEAVY RAINFALL AND FLASH FLOODING THREAT CONTINUES TO SPREAD  INLAND...
+ As of 4:00 PM CDT Mon Aug 30
+ the center of Ida was located near 32.6, -90.3
+ with movement NNE at 9 mph.
+ The minimum central pressure was 999 mb
+ with maximum sustained winds of about 35 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>32.6, -90.3</nhc:center>
+  <nhc:type>Tropical Depression</nhc:type>
+  <nhc:name>Ida</nhc:name>
+  <nhc:wallet>AT4</nhc:wallet>
+  <nhc:atcf>AL092021</nhc:atcf>
+  <nhc:datetime>4:00 PM CDT Mon Aug 30</nhc:datetime>
+  <nhc:movement>NNE at 9 mph</nhc:movement>
+  <nhc:pressure>999 mb</nhc:pressure>
+  <nhc:wind>35 mph</nhc:wind>
+  <nhc:headline> ...IDA BECOMES A TROPICAL DEPRESSION OVER MISSISSIPPI... ...HEAVY RAINFALL AND FLASH FLOODING THREAT CONTINUES TO SPREAD  INLAND...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Depression Ida Public Advisory Number 19</title>
+<description>Issued at 400 PM CDT Mon Aug 30 2021  <![CDATA[<pre>
+
+000
+WTNT34 KNHC 302037
+TCPAT4
+ 
+BULLETIN
+Tropical Depression Ida Advisory Number  19
+NWS National Hurricane Center Miami FL       AL092021
+400 PM CDT Mon Aug 30 2021
+ 
+...IDA BECOMES A TROPICAL DEPRESSION OVER MISSISSIPPI...
+...HEAVY RAINFALL AND FLASH FLOODING THREAT CONTINUES TO SPREAD 
+INLAND...
+ 
+ 
+SUMMARY OF 400 PM CDT...2100 UTC...INFORMATION
+----------------------------------------------
+LOCATION...32.6N 90.3W
+ABOUT 20 MI...35 KM NNW OF JACKSON MISSISSIPPI
+MAXIMUM SUSTAINED WINDS...35 MPH...55 KM/H
+PRESENT MOVEMENT...NNE OR 20 DEGREES AT 9 MPH...15 KM/H
+MINIMUM CENTRAL PRESSURE...999 MB...29.50 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+CHANGES WITH THIS ADVISORY:
+ 
+All Tropical Storm and Storm Surge Warnings have been discontinued.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT:
+ 
+There are no coastal watches and warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 400 PM CDT (2100 UTC), the center of Tropical Depression Ida was
+located near latitude 32.6 North, longitude 90.3 West. The
+depression is moving toward the north-northeast near 9 mph (15 
+km/h).  A faster northeastward motion is expected tonight through 
+Wednesday.  On the forecast track, the center of Ida will move 
+farther inland over central and northeastern Mississippi tonight. 
+Ida is then forecast to move across the Tennessee Valley on 
+Tuesday and near the central Appalachians on Wednesday.
+ 
+Maximum sustained winds have decreased to near 35 mph (55 km/h) 
+with higher gusts. Additional weakening is forecast during the 
+next day or so. 
+ 
+The minimum central pressure estimated from surface observations is 
+999 mb (29.50 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+Key messages for Ida can be found in the Tropical Cyclone
+Discussion under AWIPS header MIATCDAT4, WMO header WTNT44 KNHC,
+and on the web at hurricanes.gov/graphics_at4.shtml?key_messages.
+ 
+STORM SURGE:  Water levels along the northern Gulf coast should
+continue to subside through this evening.
+ 
+RAINFALL: Through Tuesday morning across portions of southeast 
+Louisiana into far southern Mississippi, Ida will produce additional 
+rainfall totals of 2 to 4 inches with localized higher amounts 
+possible. Storm total rainfall accumulations of 10 to 18 inches with 
+isolated maximum amounts of 24 inches is expected. Heavy rain 
+combined with storm surge has resulted in catastrophic impacts along 
+the southeast coast of Louisiana with considerable flash flooding 
+and riverine flooding continuing farther inland. 
+
+Ida will continue to turn northeast this evening and is forecast to 
+track across the Middle Tennessee Valley, Ohio Valley and 
+Mid-Atlantic through Wednesday, producing the following rainfall 
+totals:
+
+Coastal Alabama to the far western Florida panhandle: An additional 
+3 to 6 inches resulting in storm total accumulations of 6 to 12 
+inches with isolated maximum amounts of 15 inches, today through 
+Tuesday morning. 
+
+Central Mississippi into far western Alabama: 4 to 8 inches with 
+isolated maximum amounts of 12 inches, today through tonight. 
+
+Middle Tennessee Valley, Ohio Valley, Central/Southern Appalachians 
+into the Mid-Atlantic: 3 to 6 inches with isolated higher amounts, 
+Tuesday into Wednesday. 
+
+Southern New England: 2 to 4 inches with isolated higher amounts, 
+Wednesday into Thursday.
+
+Considerable flash flooding is possible from the Lower Mississippi 
+Valley through the Middle Tennessee Valley, Ohio Valley, 
+Central/Southern Appalachians, and into the Mid-Atlantic. Widespread 
+minor to isolated major riverine flooding is occurring or forecast 
+from the Lower Mississippi Valley into far western Alabama. Rivers 
+will remain elevated into next week.
+ 
+TORNADOES:  A few tornadoes are possible through tonight, mainly 
+across far southeast Mississippi, the southern half of Alabama, and 
+the western Florida Panhandle. The threat for a few tornadoes will 
+shift east on Tuesday and become centered across eastern Alabama, 
+western Georgia, and the Florida Panhandle. 
+ 
+SURF:  Swells will continue to affect portions of the northern Gulf
+coast through this evening.  These swells are likely to cause life-
+threatening surf and rip current conditions. Please consult
+products from your local weather office.
+ 
+ 
+NEXT ADVISORY
+-------------
+This is the last public advisory issued by the National Hurricane 
+Center on Ida.  Future information on Ida can be found in Public 
+Advisories issued by the Weather Prediction Center beginning at 10 
+PM CDT, under AWIPS header TCPAT4, WMO header WTNT34 KWNH, and on 
+the web at http://www.wpc.ncep.noaa.gov. 
+ 
+$$
+Forecaster Brown
+ 
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:37:33 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/302037.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT4+shtml/302037.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Forecast Advisory Number 19</title>
+<description>Issued at 2100 UTC MON AUG 30 2021  <![CDATA[<pre>
+
+000
+WTNT24 KNHC 302036
+TCMAT4
+ 
+TROPICAL DEPRESSION IDA FORECAST/ADVISORY NUMBER  19
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092021
+2100 UTC MON AUG 30 2021
+ 
+CHANGES IN WATCHES AND WARNINGS WITH THIS ADVISORY...
+ 
+ALL TROPICAL STORM AND STORM SURGE WARNINGS HAVE BEEN DISCONTINUED.
+ 
+SUMMARY OF WATCHES AND WARNINGS IN EFFECT...
+ 
+THERE ARE NO COASTAL WATCHES AND WARNINGS IN EFFECT.
+ 
+TROPICAL DEPRESSION CENTER LOCATED NEAR 32.6N  90.3W AT 30/2100Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH-NORTHEAST OR  20 DEGREES AT   8 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE  999 MB
+MAX SUSTAINED WINDS  30 KT WITH GUSTS TO  40 KT.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 32.6N  90.3W AT 30/2100Z
+AT 30/1800Z CENTER WAS LOCATED NEAR 32.2N  90.5W
+ 
+FORECAST VALID 31/0600Z 33.6N  89.3W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 31/1800Z 34.8N  87.2W...INLAND
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 01/0600Z 36.3N  84.3W...INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 01/1800Z 38.0N  80.7W...POST-TROP/INLAND
+MAX WIND  20 KT...GUSTS  30 KT.
+ 
+FORECAST VALID 02/0600Z 39.0N  77.0W...POST-TROP/EXTRATROP
+MAX WIND  25 KT...GUSTS  35 KT.
+ 
+FORECAST VALID 02/1800Z 39.5N  74.2W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 03/1800Z 41.0N  67.9W...POST-TROP/EXTRATROP
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+OUTLOOK VALID 04/1800Z...DISSIPATED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 32.6N  90.3W
+ 
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE NATIONAL HURRICANE 
+CENTER ON IDA. FUTURE INFORMATION ON THIS SYSTEM CAN BE FOUND IN 
+PUBLIC ADVISORIES ISSUED BY THE WEATHER PREDICTION CENTER BEGINNING 
+AT 10 PM CDT, UNDER AWIPS HEADER TCPAT4, WMO HEADER WTNT34 KWNH, 
+AND ON THE WEB AT HTTP://WWW.WPC.NCEP.NOAA.GOV. 
+ 
+$$
+FORECASTER BROWN
+ 
+ 
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:36:38 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/302036.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT4+shtml/302036.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Forecast Discussion Number 19</title>
+<description>Issued at 400 PM CDT Mon Aug 30 2021  <![CDATA[<pre>
+
+000
+WTNT44 KNHC 302037
+TCDAT4
+ 
+Tropical Depression Ida Discussion Number  19
+NWS National Hurricane Center Miami FL       AL092021
+400 PM CDT Mon Aug 30 2021
+ 
+Ida has continued to weaken while moving farther inland over 
+west-central Mississippi this afternoon.  Recent observations 
+indicate that the stronger winds seen this morning along the 
+northern Gulf coast have now dropped below tropical storm strength, 
+and Ida has become a tropical depression.  Additional weakening 
+should occur while Ida moves over northeastern Mississippi and the 
+Tennessee Valley during the next 12 to 24 hours.  Ida is forecast to 
+become an extratropical cyclone over the eastern United States by 
+late Wednesday, and it is likely to be absorbed within a frontal 
+boundary over the western Atlantic by the end of the forecast 
+period.
+ 
+Ida has turned northeastward and is now moving 020/8 kt.  A
+mid- to upper-level trough approaching Ida from the west should
+cause the cyclone to move faster toward the northeast over the next
+couple of days.  The latest runs of the dynamical models are in a
+bit better agreement regarding the forward speed of the Ida as it
+moves across the eastern U.S., and the NHC track forecast is again
+near the middle of the guidance envelope.
+ 
+Although Ida's winds have decreased, the threat of heavy rainfall
+and flooding will continue to spread inland over portions of the
+Tennessee and Ohio Valleys, the Central and Southern Appalachians
+and the Mid-Atlantic through Wednesday.
+
+This is the last advisory issued by the National Hurricane Center 
+on Ida.  Future information on this system can be found in Public
+Advisories issued by the Weather Prediction Center beginning at 
+10 PM CDT, under AWIPS header TCPAT4, WMO header WTNT34 KWNH, and 
+on the web at http://www.wpc.ncep.noaa.gov. 
+ 
+Key Messages:
+ 
+1. Ida will continue to produce heavy rainfall tonight through
+Tuesday morning across portions of southeast Louisiana, Mississippi,
+and western Alabama, resulting in considerable flash and urban
+flooding and significant river flooding impacts. Rivers in the
+Lower Mississippi Valley will remain elevated into next week. As Ida
+moves inland, additional considerable flooding impacts are likely
+across portions of the Tennessee Valley, the Ohio Valley, and
+particularly in the Central and Southern Appalachians into the
+Mid-Atlantic through Wednesday.
+ 
+2. In areas that experienced damage and power loss, individuals
+should use extreme caution during the recovery phase.  Post-storm
+fatalities and injuries often result from heart attacks, heat
+exhaustion, accidents related to clean up and recovery, and carbon
+monoxide poisoning from improper generator use.
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  30/2100Z 32.6N  90.3W   30 KT  35 MPH...INLAND
+ 12H  31/0600Z 33.6N  89.3W   25 KT  30 MPH...INLAND
+ 24H  31/1800Z 34.8N  87.2W   25 KT  30 MPH...INLAND
+ 36H  01/0600Z 36.3N  84.3W   20 KT  25 MPH...INLAND
+ 48H  01/1800Z 38.0N  80.7W   20 KT  25 MPH...POST-TROP/INLAND
+ 60H  02/0600Z 39.0N  77.0W   25 KT  30 MPH...POST-TROP/EXTRATROP
+ 72H  02/1800Z 39.5N  74.2W   30 KT  35 MPH...POST-TROP/EXTRATROP
+ 96H  03/1800Z 41.0N  67.9W   30 KT  35 MPH...POST-TROP/EXTRATROP
+120H  04/1800Z...DISSIPATED
+ 
+$$
+Forecaster Brown
+ 
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:38:06 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/302037.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT4+shtml/302037.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Wind Speed Probabilities Number 19</title>
+<description>Issued at 2100 UTC MON AUG 30 2021                                              <![CDATA[<pre>
+
+000
+FONT14 KNHC 302037
+PWSAT4
+                                                                    
+TROPICAL DEPRESSION IDA WIND SPEED PROBABILITIES NUMBER  19         
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL092021               
+2100 UTC MON AUG 30 2021                                            
+                                                                    
+AT 2100Z THE CENTER OF TROPICAL DEPRESSION IDA WAS LOCATED NEAR     
+LATITUDE 32.6 NORTH...LONGITUDE 90.3 WEST WITH MAXIMUM SUSTAINED    
+WINDS NEAR 30 KTS...35 MPH...55 KM/H.                               
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        18Z MON AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       18Z MON 06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI 18Z SAT
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+NANTUCKET MA   34  X   X( X)   X( X)   X( X)   1( 1)   3( 4)   X( 4)
+ 
+PROVIDENCE RI  34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+MONTAUK POINT  34  X   X( X)   X( X)   X( X)   1( 1)   2( 3)   X( 3)
+ 
+NYC JFK AIRPRT 34  X   X( X)   X( X)   X( X)   3( 3)   1( 4)   X( 4)
+ 
+NYC CNTRL PARK 34  X   X( X)   X( X)   X( X)   2( 2)   1( 3)   X( 3)
+ 
+NEWARK NJ      34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+TRENTON NJ     34  X   X( X)   X( X)   X( X)   4( 4)   X( 4)   X( 4)
+ 
+NWS EARLE NJ   34  X   X( X)   X( X)   X( X)   3( 3)   1( 4)   X( 4)
+ 
+ALLENTOWN PA   34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+PHILADELPHIA   34  X   X( X)   X( X)   X( X)   4( 4)   1( 5)   X( 5)
+ 
+ATLANTIC CITY  34  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+BALTIMORE MD   34  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+ 
+DOVER DE       34  X   X( X)   X( X)   X( X)   5( 5)   1( 6)   X( 6)
+ 
+ANNAPOLIS MD   34  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+ 
+WASHINGTON DC  34  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+CAPE HENLOPEN  34  X   X( X)   X( X)   X( X)   6( 6)   1( 7)   X( 7)
+ 
+OCEAN CITY MD  34  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+ 
+PAX RIVER NAS  34  X   X( X)   X( X)   X( X)   6( 6)   X( 6)   X( 6)
+ 
+WALLOPS CDA    34  X   X( X)   X( X)   X( X)   5( 5)   X( 5)   X( 5)
+ 
+CHARLOTTESVIL  34  X   X( X)   X( X)   2( 2)   4( 6)   X( 6)   X( 6)
+ 
+RICHMOND VA    34  X   X( X)   X( X)   1( 1)   3( 4)   1( 5)   X( 5)
+ 
+NORFOLK NAS    34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+NORFOLK VA     34  X   X( X)   X( X)   X( X)   3( 3)   X( 3)   X( 3)
+ 
+BIRMINGHAM AL  34  1  11(12)   X(12)   X(12)   X(12)   X(12)   X(12)
+ 
+JACKSON MS     34  6   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)   X( 6)
+ 
+$$                                                                  
+FORECASTER BROWN                                                    
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:37:33 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/302037.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT4+shtml/302037.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT09/AL092021_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Depression Ida 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Mon, 30 Aug 2021 20:38:34 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT09/AL092021_wind_probs_34_F120_sm2.png"
+alt="Tropical Depression Ida 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Mon, 30 Aug 2021 20:38:34 GMT
+]]>
+</description>
+<pubDate>Mon, 30 Aug 2021 20:38:34 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Probabilistic Storm Surge Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?gm_psurge">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT09/AL0921_psurge2_m1_sm2.png"
+alt="Tropical Depression Ida Probabilistic Storm Surge Graphics Image"
+width="500" height="400" /></a><br/>
+Probabilistic Storm Surge Graphics last updated Mon, 30 Aug 2021 15:21:46 GMT
+]]>
+</description>
+<pubDate>Mon, 30 Aug 2021 15:21:46 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?gm_psurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?gm_psurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Potential Storm Surge Flooding Map</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?inundation">
+<img src="https://www.nhc.noaa.gov/images/inundation_thumb.png"
+alt="Tropical Depression Ida Link to Potential Storm Surge Flooding Map"
+width="60" height="48" /></a><br/>
+Potential Storm Surge Flooding Map last updated Mon, 30 Aug 2021 15:59:16 GMT
+]]>
+</description>
+<pubDate>Mon, 30 Aug 2021 15:59:16 GMT</pubDate>
+<validAdvisory>18</validAdvisory>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?inundation</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?inundation</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Depression Ida Storm Surge Watch/Warning Map</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?wsurge">
+<img src="https://www.nhc.noaa.gov/images/wsurge_thumb.png"
+alt="Tropical Depression Ida Link to Storm Surge Watch/Warning Map"
+width="60" height="48" /></a><br/>
+Storm Surge Watch/Warning Map last updated Mon, 30 Aug 2021 14:58:17 GMT
+]]>
+</description>
+<pubDate>Mon, 30 Aug 2021 14:58:17 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?wsurge</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at4+shtml/152146.shtml?wsurge</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Mobile, AL / Pensacola, FL</title>
+<description>Issued at  1045 AM CDT Mon Aug 30 2021</description>
+<pubDate>Mon, 30 Aug 2021 15:45:25 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KMOB.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for New Orleans / Baton Rouge, LA</title>
+<description>Issued at  1043 AM CDT Mon Aug 30 2021</description>
+<pubDate>Mon, 30 Aug 2021 17:26:11 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KLIX.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Local Statement for Jackson, MS</title>
+<description>Issued at  1226 PM CDT Mon Aug 30 2021</description>
+<pubDate>Mon, 30 Aug 2021 17:27:12 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/WTUS84-KJAN.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/WTUS84-KJAN.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+ <title>Summary for Tropical Storm Kate (AT5/AL102021)</title>
+ <guid isPermaLink="false">summary-al102021-202108301330</guid>
+ <pubDate>Mon, 30 Aug 2021 13:30:00 GMT</pubDate>
+ <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+ <link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/302034.shtml</link>
+ <description>
+  ...KATE REMAINS A SHEARED TROPICAL CYCLONE OVER THE OPEN WATERS OF THE CENTRAL ATLANTIC...
+ As of 5:00 PM AST Mon Aug 30
+ the center of Kate was located near 22.7, -50.9
+ with movement N at 10 mph.
+ The minimum central pressure was 1006 mb
+ with maximum sustained winds of about 40 mph.
+ </description>
+ <nhc:Cyclone>
+  <nhc:center>22.7, -50.9</nhc:center>
+  <nhc:type>TROPICAL STORM</nhc:type>
+  <nhc:name>Kate</nhc:name>
+  <nhc:wallet>AT5</nhc:wallet>
+  <nhc:atcf>AL102021</nhc:atcf>
+  <nhc:datetime>5:00 PM AST Mon Aug 30</nhc:datetime>
+  <nhc:movement>N at 10 mph</nhc:movement>
+  <nhc:pressure>1006 mb</nhc:pressure>
+  <nhc:wind>40 mph</nhc:wind>
+  <nhc:headline> ...KATE REMAINS A SHEARED TROPICAL CYCLONE OVER THE OPEN WATERS OF THE CENTRAL ATLANTIC...</nhc:headline>
+ </nhc:Cyclone>
+</item>
+<item>
+<title>Tropical Storm Kate Public Advisory Number 11</title>
+<description>Issued at 500 PM AST Mon Aug 30 2021  <![CDATA[<pre>
+
+000
+WTNT35 KNHC 302034
+TCPAT5
+ 
+BULLETIN
+Tropical Storm Kate Advisory Number  11
+NWS National Hurricane Center Miami FL       AL102021
+500 PM AST Mon Aug 30 2021
+ 
+...KATE REMAINS A SHEARED TROPICAL CYCLONE OVER THE OPEN WATERS OF
+THE CENTRAL ATLANTIC...
+ 
+ 
+SUMMARY OF 500 PM AST...2100 UTC...INFORMATION
+----------------------------------------------
+LOCATION...22.7N 50.9W
+ABOUT 805 MI...1295 KM ENE OF THE LEEWARD ISLANDS
+MAXIMUM SUSTAINED WINDS...40 MPH...65 KM/H
+PRESENT MOVEMENT...N OR 355 DEGREES AT 10 MPH...17 KM/H
+MINIMUM CENTRAL PRESSURE...1006 MB...29.71 INCHES
+ 
+ 
+WATCHES AND WARNINGS
+--------------------
+There are no coastal watches or warnings in effect.
+ 
+ 
+DISCUSSION AND OUTLOOK
+----------------------
+At 500 PM AST (2100 UTC), the center of Tropical Storm Kate was 
+located near latitude 22.7 North, longitude 50.9 West.  Kate is 
+moving toward the north near 10 mph (17 km/h), and this motion with 
+a slight decrease in forward speed is expected through early 
+Tuesday. Then, a northwestward motion is forecast through midweek. 
+ 
+Maximum sustained winds have decreased to near 40 mph (65 km/h) with 
+higher gusts.  Some fluctuations in intensity are forecast during 
+the next couple of days.  Some slow strengthening is possible by 
+Thursday.
+ 
+Tropical-storm-force winds extend outward up to 45 miles (75 km)
+from the center in the eastern semicircle.
+ 
+The estimated minimum central pressure is 1006 mb (29.71 inches).
+ 
+ 
+HAZARDS AFFECTING LAND
+----------------------
+None.
+ 
+ 
+NEXT ADVISORY
+-------------
+Next complete advisory at 1100 PM AST.
+ 
+$$
+Forecaster Reinhart
+ 
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:35:08 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/302034.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCPAT5+shtml/302034.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Kate Forecast Advisory Number 11</title>
+<description>Issued at 2100 UTC MON AUG 30 2021  <![CDATA[<pre>
+
+000
+WTNT25 KNHC 302034
+TCMAT5
+ 
+TROPICAL STORM KATE FORECAST/ADVISORY NUMBER  11
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL102021
+2100 UTC MON AUG 30 2021
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 22.7N  50.9W AT 30/2100Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE NORTH OR 355 DEGREES AT   9 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1006 MB
+MAX SUSTAINED WINDS  35 KT WITH GUSTS TO  45 KT.
+34 KT....... 40NE  40SE   0SW   0NW.
+12 FT SEAS.. 30NE   0SE   0SW   0NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 22.7N  50.9W AT 30/2100Z
+AT 30/1800Z CENTER WAS LOCATED NEAR 22.3N  50.9W
+ 
+FORECAST VALID 31/0600Z 23.7N  50.7W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 31/1800Z 24.7N  50.7W
+MAX WIND  30 KT...GUSTS  40 KT.
+ 
+FORECAST VALID 01/0600Z 25.8N  51.1W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 40NE  30SE   0SW   0NW.
+ 
+FORECAST VALID 01/1800Z 27.0N  52.1W
+MAX WIND  35 KT...GUSTS  45 KT.
+34 KT... 50NE  40SE   0SW   0NW.
+ 
+FORECAST VALID 02/0600Z 28.4N  53.5W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 50NE  50SE   0SW  20NW.
+ 
+FORECAST VALID 02/1800Z 30.1N  54.7W
+MAX WIND  40 KT...GUSTS  50 KT.
+34 KT... 60NE  60SE   0SW  30NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 175 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 03/1800Z 34.5N  55.0W
+MAX WIND  40 KT...GUSTS  50 KT.
+ 
+OUTLOOK VALID 04/1800Z...ABSORBED
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 22.7N  50.9W
+ 
+NEXT ADVISORY AT 31/0300Z
+ 
+$$
+FORECASTER REINHART
+ 
+ 
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:35:08 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/302034.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCMAT5+shtml/302034.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Kate Forecast Discussion Number 11</title>
+<description>Issued at 500 PM AST Mon Aug 30 2021  <![CDATA[<pre>
+
+988 
+WTNT45 KNHC 302035
+TCDAT5
+ 
+Tropical Storm Kate Discussion Number  11
+NWS National Hurricane Center Miami FL       AL102021
+500 PM AST Mon Aug 30 2021
+ 
+The low-level center of Kate is exposed in visible satellite imagery
+this afternoon. Its deep convection collapsed late this morning, and
+the sheared tropical cyclone is now only producing a small area of
+convection over 60 n mi east of its center. A partial 1321 UTC
+ASCAT-B pass still showed numerous 30-kt wind vectors in the eastern
+semicircle, even with little to no active convection. The initial
+intensity is conservatively lowered to 35 kt for this advisory.
+ 
+The subtropical jet stream across the central Atlantic will continue
+to impart strong west-northwesterly vertical wind shear on Kate
+during the next day or so. If the struggling tropical cyclone can
+survive these hostile conditions, some modest strengthening could
+occur later this week over warm SSTs of 28 deg C or so. However, the
+lack of mid-level moisture in the surrounding environment may limit
+convective development even under these more favorable conditions,
+and there is no guarantee that Kate will survive that long. In fact,
+simulated satellite imagery from the GFS and ECMWF suggest that Kate
+may continue to only produce sporadic bursts of convection over the
+next couple of days, which jeopardizes its chances of surviving
+through the week. The official NHC intensity forecast has been
+adjusted downward based on the latest guidance trends and the
+uncertainties discussed above. Minor fluctuations in intensity could
+occur over the next 24-36 h as convective pulsing causes the
+cyclone's intensity to hover around tropical-storm-force strength.
+ 
+Kate is moving a little faster toward the north, or 355/9 kt, within
+a weakness in the subtropical ridge. A northward motion is expected
+to continue through early Tuesday. The subtropical ridge is expected
+to become reestablished over the central Atlantic Tuesday night into
+Wednesday, which should turn Kate toward the northwest through
+midweek. Thereafter, Kate is forecast to accelerate northward or
+north-northeastward ahead of an approaching deep-layer trough that
+will move across the western Atlantic late this week. Assuming Kate
+is still around by day 5, the cyclone is forecast to become absorbed
+by a larger extratropical low near Atlantic Canada.
+ 
+ 
+FORECAST POSITIONS AND MAX WINDS
+ 
+INIT  30/2100Z 22.7N  50.9W   35 KT  40 MPH
+ 12H  31/0600Z 23.7N  50.7W   30 KT  35 MPH
+ 24H  31/1800Z 24.7N  50.7W   30 KT  35 MPH
+ 36H  01/0600Z 25.8N  51.1W   35 KT  40 MPH
+ 48H  01/1800Z 27.0N  52.1W   35 KT  40 MPH
+ 60H  02/0600Z 28.4N  53.5W   40 KT  45 MPH
+ 72H  02/1800Z 30.1N  54.7W   40 KT  45 MPH
+ 96H  03/1800Z 34.5N  55.0W   40 KT  45 MPH
+120H  04/1800Z...DISSIPATED
+ 
+$$
+Forecaster Reinhart
+ 
+
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:36:04 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/302035.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIATCDAT5+shtml/302035.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Kate Wind Speed Probabilities Number 11</title>
+<description>Issued at 2100 UTC MON AUG 30 2021                                              <![CDATA[<pre>
+
+000
+FONT15 KNHC 302035
+PWSAT5
+                                                                    
+TROPICAL STORM KATE WIND SPEED PROBABILITIES NUMBER  11             
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL102021               
+2100 UTC MON AUG 30 2021                                            
+                                                                    
+AT 2100Z THE CENTER OF TROPICAL STORM KATE WAS LOCATED NEAR LATITUDE
+22.7 NORTH...LONGITUDE 50.9 WEST WITH MAXIMUM SUSTAINED WINDS NEAR  
+35 KTS...40 MPH...65 KM/H.                                          
+                                                                    
+Z INDICATES COORDINATED UNIVERSAL TIME (GREENWICH)                  
+   ATLANTIC STANDARD TIME (AST)...SUBTRACT 4 HOURS FROM Z TIME      
+   EASTERN  DAYLIGHT TIME (EDT)...SUBTRACT 4 HOURS FROM Z TIME      
+   CENTRAL  DAYLIGHT TIME (CDT)...SUBTRACT 5 HOURS FROM Z TIME      
+                                                                    
+WIND SPEED PROBABILITY TABLE FOR SPECIFIC LOCATIONS                 
+                                                                    
+CHANCES OF SUSTAINED (1-MINUTE AVERAGE) WIND SPEEDS OF AT LEAST     
+   ...34 KT (39 MPH... 63 KM/H)...                                  
+   ...50 KT (58 MPH... 93 KM/H)...                                  
+   ...64 KT (74 MPH...119 KM/H)...                                  
+FOR LOCATIONS AND TIME PERIODS DURING THE NEXT 5 DAYS               
+                                                                    
+PROBABILITIES FOR LOCATIONS ARE GIVEN AS OP(CP) WHERE               
+    OP  IS THE PROBABILITY OF THE EVENT BEGINNING DURING            
+        AN INDIVIDUAL TIME PERIOD (ONSET PROBABILITY)               
+   (CP) IS THE PROBABILITY OF THE EVENT OCCURRING BETWEEN           
+        18Z MON AND THE FORECAST HOUR (CUMULATIVE PROBABILITY)      
+                                                                    
+PROBABILITIES ARE GIVEN IN PERCENT                                  
+X INDICATES PROBABILITIES LESS THAN 1 PERCENT                       
+PROBABILITIES FOR 34 KT AND 50 KT ARE SHOWN AT A GIVEN LOCATION WHEN
+THE 5-DAY CUMULATIVE PROBABILITY IS AT LEAST 3 PERCENT.             
+PROBABILITIES FOR 34...50...64 KT SHOWN WHEN THE 5-DAY              
+64-KT CUMULATIVE PROBABILITY IS AT LEAST 1 PERCENT.                 
+                                                                    
+                                                                    
+  - - - - WIND SPEED PROBABILITIES FOR SELECTED LOCATIONS - - - -   
+                                                                    
+               FROM    FROM    FROM    FROM    FROM    FROM    FROM 
+  TIME       18Z MON 06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI
+PERIODS         TO      TO      TO      TO      TO      TO      TO  
+             06Z TUE 18Z TUE 06Z WED 18Z WED 18Z THU 18Z FRI 18Z SAT
+                                                                    
+FORECAST HOUR    (12)   (24)    (36)    (48)    (72)    (96)   (120)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+LOCATION       KT                                                   
+                                                                    
+$$                                                                  
+FORECASTER REINHART                                                 
+</pre>]]></description>
+<pubDate>Mon, 30 Aug 2021 20:35:36 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/302035.shtml</link>
+<guid>https://www.nhc.noaa.gov/text/refresh/MIAPWSAT5+shtml/302035.shtml</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+<item>
+<title>Tropical Storm Kate Graphics</title>
+<description>
+<![CDATA[
+<a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/203641.shtml?cone">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT10/AL102021_5day_cone_with_line_and_wind_sm2.png"
+alt="Tropical Storm Kate 5-Day Uncertainty Track Image"
+width="500" height="400" /></a><br/>
+5-Day Uncertainty Track last updated Mon, 30 Aug 2021 20:36:41 GMT
+<br /><br /><a href="https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/203641.shtml?tswind120">
+<img src="https://www.nhc.noaa.gov/storm_graphics/AT10/AL102021_wind_probs_34_F120_sm2.png"
+alt="Tropical Storm Kate 34-Knot Wind Speed Probabilities"
+width="500" height="400" /> </a><br/>
+Wind Speed Probabilities last updated Mon, 30 Aug 2021 20:36:41 GMT
+]]>
+</description>
+<pubDate>Mon, 30 Aug 2021 20:36:41 GMT</pubDate>
+<link>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/203641.shtml?cone</link>
+<guid>https://www.nhc.noaa.gov/refresh/graphics_at5+shtml/203641.shtml?cone</guid>
+<author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+</item>
+</channel>
+</rss>

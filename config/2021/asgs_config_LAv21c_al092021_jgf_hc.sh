@@ -36,11 +36,11 @@
 
 # Fundamental
 
-INSTANCENAME=LAv20a_nam_jgf_10kcms  # "name" of this ASGS process
+INSTANCENAME=LAv21c_al092021_jgf_hc  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=LAv20a
+GRIDNAME=LAv21c
 
 CONTROLTEMPLATE=LAv20a_10kcms.15.template # <---<<< default is LA_v20a-WithUpperAtch.15.template in $SCRIPTDIR/config/mesh_defaults.sh
 source $SCRIPTDIR/config/mesh_defaults.sh
@@ -49,12 +49,17 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=off      # NAM download/forcing
 FORECASTCYCLE="06"
    forecastSelection="strict"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-STORM=09             # storm number, e.g. 05=ernesto in 2006
-YEAR=2021            # year of the storm
+TROPICALCYCLONE=on   # tropical cyclone forcing
+   STORM=09             # storm number, e.g. 05=ernesto in 2006
+   YEAR=2021            # year of the storm
+   TRIGGER="rssembedded"            # either "ftp" or "rss"
+   RSSSITE="filesystem"       # site information for retrieving advisories
+   FTPSITE="filesystem"       # hindcast/nowcast ATCF formatted files
+   FDIR="/work2/00976/jgflemin/frontera/asgs/input/sample_advisories/2021/al09"  # forecast dir
+   HDIR="/work2/00976/jgflemin/frontera/asgs/input/sample_advisories/2021/al09"  # BEST dir
 WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -77,14 +82,15 @@ RMQMessaging_Transmit="on"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2021/al09/18/LAv20a/frontera.tacc.utexas.edu/LAv20a_al092021_jgf_10kcms/nhcConsensus
+HINDCASTENDDATE=2021082612
+COLDSTARTDATE=$(get-coldstart-date) # uses HINDCASTLENGTH and HINDCASTENDDATE
+HOTORCOLD=coldstart
+LASTSUBDIR=null
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # <====<<!!TEN TOTAL!! # number of scenarios
+SCENARIOPACKAGESIZE=0 # <====<<!! ZERO TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
@@ -94,11 +100,11 @@ case $si in
    ENSTORM=nowcast
    ;;
 0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."
