@@ -83,7 +83,7 @@ RMQMessaging_Transmit="on"
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
 HINDCASTENDDATE=2021082612
-COLDSTARTDATE=$(get-coldstart-date) # uses HINDCASTLENGTH and HINDCASTENDDATE
+COLDSTARTDATE=2021072712
 HOTORCOLD=coldstart
 LASTSUBDIR=null
 
