@@ -532,6 +532,7 @@ writeScenarioFilesStatus()
       fileStatusPath=$1
    fi
    local jsonfile=$fileStatusPath/files.status.json
+   local cycleJSON=$(expr $ADVISORY + 0) # strip leading zero (if any) before writing to json format
    #
    # update time stamp
    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
@@ -539,7 +540,7 @@ writeScenarioFilesStatus()
    echo "{" > $jsonfile # <-<< OVERWRITE
    echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
    echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
-   echo \""cycle\" : $ADVISORY," >> $jsonfile
+   echo \""cycle\" : $cycleJSON," >> $jsonfile
    echo \""scenario\" : \"$SCENARIO\"," >> $jsonfile
    echo \""time.files.status.lastupdated\" : \"$dateTime\"," >> $jsonfile
    echo \""files.status\" : {" >> $jsonfile
