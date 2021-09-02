@@ -24,7 +24,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-THIS=$(basename -- $0) 
+THIS=$(basename -- $0)
 
 #
 #####################################################################
@@ -719,7 +719,7 @@ prepFile()
    # adjusts $SERQUEUE, if criteria is met; othewise returns current value as the defaults;
    SERQUEUE=$(HPC_Queue_Hint "$SERQUEUE" "$HPCENV" "$QOS" "1")
    echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   
+
    # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
    # $PPN is not adjusted so the original value is preserved; yet the "corrected" value
    # is written to $STORMDIR/run.properties, which is where ./qscript.pl gets the value
@@ -749,17 +749,22 @@ prepFile()
       perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this=$QSCRIPTGEN -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )
       # submit adcprep job, check to make sure queue script submission
       # succeeded, and if not, retry
+      local jobSubmitInterval=60
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
          # submit job , capture stdout from sbatch and direct it
          # to scenario.log; capture stderr and send to all logs
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )
-         if [[ $? = 0 ]]; then
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
+         if [[ $? == 0 ]]; then
+            ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
+            awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
             warn "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
-            sleep 60
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            sleep $jobSubmitInterval
          fi
       done
       CURRENT_STATE="WAIT"
@@ -771,10 +776,16 @@ prepFile()
       ;;
    *)
       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$!\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       # check to see if adcprep completed successfully
       if [[ $? != 0 ]]; then
          error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
       fi
       ;;
@@ -1048,19 +1059,21 @@ monitorJobs()
    #
    ENSTORM_TEMP=${JOBTYPE}.${ENSTORM}
    THIS="asgs_main.sh>monitorJobs()"
+   jobCheckIntervalSeconds=60
    #
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY}."
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
-      sleep 10
+      writeScenarioFilesStatus
+      postScenarioStatus
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY} ..."
+      sleep $jobCheckIntervalSeconds
    done
    CURRENT_STATE="RUNN"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job has started."
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
    startTime=`date +%s`  # epoch seconds
    retries=0  # count resubmits on hatteras due to io errors
-   jobCheckIntervalSeconds=15
    #
    # Keep checking every $jobCheckIntervalSeconds to see if the job has
    # (a) timed out; (b) written a .finish file; or (c) written a .error file.
@@ -1074,7 +1087,8 @@ monitorJobs()
    # resubmit it without the ASGS noticing or being disturbed.
    #
    while [[ 1 ]]; do
-      sleep $jobCheckIntervalSeconds
+      writeScenarioFilesStatus
+      postScenarioStatus
       # execute the FortCheck.py code to get a %complete status, but only
       # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
       if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
@@ -1089,7 +1103,8 @@ monitorJobs()
       # check job run status
       if ! checkTimeLimit $startTime $WALLTIME ; then
          THIS="asgs_main.sh>monitorJobs()"
-         echo "$THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error
+         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         echo "[$DATETIME] $THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error  # <-OVERWRITE
          # if this job was submitted by mpiexec, then terminate it; otherwise,
          # it could run for a long time, delaying the continued execution
          # of the ASGS (the ASGS won't start the next cycle until all forecast
@@ -1100,26 +1115,27 @@ monitorJobs()
          case $QUEUESYS in
          "mpiexec")
             logMessage "$ENSTORM: $THIS: Detecting mpiexec subshell pid."
-            pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
+            local pid=`grep 'mpiexec subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/mpiexec subshell pid.*://' | sed 's/^\s//'`
             #logMessage "Terminating the $ENSTORM_TEMP job with the command 'kill -TERM `ps --ppid $pid -o pid --no-headers'."
             # need to kill the mpiexec process, but don't know its process ID
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$pid\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
             ;;
          "serial")
-            pid=`grep 'serial $JOBTYPE job subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/serial $JOBTYPE job subshell pid.*://' | sed 's/^\s//'`
+            local pid=`grep 'serial $JOBTYPE job subshell pid' ${ADVISDIR}/${ENSTORM}/run.properties | sed 's/serial $JOBTYPE job subshell pid.*://' | sed 's/^\s//'`
             # need to kill the serial process, but don't know its process ID
             # ... but we do have the process ID of its parent subshell
             kill -TERM `ps --ppid $pid -o pid --no-headers` >> ${SYSLOG} 2>&1
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             logMessage "$THIS: $ENSTORM_TEMP job in $PWD terminated by ASGS for exceeding expected wall clock time." >> ${ENSTORM_TEMP}.run.error
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$pid\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
             ;;
          *)
             # if we are over the wall clock limit, wait until the operating
             # system has had a chance to write the job log file, or
             # until 5 minutes have passed
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
             overLimitTime=`date +%s`
             until [[ -e ${ENSTORM_TEMP}.out ]]; do
                logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
@@ -1149,7 +1165,9 @@ monitorJobs()
                done
                for jobtype in padcirc padcswan; do
                   if [[ -e ${jobtype}.slurm ]]; then
-                     sbatch ${jobtype}.slurm >> $SYSLOG 2>&1
+                     sbatch ${jobtype}.slurm >jobID 2>jobErr | tee -a scenario.log
+                     DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+                     echo "\"jobtype\" : \"$jobtype\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> jobs.status
                      break
                   fi
                done
@@ -1158,7 +1176,7 @@ monitorJobs()
                # there was an error under a SLURM system, but not
                # an error we can get around by resubmitting
                error "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP run failed; results are not available for this scenario for this advisory."
-            cat ${ENSTORM_TEMP}.run.error >> jobFailed
+               cat ${ENSTORM_TEMP}.run.error >> jobFailed
                break
             fi
          else
@@ -1172,6 +1190,7 @@ monitorJobs()
          logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job appears to have run to completion successfully."
          break
       fi
+      sleep $jobCheckIntervalSeconds
    done
    if [[ -e ${ENSTORM_TEMP}.run.error ]]; then
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "FAIL" "The $ENSTORM_TEMP run failed; results are not available for this ensemble member for this advisory."
@@ -1184,6 +1203,8 @@ monitorJobs()
    fi
    #
    # terminate redirect processes for centralized logging
+   writeScenarioFilesStatus  # final status update for files
+   postScenarioStatus
    sleep 30 # give buffers a chance to flush to the filesystem
    finalizeCentralizedScenarioLogging
    #
@@ -1232,8 +1253,7 @@ submitJob()
    "serial")
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
-      echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      logMessage "$ENSTORM: $THIS: Submitting job via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
+      logMessage "$ENSTORM: $THIS: Submitting ${JOBTYPE}.${ENSTORM} job in $PWD via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the serial job in a subshell
       (
          # initialize log files so they can be centralized
@@ -1244,8 +1264,11 @@ submitJob()
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+         else
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          fi
-         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
          # terminate redirect processes for centralized logging
          sleep 30 # give buffers a chance to flush to the filesystem
@@ -1253,7 +1276,10 @@ submitJob()
       ) &
       # write the process id to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
-      echo "serial $JOBTYPE job subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      local subshellPID=$!
+      echo "serial $JOBTYPE job subshell pid : $subshellPID" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      echo "\"start\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start #<-OVERWRITE
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    #
    #  SLURM PBS SGE LoadLeveler LSF
@@ -1264,21 +1290,29 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
       initCentralizedScenarioLogging
+      local jobSubmitInterval=60
       #
-      # submit job, check to make sure qsub succeeded, and if not, retry
+      # submit job, check to make sure qsub succeeded, and if not, retry (forever)
       while [ true ];  do
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} >> ${SYSLOG} 2>&1
-         if [[ $? = 0 ]]; then
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
+         if [[ $? == 0 ]]; then
             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} successful."
+            ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
             RMQMessage "WARN" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WARN" "$SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
-            warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed; will retry in 60 seconds."
-            sleep 60
+            warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            writeScenarioFilesStatus  # final status update for files
+            postScenarioStatus
+            sleep $jobSubmitInterval
          fi
       done
+      writeScenarioFilesStatus  # final status update for files
+      postScenarioStatus
       ;;
 #
 #  No queueing system, just mpiexec (used on standalone computers)
@@ -1293,14 +1327,16 @@ submitJob()
          # initialize log files so they can be centralized
          initCentralizedScenarioLogging
          $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
-
          ERROVALUE=$?
          RUNSUFFIX="finish"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          if [ $ERROVALUE != 0 ] ; then
             RUNSUFFIX="error"
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+         else
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
          fi
-         echo "[${DATETIME}] Finished ${JOBTYPE}.${ENSTORM} job in $PWD with return value = $ERROVALUE." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.${RUNSUFFIX}
+         echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
          # terminate redirect processes for centralized logging
          sleep 30 # give buffers a chance to flush to the filesystem
@@ -1309,6 +1345,8 @@ submitJob()
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
       echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      echo "\"start\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start #<-OVERWRITE
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    *)
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "Queueing system $QUEUESYS unrecognized."
@@ -1357,441 +1395,12 @@ handleFailedJob()
       fi
    fi
 }
+source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/platforms.sh       # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/variables_init.sh
+source $SCRIPTDIR/writeProperties.sh
+source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
 
-variables_init()
-{
-# Initialize variables accessed from config.sh to reasonable values
-   HPCENVSHORT=${HPCENVSHORT:-null}
-   HPCENV=${HPCENV:-null}
-   BACKGROUNDMET=on
-   TIDEFAC=off
-   TROPICALCYCLONE=off
-   GET_ATCF_SCRIPT=${GET_ATCF_SCRIPT:-"$SCRIPTDIR/get_atcf.pl"}
-   WAVES=off
-   VARFLUX=off
-   MINMAX=reset
-   REINITIALIZESWAN=no
-   USERIVERFILEONLY=${USERIVERFILEONLY:-no}
-   STORMNAME=${STORMNAME:-stormname}
-   RIVERSITE=${RIVERSITE:-"ftp.nssl.noaa.gov"}
-   RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
-   RIVERUSER=${RIVERUSER:-null}
-   RIVERDATAPROTOCOL=${RIVERDATAPROTOCOL:-null}
-   ELEVSTATIONS=null
-   VELSTATIONS=null
-   METSTATIONS=null
-   GRIDFILE=fort.14
-   GRIDNAME=fort14
-   OUTPUTOPTIONS=
-   ARCHIVEBASE=/dev/null
-   ARCHIVEDIR=null
-   FORECASTCYCLE="00,06,12,18"
-   TRIGGER="rss"
-   LASTADVISORYNUM=0
-   ADVISORY=0
-   FORECASTLENGTH=84
-   ALTNAMDIR=null
-   HOTSTARTCOMP=fulldomain
-   HINDCASTWALLTIME=${HINDCASTWALLTIME:-"10:00:00"}
-   ADCPREPWALLTIME=${ADCPREPWALLTIME:-"00:30:00"}
-   NOWCASTWALLTIME=${NOWCASTWALLTIME:-"02:00:00"}
-   FORECASTWALLTIME=${FORECASTWALLTIME:-"05:00:00"}
-   WALLTIMEFORMAT="hh:mm:ss" # "hh:mm:ss" or "minutes"
-   TIMESTEPSIZE=1.0
-   SWANDT=600
-   UMASK=002
-   GROUP=""
-   STORM=0
-   YEAR=null
-   CSDATE=null
-   HOTORCOLD=coldstart
-   LASTSUBDIR=null
-   FTPSITE=null
-   ADCIRCDIR=${ADCIRCDIR:-null} # will respect ADCIRCDIR if already sent in the environment
-   # if not set, try to set SCRATCHDIR to SCRATCH (if set); otherwise default to "null"
-   # "SCRATCH" is set on TACC platforms in a USER's default environment; init-asgs.sh sets
-   # it for all others to provide some consistency
-   if [ -z "$SCRATCHDIR" ]; then
-     SCRATCHDIR=${SCRATCH:-null}
-   fi
-   MAILINGLIST=null
-   INTENDEDAUDIENCE=${INTENDEDAUDIENCE:-"developers-only"} # "general" | "developers-only" | "professional"
-   QUEUESYS=null
-   QUEUENAME=${QUEUENAME:-null}
-   SERQUEUE=${SERQUEUE:-null}
-   ACCOUNT=${ACCOUNT:-desktop}
-   PPN=${PPN:-1}
-   QCHECKCMD=null
-   NCPU=null
-   JOBTYPE=null
-   NUMWRITERS=0
-   SUBMITSTRING=null
-   NOTIFYUSER=null
-   RUNDIR=${RUNDIR:-null}
-   INPUTDIR=$SCRIPTDIR/input/meshes/null
-   OUTPUTDIR=$SCRIPTDIR/output
-   HOTSTARTFORMAT=null
-   STORMDIR=stormdir
-   SSHKEY=null
-   VELOCITYMULTIPLIER=1.0
-   HOTSWAN=off
-   ONESHOT=no      # yes if ASGS is launched by cron
-   NCPUCAPACITY=2  # total number of CPUs available to run jobs
-   si=0       # scenario index for ; -1 indicates non-forecast
-   STATEFILE=null
-   ENSTORM=hindcast
-   CYCLETIMELIMIT="05:00:00"
-   IMAGEMAGICKBINPATH=null
-   VORTEXMODEL=GAHM
-   STORMTRACKOPTIONS="--strengthPercent null"
-   PSEUDOSTORM=n
-   MESHPROPERTIES=null
-   CONTROLPROPERTIES=null
-   NAPROPERTIES=null
-   EMAILNOTIFY=no # set to yes to have host platform email notifications
-   NOTIFY_SCRIPT=null_notify.sh
-   ACTIVATE_LIST=null
-   NEW_ADVISORY_LIST=null
-   POST_INIT_LIST=null
-   POST_LIST=null
-   JOB_FAILED_LIST=null
-   NOTIFYUSER=null
-   RESERVATION=null # for SLURM
-   CONSTRAINT=null # for SLURM
-   QOS=null
-   PERIODICFLUX=null
-   SPATIALEXTRAPOLATIONRAMP=yes
-   SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
-   STATICOFFSET=null # (m), nonzero assumes unit offset file is available
-   UNITOFFSETFILE=null
-   ENSEMBLESIZE=null # deprecated in favor of SCENARIOPACKAGESIZE
-   SCENARIOPACKAGESIZE=null
-   # TODO: write all this configuration to the run.properties file
-   declare -a INITPOST=( null_post.sh )
-   declare -a subshellPIDs  # list of process IDs of subshells
-   declare -a logFiles      # list of log files to be tailed onto scenario.log
-   PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
-   # startup hooks
-   declare -a START_INIT=( )     # start execution
-   declare -a FINISH_INIT=( )    # finish platform selection, sanity checks, etc
-   # spinup hooks
-   declare -a START_SPINUP_STAGE=( )
-   declare -a BUILD_SPINUP=( )           # constructing input files for model coldstart initialization
-   declare -a SUBMIT_SPINUP=( )          # submit spinup compute job for model coldstart
-   declare -a FINISH_SPINUP_SCENARIO=( ) # coldstart spinup compute job finished
-   declare -a HOT_SPINUP=( )             # if asgs is starting hot, acquire hotstart files
-   declare -a FINISH_SPINUP_STAGE=( )
-   # nowcast hooks
-   declare -a START_NOWCAST_STAGE=( )
-   declare -a NOWCAST_POLLING=( )         # start looking for new nowcast data
-   declare -a NOWCAST_TRIGGERED=( )       # found new nowcast data
-   declare -a BUILD_NOWCAST_SCENARIO=( )  # constructing input files for nowcast scenario
-   declare -a SUBMIT_NOWCAST_SCENARIO=( ) # submit nowcast compute job
-   declare -a FINISH_NOWCAST_SCENARIO=( ) # nowcast compute job finished
-   declare -a FINISH_NOWCAST_STAGE=( )
-   # forecast hooks
-   declare -a START_FORECAST_STAGE=( )
-   declare -a INITIALIZE_FORECAST_SCENARIO=( ) # write metadata that describe the scenario
-   declare -a CAPACITY_WAIT=( )            # check to see if there are enough cores to run this scenario
-   declare -a BUILD_FORECAST_SCENARIO=( )  # constructing input files for forecast scenario
-   declare -a SUBMIT_FORECAST_SCENARIO=( ) # constructing input files for forecast scenario
-   declare -a POSTPROCESS=( null_post.sh )
-   declare -a FINISH_FORECAST_STAGE=( )
-   # exit hook
-   declare -a EXIT_STAGE=( )
-   stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
-
-   # RMQMessaging defaults (can be set in $CONFIG)
-   RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"
-   RMQMessaging_Transmit=${RMQMessaging_Transmit:-off} # enables message transmission ("on" | "off")
-}
-
-# Write general properties to the run.properties file that are associated with
-# the ASGS configuration as well as real time properties specific to this
-# scenario.
-writeProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeProperties()"
-   logMessage "$THIS: Writing properties associated with ASGS configuration to $1/run.properties."
-   # this is the first set of properties that will be written; if there is
-   # a stray file from a previous (interrupted) asgs execution, this function
-   # should overwrite whatever may have been there
-   #
-   # basic asgs configuration
-   echo "config.file : $CONFIG" > $STORMDIR/run.properties  # <--<< OVERWRITE
-   echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "operator : $operator" >> $STORMDIR/run.properties
-   echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR/run.properties
-   echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
-   echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
-   echo "path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
-   echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR/run.properties
-   echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR/run.properties
-   echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
-   echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
-   echo "forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
-   echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR/run.properties
-   echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
-   echo "coupling.waves : $WAVES" >> $STORMDIR/run.properties
-   # static hpc environment properties
-   echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
-   echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
-   echo "hpc.queuesys : $QUEUESYS" >> $STORMDIR/run.properties
-   echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR/run.properties
-   echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
-   echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
-   echo "hpc.executable.get_atcf_script : $GET_ATCF_SCRIPT" >> $STORMDIR/run.properties
-   echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
-   echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
-   echo "hpc.job.default.account : $ACCOUNT" >> $STORMDIR/run.properties
-   echo "hpc.job.default.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.job.default.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   # static input files, templates, and property files
-   echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR/run.properties
-   echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR/run.properties
-   echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties
-   echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR/run.properties
-   echo "adcirc.file.properties.naproperties : $NAPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR/run.properties
-   echo "adcirc.file.properties.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR/run.properties
-   echo "adcirc.file.velstations : $VELSTATIONS" >> $STORMDIR/run.properties
-   echo "adcirc.file.metstations : $METSTATIONS" >> $STORMDIR/run.properties
-   # other adcirc specific
-   echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR/run.properties
-   echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR/run.properties
-   echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $STORMDIR/run.properties
-   echo "file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR/run.properties
-   echo "file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR/run.properties
-   echo "adcirc.minmax : $MINMAX" >> $STORMDIR/run.properties
-   # notification
-   echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR/run.properties
-   echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR/run.properties
-   echo "notification.email.activate_list : \"$ACTIVATE_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.email.new_advisory_list : \"$NEW_ADVISORY_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.hpc.email.notifyuser : \"$NOTIFYUSER\"" >> $STORMDIR/run.properties
-   echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR/run.properties
-   echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
-   # monitoring (includes logging)
-   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable" >> $STORMDIR/run.properties
-   # only record other RMQ parameters if it's actually "on"
-   if [ "$RMQMessaging_Enable" == "on" ]
-   then
-     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
-   fi
-   echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
-   # post processing
-   echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
-   POSTPROCESSSTRING="( "
-   for script in ${POSTPROCESS[*]}; do
-      POSTPROCESSSTRING="$POSTPROCESSSTRING $script"
-   done
-   POSTPROCESSSTRING="$POSTPROCESSSTRING )"
-   echo "post.executable.postprocess : $POSTPROCESSSTRING" >> $STORMDIR/run.properties
-   echo "post.opendap.target : $TARGET" >> $STORMDIR/run.properties
-   THREDDS="( "
-   for thredds_data_server in ${TDS[*]}; do
-      THREDDS="$THREDDS $thredds_data_server"
-   done
-   THREDDS="$THREDDS )"
-   echo "post.opendap.tds : $THREDDS" >> $STORMDIR/run.properties
-   echo "post.file.sshkey : $SSHKEY" >> $STORMDIR/run.properties
-   # archiving
-   echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties
-   echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties
-   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties
-   # forecast scenario package size
-   echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
-   # runtime
-   echo "path.rundir : $RUNDIR" >> $STORMDIR/run.properties
-   # each scenario
-   echo "path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
-   echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
-   # FIXME: the following are legacy properties from 2014stable
-   # and should not be carried forward
-   echo "forecast.ensemblesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
-   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   #
-   ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
-   echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties
-   #
-   # properties for backward compatibility
-   echo "hostname : $HPCENV" >> $STORMDIR/run.properties
-   echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
-   echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   # convert to scenario.json
-   $SCRIPTDIR/metadata.pl --jsonify --metadatafile $STORMDIR/run.properties
-}
-#
-# write properties that depend on the scenario but are not known
-# at the start of setup for the scenario
-writeScenarioProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeScenarioProperties()"
-   logMessage "$THIS: Writing properties associated with this scenario to $1/run.properties."
-   echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
-   echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties
-   echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR/run.properties
-   # FIXME: the following are legacy properties from 2014stable
-   # and should not be carried forward
-   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
-   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
-}
-#
-# write properties to the run.properties file that are associated with
-# NAM forcing.
-writeNAMProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeNAMProperties()"
-   logMessage "$THIS: Writing properties associated with meterorological forcing with the NAM model to $1/run.properties."
-   echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
-   echo "forcing.stormname : NA" >> $STORMDIR/run.properties
-   echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties
-
-   echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties
-   echo "forcing.nam.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
-   echo "forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties
-   echo "forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties
-   echo "forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
-   echo "forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
-   echo "forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
-   # legacy from 2014stable, depcrecated
-   echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
-}
-#
-# write properties to the run.properties file that are associated with
-# tropical cyclone forcing configuration.
-writeTropicalCycloneProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeTropicalCycloneProperties()"
-   logMessage "$THIS: Writing properties associated with meterorological forcing configuration with a parametric vortex model to $1/run.properties."
-   echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
-   echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
-   # each scenario
-   if [[ $RMAX != default ]]; then
-      echo "forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
-   fi
-   if [[ $PERCENT != default ]]; then
-      echo "forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
-   fi
-   # legacy properties
-   echo "storm : $STORM" >> $STORMDIR/run.properties
-   echo "stormnumber : $STORM" >> $STORMDIR/run.properties
-}
-#
-# write properties to the run.properties file that are associated with
-# tropical cyclone forcing configuration.
-writeTropicalCycloneForecastProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeTropicalCycloneForecastProperties()"
-   logMessage "$THIS: Writing properties associated with a particular forecast using a parametric vortex model to $1/run.properties."
-    # write the start and end dates of the forecast to the run.properties file
-    if [[ -e $RUNDIR/forecast.properties ]]; then
-      cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
-    fi
-}
-#
-# write properties to the run.properties file that are associated with
-# swan coupling.
-writeWaveCouplingProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeWaveCouplingProperties()"
-   logMessage "$THIS: Writing properties associated with wave coupling to $1/run.properties."
-   echo "path.swandir : $SWANDIR" >> $STORMDIR/run.properties
-   echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
-   echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
-   echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
-   echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
-   echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR/run.properties
-}
-#
-# write properties to the run.properties file that are associated with
-# the cpu request for a particular job submitted to an hpc queue
-writeJobResourceRequestProperties()
-{
-   STORMDIR=$1
-   local THIS="asgs_main->writeJobResourceRequestProperties()"
-   logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
-
-   # adjusts $QUEUENAME, if criteria is met; otherwise returns current value as the default;
-   CPUREQUEST=$(($NCPU + $NUMWRITERS))
-   QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST") 
-
-   echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
-   if [[ $NCPU -gt 1 ]]; then
-      echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR/run.properties
-      echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties
-   fi
-   echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties
-
-   # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
-   # $PPN is not adjusted so the original value is preserved; yet the "corrected" value
-   # is written to $STORMDIR/run.properties, which is where ./qscript.pl gets the value
-   # for "$ppn"
-   _PPN=$(HPC_PPN_Hint "parallel" "$SERQUEUE" "$HPCENV" "$QOS" "$PPN")
-   echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR/run.properties
-   unset _PPN
-
-   if [[ $QUEUESYS = SLURM ]]; then
-      # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
-      _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
-      echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR/run.properties
-      unset _RESERVATION
-      echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
-      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
-   fi
-
-   # legacy properties
-   echo "cpurequest : $CPUREQUEST" >> ${STORMDIR}/run.properties
-   echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
-   echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
-}
 #####################################################################
 #                 E N D  F U N C T I O N S
 #####################################################################
@@ -1803,6 +1412,7 @@ writeJobResourceRequestProperties()
 CURRENT_EVENT="STRT" # used for RMQ messages
 CURRENT_STATE="INIT" # used for RMQ messages
 RMQADVISORY=0  #  "Fake" ADVISORY number for RMQ Messages.
+SCENARIO="null"
 #
 # Option Summary
 #
@@ -1828,12 +1438,12 @@ STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 # set the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
 
+variables_init           # initialize variables
+initFileStatusMonitoring # initialize variables
+#
 # create directories with default permissions of "775" and
 # files with the default permssion of "664"
 umask 002
-#
-# Initialize variables
-variables_init
 #
 while getopts "c:e:s:h" optname; do
    case $optname in
@@ -1854,20 +1464,16 @@ while getopts "c:e:s:h" optname; do
 done
 #
 # determine hpc environment via function from platforms.sh
-source ${SCRIPTDIR}/platforms.sh
+echo "HPCENVSHORT is '$HPCENVSHORT'"
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
-readConfig # now we have the instancename and can name the asgs log file after it
-# set the value of SYSLOG (in monitoring/logging.sh)
-source ${SCRIPTDIR}/monitoring/logging.sh
-setSyslogFileName
 #
-# execute START_INIT hooks
-for hs in "${START_INIT[@]}" ; do
-   logMessage "$THIS: Executing START_INIT hook $SCRIPTDIR/$hs."
-   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-done
+readConfig # now we have the instancename and can name the asgs log file after it
+setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
+nullifyHooks          # in manageHooks.sh
+#
+executeHookScripts "START_INIT"
 #
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1
@@ -1892,7 +1498,6 @@ if [[ "$RMQMessaging_Enable" == "on" ]]; then
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    allMessage "RMQ Messaging enabled."
 fi
-
 #
 # Send message with config file contents as the message body.  This is only done once at ASGS startup
 logMessage "Sending a message with the asgs configuration file as the message body."
@@ -1927,7 +1532,6 @@ if [[ $ONESHOT = yes ]]; then
       HOTORCOLD=coldstart
    fi
 else
-
    # if we are not starting from cron, use the default statefile name,
    # and load it if it is there; if it is not there, just go by the
    # info in the config file
@@ -1953,12 +1557,16 @@ else
       echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    fi
 fi
-
+# used to store instantaneous status files
+statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 # see if the storm directory already exists in the scratch space
-if [ ! -d $RUNDIR ]; then
-    # -p says make the entire path tree if intermediate dirs do not exist
-    mkdir -p $RUNDIR #
-fi
+for dir in $RUNDIR $statusDir ; do
+   allMessage "$THIS: Making directory $dir"
+   if [ ! -d $dir ]; then
+      mkdir -p $dir
+   fi
+done
+
 logMessage                                           "$THIS: The ADCIRC Surge/Spill Guidance System is activated."
 RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "The ADCIRC Surge/Spill Guidance System is activated."
 
@@ -2211,10 +1819,7 @@ ADVISDIR=null   # determined below
 HSTIME=null     # determined below
 #
 # execute FINISH_INIT hooks
-for hs in "${FINISH_INIT[@]}" ; do
-   logMessage "$THIS: Executing FINISH_INIT hook $SCRIPTDIR/$hs."
-   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-done
+executeHookScripts "FINISH_INIT"
 #
 ###############################
 #   BODY OF ASGS STARTS HERE
@@ -2225,25 +1830,19 @@ done
 #
 #
 stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
-# execute START_SPINUP_STAGE hooks
-for hs in "${START_SPINUP_STAGE[@]}" ; do
-   logMessage "$THIS: Executing START_SPINUP_STAGE hook $SCRIPTDIR/$hs."
-   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-done
+CYCLE="initialize"
+executeHookScripts "START_SPINUP_STAGE"
 #
 if [[ $START = coldstart ]]; then
-   # execute BUILD_SPINUP hooks
-   for hs in "${BUILD_SPINUP[@]}" ; do
-      logMessage "$THIS: Executing BUILD_SPINUP hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   ENSTORM=hindcast
+   SCENARIO=$ENSTORM
+   executeHookScripts "BUILD_SPINUP"
+   nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
    CURRENT_EVENT="HIND"
    CURRENT_STATE="INIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS" "$CURRENT_STATE" "Starting hindcast."
    logMessage "$THIS: Starting hindcast."
    HOTSWAN=off
-   ENSTORM=hindcast
-   SCENARIO=$ENSTORM
    si=-2      # represents a hindcast
    readConfig
    THIS=asgs_main.sh
@@ -2268,6 +1867,7 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
    writeProperties $STORMDIR
    writeScenarioProperties $SCENARIODIR
+   writeScenarioFilesStatus $SCENARIODIR
 
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
@@ -2342,11 +1942,7 @@ if [[ $START = coldstart ]]; then
    writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
    echo "hpc.job.${JOBTYPE}.limit.walltime : $HINDCASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    #
-   # execute SUBMIT_SPINUP hooks
-   for hs in ${SUBMIT_SPINUP[@]} ; do
-      logMessage "$THIS: Executing SUBMIT_SPINUP hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   executeHookScripts "SUBMIT_SPINUP"
    #
    logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE"
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
@@ -2366,11 +1962,7 @@ if [[ $START = coldstart ]]; then
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "The hindcast run has finished."
    scenarioMessage "$ENSTORM: $THIS: $ENSTORM run finished."
    #
-   # execute FINISH_SPINUP_SCENARIO hooks
-   for hs in "${FINISH_SPINUP_SCENARIO[@]}" ; do
-      logMessage "$ENSTORM: $THIS: Executing FINISH_SPINUP_SCENARIO hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   executeHookScripts "FINISH_SPINUP_SCENARIO"
    #
    cd $ADVISDIR 2>> ${SYSLOG}
    OLDADVISDIR=$ADVISDIR
@@ -2385,11 +1977,7 @@ if [[ $START = coldstart ]]; then
 else
    # start from   H O T S T A R T   file
    #
-   # execute HOT_SPINUP hooks
-   for hs in "${HOT_SPINUP[@]}" ; do
-      logMessage "$THIS: Executing HOT_SPINUP hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   executeHookScripts "HOT_SPINUP"
    #
    if [[ $hotstartURL = null ]]; then
       if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
@@ -2412,11 +2000,7 @@ fi
 CYCLELOG=null
 SCENARIOLOG=null
 #
-# execute FINISH_SPINUP_STAGE hooks
-for hs in "${FINISH_SPINUP_STAGE[@]}" ; do
-   logMessage "$THIS: Executing FINISH_SPINUP_STAGE hook $SCRIPTDIR/$hs."
-   $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-done
+executeHookScripts "FINISH_SPINUP_STAGE"
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 #
@@ -2424,11 +2008,8 @@ while [ true ]; do
    THIS="asgs_main.sh"
    #
    stage="NOWCAST"  # modelling phase : SPINUP, NOWCAST, or FORECAST
-   # execute START_NOWCAST_STAGE hooks
-   for hs in "${START_NOWCAST_STAGE[@]}" ; do
-      logMessage "$THIS: Executing START_NOWCAST_STAGE hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   CYCLE="null"     # don't know the cycle until we successfully download it
+   executeHookScripts "START_NOWCAST_STAGE"
    #
    CURRENT_EVENT="RSTR"
    CURRENT_STATE="INIT"
@@ -2536,27 +2117,19 @@ while [ true ]; do
       fi
       RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
       #
-      # execute NOWCAST_POLLING hooks
-      for hs in "${NOWCAST_POLLING[@]}" ; do
-         logMessage "$THIS: Executing NOWCAST_POLLING hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
+      executeHookScripts "NOWCAST_POLLING"
       #
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
       downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
       THIS="asgs_main.sh"
       #
-      # execute NOWCAST_TRIGGERED hooks
-      for hs in "${NOWCAST_TRIGGERED[@]}" ; do
-         logMessage "$THIS: Executing NOWCAST_TRIGGERED hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
-      #
       LASTADVISORYNUM=$ADVISORY
       # pull the latest advisory number from the statefile
       logMessage "$ENSTORM: $THIS: Pulling latest advisory number from the state file ${STATEFILE}."
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+      CYCLE=$ADVISORY
+      executeHookScripts "NOWCAST_TRIGGERED"
       ADVISDIR=$RUNDIR/${ADVISORY}
       if [ ! -d $ADVISDIR ]; then
           mkdir $ADVISDIR 2>> ${SYSLOG}
@@ -2582,11 +2155,8 @@ while [ true ]; do
       # prepare nowcast met (fort.22) and control (fort.15) files
       cd $NOWCASTDIR 2>> ${SYSLOG}
       #
-      # execute BUILD_NOWCAST_SCENARIO hooks
-      for hs in "${BUILD_NOWCAST_SCENARIO[@]}" ; do
-         logMessage "$SCENARIO: $THIS: Executing BUILD_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
+      executeHookScripts "BUILD_NOWCAST_SCENARIO"
+      nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
       CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
@@ -2623,11 +2193,7 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
          CURRENT_STATE="WAIT"
          #
-         # execute NOWCAST_POLLING hooks
-         for hs in "${NOWCAST_POLLING[@]}" ; do
-            logMessage "$THIS: Executing NOWCAST_POLLING hook $SCRIPTDIR/$hs."
-            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-         done
+         executeHookScripts "NOWCAST_POLLING"
          #
          downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
@@ -2637,11 +2203,7 @@ while [ true ]; do
          ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
-         # execute NOWCAST_TRIGGERED hooks
-         for hs in "${NOWCAST_TRIGGERED[@]}" ; do
-            logMessage "$THIS: Executing NOWCAST_TRIGGERED hook $SCRIPTDIR/$hs."
-            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-         done
+         executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
          ADVISDIR=$RUNDIR/${ADVISORY}
          CYCLEDIR=$ADVISDIR
          CYCLELOG=$CYCLEDIR/cycle.log
@@ -2657,11 +2219,7 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # convert met files to OWI format
          #
-         # execute BUILD_NOWCAST_SCENARIO hooks
-         for hs in "${BUILD_NOWCAST_SCENARIO[@]}" ; do
-            logMessage "$SCENARIO: $THIS: Executing BUILD_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
-            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-         done
+         executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $ENSTORM --applyRamp $SPATIALEXTRAPOLATIONRAMP \
                 --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 \
@@ -2874,11 +2432,7 @@ while [ true ]; do
 
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       #
-      # execute SUBMIT_NOWCAST_SCENARIO hooks
-      for hs in "${SUBMIT_NOWCAST_SCENARIO[@]}" ; do
-         logMessage "$SCENARIO: $THIS: Executing SUBMIT_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
+      executeHookScripts "SUBMIT_NOWCAST_SCENARIO"
       #
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $NOTIFYUSER $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
@@ -2921,11 +2475,7 @@ while [ true ]; do
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Nowcast complete for advisory $ADVISORY ."
       logMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
       #
-      # execute FINISH_NOWCAST_SCENARIO hooks
-      for hs in "${FINISH_NOWCAST_SCENARIO[@]}" ; do
-         logMessage "$SCENARIO: $THIS: Executing FINISH_NOWCAST_SCENARIO hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
+      executeHookScripts "FINISH_NOWCAST_SCENARIO"
       cd $ADVISDIR 2>> ${SYSLOG}
    else
       # we didn't run the nowcast, because our latest nowcast data end
@@ -2953,21 +2503,13 @@ while [ true ]; do
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
    #
-   # execute FINISH_NOWCAST_STAGE hooks
-   for hs in "${FINISH_NOWCAST_STAGE[@]}" ; do
-      logMessage "$THIS: Executing FINISH_NOWCAST_STAGE hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   executeHookScripts "FINISH_NOWCAST_STAGE"
    #
    #  F O R E C A S T
    #
    stage="FORECAST"  # modelling phase : SPINUP, NOWCAST, or FORECAST
    #
-   # execute START_FORECAST_STAGE hooks
-   for hs in "${START_FORECAST_STAGE[@]}" ; do
-      logMessage "$THIS: Executing START_FORECAST_STAGE hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   executeHookScripts "START_FORECAST_STAGE"
    #
    ENSTORM="forecast"
    CURRENT_EVENT="PRE2"
@@ -2990,11 +2532,6 @@ while [ true ]; do
    CURRENT_STATE="WAIT"
    while [ $si -lt $SCENARIOPACKAGESIZE ]; do
       #
-      # hook script counter ; execute INITIALIZE_FORECAST_SCENARIO hooks
-      for hs in "${INITIALIZE_FORECAST_SCENARIO[@]}" ; do
-         logMessage "$SCENARIO: $THIS: Executing INITIALIZE_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
       #
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Starting forecast for advisory '$ADVISORY', ensemble member $si."
       # source config file to pick up any configuration changes, or any
@@ -3003,6 +2540,9 @@ while [ true ]; do
       ENSTORM=forecast
       # grab the config specified by the operator
       readConfig
+      SCENARIO=$ENSTORM
+      executeHookScripts "INITIALIZE_FORECAST_SCENARIO" # now that we know the name of the scenario
+      nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file
@@ -3048,11 +2588,7 @@ while [ true ]; do
       #debugMessage "subDirs is $subDirs" # jgfdebug
       if [[ ! -z $subDirs ]]; then  # see if we have any scenario directories
          #
-         # execute CAPACITY_WAIT hooks
-         for hs in "${CAPACITY_WAIT[@]}" ; do
-            logMessage "$THIS: Executing CAPACITY_WAIT hook $SCRIPTDIR/$hs."
-            $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-         done
+         executeHookScripts "CAPACITY_WAIT"
          #
          # continuously loop to see if conditions are right to submit the next job
          while [ true ]; do
@@ -3104,11 +2640,8 @@ while [ true ]; do
 
       THIS="asgs_main.sh"
       #
-      # execute BUILD_FORECAST_SCENARIO hooks
-      for hs in "${BUILD_FORECAST_SCENARIO[@]}" ; do
-         logMessage "$SCENARIO: $THIS: Executing BUILD_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
-         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-      done
+      executeHookScripts "BUILD_FORECAST_SCENARIO"
+
       #
       # turn SWAN hotstarting on or off as appropriate
       HOTSWAN=off
@@ -3301,6 +2834,7 @@ while [ true ]; do
          fi
       done
       if [[ $RUNFORECAST = yes ]]; then
+
          writeJobResourceRequestProperties $SCENARIODIR 2>> $SYSLOG
          # set up post processing for the forecast, including initiation
          # of real time post processing
@@ -3334,11 +2868,7 @@ while [ true ]; do
 
             echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
             #
-            # execute BUILD_FORECAST_SCENARIO hooks
-            for hs in "${SUBMIT_FORECAST_SCENARIO[@]}" ; do
-               logMessage "$SCENARIO: $THIS: Executing SUBMIT_FORECAST_SCENARIO hook $SCRIPTDIR/$hs."
-               $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-            done
+            executeHookScripts "SUBMIT_FORECAST_SCENARIO"
 
             submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM "$NOTIFYUSER" $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
             THIS="asgs_main.sh"
@@ -3388,15 +2918,11 @@ while [ true ]; do
    THIS="asgs_main.sh"
    # allow all scenarios and associated post processing to complete
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "RUNN" "All scenario members have been submitted."
-   logMessage "$ENSTORM: $THIS: All scenarios have been submitted."
+   logMessage "$ENSTORM: $THIS: All forecast scenarios have been submitted."
    CURRENT_EVENT="FEND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "Forecast Cycle Complete for Adv=$ADVISORY"
    #
-   # execute FINISH_FORECAST_STAGE hooks
-   for hs in "${FINISH_FORECAST_STAGE[@]}" ; do
-      logMessage "$THIS: Executing FINISH_FORECAST_STAGE hook $SCRIPTDIR/$hs."
-      $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
-   done
+   executeHookScripts "FINISH_FORECAST_STAGE"
    #
    LASTSUBDIR=null # don't need this any longer
    # if we ran the nowcast on this cycle, then this cycle's nowcast becomes
@@ -3413,6 +2939,5 @@ while [ true ]; do
    CURRENT_EVENT="REND"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "CMPL" "NC/FC Cycle Complete"
    CYCLELOG=null
-
 done
 

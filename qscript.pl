@@ -28,9 +28,9 @@ use Getopt::Long;
 use Date::Calc;
 use Date::Handler;
 #
-my $ncpu = "null";      # number of CPUs the job should run on
-my $totalcpu = "null";  # ncpu + numwriters
-my $nnodes = "null";    # number of cluster nodes
+my $ncpu = "noLineHere";      # number of CPUs the job should run on
+my $totalcpu = "noLineHere";  # ncpu + numwriters
+my $nnodes = "noLineHere";    # number of cluster nodes
 my $queuename;    # name of the queue to submit the job to
 my $queuesys;     # name of the queue to submit the job to
 my $parallelism;  # "serial" or "parallel"
@@ -48,16 +48,16 @@ my $qscripttemplate; # template file to use for the queue submission script
 my $qscript;      # queue submission script we're producing
 my $syslog;       # the log file that the ASGS uses
 my $ppn;          # the number of processors per node
-my $qos = "null"; # quality of service
+my $qos = "noLineHere"; # quality of service
 my $cloptions=""; # command line options for adcirc, if any
 my $jobtype;      # e.g., prep15, padcirc, padcswan, etc
 my $localhotstart; # present if subdomain hotstart files should be written
 my $cmd;           # the command line to execute
-my $reservation="null"; # name of SLURM reservation where the job should be submitted
-my $constraint="null";  # name of SLURM constraint the job should use
-my $cmd="null";         # command to be executed
+my $reservation="noLineHere"; # name of SLURM reservation where the job should be submitted
+my $constraint="noLineHere";  # name of SLURM constraint the job should use
+my $cmd="noLineHere";         # command to be executed
 my $numwriters=0;        # number of writer processors, if any
-my $joblauncher = "null"; # executable line in qscript (ibrun, mpirun, etc)
+my $joblauncher = "noLineHere"; # executable line in qscript (ibrun, mpirun, etc)
 our %properties;     # holds the run.properties file
 our $this="qscript.pl";
 # initialize to the log file that adcirc uses, just in case
@@ -147,13 +147,13 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
       $totalcpu = $ncpu;
    }
    # determine number of compute nodes to request
-   if ( $ppn ne "null" ) {
+   if ( $ppn ne "noLineHere" ) {
       $nnodes = int($totalcpu/$ppn);
       if ( ($totalcpu%$ppn) != 0 ) {
          $nnodes++;
       }
    } else {
-      $nnodes = "null";
+      $nnodes = "noLineHere";
    }
    $joblauncher = $properties{"hpc.joblauncher"};
    # fill in template positions in job launcher line
@@ -199,7 +199,7 @@ while(<TEMPLATE>) {
     # the one specified and then fill in the correct environment
     # variables for the queue system we ar using
     if ( $queuesys eq "PBS" ) {
-       s/#SBATCH/null/g;
+       s/#SBATCH/noLineHere/g;
        s/%JOBID%/PBS_JOBID/g;
        s/%JOBDIR%/PBS_O_WORKDIR/g;
        s/%JOBHOST%/PBS_O_HOST/g;
@@ -209,7 +209,7 @@ while(<TEMPLATE>) {
        s/%JOBNTASKS%/PBS_TASKNUM/g;
     }
     if ( $queuesys eq "SLURM" ) {
-       s/#PBS/null/g;
+       s/#PBS/noLineHere/g;
        s/%JOBID%/SLURM_JOBID/g;
        s/%JOBDIR%/SLURM_SUBMIT_DIR/g;
        s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
@@ -236,7 +236,14 @@ while(<TEMPLATE>) {
        s/%walltime%/$walltime/;
     }
     # name of the account to take the hours from
-    s/%account%/$properties{"hpc.job.$jobtype.account"}/;
+    # the value "null" is used to represent the default
+    # account for the Operator; we can omit this line
+    # from the queue script
+    if ( $properties{"hpc.job.$jobtype.account"} ne "null" ) { 
+       s/%account%/$properties{"hpc.job.$jobtype.account"}/;
+    } else {
+       s/%account%/noLineHere/;
+    } 
     # directory where adcirc executables are located
     s/%adcircdir%/$properties{"path.adcircdir"}/;
     # directory where asgs executables are located
@@ -257,19 +264,27 @@ while(<TEMPLATE>) {
     if ( $properties{"notification.emailnotify"} eq "yes" ) {
        s/%notifyuser%/$properties{"notification.hpc.email.notifyuser"}/g;
     } else {
-       s/%notifyuser%/null/g;
+       s/%notifyuser%/noLineHere/g;
     }
     if ( $queuesys eq "SLURM" ) {
        # the SLURM reservation
-       s/%reservation%/$properties{"hpc.slurm.job.$jobtype.reservation"}/g;
+       $reservation =  $properties{"hpc.slurm.job.$jobtype.reservation"};
+       if ( $reservation eq "null" ) {
+          $reservation = "noLineHere";
+       }
+       s/%reservation%/$reservation/g;
        # the SLURM constraint
-       s/%constraint%/$properties{"hpc.slurm.job.$jobtype.constraint"}/g;
+       $constraint =  $properties{"hpc.slurm.job.$jobtype.constraint"};
+       if ( $constraint eq "null" ) {
+          $constraint = "noLineHere";
+       }
+       s/%constraint%/$constraint/g;
        # partition is not here b/c it is synonym for queuename
        #
        # fill in command to be executed
        $qos = $properties{"hpc.slurm.job.$jobtype.qos"};
        unless ( defined $qos ) {
-          $qos = "null";
+          $qos = "noLineHere";
        }
        s/%qos%/$qos/g;
     }
@@ -285,8 +300,8 @@ while(<TEMPLATE>) {
        # name of the queue on which to run
        s/%queuename%/$properties{"hpc.job.$jobtype.queuename"}/;
     }
-    # copy non-null lines to the queue script
-    unless ( $_ =~ /noLineHere/ || $_ =~ /null/ ) {
+    # copy non-noLineHere lines to the queue script
+    unless ( $_ =~ /noLineHere/ ) {
        print QSCRIPT $_;
     }
 }

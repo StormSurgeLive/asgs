@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2018--2021 Jason Fleming
+# Copyright(C) 2021 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -24,7 +24,7 @@
 # You should have received a copy of the GNU General Public License along with
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
-# The defaults for parameters that can be reset in this config file
+# The defaults for parameters that can be reset in this config file 
 # are preset in the following scripts:
 # {SCRIPTDIR/platforms.sh               # also contains Operator-specific info
 # {SCRIPTDIR/config/config_defaults.sh
@@ -36,11 +36,11 @@
 
 # Fundamental
 
-INSTANCENAME=EC95d_nam_jgf  # "name" of this ASGS process
+INSTANCENAME=PRVI15_nam_jgf  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=ec95d
+GRIDNAME=PRVI15
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
@@ -48,11 +48,12 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on      # NAM download/forcing
-   FORECASTCYCLE="00,06,12,18"
+FORECASTCYCLE="06"
+   forecastSelection="strict"
 TROPICALCYCLONE=off   # tropical cyclone forcing
-   STORM=07           # storm number, e.g. 05=ernesto in 2006
-   YEAR=2020          # year of the storm
-WAVES=off             # wave forcing
+STORM=05             # storm number, e.g. 05=ernesto in 2006
+YEAR=2021            # year of the storm
+WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -60,46 +61,47 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=19               # number of compute CPUs for all simulations
+NCPU=959                     # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general   # can also be "developers-only" or "professional"
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="jason.g.fleming@gmail.com"
-hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
-hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+OPENDAPNOTIFY="asgs.cera.lsu@gmail.com"
 
 # Monitoring
 
-RMQMessaging_Enable="off"
-RMQMessaging_Transmit="off"
+RMQMessaging_Enable="on"
+RMQMessaging_Transmit="on"
+hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
 enablePostStatus="yes"
 enableStatusNotify="yes"
 statusNotify="jason.g.fleming@gmail.com,jason.fleming@seahorsecoastal.com"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021062000
+COLDSTARTDATE=2021062300
 HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
-# Scenario package
+# Scenario package 
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
--2)
+ -2)
    ENSTORM=hindcast
-   OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+   OPENDAPNOTIFY="null"
    ;;
 -1)
+   # do nothing ... this is not a forecast
    ENSTORM=nowcast
-   OPENDAPNOTIFY="jason.g.fleming@gmail.com,janelle.fleming@seahorsecoastal.com"
+   OPENDAPNOTIFY="null"
    ;;
-0)
+ 0)
    ENSTORM=namforecastWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
