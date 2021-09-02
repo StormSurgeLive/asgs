@@ -61,20 +61,25 @@ declare -a SERVERS
 serverList=${properties['post.opendap.tds']}
 IFS=' ' read -r -a SERVERS <<< "$serverList"  # FIXME: contains "(" and ")" (don't use eval)
 if [[ ${#SERVERS[@]} -eq 0 ]]; then
-   warn "cycle $CYCLE: $SCENARIO: $THIS: No opendap servers in run.properties."
+   warn "cycle $CYCLE: $SCENARIO: $THIS: No opendap servers in $RUNPROPERTIES."
    exit
 fi
 declare -a FILES
 fileList=${properties["post.opendap.files"]} # array of files to post to opendap
 IFS=' ' read -r -a FILES <<< "$fileList"  # FIXME: contains "(" and ")" (don't use eval)
 if [[ ${#FILES[@]} -eq 0 ]]; then
-   warn "cycle $CYCLE: $SCENARIO: $THIS: No files to post to opendap servers in run.properties."
+   warn "cycle $CYCLE: $SCENARIO: $THIS: No files to post to opendap servers in $RUNPROPERTIES."
    exit
 fi
 OPENDAPNOTIFY="${properties['notification.opendap.email.opendapnotify']}"
 #
-SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
-cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
+if [[ $SCENARIO == "asgs.instance.status" ]]; then
+    statusDir=${properties['path.statusdir']}
+    cd ${statusDir} > errmsg 2>&1 || warn "$SCENARIO: $THIS: Failed to change directory to '$statusDir': `cat errmsg`."
+else
+    SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
+    cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
+fi
 # load asgs operator email address
 ASGSADMIN=${properties["notification.email.asgsadmin"]}
 GRIDNAME=${properties["adcirc.gridname"]}
@@ -82,6 +87,10 @@ INSTANCENAME=${properties["instancename"]}
 HPCENVSHORT=${properties["hpc.hpcenvshort"]}
 TROPICALCYCLONE=${properties["forcing.tropicalcyclone"]}
 BACKGROUNDMET=${properties["forcing.backgroundmet"]}
+enableStatusNotify=${properties["notification.opendap.email.enable"]}
+if [[ -z $enableStatusNotify || $enableStatusNotify = "" ]]; then
+   enableStatusNotify="no"
+fi
 # get the scenario number from Operator config
 case $SCENARIO in
 "hindcast")
@@ -110,7 +119,13 @@ for server in ${SERVERS[*]}; do
    scenarioMessage "Setting opendap server parameters with writeTDSProperties ${server}."
    # write platform-dependent properties related to posting to thredds server for
    # opendap service  (from platforms.sh)
-   writeTDSProperties $server
+   writeTDSProperties $server $RUNPROPERTIES  # this writes to a local run.properties file
+   if [[ $SCENARIO == "asgs.instance.status" ]]; then
+      cat run.properties >> $RUNPROPERTIES
+      rm run.properties # so we don't keep appending to it
+      $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
+   fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post.sh-->$server"
    loadProperties $RUNPROPERTIES # reload to pick up properties written by writeTDSProperties
@@ -126,7 +141,6 @@ for server in ${SERVERS[*]}; do
    #--------------------------------------------------------------------
    STORMNAMEPATH=null
    #
-   # form path to results on tds based on type of forcing or name of storm
    if [[ $BACKGROUNDMET != off ]]; then
       # for NAM, the "advisory number" is actually the cycle time
       YEAR=${properties["forcing.nwp.year"]}
@@ -146,21 +160,35 @@ for server in ${SERVERS[*]}; do
       YEAR=${COLDSTARTDATE:0:4}
       STORMNAMEPATH=$YEAR/initialize
    fi
-   OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
-   echo "post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" >> run.properties 2>> $SYSLOG
+   # form path to results on tds based on type of forcing or name of storm
+   if [[ $SCENARIO == "asgs.instance.status" ]]; then
+      YEAR=${COLDSTARTDATE:0:4}
+      STORMNAMEPATH=$YEAR/status
+      OPENDAPSUFFIX=$HPCENV/$INSTANCENAME
+      # update the url properties in the status json files before posting them
+      # and save the url for keeping track of the previous url
+      hookStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+      asgsInstanceStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
+      cp -f hook.status.json tmp.hook.status.json
+      awk -f $SCRIPTDIR/monitoring/replaceURL.awk -v u=\"$hookStatusURL\" -v i=\"$asgsInstanceStatusURL\" tmp.hook.status.json > hook.status.json
+      rm tmp.hook.status.json
+   else
+      OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
+   fi
+   echo "post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" >> $RUNPROPERTIES 2>> $SYSLOG
    #
    # Create full path to results for server file sytem.
    # OPENDAPBASEDIR is specified in platforms.sh.
    OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
-   echo "post.opendap.${server}.opendapdir : $OPENDAPDIR" >> run.properties 2>> $SYSLOG
+   echo "post.opendap.${server}.opendapdir : $OPENDAPDIR" >> $RUNPROPERTIES 2>> $SYSLOG
    # create the opendap download url for the run.properties file
    downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
    # add downloadurl or downloadurl_backup property to run.properties file
-   if [[ ! `grep downloadurl run.properties` =~ downloadurl ]]; then
-      echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
+   if [[ ! `grep downloadurl $RUNPROPERTIES` =~ downloadurl ]]; then
+      echo "downloadurl : $downloadURL" >> $RUNPROPERTIES 2>> ${SYSLOG}
    else
-      backupNum=`grep downloadurl run.properties | wc -l`
-      echo "downloadurl_backup$backupNum : $downloadURL" >> run.properties 2>> ${SYSLOG}
+      backupNum=`grep downloadurl $RUNPROPERTIES | wc -l`
+      echo "downloadurl_backup$backupNum : $downloadURL" >> $RUNPROPERTIES 2>> ${SYSLOG}
    fi
    #-----------------------------------------------------------------------
    #           D E T E R M I N E   M E T H O D
@@ -199,7 +227,7 @@ for server in ${SERVERS[*]}; do
    # there is a failure, the Operator is notified rather than downstream
    # data consumers.
    threddsPostStatus=ok
-   echo "post.opendap.${server}.opendappostmethod : $OPENDAPPOSTMETHOD" >> run.properties 2>> $SYSLOG
+   echo "post.opendap.${server}.opendappostmethod : $OPENDAPPOSTMETHOD" >> $RUNPROPERTIES 2>> $SYSLOG
    #
    #-------------------------------------------------------------------
    #     C R E A T E    N O T I F I C A T I O N   E M A I L
@@ -207,6 +235,9 @@ for server in ${SERVERS[*]}; do
    # @jasonfleming: Hack in the ability to send the notification email
    # before all the files have been posted.
    opendapEmailSent=no
+   if [[ $enableStatusNotify == "no" ]]; then
+       opendapEmailSent=yes # hack to prevent this script from sending the notification email
+   fi
    #
    runStartTime=${properties["RunStartTime"]}
 
@@ -224,6 +255,8 @@ for server in ${SERVERS[*]}; do
      subject="ADCIRC NOWCAST POSTED for $runStartTime"
    elif [[ "$SCENARIO" == "hindcast" ]]; then
      subject="ADCIRC HINDCAST POSTED for $runStartTime"
+   elif [[ "$SCENARIO" == "asgs.instance.status" ]]; then
+     subject="ADCIRC STATUS POSTED for $runStartTime"
    fi
 
    # decorate subject (append or prepend) - so works with any value of primary
@@ -231,12 +264,30 @@ for server in ${SERVERS[*]}; do
    if [[ $TROPICALCYCLONE == "on" ]]; then
       subject="${subject} (TC)"
    fi
-
-   #Click on the link:
-   #
-   #$CATALOGPREFIX/$STORMNAMEPATH/${OPENDAPSUFFIX}/catalog.html
    subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
-   echo "post.opendap.${server}.subject : $subject" >> run.properties 2>> $SYSLOG
+   echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
+   if [[ "$SCENARIO" == "asgs.instance.status" ]]; then
+      logfile=`basename $SYSLOG`
+      subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
+      echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
+cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
+
+The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
+
+The instance status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
+The hook status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+The log file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
+
+or wget the file with the following commands
+
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
+
+END
+      $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
+   else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
 The results for cycle $CYCLE have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
@@ -248,6 +299,7 @@ or wget the file with the following command
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
 
+   fi
    #
    #-------------------------------------------------------------------
    #                P O S T   V I A   S C P
@@ -282,9 +334,18 @@ END
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
+            # this operation is expected to fail on the top level directory
+            # (the year) on most (but not all) thredds servers, so only need
+            # to try this once on the top level directory
+            # to avoid filling log files with unhelpful and somewhat
+            # alarming error messages
+            if [[ `basename $partialPath` == $YEAR || `basename $partialPath` == "nam" ]]; then
+                # avoid retrying and associated log messages
+                retry=$timeoutRetryLimit
+            fi
             ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
-               warn "$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+               scenarioMessage "$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
                threddsPostStatus=fail
             else
                scenarioMessage "$SCENARIO: $_THIS: Successfully changed permissions to a+wx on '$partialPath'."
@@ -324,7 +385,7 @@ END
       fi
       fileIndex=1 # skip the opening "("
       while [[ $fileIndex -lt `expr ${#FILES[@]} - 1` ]] ; do  # skip the closing "("
-         file=${FILES[$fileIndex]}
+         file="${FILES[$fileIndex]}"
          if [[ $file = '(' || $file = ')' ]]; then
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
@@ -347,7 +408,7 @@ END
          scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
-            scp $file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+            scp ./$file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                warn "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -389,9 +450,9 @@ END
    #-------------------------------------------------------------------
    # mvb20190618: Added to support time-out issues with general scp transfers
    "rsync")
-      echo "post.opendap.${server}.rsyncsshoptions : $rsyncSSHOptions" >> run.properties 2>> $SYSLOG
+      echo "post.opendap.${server}.rsyncsshoptions : $rsyncSSHOptions" >> $RUNPROPERTIES 2>> $SYSLOG
       rsyncOptions="-z --copy-links"
-      echo "post.opendap.${server}.rsyncoptions : $rsyncOptions" >> run.properties 2>> $SYSLOG
+      echo "post.opendap.${server}.rsyncoptions : $rsyncOptions" >> $RUNPROPERTIES 2>> $SYSLOG
       allMessage "$SCENARIO: $_THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
       ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
       if [[ $? != 0 ]]; then
@@ -424,7 +485,7 @@ END
          partialPath=`dirname $partialPath`
       done
       for file in ${FILES[*]}; do
-         if [[ $file = "(" || $file = ")" ]]; then
+         if [[ "$file" = "(" || $file = ")" ]]; then
             continue
          fi
          # send opendap posting notification email early if directed
@@ -439,9 +500,9 @@ END
             opendapEmailSent=yes
             continue
          fi
-         chmod +r $file 2>> $SYSLOG
+         chmod +r "$file" 2>> $SYSLOG
          scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-         rsync ${rsyncOptions} ${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+         rsync ${rsyncOptions} ./${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             warn "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -497,7 +558,7 @@ END
          ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
       fi
       for file in ${FILES[*]}; do
-         if [[ $file = "(" || $file = ")" ]]; then
+         if [[ "$file" = "(" || $file = ")" ]]; then
             continue
          fi
          # send opendap posting notification email early if directed
