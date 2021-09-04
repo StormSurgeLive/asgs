@@ -93,11 +93,9 @@ case $si in
        ;;
     0)
        ENSTORM=namforecastWind10m
-       QUEUENAME=small # same as SLURM partition
        ;;
     1)
        ENSTORM=namforecast
-       QUEUENAME=normal # same as SLURM partition
        ;;
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
