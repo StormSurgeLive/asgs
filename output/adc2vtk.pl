@@ -49,7 +49,7 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "particles_perarea_peak.200","ElementPeakParticleCountPerArea",
                    "particles_pervolume_peak.200","ElementPeakParticleCountPerVolume",
                    "nodecode.63","NodeWetDryState",
-                   "ESLNodes.63","ElementalSlopeLimitAtNodesDiagnostic",                   
+                   "ESLNodes.63","ElementalSlopeLimitAtNodesDiagnostic",
                    "residents.63","ResidentNodeNumbers",
                    "ghosts.63","GhostNodeNumbers",
                    "ghostmem.63","GhostNodeSubdomainMembership",
@@ -75,30 +75,30 @@ my %namesDefaultValues; # the value(s) of the attribute at most nodes
 my %namesNumNonDefaults; # how many of the nodes have nondefault values
 my @attrValues; # at every node in the mesh
 our $getNodeIndices;      # defined if the node array indices should be recorded
-our @nodeIndices;         # node array indices from data file 
+our @nodeIndices;         # node array indices from data file
 our $getElementIndices;   # defined if the element array indices should be recorded
-our @elementIndices;      # element array indices from data file 
+our @elementIndices;      # element array indices from data file
 #
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
-my $translate; # 1 to translate the mesh x-y coordinates to the center of the cpp projection   
+my $translate; # 1 to translate the mesh x-y coordinates to the center of the cpp projection
 my $centerx; # xcoord (deg) at center of the 2D mesh; conv to (m) if --cpp
 my $centery; # ycoord (deg) at center of the 2D mesh; conv to (m) if --cpp
 my $scale = 1.0; # number to muliply the x-y coordinates if they should be scaled
-my $comment; # contains the command used to generate the file as a comment at the top of the file 
+my $comment; # contains the command used to generate the file as a comment at the top of the file
 
 my $slam0 = 265.5; # longitude at center of projection
 my $sfea0 = 29.0;  # latitude at center of projection
 my $datacentered = "PointData";
 #
-# If the storm characteristics change, but the track does not, the 
+# If the storm characteristics change, but the track does not, the
 # track lines will plot right on top of each other. The jitter is
-# a kludge to bump up the overlandSpeed and vmax tracks in the z 
-# direction to differentiate them visually. 
+# a kludge to bump up the overlandSpeed and vmax tracks in the z
+# direction to differentiate them visually.
 my $jitter;
 my @adcircfiles;    # fulldomain adcirc output file names, comma separated
                     # with no spaces
-my @trackfiles;     # storm track files (fort.22) 
+my @trackfiles;     # storm track files (fort.22)
 #
 GetOptions(
            "jitter" => \$jitter,
@@ -107,7 +107,7 @@ GetOptions(
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
            "translate" => \$translate,
-           "scale=s" => \$scale,           
+           "scale=s" => \$scale,
            "getNodeIndices" => \$getNodeIndices,
            "getElementIndices" => \$getElementIndices,
            "trackfiles=s" => \@trackfiles,
@@ -115,7 +115,7 @@ GetOptions(
          );
 #
 #
-# Process track files, producing a single VTP file containing all 
+# Process track files, producing a single VTP file containing all
 # the tracks that were listed on the command line
 if ( !  @trackfiles ) {
    $trackfiles[0] = "none";
@@ -173,7 +173,7 @@ if ( !  @trackfiles ) {
          my $xhemisphere = $2;
          if ( $xhemisphere eq "W" ) {
             $x[$cycle] *= -1.0;
-         }                 
+         }
          # reproject to cpp if requested
          if ( defined $cpp ) {
             $x[$cycle] = $R*($x[$cycle]*$deg2rad-$slam0*$deg2rad)*cos($sfea0*$deg2rad);
@@ -193,7 +193,7 @@ if ( !  @trackfiles ) {
       printf OUT "            <DataArray type=\"Float64\" Name=\"vmax\" format=\"ascii\">\n";
       printf OUT "               ";
       for (my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT $vmax[$i] . " "; 
+         printf OUT $vmax[$i] . " ";
       }
       printf OUT "\n";
       printf OUT "            </DataArray>\n";
@@ -203,36 +203,36 @@ if ( !  @trackfiles ) {
       printf OUT "         <Points>\n";
       printf OUT "            <DataArray NumberOfComponents=\"3\" type=\"Float64\" Name=\"PointLocations\" format=\"ascii\">\n";
       printf OUT "               ";
-      for (my $i=0; $i<$numTrackPoints; $i++ ) {         
-         printf OUT $x[$i] . " " . $y[$i] . " " . $z . "  "; 
+      for (my $i=0; $i<$numTrackPoints; $i++ ) {
+         printf OUT $x[$i] . " " . $y[$i] . " " . $z . "  ";
       }
-      printf OUT "\n"; 
+      printf OUT "\n";
       printf OUT "            </DataArray>\n";
       printf OUT "         </Points>\n";
       #
       # line connectivity/topology
       printf OUT "         <Lines>\n";
       printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
-      printf OUT "               "; 
+      printf OUT "               ";
       for ( my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT $i . " " . ($i+1) . "  "; 
+         printf OUT $i . " " . ($i+1) . "  ";
       }
-      printf OUT "\n";          
+      printf OUT "\n";
       printf OUT "            </DataArray>\n";
       printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
       printf OUT "               ";
       for ( my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT (2*($i+1)) . " "; 
+         printf OUT (2*($i+1)) . " ";
       }
       printf OUT "\n";
       printf OUT "            </DataArray>\n";
       printf OUT "         </Lines>\n";
       printf OUT "      </Piece>\n";
-   }      
+   }
    # write VTP track(s) file footer
    printf OUT "   </PolyData>\n";
    printf OUT "</VTKFile>\n";
-   close(OUT);     
+   close(OUT);
 }
 
 unless ( @adcircfiles ) {
@@ -274,23 +274,23 @@ if ( defined $cpp ) {
       $y[$i] = $y[$i]*$deg2rad*$R;
    }
    $centerx = 0.0;
-   $centery = $sfea0*$deg2rad*$R;   
+   $centery = $sfea0*$deg2rad*$R;
 } else {
    $centerx = $slam0;
    $centery = $sfea0;
 }
-# "--translate" : move the coordinates to the center of the projection 
+# "--translate" : move the coordinates to the center of the projection
 if ( defined $translate ) {
    for (my $i=0; $i<$np; $i++) {
       $x[$i] = $x[$i] - $centerx;
-      $y[$i] = $y[$i] - $centery; 
-   }   
+      $y[$i] = $y[$i] - $centery;
+   }
 }
 # "--scale 0.001" : scale the x-y coordinates
 for (my $i=0; $i<$np; $i++) {
    $x[$i] = $x[$i]*$scale;
-   $y[$i] = $y[$i]*$scale; 
-}   
+   $y[$i] = $y[$i]*$scale;
+}
 
 # read the element table
 for (my $i=0; $i<$ne; $i++) {
@@ -306,7 +306,7 @@ for (my $i=0; $i<$ne; $i++) {
    my $i3 = $fields[4]-1;
    $conn[$i] = " $i1 $i2 $i3 ";
 }
-# 
+#
 # Now read the elevation-specified boundary tables and write out as vtkPoints
 my $vtkElevationBoundaryFileName = $meshfile . "_elevBoundaries.vtp";
 unless (open(VTKELEVBOUNDARY,">$vtkElevationBoundaryFileName")) {
@@ -319,7 +319,7 @@ my $nope = $fields[0];
 $line = <MESH>;
 @fields = split(' ',$line);
 my $neta = $fields[0];
-# write header for boundaries file   
+# write header for boundaries file
 printf VTKELEVBOUNDARY "<?xml version=\"1.0\"?>\n";
 printf VTKELEVBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
 printf VTKELEVBOUNDARY "   <PolyData>\n";
@@ -335,14 +335,14 @@ my @elevBoundaryNodes; # node number 1-indexed
 my $elevBoundaryCount = 0;
 for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
-   my @fields = split(' ',$line); 
+   my @fields = split(' ',$line);
    my $nvdll = $fields[0];
    # my $ibtypee = $fields[1]; # many mesh files don't have this field
    my $ibtypee = 0;
    for (my $j=0; $j<$nvdll; $j++) {
       my @nbdvFields = split(' ',<MESH>);
       my $nbdv = $nbdvFields[0];
-      $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;  
+      $elevBoundaryNodes[$elevBoundaryCount] = $nbdv;
       $elevBoundaryLons[$elevBoundaryCount] = $x[$nbdv-1];
       $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
       $elevBoundaryElevs[$elevBoundaryCount] = $z[$nbdv-1];
@@ -350,7 +350,7 @@ for (my $i=0; $i<$nope; $i++) {
       $elevBoundaryCount++;
       printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
    }
-}        
+}
 printf VTKELEVBOUNDARY "\n";
 printf VTKELEVBOUNDARY "            </DataArray>\n";
 printf VTKELEVBOUNDARY "         </Points>\n";
@@ -370,10 +370,10 @@ printf VTKELEVBOUNDARY "      </Piece>\n";
 printf VTKELEVBOUNDARY "   </PolyData>\n";
 printf VTKELEVBOUNDARY "</VTKFile>\n";
 close(VTKELEVBOUNDARY);
-
+#
 #-----------------------------------------------------------------------
-#                         F O R T  1 9 
-#                        X D M F   X M L 
+#                         F O R T  1 9
+#                        X D M F   X M L
 #-----------------------------------------------------------------------
 # if a fort.19 supplied, write the time varying positions of the elevation
 # specified boundary nodes in XDMF xml format
@@ -387,7 +387,7 @@ foreach my $file (@adcircfiles) {
       # after writing the time varying elev boundary pts
    }
 }
-if ($haveFort19 ne "null") {   
+if ($haveFort19 ne "null") {
    my $fort19BoundaryFileName = $meshfile . "_timeVaryingElevBoundaries.xmf";
    unless (open(FORT19BOUNDARY,">$fort19BoundaryFileName")) {
       stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.");
@@ -405,7 +405,7 @@ if ($haveFort19 ne "null") {
    }
    my $timeinc19 = <FORT19DATA>; # time step for fort.19 data in seconds
    my $timesec = 0.0;
-   my @eta19;    
+   my @eta19;
    while(<FORT19DATA>) {
       # read one dataset from fort.19
       $eta19[0] = $_;
@@ -413,12 +413,12 @@ if ($haveFort19 ne "null") {
          $eta19[$i] = <FORT19DATA>;
       }
       chomp(@eta19);
-      # write one dataset to XDMF xml file 
+      # write one dataset to XDMF xml file
       printf FORT19BOUNDARY "         <Grid Name=\"Time=$timesec\" GridType=\"Uniform\">\n";
       printf FORT19BOUNDARY "            <Time Value=\"$timesec\"/>\n";
       printf FORT19BOUNDARY "            <Topology TopologyType=\"POLYVERTEX\" NumberOfElements=\"$neta\" NodesPerElement=\"1\"/>\n";
       printf FORT19BOUNDARY "            <Geometry GeometryType=\"XYZ\">\n";
-      printf FORT19BOUNDARY "               <DataItem ItemType=\"Uniform\" Dimensions=\"$neta 3\" Format=\"XML\">\n"; 
+      printf FORT19BOUNDARY "               <DataItem ItemType=\"Uniform\" Dimensions=\"$neta 3\" Format=\"XML\">\n";
       for (my $i=0; $i<$neta; $i++ ) {
          printf FORT19BOUNDARY "                  $elevBoundaryLons[$i] $elevBoundaryLats[$i] $eta19[$i]\n";
       }
@@ -429,71 +429,222 @@ if ($haveFort19 ne "null") {
    }
    close(FORT19DATA);
    printf FORT19BOUNDARY "      </Grid>\n";
-   printf FORT19BOUNDARY "   </Domain>\n";   
+   printf FORT19BOUNDARY "   </Domain>\n";
    printf FORT19BOUNDARY "</Xdmf>\n";
    close(FORT19BOUNDARY);
    exit;
 }
-# 
-# Now read the flux-specified boundary tables and write out as vtkPoints
+#
+#-----------------------------------------------------------------------
+#                 F L U X   B O U N D A R I E S
+#               V T K   A N D    X D M F   X M L
+#-----------------------------------------------------------------------
+#
+# echo the flux boundary file data for troubleshooting
+my $vtkEchoFluxBoundaryFileName = $meshfile . "_echoFluxBoundaries.txt";
+unless (open(VTKECHOFLUXBOUNDARY,">$vtkEchoFluxBoundaryFileName")) {
+   stderrMessage("ERROR","Failed to open $vtkEchoFluxBoundaryFileName for writing: $!.");
+   die;
+}
+#
+# write out the flux-specified boundary tables as vtkPoints to
+# show boundary node location and height (if applicable)
 my $vtkFluxBoundaryFileName = $meshfile . "_fluxBoundaries.vtp";
 unless (open(VTKFLUXBOUNDARY,">$vtkFluxBoundaryFileName")) {
    stderrMessage("ERROR","Failed to open $vtkFluxBoundaryFileName for writing: $!.");
    die;
 }
+# write header for boundary points file
+printf VTKFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
+printf VTKFLUXBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+printf VTKFLUXBOUNDARY "   <PolyData>\n";
+#
+# write out the flux-specified boundary tables as geometry
+# to show boundary height
+my $xdmfFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.xmf";
+unless (open(XDMFFLUXBOUNDARY,">$xdmfFluxBoundaryGeometryFileName")) {
+   stderrMessage("ERROR","Failed to open $xdmfFluxBoundaryGeometryFileName for writing: $!.");
+   die;
+}
+# write header for boundary geometry file
+printf XDMFFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
+printf XDMFFLUXBOUNDARY "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n";
+printf XDMFFLUXBOUNDARY "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n";
+printf XDMFFLUXBOUNDARY "   <Domain Name=\"$agrid\">\n";
+printf XDMFFLUXBOUNDARY "      <Grid CollectionType=\"Spatial\" GridType=\"Collection\" Name=\"Levees\">\n";
+printf XDMFFLUXBOUNDARY "          <Geometry Type=\"None\"/>\n";
+printf XDMFFLUXBOUNDARY "             <Topology Dimensions=\"0\" Type=\"NoTopology\"/>\n";
+
+#
+# now start reading the boundary table from the mesh (fort.14) file
 $line = <MESH>;
 @fields = split(' ',$line);
 my $nbou = $fields[0];
 $line = <MESH>;
 @fields = split(' ',$line);
 my $nvel = $fields[0];
-# write header for boundaries file   
-printf VTKFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
-printf VTKFLUXBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-printf VTKFLUXBOUNDARY "   <PolyData>\n";
-printf VTKFLUXBOUNDARY "      <Piece NumberOfPoints=\"$nvel\">\n";
-printf VTKFLUXBOUNDARY "         <Points>\n";
-printf VTKFLUXBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-my @fluxBoundaryTypes;
-my @fluxBoundaryElevs; 
-my $fluxBoundaryCount = 0;
+# echo the data
+printf VTKECHOFLUXBOUNDARY "$nbou ! NBOU\n";
+printf VTKECHOFLUXBOUNDARY "$nvel ! NVEL\n";
+# loop over the total number of flux boundaries
 for (my $i=0; $i<$nbou; $i++) {
    $line = <MESH>;
-   my @fields = split(' ',$line); 
+   my @fields = split(' ',$line);
    my $nvell = $fields[0];
    my $ibtype = $fields[1];
+   my $numPoints = $nvell;
+   my $numPointsPerBoundaryNode = 1;
+   # levee boundaries have two points across the top
+   if ( $ibtype == 4 || $ibtype == 14 || $ibtype == 24 || $ibtype == 5 || $ibtype == 15 || $ibtype == 25 ) {
+      $numPointsPerBoundaryNode = 2;
+   }
+   $numPoints = $nvell * $numPointsPerBoundaryNode;
+   my @fluxBoundaryNodeElevs;
+   my @nbvv;
+   my @ibconn;
+   my @topZ;
+   # read
    for (my $j=0; $j<$nvell; $j++) {
       $line = <MESH>;
       my @nvellFields = split(' ',$line);
-      my $nbvv = $nvellFields[0];
-      printf VTKFLUXBOUNDARY "$x[$nbvv-1] $y[$nbvv-1] 0.0 ";
-      $fluxBoundaryTypes[$fluxBoundaryCount] = $ibtype;
-      $fluxBoundaryElevs[$fluxBoundaryCount] = $z[$nbvv-1];      
-      $fluxBoundaryCount++;
+      $nbvv[$j] = $nvellFields[0];   # node number is first value on the line
+      $fluxBoundaryNodeElevs[$j] = "null";
+      # no-flux (land and island) boundaries only have the node number
+      if ( $ibtype == 0 || $ibtype == 10 || $ibtype == 20 || $ibtype == 1 || $ibtype == 11 || $ibtype == 21 ) {
+         $fluxBoundaryNodeElevs[$j] = -$z[$nbvv[$j]-1];
+      }
+      # river boundaries only have the node number
+      if ( $ibtype == 2 || $ibtype == 12 || $ibtype == 22 || $ibtype == 52 ) {
+         $fluxBoundaryNodeElevs[$j] = -$z[$nbvv[$j]-1];
+      }
+      # external overflow boundaries have the node number and height
+      if ( $ibtype == 3 || $ibtype == 13 || $ibtype == 23 ) {
+         $fluxBoundaryNodeElevs[$j] = $nvellFields[1];
+      }
+      # levee boundaries have the node number, backside node, and height
+      if ( $ibtype == 4 || $ibtype == 14 || $ibtype == 24 ) {
+         $ibconn[$j] = $nvellFields[1];
+         $fluxBoundaryNodeElevs[$j] = $nvellFields[2];
+      }
+      # levee boundaries with cross barrier pipes have the node number, backside node, and height
+      if ( $ibtype == 5 || $ibtype == 15 || $ibtype == 25 ) {
+         $ibconn[$j] = $nvellFields[1];
+         $fluxBoundaryNodeElevs[$j] = $nvellFields[2];
+      }
+      if ( $fluxBoundaryNodeElevs[$j] eq "null" ) {
+         stderrMessage("ERROR","The flux boundary type '$ibtype' was not recognized.");
+      }
    }
-}        
-#print "fluxBoundaryCount is $fluxBoundaryCount\n"; # @jasonfleming debug
-printf VTKFLUXBOUNDARY "\n";
-printf VTKFLUXBOUNDARY "            </DataArray>\n";
-printf VTKFLUXBOUNDARY "         </Points>\n";
-printf VTKFLUXBOUNDARY "         <PointData>\n";
-printf VTKFLUXBOUNDARY "            <DataArray Name=\"IBTYPE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$fluxBoundaryCount; $i++) {
-   printf VTKFLUXBOUNDARY " $fluxBoundaryTypes[$i]";
+   #
+   #  E C H O   F L U X   B O U N D A R Y
+   #
+   my $seg=$i+1;  # 1-indexed annotation
+   printf VTKECHOFLUXBOUNDARY "$nvell $ibtype ! seg = $seg\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      if ( $numPointsPerBoundaryNode == 1 ) {
+         printf VTKECHOFLUXBOUNDARY "$nbvv[$j] ";
+         if ( $numPointsPerBoundaryNode == 2 ) {
+            printf VTKECHOFLUXBOUNDARY "$ibconn[$j] $fluxBoundaryNodeElevs[$j]";
+         }
+         printf VTKECHOFLUXBOUNDARY "\n";
+      }
+   }
+   #
+   #  F L U X   B O U N D A R Y   A S   V T K P O I N T S
+   #
+   # write the boundary point locations for this flux boundary
+   printf VTKFLUXBOUNDARY "      <!-- seg = $seg -->\n";
+   printf VTKFLUXBOUNDARY "      <Piece NumberOfPoints=\"$numPoints\">\n";
+   printf VTKFLUXBOUNDARY "         <Points>\n";
+   printf VTKFLUXBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      printf VTKFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] 0.0  ";
+      if ( $numPointsPerBoundaryNode == 2 ) {
+         printf VTKFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] 0.0 ";
+      }
+      printf VTKFLUXBOUNDARY "\n";
+   }
+   # finish writing boundary points
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   printf VTKFLUXBOUNDARY "         </Points>\n";
+   printf VTKFLUXBOUNDARY "         <PointData>\n";
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"IBTYPE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $ibtype ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $fluxBoundaryNodeElevs[$j] ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   printf VTKFLUXBOUNDARY "         </PointData>\n";
+   printf VTKFLUXBOUNDARY "      </Piece>\n";
+   #
+   #  F L U X   B O U N D A R Y   A S   X D M F   3 D S M E S H   G E O M E T R Y
+   #
+   # write the boundary point geometry for this flux boundary
+   my $numXYZValsPerNode = 2 * $numPointsPerBoundaryNode;
+   my $numXYZVals = $nvell * $numXYZValsPerNode * 3;
+   printf XDMFFLUXBOUNDARY "               <Grid Name=\"seg = $seg\">\n";
+   printf XDMFFLUXBOUNDARY "                  <Geometry Type=\"XYZ\">\n";
+   printf XDMFFLUXBOUNDARY "                      <DataItem DataType=\"Float\" Dimensions=\"$numXYZVals\" Format=\"XML\" Precision=\"8\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      # conpute the z value of the top of the boundary geometry
+      $topZ[$j] = 1.0;  # arbitrary default
+      # if the boundary node elevation is above the datum (negative)
+      # then make the top of the boundary 1,0m above the boundary node elev
+      if ( $z[$nbvv[$j]-1] < 0.0 ) {
+         $topZ[$j] = -$z[$nbvv[$j]-1] + 1.0;
+      }
+      # if this is a levee boundary, the top of the boundary
+      # geometry is the same as the specified levee height
+      if ( $numPointsPerBoundaryNode == 2 ) {
+         $topZ[$j] = $fluxBoundaryNodeElevs[$j];
+      }
+   }
+   # write the base front face boundary geometry (i.e., boundary node elevation)
+   for (my $j=0; $j<$nvell; $j++) {
+      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $z[$nbvv[$j]-1] ";
+   }
+   printf  XDMFFLUXBOUNDARY "\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j] ";
+   }
+   printf  XDMFFLUXBOUNDARY "\n";
+   if ( $numPointsPerBoundaryNode == 2 ) {
+      for (my $j=0; $j<$nvell; $j++) {
+         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j] ";
+      }
+      printf  XDMFFLUXBOUNDARY "\n";
+      for (my $j=0; $j<$nvell; $j++) {
+         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $z[$ibconn[$j]-1] ";
+      }
+      printf  XDMFFLUXBOUNDARY "\n";
+   }
+   printf XDMFFLUXBOUNDARY "                      </DataItem>\n";
+   printf XDMFFLUXBOUNDARY "                   </Geometry>\n";
+   printf XDMFFLUXBOUNDARY "                <Topology Dimensions=\"$numXYZValsPerNode $nvell 1\" Type=\"3DSMesh\"/>\n";
+   printf XDMFFLUXBOUNDARY "             </Grid>\n";
 }
-printf VTKFLUXBOUNDARY "            </DataArray>\n";
-printf VTKFLUXBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$fluxBoundaryCount; $i++) {
-   printf VTKFLUXBOUNDARY " $fluxBoundaryElevs[$i]";
-}
-printf VTKFLUXBOUNDARY "            </DataArray>\n";
-printf VTKFLUXBOUNDARY "         </PointData>\n";
-printf VTKFLUXBOUNDARY "      </Piece>\n";
+close(MESH);
+# finish echo boundary table
+close(VTKECHOFLUXBOUNDARY);
+# finish writing boundary as vtk points (.vtp file)
 printf VTKFLUXBOUNDARY "   </PolyData>\n";
 printf VTKFLUXBOUNDARY "</VTKFile>\n";
 close(VTKFLUXBOUNDARY);
-#
-close(MESH);
+# finish writing boundary as xdmf geometry (.xmf file)
+printf XDMFFLUXBOUNDARY "      </Grid>\n";
+printf XDMFFLUXBOUNDARY "   </Domain>\n";
+printf XDMFFLUXBOUNDARY "</Xdmf>\n";
+close(XDMFFLUXBOUNDARY);
 #
 # write data from adcirc file(s)
 foreach my $file (@adcircfiles) {
@@ -529,13 +680,13 @@ foreach my $file (@adcircfiles) {
       $num_datasets = 1;
       $datacentered = "CellData";
       $datatype = "Int32";
-   }   
+   }
    if ( $file eq "particles_perarea_peak.200" || $file eq "particles_pervolume_peak.200" ) {
       $num_components = 1;
       $num_datasets = 1;
       $datacentered = "CellData";
       $datatype = "Float64";
-   }   
+   }
    if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "ESLNodes.63" ) {
       $num_components = 1;
       $num_datasets = 1;
@@ -550,13 +701,13 @@ foreach my $file (@adcircfiles) {
       $num_components = 1;
       $num_datasets = 0;
       $datatype = "Int32";
-      $datacentered = "CellData"; 
+      $datacentered = "CellData";
    }
    if ( $file eq "nodecode.63" ) {
       $num_components = 1;
       $num_datasets = 0;
       $datatype = "Int32";
-   }  
+   }
    if ( $file eq "fort.63" || $file eq "fort.73" ) {
       $num_components = 1;
       $num_datasets = 0;
@@ -568,20 +719,20 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "gradient.txt" ) {
       $num_components = 1;
       $num_datasets = 0;
-      $datacentered = "CellData"; 
+      $datacentered = "CellData";
    }
    if ( $file eq "maxgradient.txt" ) {
       $num_components = 1;
       $num_datasets = 1;
-      $datacentered = "CellData"; 
+      $datacentered = "CellData";
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
       stderrMessage("ERROR",
           "Failed to open ADCIRC file $file for reading: $!.");
          next;
-   }     
-   # 
+   }
+   #
    # for nodal attributes, we read the file entirely differently from an
    # output file
    if ( $file eq "fort.13" ) {
@@ -591,8 +742,8 @@ foreach my $file (@adcircfiles) {
          die;
       }
       &writeHeader($ne, $np);
-      printf OUT "         <PointData Scalars=\"NodalAttributes\">\n"; 
-      # 
+      printf OUT "         <PointData Scalars=\"NodalAttributes\">\n";
+      #
       # read nodal attributes file header
       $line = <ADCIRCFILE>; # read comment line (not used)
       $line = <ADCIRCFILE>; # number of nodes (not used)
@@ -604,9 +755,9 @@ foreach my $file (@adcircfiles) {
          $namesUnits{$attrName} = <ADCIRCFILE>;
          $namesNumValues{$attrName} = <ADCIRCFILE>;
          $line = <ADCIRCFILE>;
-         chomp($line);      
+         chomp($line);
          $line =~ s/\s+//;
-         $namesDefaultValues{$attrName} = $line;        
+         $namesDefaultValues{$attrName} = $line;
       }
       #
       # now read body of nodal attributes file
@@ -615,10 +766,10 @@ foreach my $file (@adcircfiles) {
          chomp($attrName);
          $attrName =~ s/\s+//;
          $namesNumNonDefaults{$attrName} = 0; # number of non default values for this attribute
-         $line = <ADCIRCFILE>; 
+         $line = <ADCIRCFILE>;
          chomp($line);
          $namesNumNonDefaults{$attrName} = $line; # number of non default values for this attribute
-         # set all values to the default 
+         # set all values to the default
          for (my $n=0; $n<$np; $n++ ) {
             $attrValues[$n] = $namesDefaultValues{$attrName};
          }
@@ -721,7 +872,7 @@ foreach my $file (@adcircfiles) {
          printf PVD "         <DataSet timestep=\"$time[$dataset]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
       }
       &writeHeader($ne, $np);
-      printf OUT "         <$datacentered $scalars_name $vectors_name>\n"; 
+      printf OUT "         <$datacentered $scalars_name $vectors_name>\n";
       # write out dataset from ADCIRC file
       my $vtk_components = $num_components;
       if ( $num_components == 2 ) {
@@ -807,7 +958,7 @@ sub writeMesh () {
    #
    # write element IDs if specified
    if ( defined $getElementIndices ) {
-      printf OUT "         <CellData Scalars=\"ElementArrayIndices\">\n"; 
+      printf OUT "         <CellData Scalars=\"ElementArrayIndices\">\n";
       printf OUT "         <DataArray Name=\"ElementArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
       for (my $i=0; $i<$ne; $i++) {
          printf OUT "$elementIndices[$i]\n";
@@ -815,7 +966,7 @@ sub writeMesh () {
       printf OUT "            </DataArray>\n";
       printf OUT "         </CellData>\n";
    }
-   # write element connectivity indices   
+   # write element connectivity indices
    printf OUT "         <Cells>\n";
    printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
    for (my $i=0; $i<$ne; $i++) {
