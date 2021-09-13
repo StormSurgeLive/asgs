@@ -1,0 +1,252 @@
+#!/usr/bin/env perl
+
+package bin::nhc_recorder;
+
+use strict;
+use warnings;
+use Weather::NHC::TropicalCyclone ();
+use POSIX qw/strftime/;
+
+use constant {
+    EXIT_SUCCESS      => 0,
+    EXIT_ERROR        => 255,
+    DEFAULT_SLEEP_SEC => 60,
+};
+
+# set up for "ctrl-c" to check before sleep is up
+my $sigint;
+$SIG{INT} = sub {
+    exit if $sigint;
+    ++$sigint;
+    print qq{Hit ctrl-c again to exit.\n};
+};
+
+exit run() if not caller;
+
+sub run {
+    my $sleep = DEFAULT_SLEEP_SEC;
+    my $nhc   = Weather::NHC::TropicalCyclone->new;
+
+    print qq{\n~= ASGS NHC Info Monitor =~\n};
+
+    # SET UP
+    eval { mkdir q{./advisories}, 0777 };
+
+    GET_JSON:
+    while (1) {
+        local $@;
+        my $ok = eval {
+          $nhc->fetch;
+          1;
+        };
+        if (not $ok or $@) {
+          print qq{Error getting NHC storms.json. Sleeping $sleep seconds, then checking again...\n};
+          print qq{$@\n} if $@;
+          sleep $sleep;
+        } 
+
+        my $storms_ref = $nhc->active_storms;
+        my $storm_count = @$storms_ref;
+
+        print qq{\n(found $storm_count storm(s)) ...\n\n};
+
+        STORMS:
+        foreach my $storm (@$storms_ref) {
+            my $name = $storm->name;
+            my $id   = $storm->id;
+            mkdir qq{./advisories/$id}, 0755 || die $!;
+            local $@;
+            eval {
+              my $advNum = _fetch_advisory($storm);
+              _fetch_best_track( $storm, $advNum );
+              _fetch_rss( $storm, $advNum, $nhc );
+            };
+            print qq{$@\n} if $@;
+         
+            _sleep( $sleep, q{polling for latest NHC information...} );
+        }
+    }
+    exit EXIT_SUCCESS;
+}
+
+sub _record_event {
+    my ( $msg, $file ) = @_;
+    my $timestamp = strftime( "%a %b %e %H:%M:%S %Y UTC", gmtime(time) );
+    my $logline   = sprintf( "[%s] %s\n", $timestamp, $msg );
+    open my $fh, q{>>}, qq{$file} || die $!;
+    print $fh qq{$logline};
+    close $fh;
+    chmod 0644, $file;
+    return $logline;
+}
+
+# fetch public advisory (.fst)
+sub _fetch_advisory {
+    my $storm = shift;
+    my $name  = $storm->name;
+    my $id    = $storm->id;
+    my ( $text, $advNum, $local_file ) = $storm->fetch_publicAdvisory( $storm->id . q{.fst} );
+    print qq{+++ $id $name (current advisory: $advNum) +++\n};
+    if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
+        rename $local_file, qq{advisories/$id/$advNum.$local_file};
+        chmod 0644, $local_file;
+        print _record_event( qq{new advisory ($advNum) for $id detected}, qq{advisories/$id/$id-replay.log} );
+    }
+    else {
+        print qq{- no new advisory found...\n};
+        unlink $local_file;
+    }
+    return $advNum;
+}
+
+# fetch best track (.dat)
+sub _fetch_best_track {
+    my ( $storm, $advNum ) = @_;
+    my $name       = $storm->name;
+    my $id         = $storm->id;
+    my $local_file = $storm->fetch_best_track( $storm->id . q{.dat} );
+    if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
+        rename $local_file, qq{advisories/$id/$advNum.$local_file};
+        chmod 0644, $local_file;
+        print _record_event( qq{new best track for $id detected}, qq{advisories/$id/$id-replay.log} );
+    }
+    else {
+        print qq{- no new best track found...\n};
+        unlink $local_file;
+    }
+    return;
+}
+
+# get XML/RSS
+sub _fetch_rss {
+    my ( $storm, $advNum, $nhc ) = @_;
+    my $name       = $storm->name;
+    my $id         = $storm->id;
+    my $local_file = qq{index.xml};
+    my $rss;
+
+    if ( $id =~ m/^al/ ) {
+        $rss = $nhc->fetch_rss_atlantic;
+    }
+    elsif ( $id =~ m/^ep/ ) {
+        $rss = $nhc->fetch_rss_east_pacific;
+    }
+    elsif ( $id =~ m/^cp/ ) {
+        $rss = $nhc->fetch_rss_central_pacific;
+    }
+
+    open my $fh, q{>}, $local_file;
+    print $fh $rss;
+    close $fh;
+
+    if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
+        rename $local_file, qq{advisories/$id/$advNum.$local_file};
+        chmod 0644, $local_file;
+        print _record_event( qq{new RSS (index.xml) detected}, qq{advisories/$id/$id-replay.log} );
+    }
+    else {
+        print qq{- no new index.xml found...\n};
+        unlink $local_file;
+    }
+    return;
+}
+
+sub _sleep {
+    my ( $sleep, $msg ) = @_;
+    print qq{\n(next check in $sleep seconds; "ctrl-c" to force new check ...)\n};
+    for ( 1 .. $sleep ) {
+        sleep 1;
+        if ($sigint) {
+            $sigint = 0;
+            last;
+        }
+    }
+    return;
+}
+
+1;
+
+=head1 NAME
+    bin::nhc_advisoryd - daemon that monitors for NHC advisories during an active storm period
+
+=head1 SYNOPSIS
+
+There are no options.
+
+    nhc-advisoryd  # should be in $PATH when run in the ASGS Shell Environment
+
+Once started, NHC's site is checked every 60 seconds. Hitting C<ctrl-c> once will
+cause the script to check NHC immediately. To quick, hit C<ctrl-c> multiple times
+in rapid successin.
+
+=head1 DESCRIPTION
+
+This script, in principle, is designed to monitor and record all active
+storms and files important to ASGS that are issued on the National Hurricane
+Center's site. All files are related to the current advisory; over time a
+set of snapshots are created. The script itself is called C<nhc-recoder> because
+the NHC issuance histories generated are able to be used to I<replay> storm
+avisories as they occurred, in real time. This is very useful for a number
+of applications related to ASGS.
+
+The following information is currently saved: per storm, per advisory:
+
+=over 4
+
+=item * Public advisory file - this is the C<semi-free form> plain text file
+that summarizes the most recent forecast; these are generally issued every
+6 hours during an active storm. Sometimes the NHC will issue supplimentary
+or corrected forecasts more frequently, especially if the storm is dangerous
+and being watched closely by many interested parties.
+
+=item * Best track - this is a tabular data file that contains the actual path
+of the storm, including important numerical data, storm status, name, etc.
+
+=item * RSS feed - this is an XML-based C<syndicated> summary all of the active
+storms for which the NHC is issuing advisories and other data.
+
+=item * a C<replay> log file that tracks when new files are detected and added
+to the storm archive. This may be used to "replay" storms without much trouble.
+And it is particularly useful to see if and when the NHC has deviated from their
+regular issuance frequency.
+
+=back
+
+All data is stored relative to the C<pwd> from which the script was started,
+under the path, C<./advisories/$id>, where C<$id> is the designation given
+to the storm at the very beginning, e.g., C<al092020>. All files collected 
+in this directory have the current advisory number appended to them. In this
+way, there are sets of files associated with each advisory; for example, this
+this may allow the files to be replayed or C<reissued> locally in the same
+manner as they were issued originally.
+
+=head1 OPTIONS
+
+There are no options or configuration files.
+
+=head1 ENVIRONMENT
+
+It assumed that this is being run under the ASGS Shell Environment, which
+means, e.g.; that the directory this script is located is also in C<PATH>.
+
+=head1 OPERATIONAL WORKFLOW
+
+The general idea is to start this script in a suitable environment, at the
+start of a (Atlantic) hurricane season; then allow it to run indefinitely
+until the end of the season. If all is well, there will be all desired files
+for all storms tracked by the NHC - and broken down by advisory number.
+
+=head1 LICENSE AND COPYRIGHT
+
+The ASGS is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version.
+
+ASGS is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
