@@ -89,7 +89,7 @@ sub _fetch_advisory {
     print qq{+++ $id $name (current advisory: $advNum) +++\n};
     if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
         rename $local_file, qq{advisories/$id/$advNum.$local_file};
-        chmod 0644, $local_file;
+        chmod 0644, qq{advisories/$id/$advNum.$local_file};
         print _record_event( qq{new advisory ($advNum) for $id detected}, qq{advisories/$id/$id-replay.log} );
     }
     else {
@@ -107,7 +107,7 @@ sub _fetch_best_track {
     my $local_file = $storm->fetch_best_track( $storm->id . q{.dat} );
     if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
         rename $local_file, qq{advisories/$id/$advNum.$local_file};
-        chmod 0644, $local_file;
+        chmod 0644, qq{advisories/$id/$advNum.$local_file};
         print _record_event( qq{new best track for $id detected}, qq{advisories/$id/$id-replay.log} );
     }
     else {
@@ -141,7 +141,7 @@ sub _fetch_rss {
 
     if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
         rename $local_file, qq{advisories/$id/$advNum.$local_file};
-        chmod 0644, $local_file;
+        chmod 0644, qq{advisories/$id/$advNum.$local_file};
         print _record_event( qq{new RSS (index.xml) detected}, qq{advisories/$id/$id-replay.log} );
     }
     else {
