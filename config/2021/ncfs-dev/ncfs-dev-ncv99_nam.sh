@@ -41,14 +41,14 @@ CONTROLTEMPLATE=nc_9.99wrivers_vortex_constantRivers.fort.15.template
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2021050100  #  2020080100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2021082800  #  2020080100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on                # tide factor recalc
-   HINDCASTLENGTH=30    # length of initial hindcast, from cold (days)
+   HINDCASTLENGTH=17    # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off       # tropical cyclone forcing
@@ -71,7 +71,7 @@ NCPUCAPACITY=512
 #NCPUCAPACITY=512
 NUMWRITERS=1
 ACCOUNT=null
-RESERVATION=ncfs
+PARTITION=ncfs
 
 # Post processing and publication
 

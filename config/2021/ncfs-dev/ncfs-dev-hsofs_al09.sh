@@ -57,15 +57,15 @@ STATICOFFSET=0.0
 #COLDSTARTDATE=2020121500  #  2020080100  # calendar year month day hour YYYYMMDDHH24
 #HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 #LASTSUBDIR=null
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
+COLDSTARTDATE=2021081000
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
 #LASTSUBDIR=https://tds.renci.org:8080/thredds/fileServer/2021/nam/2021082618/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/namforecast
-LASTSUBDIR=/projects/ncfs-dev/hsofs-nam-bob-2021/asgs6711/2021082700/
+#LASTSUBDIR=/projects/ncfs-dev/hsofs-nam-bob-2021/asgs6711/2021082700/
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on                # tide factor recalc
-   HINDCASTLENGTH=18    # length of initial hindcast, from cold (days)
+   HINDCASTLENGTH=17    # length of initial hindcast, from cold (days)
 BACKGROUNDMET=off          # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on       # tropical cyclone forcing
@@ -81,12 +81,12 @@ VARFLUX=off               # variable river flux forcing
 CYCLETIMELIMIT="99:00:00"
 
 # !! NHC ftp site seems to be unreachable
-FTPSITE="filesystem"       # hindcast/nowcast ATCF formatted files
-HDIR="/home/ncfs-dev/asgs.master/input/sample_advisories/2021/al09"                 # hindcast dir on nhc ftp site
+#FTPSITE="filesystem"       # hindcast/nowcast ATCF formatted files
+#HDIR="/home/ncfs-dev/asgs.master/input/sample_advisories/2021/al09"                 # hindcast dir on nhc ftp site
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=638                     # number of compute CPUs for all simulations
+NCPU=510                     # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 #NCPU=511                     # number of compute CPUs for all simulations
 #NCPUCAPACITY=512
@@ -99,7 +99,7 @@ PARTITION=ncfs
 INTENDEDAUDIENCE="developers-only" # "general" # ( | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_nowcast.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 #OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
 OPENDAPNOTIFY="bblanton@renci.org"

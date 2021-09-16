@@ -30,6 +30,7 @@
 INSTANCENAME=hsofs-nam-bob-2021      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
+QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
 
 # Input files and templates
 
@@ -46,7 +47,7 @@ CONTROLTEMPLATE=hsofs_explicit.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
 NAFILE=hsofs.13
 NAPROPERTIES=${NAFILE}.properties
-STATICOFFSET=0.0
+STATICOFFSET=0.2
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #  changes for 0.2286m sea_surface_height_above_geoid
 #--------------------------------------------------------------------------
@@ -83,6 +84,7 @@ NCPUCAPACITY=512
 #NCPUCAPACITY=512
 NUMWRITERS=1
 ACCOUNT=null
+#PARTITION=ncfs
 RESERVATION=ncfs
 
 # Post processing and publication
@@ -90,7 +92,7 @@ RESERVATION=ncfs
 INTENDEDAUDIENCE="general" # ( | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_nowcast.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
 #OPENDAPNOTIFY="bblanton@renci.org"

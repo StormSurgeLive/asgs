@@ -18,6 +18,7 @@
 #SBATCH --ntasks=%totalcpu%
 #SBATCH --nodes=%nnodes%
 #SBATCH --partition=%queuename%
+##SBATCH --partition=ncfs
 #SBATCH --reservation=%reservation%
 #SBATCH --constraint=%constraint%
 #SBATCH --account=%account%
