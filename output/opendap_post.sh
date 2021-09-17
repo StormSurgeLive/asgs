@@ -312,6 +312,7 @@ END
       retry=0
       mkdirRetryLimit=10 # FIXME: hardcoded for now
       while [[ $retry -lt $mkdirRetryLimit ]]; do
+         echo "(attempting: remote cmd) ssh $OPENDAPHOST \"mkdir -p $OPENDAPDIR\"" >> $SYSLOG
          ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             warn "$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
@@ -343,6 +344,7 @@ END
                 # avoid retrying and associated log messages
                 retry=$timeoutRetryLimit
             fi
+            echo "(attempting: remote cmd) ssh $OPENDAPHOST \"chmod a+wx $partialPath\"" >> $SYSLOG
             ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                scenarioMessage "$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
@@ -367,6 +369,7 @@ END
       if [[ $TROPICALCYCLONE != off ]]; then
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
+            echo "(attempting: remote cmd) ssh $OPENDAPHOST \"ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH\"" >> $SYSLOG
             ssh $OPENDAPHOST "ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                warn "$SCENARIO: $_THIS: Failed to create symbolic link for the storm name."
@@ -408,6 +411,7 @@ END
          scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
+            echo "(attempting: remote file xfer) scp ./$file ${OPENDAPHOST}:${OPENDAPDIR}" >> $SYSLOG
             scp ./$file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
@@ -427,6 +431,7 @@ END
          fname=`basename $file`
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
+            echo "(attempting: remote cmd) ssh $OPENDAPHOST \"chmod +r $OPENDAPDIR/$fname\"" >> $SYSLOG
             ssh $OPENDAPHOST "chmod +r $OPENDAPDIR/$fname"
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
@@ -454,6 +459,7 @@ END
       rsyncOptions="-z --copy-links"
       echo "post.opendap.${server}.rsyncoptions : $rsyncOptions" >> $RUNPROPERTIES 2>> $SYSLOG
       allMessage "$SCENARIO: $_THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
+      echo "(attempting: remote cmd) ssh $OPENDAPHOST \"mkdir -p $OPENDAPDIR\"" >> $SYSLOG
       ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" >> $SCENARIOLOG 2>&1
       if [[ $? != 0 ]]; then
          warn "$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
@@ -465,6 +471,7 @@ END
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
+            echo "(attempting: remote cmd) ssh $OPENDAPHOST \"chmod a+wx $partialPath\"" >> $SYSLOG
             ssh $OPENDAPHOST "chmod a+wx $partialPath" 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                warn "$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
