@@ -22,3 +22,4 @@ File::ShareDir
 Archive::Zip
 JSON::XS
 YAML::Tiny
+DBD::SQLite
