@@ -72,19 +72,28 @@ NCPUCAPACITY=9999
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
 POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com"
+hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+
+# Monitoring
+
 RMQMessaging_Enable="on"
 RMQMessaging_Transmit="on"
+enablePostStatus="yes"
+enableStatusNotify="no"
+statusNotify="null"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2021/al09/18/LAv20a/frontera.tacc.utexas.edu/LAv20a_al092021_jgf_10kcms/nhcConsensus
+COLDSTARTDATE=2021080800
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
+#LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2021/al09/18/LAv20a/frontera.tacc.utexas.edu/LAv20a_al092021_jgf_10kcms/nhcConsensus
 
 # Scenario package 
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=2 # <====<<!!TEN TOTAL!! # number of scenarios
+SCENARIOPACKAGESIZE=2 # <====<<!!TWO TOTAL!! # number of scenarios
 case $si in
  -2)
    ENSTORM=hindcast
