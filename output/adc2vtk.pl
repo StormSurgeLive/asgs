@@ -396,6 +396,7 @@ if ($haveFort19 ne "null") {
    printf FORT19BOUNDARY "<?xml version=\"1.0\"?>\n";
    printf FORT19BOUNDARY "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n";
    printf FORT19BOUNDARY "<Xdmf Version=\"2.0\">\n";
+   chomp($agrid);
    printf FORT19BOUNDARY "   <Domain Name=\"$agrid\">\n";
    printf FORT19BOUNDARY "      <Grid Name=\"TimeSeries\" GridType=\"Collection\" CollectionType=\"Temporal\">\n";
    # open and start reading fort.19 file
@@ -469,12 +470,12 @@ unless (open(XDMFFLUXBOUNDARY,">$xdmfFluxBoundaryGeometryFileName")) {
 # write header for boundary geometry file
 printf XDMFFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
 printf XDMFFLUXBOUNDARY "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n";
-printf XDMFFLUXBOUNDARY "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"2.0\">\n";
+printf XDMFFLUXBOUNDARY "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"3.0\">\n";
+chomp($agrid);
 printf XDMFFLUXBOUNDARY "   <Domain Name=\"$agrid\">\n";
 printf XDMFFLUXBOUNDARY "      <Grid CollectionType=\"Spatial\" GridType=\"Collection\" Name=\"Levees\">\n";
-printf XDMFFLUXBOUNDARY "          <Geometry Type=\"None\"/>\n";
-printf XDMFFLUXBOUNDARY "             <Topology Dimensions=\"0\" Type=\"NoTopology\"/>\n";
-
+# not needed #printf XDMFFLUXBOUNDARY "          <Geometry Type=\"None\"/>\n";
+# not needed #printf XDMFFLUXBOUNDARY "             <Topology Dimensions=\"0\" Type=\"NoTopology\"/>\n";
 #
 # now start reading the boundary table from the mesh (fort.14) file
 $line = <MESH>;
@@ -599,7 +600,7 @@ for (my $i=0; $i<$nbou; $i++) {
       # conpute the z value of the top of the boundary geometry
       $topZ[$j] = 1.0;  # arbitrary default
       # if the boundary node elevation is above the datum (negative)
-      # then make the top of the boundary 1,0m above the boundary node elev
+      # then make the top of the boundary 1.0m above the boundary node elev
       if ( $z[$nbvv[$j]-1] < 0.0 ) {
          $topZ[$j] = -$z[$nbvv[$j]-1] + 1.0;
       }
@@ -609,28 +610,31 @@ for (my $i=0; $i<$nbou; $i++) {
          $topZ[$j] = $fluxBoundaryNodeElevs[$j];
       }
    }
-   # write the base front face boundary geometry (i.e., boundary node elevation)
+   # write the base front face boundary vertices (i.e., boundary node elevation)
    for (my $j=0; $j<$nvell; $j++) {
-      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $z[$nbvv[$j]-1] ";
+      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] -$z[$nbvv[$j]-1] ";
    }
    printf  XDMFFLUXBOUNDARY "\n";
+   # write the top frount face boundary vertices
    for (my $j=0; $j<$nvell; $j++) {
       printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j] ";
    }
    printf  XDMFFLUXBOUNDARY "\n";
+   # if this is a levee boundary, write the back side geometry
    if ( $numPointsPerBoundaryNode == 2 ) {
       for (my $j=0; $j<$nvell; $j++) {
          printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j] ";
       }
       printf  XDMFFLUXBOUNDARY "\n";
       for (my $j=0; $j<$nvell; $j++) {
-         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $z[$ibconn[$j]-1] ";
+         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] -$z[$ibconn[$j]-1] ";
       }
       printf  XDMFFLUXBOUNDARY "\n";
    }
    printf XDMFFLUXBOUNDARY "                      </DataItem>\n";
    printf XDMFFLUXBOUNDARY "                   </Geometry>\n";
    printf XDMFFLUXBOUNDARY "                <Topology Dimensions=\"$numXYZValsPerNode $nvell 1\" Type=\"3DSMesh\"/>\n";
+
    printf XDMFFLUXBOUNDARY "             </Grid>\n";
 }
 close(MESH);
