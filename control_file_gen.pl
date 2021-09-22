@@ -146,6 +146,14 @@ my $staticoffset = "null";
 my $unitoffsetfile = "null";
 our $addHours; # duration of the run (hours)
 our $nds;      # number of datasets expected to be placed in a file
+# multiples of Rmax for wind blending
+my $pureVortex = "3.0";
+my $pureBackground = "5.0";
+# ASCII ADCIRC OWI file
+our $nwset = 1;  # number of wind datasets (basin, region, local)
+our $nwbs = 0;   # number of blank snaps
+our $dwm = "1.0";
+#
 GetOptions("controltemplate=s" => \$controltemplate,
            "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
@@ -188,7 +196,9 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan,
-           "periodicflux=s" => \$periodicflux
+           "periodicflux=s" => \$periodicflux,
+           "pureVortex=s" => \$pureVortex,
+           "pureBackground=s" => \$pureBackground
            );
 #
 # define stormDir if it is not already
@@ -257,9 +267,24 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 #
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 ) {
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
    stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    &vortexModelParameters($nws);
+   # for getting the OWI wind time increment for blended winds
+   # and appending it to the wtiminc line
+   if ( abs($nws) == 30 || abs($nws) == 330 ) {
+      open(METFILE,"<$stormDir/owi_fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) file $stormDir/owi_fort.22 for reading: $!.";
+      my $line = <METFILE>;
+      close(METFILE);
+      $line =~ /^# (\d+)/;
+      $wtiminc .= " $1 $pureVortex $pureBackground";
+      # create the fort.22 file for ADCIRC ASCII OWI format
+      open(METFILE,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write $stormDir/fort.22 file: $!.";
+      printf METFILE "$nwset\n"; # defaults to 1 (just fort.221 fort.222)
+      printf METFILE "$nwbs\n";  # defaults to 0 (no blank snaps)
+      printf METFILE "$dwm\n";   # defaults to 1.0
+      close(METFILE);
+   }
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
    &owiParameters();
 } elsif ( defined $specifiedRunLength ) {
@@ -612,12 +637,12 @@ printf RUNPROPS "ADCIRCgrid : $gridname\n";
 # already in the properties file
 # FIXME: if the stormname property exists but is null or empty, it should be
 # removed from the run.properties file
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) {
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
    if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
       printf RUNPROPS "stormname : $nhcName\n";
    }
 }
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) {
+if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
    if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) {
       printf RUNPROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
    }
@@ -1016,9 +1041,9 @@ sub owiParameters () {
    # calculate the number of blank snaps (or the number of
    # snaps to be skipped in the OWI file if it starts before the
    # current time in the ADCIRC run)
-   my $nwbs = int($blank_time/$wtiminc);
+   $nwbs = int($blank_time/$wtiminc);
    stderrMessage("INFO","nwbs is '$nwbs'");
-   my $nwset = 1;
+   $nwset = 1;
    # hack to see if there is an additional, optional region scale set of
    # win/pre files
    my @fort223 = glob($stormDir."/*.223");
@@ -1029,9 +1054,9 @@ sub owiParameters () {
    #
    # create the fort.22 output file, which is the wind input file for ADCIRC
    open(MEMBER,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write $stormDir/fort.22 file: $!.";
-   printf MEMBER "$nwset\n"; # nwset
-   printf MEMBER "$nwbs\n"; # nwbs
-   printf MEMBER "1.0\n";   # dwm
+   printf MEMBER "$nwset\n"; # defaults to 1
+   printf MEMBER "$nwbs\n";  # defaults to 0
+   printf MEMBER "$dwm\n";   # defaults to 1.0
    close(MEMBER);
    stderrMessage("INFO","The OWI file ends at '$owiend'.");
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
@@ -1319,17 +1344,15 @@ sub vortexModelParameters () {
       close(RUNME);
    }
    $addHours=$RNDAY*24.0; # for reporting the predicted number of datasets in each file
-   if ( $hstime ) { 
-      $addHours-=$hstime/3600.0; 
+   if ( $hstime ) {
+      $addHours-=$hstime/3600.0;
    }
    #
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
-   # create the RUNID
-   $ensembleid = $addHours . " hour " . $enstorm . " run";
    # create the WTIMINC line
    $wtiminc = $cy." ".$cm." ".$cd." ".$ch." 1 ".$bladj;
-   if ( abs($nws) == 20 || abs($nws) == 320 ) {
+   if ( abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 30 || abs($nws) == 330 ) {
       $wtiminc .= " $geofactor";
    }
 }
