@@ -2103,17 +2103,22 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
 
    # TROPICAL CYCLONE ONLY
-   if [[ $TROPICALCYCLONE = on ]]; then
+   if [[ $TROPICALCYCLONE == "on" ]]; then
       BASENWS=20
-      if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
+      if [[ $VORTEXMODEL == "ASYMMETRIC" ]]; then
          BASENWS=19
       fi
-      if [[ $VORTEXMODEL = SYMMETRIC ]]; then
+      if [[ $VORTEXMODEL == "SYMMETRIC" ]]; then
          BASENWS=8
       fi
       NWS=$BASENWS
       if [[ $WAVES = on ]]; then
-         NWS=`expr $BASENWS + 300`
+         NWS=$(($BASENWS + 300))
+      fi
+      # ADCIRC does not support blended winds with the symmetric vortex model
+      if [[ $BACKGROUNDMET == "namBlend" && $BASENWS -gt 8 ]]; then
+         NWS=$(($BASENWS + 10))  # e.g., 320 becomes 330
+         NWS=-$NWS  # indicates that the first OWI dataset starts at the hotstart time
       fi
       RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
       #
@@ -2159,7 +2164,7 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
@@ -2172,14 +2177,19 @@ while [ true ]; do
          $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
          if [[ -e NWS_${BASENWS}_fort.22 ]]; then
             mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
-            cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+            if [[ $BACKGROUNDMET != "namBlend" ]]; then
+               cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+               CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/fort.22"
+            else
+               CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/NWS_${BASENWS}_fort.22"
+            fi
          fi
       fi
    fi
    # BACKGROUND METEOROLOGY
-   if [[ $BACKGROUNDMET != off ]]; then
+   if [[ $BACKGROUNDMET != "off" && $BACKGROUNDMET != "namBlend" ]]; then
       NWS=-12
-      if [[ $WAVES = on ]]; then
+      if [[ $WAVES == "on" ]]; then
          NWS=-312
       fi
    fi
@@ -2187,7 +2197,26 @@ while [ true ]; do
    RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
 
    case $BACKGROUNDMET in
-      on|NAM)
+      "namBlend")
+         getNamOptions="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR \
+                        --enstorm $SCENARIO --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH \
+                        --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle 00,06,12,18 \
+                        --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
+         scenarioMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $getNamOptions 2>> ${SYSLOG}"
+         namEnd=$(perl ${SCRIPTDIR}/get_nam.pl $getNamOptions 2>> ${SYSLOG})
+         namToOwiOptions=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $SCENARIO --applyRamp $SPATIALEXTRAPOLATIONRAMP \
+                --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 \
+                --dataDir $SCENARIODIR/$namEnd/$SCENARIO --outDir ${SCENARIODIR}/$namEnd/$SCENARIO/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+         scenarioMessage "$SCENARIO: $THIS: Converting NAM data to OWI format with the following options : $namToOwiOptions"
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $namToOwiOptions >> ${SYSLOG} 2>&1
+         # create links to the OWI files
+         NAM221=$(ls $namEnd/$SCENARIO/NAM*.221 2>> $SYSLOG)
+         NAM222=$(ls $namEnd/$SCENARIO/NAM*.222 2>> $SYSLOG)
+         ln -s $NAM221 fort.221 2>> ${SYSLOG}
+         ln -s $NAM222 fort.222 2>> ${SYSLOG}
+         cp $namEnd/$SCENARIO/fort.22 $SCENARIODIR/owi_fort.22 2>> $SYSLOG  # contains the WTIMINC, which is needed by control_file_gen.pl
+      ;;
+      "on"|"NAM")
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
@@ -2242,7 +2271,7 @@ while [ true ]; do
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
-      OWI)
+      "OWI")
          # this is a hack to enable running pre-existing OWI files for hindcast
          #
          # hard code the file location and assume the names of the files have
@@ -2290,14 +2319,14 @@ while [ true ]; do
          done
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
-     off)
-        # don't need to download any data
-        # FIXME: writeProperties?
-        ;;
-     *) # should be unreachable
-        RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
-        fatal "BACKGROUNDMET did not match an allowable value."
-        ;;
+      "off")
+         # don't need to download any data
+         # FIXME: writeProperties?
+         ;;
+      *) # should be unreachable
+         RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
+         fatal "BACKGROUNDMET did not match an allowable value."
+         ;;
    esac
 
    # send out an email alerting end users that a new cycle has been issued
