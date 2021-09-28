@@ -54,7 +54,8 @@ END {
       # need to write the final job data
       print "{ \"jobtype\" : "jobtype" \"time.submit\" : "submit" \"jobid\" : "jobid" \"time.start\" : "start" \"time.finish\" : "finish" \"time.error\" : "error" }"
       print "]," # end of jobs.status array
-      date=strftime("%Y-%m-%d-T%H:%M:%S%z")
+      # replace strftime with direct call to `date`
+      "date +%Y-%m-%d-T%H:%M:%S%z" | getline date
       print "\"time.scenario.status.lastupdated\" : \""date"\""
       print "}" # end of scenario.status.json
    }
