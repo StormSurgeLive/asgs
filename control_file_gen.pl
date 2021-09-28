@@ -1325,6 +1325,8 @@ sub vortexModelParameters () {
    #
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$nhcName$advisorynum ASGS";
+   # create the RUNID
+   $ensembleid = $addHours . " hour " . $enstorm . " run";
    # create the WTIMINC line
    $wtiminc = $cy." ".$cm." ".$cd." ".$ch." 1 ".$bladj;
    if ( abs($nws) == 20 || abs($nws) == 320 ) {

@@ -57,7 +57,7 @@ BACKGROUNDMET=on         # NAM download/forcing
 TROPICALCYCLONE=off      # tropical cyclone forcing
    STORM=07              # storm number, e.g. 05=ernesto in 2006
    YEAR=2021             # year of the storm
-WAVES=off                # wave forcing
+WAVES=off                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
 #STATICOFFSET=0.30
@@ -70,13 +70,18 @@ NCPU=2015                # number of compute CPUs for all simulations
 NCPUCAPACITY=9999
 NUMWRITERS=1
 
+
+enablePostStatus="yes"
+enableStatusNotify="yes"
+statusNotify="jason.g.fleming@gmail.com,jason.fleming@seahorsecoastal.com,asgsnotifications@opayq.com"
+
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
 POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,janelle.fleming@seahorsecoastal.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds2 )
+TDS=( lsu_tds )
 
 #
 # Scenario package
@@ -93,11 +98,9 @@ case $si in
        ;;
     0)
        ENSTORM=namforecastWind10m
-       QUEUENAME=small # same as SLURM partition
        ;;
     1)
        ENSTORM=namforecast
-       QUEUENAME=normal # same as SLURM partition
        ;;
     *)
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
