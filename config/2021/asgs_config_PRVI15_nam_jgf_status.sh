@@ -78,8 +78,8 @@ RMQMessaging_Transmit="on"
 hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
 hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
 enablePostStatus="yes"
-enableStatusNotify="yes"
-statusNotify="jason.g.fleming@gmail.com,jason.fleming@seahorsecoastal.com"
+enableStatusNotify="no"
+statusNotify="null"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
