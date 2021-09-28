@@ -2132,6 +2132,7 @@ while [ true ]; do
                # ADCIRC does not support blended winds with the symmetric vortex model
                fatal "$ENSTORM: $THIS: The BACKGROUNDMET parameter was set to '$BACKGROUNDMET' but this setting cannot be combined with VORTEXMODEL=$VORTEXMODEL."
             fi
+            ;;
          "on"|"NAM"|"OWI")
             fatal "$ENSTORM: $THIS: The parameter settings TROPICALCYCLONE=$TROPICALCYCLONE and BACKGROUNDMET=$BACKGROUNDMET cannot be combined in an ASGS configuration."
             ;;
@@ -2266,10 +2267,10 @@ while [ true ]; do
          scenarioMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $getNamOptions >> ${SYSLOG} 2>&1"
          namEnd=0
          while [[ $namEnd -lt 2 ]]; do
-            namEnd=$(perl ${SCRIPTDIR}/get_nam.pl $getNamOptions >> ${SYSLOG} 2>&1)
+            namEnd=$(perl ${SCRIPTDIR}/get_nam.pl $getNamOptions 2>> ${SYSLOG})
             erroValue=$?
             if [[ $namEnd -lt 2 ]]; then
-               warn "$ENSTORM: $THIS: Failed to download NAM nowcast meteorological data for blending. Will retry indefinitely."
+               warn "$ENSTORM: $THIS: The get_nam.pl script returned namEnd='$namEnd'. Failed to download NAM nowcast meteorological data for blending. Will retry indefinitely."
                sleep 60
             fi
             if [[ $erroValue != 0 ]]; then
