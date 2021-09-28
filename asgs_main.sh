@@ -2126,7 +2126,10 @@ while [ true ]; do
       case $BACKGROUNDMET in
          "namBlend")
             if [[ $BASENWS -gt 8 ]]; then
-               NWS=$(($BASENWS + 10))  # e.g., 320 becomes 330
+               NWS=$(($BASENWS + 10))  # e.g., 20 becomes 30
+               if [[ $WAVES == on ]]; then
+                  NWS=$(($NWS + 300))  # e.g., 30 becomes 330
+               fi
                NWS=-$NWS  # indicates that the first OWI dataset starts at the hotstart time
             else
                # ADCIRC does not support blended winds with the symmetric vortex model
