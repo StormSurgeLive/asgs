@@ -36,7 +36,7 @@
 
 # Fundamental
 
-INSTANCENAME=PRVI15_nam_jgf_status  # "name" of this ASGS process
+INSTANCENAME=PRVI15_al182021_jgf_bnowcast  # "name" of this ASGS process
 
 # Input files and templates
 
@@ -47,11 +47,11 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 TIDEFAC=on            # tide factor recalc
 HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
+BACKGROUNDMET=namBlend      # NAM download/forcing
 FORECASTCYCLE="00,06,12,18"
 #   forecastSelection="strict"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-STORM=05             # storm number, e.g. 05=ernesto in 2006
+TROPICALCYCLONE=on   # tropical cyclone forcing
+STORM=18             # storm number, e.g. 05=ernesto in 2006
 YEAR=2021            # year of the storm
 WAVES=on             # wave forcing
 #STATICOFFSET=0.1524
@@ -68,15 +68,13 @@ NCPUCAPACITY=9999
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com"
+POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+OPENDAPNOTIFY="null"
 
 # Monitoring
 
-RMQMessaging_Enable="on"
-RMQMessaging_Transmit="on"
-hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
-hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
+RMQMessaging_Enable="off"
+RMQMessaging_Transmit="off"
 enablePostStatus="yes"
 enableStatusNotify="no"
 statusNotify="null"
@@ -85,7 +83,7 @@ statusNotify="null"
 
 COLDSTARTDATE=auto
 HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2021/nam/2021082606/PRVI15/frontera.tacc.utexas.edu/PRVI15_nam_jgf/namforecast
+LASTSUBDIR=http://chg-1.oden.tacc.utexas.edu/thredds/fileServer/asgs/2021/nam/2021092500/PRVI15/stampede2.tacc.utexas.edu/PRVI15_nam_bde_status/namforecast
 
 # Scenario package 
 
@@ -95,18 +93,20 @@ case $si in
  -2)
    ENSTORM=hindcast
    OPENDAPNOTIFY="null"
+   hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
    ;;
 -1)
    # do nothing ... this is not a forecast
    ENSTORM=nowcast
    OPENDAPNOTIFY="null"
+   hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
    ;;
  0)
-   ENSTORM=namforecastWind10m
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."

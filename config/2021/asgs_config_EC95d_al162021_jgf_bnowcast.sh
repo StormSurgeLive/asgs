@@ -8,7 +8,7 @@
 # etc)
 #-------------------------------------------------------------------
 #
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2018--2021 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -24,7 +24,7 @@
 # You should have received a copy of the GNU General Public License along with
 # the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------
-# The defaults for parameters that can be reset in this config file 
+# The defaults for parameters that can be reset in this config file
 # are preset in the following scripts:
 # {SCRIPTDIR/platforms.sh               # also contains Operator-specific info
 # {SCRIPTDIR/config/config_defaults.sh
@@ -36,24 +36,22 @@
 
 # Fundamental
 
-INSTANCENAME=PRVI15_nam_jgf_status  # "name" of this ASGS process
+INSTANCENAME=EC95d_al162021_jgf_bnowcast  # "name" of this ASGS process
 
 # Input files and templates
 
-GRIDNAME=PRVI15
+GRIDNAME=ec95d
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Physical forcing (defaults set in config/forcing_defaults)
 
 TIDEFAC=on            # tide factor recalc
-HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on      # NAM download/forcing
-FORECASTCYCLE="00,06,12,18"
-#   forecastSelection="strict"
-TROPICALCYCLONE=off   # tropical cyclone forcing
-STORM=05             # storm number, e.g. 05=ernesto in 2006
-YEAR=2021            # year of the storm
-WAVES=on             # wave forcing
+BACKGROUNDMET=namBlend    # NAM download/forcing
+   FORECASTCYCLE="00,06,12,18"
+TROPICALCYCLONE=on    # tropical cyclone forcing
+   STORM=16           # storm number, e.g. 05=ernesto in 2006
+   YEAR=2021          # year of the storm
+WAVES=off             # wave forcing
 #STATICOFFSET=0.1524
 REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off           # variable river flux forcing
@@ -61,52 +59,50 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=959                     # number of compute CPUs for all simulations
+NCPU=15               # number of compute CPUs for all simulations
 NUMWRITERS=1
 NCPUCAPACITY=9999
 
 # Post processing and publication
 
-INTENDEDAUDIENCE=general    # can also be "developers-only" or "professional"
-POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com"
+INTENDEDAUDIENCE=general   # can also be "developers-only" or "professional"
+POSTPROCESS=( null_post.sh )
+OPENDAPNOTIFY="null"
 
 # Monitoring
 
-RMQMessaging_Enable="on"
-RMQMessaging_Transmit="on"
-hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
-hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/opendap_post.sh "
-enablePostStatus="yes"
+RMQMessaging_Enable="off"
+RMQMessaging_Transmit="off"
+enablePostStatus="no"
 enableStatusNotify="no"
 statusNotify="null"
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=auto
-HOTORCOLD=hotstart      # "hotstart" or "coldstart"
-LASTSUBDIR=http://adcircvis.tacc.utexas.edu:8080/thredds/fileServer/asgs/2021/nam/2021082606/PRVI15/frontera.tacc.utexas.edu/PRVI15_nam_jgf/namforecast
+HINDCASTLENGTH=30.0   # length of initial hindcast, from cold (days)
+COLDSTARTDATE=2021082000
+HOTORCOLD=coldstart      # "hotstart" or "coldstart"
+LASTSUBDIR=null
 
-# Scenario package 
+# Scenario package
 
 #PERCENT=default
 SCENARIOPACKAGESIZE=2 # number of storms in the ensemble
 case $si in
- -2)
+-2)
    ENSTORM=hindcast
    OPENDAPNOTIFY="null"
    ;;
 -1)
-   # do nothing ... this is not a forecast
    ENSTORM=nowcast
    OPENDAPNOTIFY="null"
    ;;
- 0)
-   ENSTORM=namforecastWind10m
+0)
+   ENSTORM=nhcConsensusWind10m
    source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
    ;;
 1)
-   ENSTORM=namforecast
+   ENSTORM=nhcConsensus
    ;;
 *)
    echo "CONFIGRATION ERROR: Unknown scenario number: '$si'."

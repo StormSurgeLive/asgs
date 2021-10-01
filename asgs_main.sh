@@ -2103,18 +2103,49 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
 
    # TROPICAL CYCLONE ONLY
-   if [[ $TROPICALCYCLONE = on ]]; then
-      BASENWS=20
-      if [[ $VORTEXMODEL = ASYMMETRIC ]]; then
-         BASENWS=19
-      fi
-      if [[ $VORTEXMODEL = SYMMETRIC ]]; then
-         BASENWS=8
-      fi
+   if [[ $TROPICALCYCLONE == "on" ]]; then
+      case $VORTEXMODEL in
+         "GAHM")
+            BASENWS=20
+            ;;
+         "ASYMMETRIC")
+            BASENWS=19
+            ;;
+         "SYMMETRIC")
+            BASENWS=8
+            ;;
+         *)
+            fatal "$ENSTORM: $THIS: The VORTEXMODEL parameter was set to '$VORTEXMODEL' but the only supported choices SYMMETRIC, ASYMMETRIC, and GAHM."
+            ;;
+      esac
       NWS=$BASENWS
-      if [[ $WAVES = on ]]; then
-         NWS=`expr $BASENWS + 300`
+      if [[ $WAVES == on ]]; then
+         NWS=$(($BASENWS + 300))
       fi
+      # need to set NWS properly for NAM blending
+      case $BACKGROUNDMET in
+         "namBlend")
+            if [[ $BASENWS -gt 8 ]]; then
+               NWS=$(($BASENWS + 10))  # e.g., 20 becomes 30
+               if [[ $WAVES == on ]]; then
+                  NWS=$(($NWS + 300))  # e.g., 30 becomes 330
+               fi
+               NWS=-$NWS  # indicates that the first OWI dataset starts at the hotstart time
+            else
+               # ADCIRC does not support blended winds with the symmetric vortex model
+               fatal "$ENSTORM: $THIS: The BACKGROUNDMET parameter was set to '$BACKGROUNDMET' but this setting cannot be combined with VORTEXMODEL=$VORTEXMODEL."
+            fi
+            ;;
+         "on"|"NAM"|"OWI")
+            fatal "$ENSTORM: $THIS: The parameter settings TROPICALCYCLONE=$TROPICALCYCLONE and BACKGROUNDMET=$BACKGROUNDMET cannot be combined in an ASGS configuration."
+            ;;
+         "off")
+            # this is the typical setting when TROPICALCYCLONE=on
+            ;;
+         *)
+            fatal "$ENSTORM: $THIS: The BACKGROUNDMET parameter was set to '$BACKGROUNDMET' but the only supported choices when TROPICALCYCLONE=$TROPICALCYCLONE are 'off' and 'namBlend'."
+            ;;
+      esac
       RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
       #
       executeHookScripts "NOWCAST_POLLING"
@@ -2159,7 +2190,7 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --metfile $NOWCASTDIR/fort.22 --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Generating ADCIRC Met File (fort.22) for nowcast."
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
@@ -2168,26 +2199,103 @@ while [ true ]; do
       STORMNAME=`grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "StormName is $STORMNAME"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
-      if [[ $VORTEXMODEL = GAHM || $VORTEXMODEL = ASYMMETRIC ]]; then
-         $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
-         if [[ -e NWS_${BASENWS}_fort.22 ]]; then
-            mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
-            cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
-         fi
-      fi
+      case $VORTEXMODEL in
+         "GAHM"|"ASYMMETRIC")
+            # need to run aswip to pre-calculate Rmaxes
+            $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
+            if [[ -e NWS_${BASENWS}_fort.22 ]]; then
+               mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+               case $BACKGROUNDMET in
+                  "namBlend")
+                     # ADCIRC needs to read a file named fort.22 that represents
+                     # the gridded NAM wind field
+                     CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/NWS_${BASENWS}_fort.22"
+                     ;;
+                  "off")
+                     # this is the only met file ADCIRC will need to read so
+                     # rename it fort.22
+                     cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+                     CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/fort.22"
+                     ;;
+                  *)
+                     # should be unreachable based on param checks above
+                     ;;
+               esac
+            else
+               fatal "$ENSTORM: $THIS: '$ADCIRCDIR/aswip -n $BASENWS' failed to produce 'NWS_${BASENWS}_fort.22'."
+            fi
+            ;;
+         "SYMMETRIC")
+            # cannot blend symmetric wind fields in ADCIRC yet
+            # and don't need to run aswip b/c symmetric vortex
+            # uses BEST track Rmax and persists it into the forecast
+            scenarioMessage "$ENSTORM: $THIS: Using symmetric vortex model, NWS=8."
+            ;;
+         *)
+            # should be unreachable based on param checks above
+            ;;
+      esac
    fi
    # BACKGROUND METEOROLOGY
-   if [[ $BACKGROUNDMET != off ]]; then
-      NWS=-12
-      if [[ $WAVES = on ]]; then
-         NWS=-312
-      fi
-   fi
+   case $BACKGROUNDMET in
+      "on"|"NAM"|"OWI")
+         if [[ $WAVES == "on" ]]; then
+            NWS=-312
+         else
+            NWS=-12
+         fi
+         ;;
+      "namBlend")
+         if [[ $TROPICALCYCLONE == "off" ]]; then
+            fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to 'namBlend' but this setting is only meaningful when TROPICALCYCLONE is set to 'on'."
+         fi
+         ;;
+      "off")
+         # don't need to set NWS
+         ;;
+      *)
+         RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
+         fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to $BACKGROUNDMET but the only allowable values are 'on', 'NAM', 'OWI', 'namBlend', and 'off'."
+         ;;
+   esac
 
    RMQRunParams="NWS=$NWS:$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
 
    case $BACKGROUNDMET in
-      on|NAM)
+      "namBlend")
+         getNamOptions="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR \
+                        --enstorm $SCENARIO --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH \
+                        --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle 00,06,12,18 \
+                        --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
+         scenarioMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $getNamOptions >> ${SYSLOG} 2>&1"
+         namEnd=0
+         while [[ $namEnd -lt 2 ]]; do
+            namEnd=$(perl ${SCRIPTDIR}/get_nam.pl $getNamOptions 2>> ${SYSLOG})
+            erroValue=$?
+            if [[ $namEnd -lt 2 ]]; then
+               warn "$ENSTORM: $THIS: The get_nam.pl script returned namEnd='$namEnd'. Failed to download NAM nowcast meteorological data for blending. Will retry indefinitely."
+               sleep 60
+            fi
+            if [[ $erroValue != 0 ]]; then
+               warn "$ENSTORM: $THIS: The get_nam.pl script exited with an error when attempting to download NAM nowcast meteorological data for blending. Will retry indefinitely."
+               sleep 60
+            fi
+         done
+         scenarioMessage "The download of NAM nowcast data appears to have been successful. The data end on ${namEnd}."
+         namToOwiOptions=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --namType $SCENARIO --applyRamp $SPATIALEXTRAPOLATIONRAMP \
+                --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE --awipGridNumber 218 \
+                --dataDir $SCENARIODIR/$namEnd/$SCENARIO --outDir ${SCENARIODIR}/$namEnd/$SCENARIO/ --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
+         scenarioMessage "$SCENARIO: $THIS: Converting NAM data to OWI format with the following options : $namToOwiOptions"
+         perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $namToOwiOptions >> ${SYSLOG} 2>&1
+         # create links to the OWI files
+         NAM221=$(ls $namEnd/$SCENARIO/NAM*.221 2>> $SYSLOG)
+         NAM222=$(ls $namEnd/$SCENARIO/NAM*.222 2>> $SYSLOG)
+         scenarioMessage "The NAM nowcast gridded data files for blending are $NAM221 and ${NAM222}."
+         ln -s $NAM221 fort.221 2>> ${SYSLOG}
+         ln -s $NAM222 fort.222 2>> ${SYSLOG}
+         cp $namEnd/$SCENARIO/fort.22 $SCENARIODIR/owi_fort.22 2>> $SYSLOG  # contains the WTIMINC, which is needed by control_file_gen.pl
+      ;;
+      "on"|"NAM")
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
          logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
@@ -2242,7 +2350,7 @@ while [ true ]; do
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
-      OWI)
+      "OWI")
          # this is a hack to enable running pre-existing OWI files for hindcast
          #
          # hard code the file location and assume the names of the files have
@@ -2290,14 +2398,12 @@ while [ true ]; do
          done
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
-     off)
-        # don't need to download any data
-        # FIXME: writeProperties?
-        ;;
-     *) # should be unreachable
-        RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL" "BACKGROUNDMET ($BACKGROUNDMET) did not match an allowable value."
-        fatal "BACKGROUNDMET did not match an allowable value."
-        ;;
+      "off")
+         # don't need to download any data
+         # FIXME: writeProperties?
+         ;;
+      *) # should be unreachable
+         ;;
    esac
 
    # send out an email alerting end users that a new cycle has been issued
