@@ -78,7 +78,8 @@ statusNotify="jason.g.fleming@gmail.com,jason.fleming@seahorsecoastal.com,asgsno
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+OPENDAPPOST=opendap_post2.sh
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh $OPENDAPPOST )
 OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,janelle.fleming@seahorsecoastal.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
 TDS=( lsu_tds )
