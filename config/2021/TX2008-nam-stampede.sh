@@ -28,7 +28,7 @@
 # Fundamental
 
 # "name" of this ASGS process
-INSTANCENAME=TX2008-nam-stampede2
+INSTANCENAME="TX2008-nam-opendap2-test"
 ACCOUNT=TG-DMS080016N
 QOS=vip7000 # for priority during a storm
 PPN=48
@@ -73,10 +73,10 @@ NUMWRITERS=1
 # Post processing and publication
 
 INTENDEDAUDIENCE=general    # "general" | "developers-only" | "professional"
-POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-OPENDAPNOTIFY="asgs.cera.lsu@gmail.com,jason.g.fleming@gmail.com,asgsnotifications@opayq.com,asgsnotes4ian@gmail.com,cera.asgs.tk@gmail.com,janelle.fleming@seahorsecoastal.com"
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post2.sh )
+OPENDAPNOTIFY="asgsnotifications@opayq.com"
 NOTIFY_SCRIPT=ut-nam-notify.sh
-TDS=( tacc_tds2 )
+TDS=( tacc_lsu )
 
 #
 # Scenario package
@@ -93,6 +93,7 @@ case $si in
        ;;
     0)
        ENSTORM=namforecastWind10m
+       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
        ;;
     1)
        ENSTORM=namforecast
@@ -101,7 +102,6 @@ case $si in
        echo "CONFIGURATION ERROR: Unknown ensemble member number: '$si'."
       ;;
 esac
-source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
 #
 PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
 HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
