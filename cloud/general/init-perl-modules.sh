@@ -27,9 +27,33 @@ fi
 echo Installing Perl modules required for ASGS
 
 # ensure CPAN over SSL
-MIRROR="https://www.cpan.org/"
+MIRROR="http://www.cpan.org/"
 
 # install tempermental modules first
+for module in $(cat ./PERL-MODULES.notest); do
+  cpanm --from $MIRROR --notest $module
+done
+
+# install another class of tempermental modules that require
+OLDIFS=$IFS
+IFS=$'\n'
+for line in $(cat ./PERL-MODULES.wget); do
+echo $line
+  module=$(echo $line | awk '{print $1}');
+  mURL=$(echo $line   | awk '{print $2}');
+  base=$(echo $line   | awk '{print $3}');
+  ext=$(echo $line    | awk '{print $4}');
+  pushd /tmp
+  tgz=$base.$ext
+  echo Fetching $module via $mURL/$tgz
+  wget --no-check-certificate $mURL/$tgz
+  cpanm --verbose $tgz
+  rm -v $tgz
+  popd
+done
+IFS=$OLDIFS
+
+# manual fetch via wget
 for module in $(cat ./PERL-MODULES.notest); do
   cpanm --from $MIRROR --notest $module
 done

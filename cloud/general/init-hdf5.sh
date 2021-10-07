@@ -34,7 +34,7 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e hdf5-1.8.12.tar.gz ]; then
-  wget --verbose https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-1.8.12.tar.gz
+  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-1.8.12.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null

@@ -39,7 +39,7 @@ cd $_ASGS_TMP
 
 # requires NASM 
 if [ ! -e ${NASM_TGZ} ]; then
-  wget https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/${NASM_TGZ}
+  wget --no-check-certificate https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/${NASM_TGZ}
 fi
 
 rm -rf $NASM_DIR 2> /dev/null
@@ -53,7 +53,7 @@ make install
 cd $_ASGS_TMP
 
 if [ ! -e ${FFMPEG_BZ2} ]; then
-  wget https://ffmpeg.org/releases/${FFMPEG_BZ2}
+  wget --no-check-certificate https://ffmpeg.org/releases/${FFMPEG_BZ2}
 fi
 
 rm -rf $FFMPEG_DIR 2> /dev/null

@@ -39,7 +39,7 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e netcdf-4.2.1.1.tar.gz ]; then
-  wget --verbose https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-4.2.1.1.tar.gz
+  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-4.2.1.1.tar.gz
 fi
 
 if [ ! -e netcdf-fortran-4.2.tar.gz ]; then

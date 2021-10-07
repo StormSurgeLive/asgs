@@ -24,7 +24,7 @@ NCO_TGZ=${NCO_VERSION}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${NCO_TGZ} ]; then
-  wget https://github.com/nco/nco/archive/refs/tags/${NCO_TGZ}
+  wget --no-check-certificate https://github.com/nco/nco/archive/refs/tags/${NCO_TGZ}
 fi
 
 rm -rf ./$NCO_DIR 2> /dev/null
