@@ -55,6 +55,7 @@ init_supermike()
   MATLABEXE=mex
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=16
   TDS=(lsu_tds)
   MAKEJOBS=8
@@ -76,6 +77,7 @@ init_queenbee()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LONI"
     RMQMessaging_ClusterName="Queenbee"
@@ -117,6 +119,7 @@ init_rostam()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=40
   CONSTRAINT=null
   RESERVATION=null
@@ -140,6 +143,7 @@ init_supermic()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LSU"
     RMQMessaging_ClusterName="SuperMIC"
@@ -179,6 +183,7 @@ init_queenbeeC()
   SUBMITSTRING=sbatch
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LONI"
     RMQMessaging_ClusterName="QueenbeeC"
@@ -243,6 +248,7 @@ init_hatteras()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   WALLTIMEFORMAT="minutes"
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
@@ -285,6 +291,7 @@ init_frontera()
   SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   GROUP="G-803086"
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
@@ -325,6 +332,7 @@ init_stampede2()
   SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   GROUP="G-803086"
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
@@ -360,6 +368,7 @@ init_lonestar5()
   SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   UMASK=006
   GROUP="G-803086"
   QSUMMARYCMD=null
@@ -469,6 +478,7 @@ init_penguin()
   SUBMITSTRING="mpirun"
   QSCRIPT=penguin.template.pbs
   QSCRIPTGEN=penguin.pbs.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=40
   MAKEJOBS=8
 }
