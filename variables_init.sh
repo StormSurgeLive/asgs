@@ -90,7 +90,6 @@ variables_init()
    JOBTYPE=null
    NUMWRITERS=0
    SUBMITSTRING=null
-   NOTIFYUSER=null
    RUNDIR=${RUNDIR:-null}
    INPUTDIR=$SCRIPTDIR/input/meshes/null
    OUTPUTDIR=$SCRIPTDIR/output
@@ -119,7 +118,6 @@ variables_init()
    POST_INIT_LIST=null
    POST_LIST=null
    JOB_FAILED_LIST=null
-   NOTIFYUSER=null
    RESERVATION=null # for SLURM
    CONSTRAINT=null # for SLURM
    QOS=null
