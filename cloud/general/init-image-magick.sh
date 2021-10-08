@@ -42,7 +42,7 @@ fi
 cd $_ASGS_TMP
 
 if [ ! -e ${IMAGEMAGICK_VERSION}.tar.gz ]; then 
-  wget https://github.com/ImageMagick/ImageMagick/archive/${IMAGEMAGICK_VERSION}.tar.gz
+  wget --no-check-certificate https://github.com/ImageMagick/ImageMagick/archive/${IMAGEMAGICK_VERSION}.tar.gz
 else
   echo Found $_ASGS_TMP/${IMAGEMAGICK_VERSION}.tar.gz
   rm -rf ./ImageMagic-${IMAGEMAGICK_VERSION} >/dev/null 2>&1

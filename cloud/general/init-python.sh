@@ -22,7 +22,7 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e ./Python-${PYTHON_VERSION}.tgz ]; then
-  wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+  wget --no-check-certificate https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
 fi
 if [ $? != 0 ]; then
   echo Error downloading Python ${PYTHON_VERSION}. Please check access to the URL:

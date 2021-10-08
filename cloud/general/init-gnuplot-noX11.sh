@@ -23,7 +23,7 @@ GNUP_TGZ=${GNUP_DIR}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${GNUP_TGZ} ]; then
-  wget https://pilotfiber.dl.sourceforge.net/project/gnuplot/gnuplot/${GNUP_VERSION}/${GNUP_TGZ}
+  wget --no-check-certificate https://pilotfiber.dl.sourceforge.net/project/gnuplot/gnuplot/${GNUP_VERSION}/${GNUP_TGZ}
 fi
 
 rm -rf ./$GNUP_DIR 2> /dev/null
