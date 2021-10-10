@@ -347,6 +347,139 @@ if [ ! -d "$ADCIRCDIR" ]; then
   exit 1
 fi
 
+# used to get values of specific variables out of SWAN's macros.inc
+function splitMacrosInc
+{
+  local VARIABLE=$1
+  local MACROSINC=$2
+  local line=$(grep $VARIABLE $MACROSINC | sed 's/ *= */ /' | cut -d' ' -f2- | head -n 1)
+  echo $line
+}
+
+function dumpJSON()
+{
+    local patchJSON="$1"
+    local ADCIRC_BUILD_INFO="$2"
+    local BUILD_TIME=$(date +%Y-%b-%d-T%H:%M:%S%z)
+    local MODULE_LIST=$(module list 2>&1 | grep '1)');
+
+    # get compiler info
+    local _FC=$(which ifort)
+    local _CC=$(which icc)
+    case "$ADCIRC_COMPILER" in
+    intel)
+      # default, above
+    ;;
+    gfortran)
+      _FC=$(which gfortran)
+      _CC=$(which gcc)
+    ;;
+    *)
+      echo '(warn) unknown compiler is unsupported...; defaulting to info for "intel"'
+    esac 
+    local _FC_VERSION=$($_FC --version | head -n 1) 
+    local _CC_VERSION=$($_CC --version | head -n 1)
+
+    # mpif90 info
+    MPIF90=$(which mpif90)
+
+    # get SHA of ADCIRC git repo before patching
+    pushd $ADCIRCBASE 2> /dev/null
+    BASE_SHA=$(git log | head -n 1 | awk '{print $2}')
+    popd 2> /dev/null
+
+    # grep out details from $SWANDIR/macros.inc
+    MACROSINC="$SWANDIR/macros.inc"
+    local F90_SER=$(splitMacrosInc     F90_SER     $MACROSINC)
+    local F90_OMP=$(splitMacrosInc     F90_OMP     $MACROSINC)
+    local F90_MPI=$(splitMacrosInc     F90_MPI     $MACROSINC)
+    local FLAGS_OPT=$(splitMacrosInc   FLAGS_OPT   $MACROSINC)
+    local FLAGS_MSC=$(splitMacrosInc   FLAGS_MSC   $MACROSINC)
+    local FLAGS90_MSC=$(splitMacrosInc FLAGS90_MSC $MACROSINC)
+    local FLAGS_SER=$(splitMacrosInc   FLAGS_SER   $MACROSINC)
+    local FLAGS_OMP=$(splitMacrosInc   FLAGS_OMP   $MACROSINC)
+    local FLAGS_MPI=$(splitMacrosInc   FLAGS_MPI   $MACROSINC)
+
+    # output JSON, redact $USE:
+    cat <<JSON | sed "s/$USER/\$USER/g" > $ADCIRC_BUILD_INFO
+  {
+    "adcirc.build.swan.macros-inc"             : "$MACROSINC",
+    "adcirc.build.swan.macros-inc.F90_SER"     : "$F90_SER",
+    "adcirc.build.swan.macros-inc.F90_MPI"     : "$F90_MPI",
+    "adcirc.build.swan.macros-inc.F90_OMP"     : "$F90_OMP",
+    "adcirc.build.swan.macros-inc.FLAGS_OPT"   : "$FLAGS_OPT",
+    "adcirc.build.swan.macros-inc.FLAGS_MSC"   : "$FLAGS_MSC",
+    "adcirc.build.swan.macros-inc.FLAGS90_MSC" : "$FLAGS90_MSC",
+    "adcirc.build.swan.macros-inc.FLAGS_SER"   : "$FLAGS_SER",
+    "adcirc.build.swan.macros-inc.FLAGS_MPI"   : "$FLAGS_MPI",
+    "adcirc.build.swan.macros-inc.FLAGS_OMP"   : "$FLAGS_OMP",
+    "time.adcirc.executables.built"      : "$BUILD_TIME",
+    "adcirc.source.commit"               : "$BASE_SHA",
+    "adcirc.source.asgs.patches.set"     : "$PATCHSET_NAME",
+    "adcirc.source.asgs.patches.applied" : [
+$patchJSON
+    ],
+    "adcirc.source.branch-base"          : "$ADCIRC_GIT_BRANCH",
+    "env.adcirc.build.ASGS_HOME"         : "$ASGS_HOME",
+    "env.adcirc.build.ASGS_MACHINE_NAME" : "$ASGS_MACHINE_NAME",
+    "env.adcirc.build.NETCDFHOME"        : "$NETCDFHOME",
+    "env.adcirc.build.ADCIRCBASE"        : "$ADCIRCBASE",
+    "env.adcirc.build.ADCIRCDIR"         : "$ADCIRCDIR",
+    "env.adcirc.build.SWANDIR"           : "$SWANDIR",
+    "env.adcirc.build.ADCIRC_COMPILER"   : "$ADCIRC_COMPILER",
+    "env.adcirc.build.ADCIRC_GIT_BRANCH" : "$ADCIRC_GIT_BRANCH",
+    "env.adcirc.build.ADCIRC_GIT_URL"    : "$ADCIRC_GIT_URL",
+    "env.adcirc.build.ADCIRC_GIT_REPO"   : "$ADCIRC_GIT_REPO",
+    "env.adcirc.build.ASGS_MAKEJOBS"     : "$ASGS_MAKEJOBS",
+    "env.adcirc.build.ADCIRC_MAKE_CMD"   : "$ADCIRC_MAKE_CMD",
+    "env.adcirc.build.SWAN_UTIL_BINS_MAKE_CMD" : "$SWAN_UTIL_BINS_MAKE_CMD",
+    "env.adcirc.build.ADCSWAN_MAKE_CMD"        : "$ADCSWAN_MAKE_CMD",
+    "env.adcirc.build.ADCIRC_PROFILE_NAME"     : "$ADCIRC_PROFILE_NAME",
+    "env.adcirc.build.ADCIRC_BINS"       : "$ADCIRC_BINS",
+    "env.adcirc.build.ADCSWAN_BINS"      : "$ADCSWAN_BINS",
+    "env.adcirc.build.SWAN_UTIL_BINS"    : "$SWAN_UTIL_BINS",
+    "env.adcirc.build.PATH"              : "$PATH",
+    "env.adcirc.build.LD_LIBRARY_PATH"   : "$LD_LIBRARY_PATH",
+    "env.adcirc.build.LD_INCLUDE_PATH"   : "$LD_INCLUDE_PATH",
+    "adcirc.build.fortran.mpif90"        : "$MPIF90",
+    "adcirc.build.fortran.compiler"      : "$_FC",
+    "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
+    "adcirc.build.c.compiler"            : "$_CC",
+    "adcirc.build.c.compiler.version"    : "$_CC_VERSION",
+    "adcirc.build.modules.loaded"        : "$MODULE_LIST"
+  }
+JSON
+}
+
+function dumpMETA() 
+{
+  local ADCIRC_META_FILE="$1"
+  cat <<META > $ADCIRC_META_FILE
+export ASGS_HOME='$ASGS_HOME'
+export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME'
+export NETCDFHOME='$NETCDFHOME'
+export ADCIRCBASE='$ADCIRCBASE'
+export ADCIRCDIR='$ADCIRCDIR'
+export SWANDIR='$SWANDIR'
+export ADCIRC_COMPILER='$ADCIRC_COMPILER'
+export ADCIRC_BUILD_INFO='$ADCIRC_BUILD_INFO'
+export ADCIRC_GIT_BRANCH='$ADCIRC_GIT_BRANCH'
+export ADCIRC_GIT_URL='$ADCIRC_GIT_URL'
+export ADCIRC_GIT_REPO='$ADCIRC_GIT_REPO'
+export ASGS_MAKEJOBS=$ASGS_MAKEJOBS
+export ADCIRC_MAKE_CMD='$ADCIRC_MAKE_CMD'
+export SWAN_UTIL_BINS_MAKE_CMD='$SWAN_UTIL_BINS_MAKE_CMD'
+export ADCSWAN_MAKE_CMD='$ADCSWAN_MAKE_CMD'
+export ADCIRC_PROFILE_NAME='$ADCIRC_PROFILE_NAME'
+export ADCIRC_BINS='$ADCIRC_BINS'
+export ADCSWAN_BINS='$ADCSWAN_BINS'
+export SWAN_UTIL_BINS='$SWAN_UTIL_BINS'
+META
+}
+
+# loop required to generate this part of the JSON string...
+#    "adcirc.source.asgs.patches.applied" : [ { "path" : "/work2/06482/asgs/stampede2/asgs/patches/ADCIRC/v53release/01-v53release-qbc.patch", "commit" : "1234562943927bc2af0f4a894e0417134f373a100" } ],
+
 # ~ A P P L Y  P A T C H S E T ~
 #
 # Notes:
@@ -354,10 +487,12 @@ fi
 # 2. Informs and skips patching if patches have already been applied
 # 3. Adding a patch set is not too difficult, but is not done here; look "up"
 #
-PTOUCH="$(pwd)/${ADCIRC_GIT_BRANCH}-applied.out"
+BUILDSCRIPT="${ADCIRCBASE}/asgs-build.sh"
+ADCIRC_BUILD_INFO=${ADCIRCBASE}/adcirc.bin.buildinfo.json
 if [ -n "${PATCHSET_DIR}" ]; then
-  if [ -e "${PTOUCH}" ]; then
+  if [ -e "${BUILDSCRIPT}" ]; then
     echo "(info) patches already applied, skipping ..."
+    ALREADYPATCHED=1
   else
     if [ ! -d "${PATCHSET_DIR}" ]; then
       echo "(fatal) patch set directory not found. Exiting."
@@ -368,8 +503,10 @@ if [ -n "${PATCHSET_DIR}" ]; then
     # apply from perspective of $ADCIRCBASE, since it's possible we could also
     # be patching in a third party directory
     pCOUNT=1
+    patches=()
     for diff in $(find ${PATCHSET_DIR} -type f  | sort -n); do
-      printf "patch %02d - applying %s\n" $pCOUNT $diff
+      patches+=($diff)
+      printf "applying patch %02d ... %s\n" $pCOUNT $diff
       OUT=$(patch -p1 < $diff 2>&1)
       EXIT=$?
       if [ $EXIT -gt 0 ]; then
@@ -379,22 +516,37 @@ if [ -n "${PATCHSET_DIR}" ]; then
         exit $EXIT
       fi
       _app_date=$(date "+%D %T %Z")
-      echo "$_app_date $diff" >> $PTOUCH
+      echo "# $_app_date $diff" >> $BUILDSCRIPT
       pCOUNT=$((pCOUNT+1))
     done
+    # generates JSON array for list of patches
+    patchJSON=$(
+    for i in "${patches[@]}"
+    do
+      if [ "$i" != "${patches[@]: -1}" ]; then
+        echo "      \"$i\"",
+      fi
+    done
+    echo "      \"${patches[@]: -1}\"")
   fi
 fi
 
 if [ "$INTERACTIVE" = "yes" ]; then
   answer=
+  if [ -z "${ALREADYPATCHED}" ]; then
+    echo
+    echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
+    echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
+    echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
+    echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
+    echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
+    echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
+  fi
+
   echo
-  echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
+  cat ${BUILDSCRIPT} | grep -v '#'
   echo
-  echo "cd $SWANDIR && \\"
-  echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\"
-  echo "cd $ADCIRCDIR && \\"
-  echo "   $ADCIRC_MAKE_CMD && \\"
-  echo "   $ADCSWAN_MAKE_CMD"
+  echo Build command contained in file, ${BUILDSCRIPT}
   echo
   _answer=yes
   read -p "Proceed to build? [$_answer] " answer
@@ -409,11 +561,7 @@ if [ "$INTERACTIVE" = "yes" ]; then
 fi
 
 # attempt to build
-cd $SWANDIR          && \
-$SWAN_UTIL_BINS_MAKE_CMD && \
-cd $ADCIRCDIR        && \
-$ADCIRC_MAKE_CMD     && \
-$ADCSWAN_MAKE_CMD
+bash ${BUILDSCRIPT}
 
 EXIT=$?
 
@@ -422,29 +570,13 @@ if [ $EXIT -gt 0 ]; then
   exit $EXIT
 fi
 
+# dump JSON with build details into $ADCIRCBASE
+dumpJSON "$patchJSON" "$ADCIRC_BUILD_INFO"
+
 # create directory to track ADCIRC installations
 mkdir -p $ADCIRC_META_DIR 2> /dev/null
 
-# set default if not set
-ADCIRC_META_FILE=$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME
-echo 'export ASGS_HOME='$ASGS_HOME                               >  $ADCIRC_META_FILE
-echo 'export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME               >> $ADCIRC_META_FILE
-echo 'export NETCDFHOME='$NETCDFHOME                             >> $ADCIRC_META_FILE
-echo 'export ADCIRCBASE='$ADCIRCBASE                             >> $ADCIRC_META_FILE
-echo 'export ADCIRCDIR='$ADCIRCDIR                               >> $ADCIRC_META_FILE
-echo "export SWANDIR='$SWANDIR'"                                 >> $ADCIRC_META_FILE
-echo 'export ADCIRC_COMPILER='$ADCIRC_COMPILER                   >> $ADCIRC_META_FILE
-echo 'export ADCIRC_GIT_BRANCH='$ADCIRC_GIT_BRANCH               >> $ADCIRC_META_FILE
-echo 'export ADCIRC_GIT_URL='$ADCIRC_GIT_URL                     >> $ADCIRC_META_FILE
-echo 'export ADCIRC_GIT_REPO='$ADCIRC_GIT_REPO                   >> $ADCIRC_META_FILE
-echo 'export ASGS_MAKEJOBS='$ASGS_MAKEJOBS                       >> $ADCIRC_META_FILE
-echo "export ADCIRC_MAKE_CMD='$ADCIRC_MAKE_CMD'"                 >> $ADCIRC_META_FILE
-echo "export SWAN_UTIL_BINS_MAKE_CMD='$SWAN_UTIL_BINS_MAKE_CMD'" >> $ADCIRC_META_FILE
-echo "export ADCSWAN_MAKE_CMD='$ADCSWAN_MAKE_CMD'"               >> $ADCIRC_META_FILE
-echo "export ADCIRC_PROFILE_NAME=$ADCIRC_PROFILE_NAME"           >> $ADCIRC_META_FILE
-echo "export ADCIRC_BINS='$ADCIRC_BINS'"                         >> $ADCIRC_META_FILE
-echo "export ADCSWAN_BINS='$ADCSWAN_BINS'"                       >> $ADCIRC_META_FILE
-echo "export SWAN_UTIL_BINS='$SWAN_UTIL_BINS'"                   >> $ADCIRC_META_FILE
+dumpMETA "$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME"
 
 if [ "$INTERACTIVE" == "yes" ]; then
   echo
@@ -453,6 +585,9 @@ if [ "$INTERACTIVE" == "yes" ]; then
   echo
   echo   load adcirc $ADCIRC_PROFILE_NAME
   echo
-  echo "Once loaded, save the current asgsh profile using the the 'save' command."
+  echo Once loaded, save the current asgsh profile using the the 'save' command.
+  echo
+  echo Information on the build itself is available in JSON format in,
+  echo   $ADCIRC_BUILD_INFO
   echo
 fi
