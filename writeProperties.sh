@@ -88,7 +88,7 @@ writeProperties()
    echo "notification.email.new_advisory_list : \"$NEW_ADVISORY_LIST\"" >> $STORMDIR/run.properties
    echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR/run.properties
    echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.hpc.email.notifyuser : "deprecated - do not use - will be removed in the future" >> $STORMDIR/run.properties
+   echo "notification.hpc.email.notifyuser : deprecated - do not use - will be removed in the future" >> $STORMDIR/run.properties
    echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR/run.properties
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
    # monitoring (includes logging)
