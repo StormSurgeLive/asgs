@@ -1,0 +1,39 @@
+This document is meant to be concise. It's not a summary
+of "best practices", but some general guidelines and what
+kind of languages are preferred. If there are specific language
+constructs and practices that are required, it's noted.
+
+Recommended for maximum portability
+
+* Perl (ASGS installs its own via perlbrew)
+* bash (uses the system's bash)
+* sh (provide it'll work in bash - which it should)
+* standard unix toolset (sed, find, grep, etc)
+* awk
+* make/gmake (for building and some kinds of automation)
+
+Discouraged (for new things)
+
+* cmake, other non-standard build tools
+* any unix shell scripting that isn't supported by bash or sh (non-bourne/bourne-again compliant)
+* python (any version)
+
+Language Specific "standards"
+
+Perl
+
+* use "3 arg" 'open'
+* sprintf is preferred over 'concatenation' operator, "."
+* use strict;
+* use warnings;
+
+bash
+
+* quote variables
+* use arrays and associative arrays to define lists
+* implicitly iterate over arrays (including associative) (no index counting)
+
+awk
+
+* don't use any OS specific extensions (e.g., gawk, nawk, etc may implement in some)
+

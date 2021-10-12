@@ -13,6 +13,8 @@ be patient, it's something that comes with time. But once the learning curve is
 climbed, git is an incredibly flexible and powerful tool for development inside and
 among teams.
 
+NOTE 3: Please see ./CODING-GUIDE for preferred languages and styles.
+
 The general workflow is:
 
 A. create an "issue" (not required until the pull request (PR) is created). [1,2]
