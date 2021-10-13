@@ -486,7 +486,10 @@ postStatus() {
     local logfile=$(basename -- $SYSLOG)
     textlog="${logfile%.*}.txt"
     sed "s/$USER/\$USER/g" $SYSLOG > $statusDir/$textlog
-    $SCRIPTDIR/output/opendap_post.sh $statfile
+    # NB: OPENDAPPOST is defined in platforms.sh; also full path to
+    # $OPENDAPPOST is needed because of the way it's currently used in
+    # the list of $POSTPROCESS scripts defined in the ASGS config being used
+    $SCRIPTDIR/output/$OPENDAPPOST $statfile
 }
 
 initFileStatusMonitoring() {
