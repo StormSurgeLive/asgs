@@ -503,7 +503,6 @@ writeTDSProperties()
    operator=$USER
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
-   OPENDAPMAILSERVER=mailx  # this is the local default mail server executable on the HPC
    case $SERVER in
    "renci_tds")
       # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
@@ -581,11 +580,7 @@ writeTDSProperties()
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> $RUNPROPERTIES
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is
    # set up and ready to use
-   # FIXME: create something more reliable/repeatable
-   if [[ -e $HOME/asgs-global.conf ]]; then
-      OPENDAPMAILSERVER=aws
-   fi
-   echo "notification.opendap.email.opendapmailserver : $OPENDAPMAILSERVER" >> $RUNPROPERTIES
+   echo "notification.opendap.email.opendapmailserver : aws" >> $RUNPROPERTIES
 }
 #
 # set the values of HPCENV and HPCENVSHORT
