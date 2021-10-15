@@ -23,3 +23,4 @@ Archive::Zip
 JSON::XS
 YAML::Tiny
 DBD::SQLite
+Util::H2O

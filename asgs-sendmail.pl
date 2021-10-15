@@ -30,17 +30,23 @@ use Email::Sender::Transport::SMTP::TLS; # creates transport object
 use Email::Simple::Creator;  # generates message itself (converts header and body from hash to text email)
 use Config::Tiny; # reads ini format ... converts to a perl hash
 use Try::Tiny;    # exception handling (alternative to eval)
+use POSIX qw/strftime/;
 use Getopt::Long;
+use Util::H2O qw/h2o/;
 use constant EXIT_SUCCESS => 0;
 
 my $subject     = q{no subject};
 my $HOME        = ( getpwuid($<) )[7];
 my $config_file = qq{$HOME/asgs-global.conf};
+# $logfile default, assumes asgsh env, which has $SCRIPTDIR defined
+# so ideal default $logfile is /path/to/asgs/mail.log
+my $logfile     = sprintf(qq{%s/mail.log}, $ENV{SCRIPTDIR} // $HOME);
 my $to;
 
 GetOptions(
     "c|config=s"  => \$config_file,
     "h|help"      => \&show_help,
+    "l|logfile=s" => \$logfile,
     "s|subject=s" => \$subject,
     "t|to=s"      => \$to,
 );
@@ -73,13 +79,26 @@ sub run {
     my $config = Config::Tiny->new();
     $config = Config::Tiny->read($config_file);
 
-    my $transport = Email::Sender::Transport::SMTP::TLS->new(
+    # create log message
+    my $logmsg = sprintf(qq{subject: "%s", to: "%s"}, $subject, $to);
+
+    # WAL
+    logger( type => q{WAL}, file => $logfile, msg => $logmsg);
+
+    my $transport = try {
+      Email::Sender::Transport::SMTP::TLS->new(
         host     => $config->{email}->{smtp_host},
         port     => $config->{email}->{smtp_port} // 587,    # defaults to TLS if not set
         username => $config->{email}->{smtp_username},
         password => $config->{email}->{smtp_password},
         helo     => 'HELO',
-    );
+      );
+    }
+    catch {
+      logger($logfile, qq{(FAILED) $logmsg - $_});
+      logger( type => q{FAILED}, file => $logfile, msg => qq{$logmsg - $_});
+      die "Error sending email: $_";
+    };
 
     my $message = Email::Simple->create(
         header => [
@@ -93,8 +112,10 @@ sub run {
 
     try {
         sendmail( $message, { transport => $transport } );
+        logger(type => q{OK}, file => $logfile, msg => $logmsg);
     }
     catch {
+        logger( type => q{FAIL}, file => $logfile, msg => qq{$logmsg - $_});
         die "Error sending email: $_";
     };
     return EXIT_SUCCESS;
@@ -103,6 +124,16 @@ sub run {
 sub show_help {
     print qq{$0 --subject "subject line" --to recipient\@email.tdl < body.txt\n};
     exit EXIT_SUCCESS;
+}
+
+sub logger {
+  my %opts = @_ ;
+  my $opts = h2o \%opts; # make accessors
+  if ( open my $fh, q{>>}, $opts->file ) {
+    my $timestamp = strftime( "%a %b %e %H:%M:%S %Y UTC", gmtime(time) );
+    printf $fh qq{%06d (%4s) [%s] %s\n}, $$, $opts->type, $timestamp, $opts->msg;
+    close $fh;
+  }
 }
 
 1;
@@ -140,9 +171,9 @@ This utility is used to send emails using an external SMTP server.
 
 =head2 Required
 
-=over4
+=over 4
 
-=item C<--to>
+=item C<-t|--to>
 
 One or more recipients must be defined. If more than one, pass in as a comma delimted string. See perldoc for more information (POD at the end of this file).
 
@@ -150,21 +181,28 @@ One or more recipients must be defined. If more than one, pass in as a comma del
 
 =head2 Optional
 
-=over4
+=over 4
 
-=item C<--c>
+=item C<-c|--config path/to/config.file>
 
 Define a non-default configuration file. See below for the format involved in creating the configuration file used by this script.
 
-=item C<--subject>
+=item C<-l|--logfile path/to/log.file>
+
+Specifies a log file; assumes C<ASGS Shell Environment>, thus it
+defaults to C<$ENV{SCRIPTDIR}/mail.log>; if this environment variable is
+not defined, then it default to C<$HOME/mail.log>.
+
+=item C<-s|--subject>
 
 Defines subject thread. There is a default, but it's meaningless.
 
 =back
+
 =head1 CONFIGURATION
 
-By default, a configuration file located at $HOME/asgs-global.conf is
-required. This file contains the necessary authoriziation information
+By default, a configuration file located at C<$HOME/asgs-global.conf>
+is required. This file contains the necessary authoriziation information
 required for sending emails through an external SMTP server gateway.
 TLS (port 587) is a preferred transport for security reasons, but the
 underlying module supports SSL and unecrypted (port 25).
