@@ -48,7 +48,12 @@ sub run {
         my $storms_ref = $nhc->active_storms;
         my $storm_count = @$storms_ref;
 
-        print qq{\n(found $storm_count storm(s)) ...\n\n};
+        print qq{\n(found $storm_count storm(s)) ...\n};
+
+        if (not @$storms_ref) {
+          _sleep( $sleep, q{polling for latest NHC information...} );
+          next GET_JSON;
+        }
 
         STORMS:
         foreach my $storm (@$storms_ref) {
