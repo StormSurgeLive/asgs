@@ -39,11 +39,11 @@
 INSTANCENAME=PRVI15_nam_bde_status  # "name" of this ASGS process
 ASGSADMIN="asgsnotifications@opayq.com"
 
-ACCOUNT=loni_cera_2020b
+ACCOUNT=loni_cera_2021
 #QUEUENAME=priority # same as SLURM partition
 QUEUENAME=workq
 SERQUEUE=single
-PPN=48
+PPN=20
 
 # Input files and templates
 
