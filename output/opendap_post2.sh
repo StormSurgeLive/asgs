@@ -71,8 +71,6 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
    warn "cycle $CYCLE: $SCENARIO: $THIS: No files to post to opendap servers in $RUNPROPERTIES."
    exit
 fi
-OPENDAPNOTIFY="${properties['notification.opendap.email.opendapnotify']}"
-#
 if [[ $SCENARIO == "asgs.instance.status" ]]; then
     statusDir=${properties['path.statusdir']}
     cd ${statusDir} > errmsg 2>&1 || warn "$SCENARIO: $THIS: Failed to change directory to '$statusDir': `cat errmsg`."
