@@ -11,59 +11,84 @@ likely that their changes are accepted upstream. This means that
 their work will persist and that their work to maintain their own
 fork against an upstream source is eliminated.
 
+[[ Brett this is a good point ... I know that this has happened
+   to several different groups ]]
+
 Architecture Philosophy
 =======================
 
-0. the ASGS Shell Environment is assumed
+The design decisions behind the ASGS architecture were made
+to support its goals of reliability, maintainability, 
+portability, simplicity, and flexibility. These decisions
+are outlined below. 
 
-ASGS has evolved beyond just the driver and utilities used
-during hurricanes for emergency managers across the US. It's
-now that, but within a fully contained environment that comes
+0. Operation of the ASGS occurs via the ASGS Shell Environment
+
+ASGS has evolved beyond a minimal set of scripts and
+utilities to generate model guidance for decision support
+for hurricane response across the US. It now generates 
+a fully contained environment that comes
 with its own set of programming environments, libraries (e.g.,
-netCDF), and support 
+netCDF), and support.
 
-1. bash scripts are used for automating workflows because
-this is its purpose. In this role, bash strengths are:
+1. Bash scripts are the tool of choice for workflow automation
+because this is the fundamental purpose of Bash. In this role, 
+the strengths of Bash are:
 
-* portability
+* ubiquity
+* longevity (stability over time)
+* uniformity across platforms
 * execution environment management (environmental variables)
-* process management (e.g., background processes, subshells,
-  waiting for child processes) 
+* strong process management feature set (e.g., background 
+  processes, subshells, waiting for child processes) 
 * direct access to input stream, pipes, utilities, and other
   classic unix userland features
+* approachability
 
-2. bash scripts are not good for complex tasks or building
-commandline utilities that demand commandline flags and options.
-In this case, ASGS heavily favors Perl.
+2. Perl is the tool of choice for complex data 
+processing tasks that are beyond the scope of Bash. Some 
+indications of this are tasks that:
 
-Rather than argue "why Perl and not XYZ" for this, it will
-only be noted there tool needs quickly reach the limits of
-what bash provides. Some signs of this are:
+a. beg for commandline flags
 
-a. the tool begs for commandline flags
+b. would work best if it accepted STDIN via pipe, e.g.,
 
-b. the tool would work best if it accepted STDIN via pipe, e.g.,
-
-   % cat input.file | thetool > output.file 2>&1
+   % cat input.file | thescript > output.file 2>&1
 
 or, written another way:
    
-   % thetool > output.file 2>&1 < input.file
+   % thescript > output.file 2>&1 < input.file
 
 It is crucial to note that ASGS builds its own Perl environment
-and installs all of its own Perl modules.
+and installs all of its own Perl modules, rather than using
+the local Perl environment provided by the host system. This ensures
+consistency across platforms and also allows us to take full 
+advantage of the numerous Perl modules that are available on
+CPAN. 
 
-Note:
+3. The use of languages other than Perl for complex tasks in ASGS is not 
+totally disallowed, but it is discouraged. For example:
 
-Using other languages for this is not totally disallowed, but it
-is disencouraged. If for no other reason, the python environment
-in ASGS is currently old (2.7) and there are no plans to upgrade
-this. Perl is a much better language for the goals of portability
-and desired longevity of code (backward compatibility).
+a. The python environment in ASGS is currently old (2.7) and there are no plans 
+to upgrade it in the forseeable future. Perl is well suited to our goals of 
+portability, maintainability, and desired longevity of code
+(backward compatibility). 
 
-3. compiled utilities and libraries built by ASGS
+b. Many of the numerically focused utilities
+that post process ADCIRC and SWAN output in the ASGS are written in 
+Fortran for historical reasons. However, the use of Fortran 
+in ASGS is now deprecated, and new compiled utilities should be
+developed in C or C++ and may be wrapped with Perl. 
 
-ASGS provides a variety compiled libraries and utilities, e.g.,
+c. While Matlab is capable and widely used for numerical
+processing tasks, it is very difficult to deploy uniformly 
+across platforms due to its propietary nature. As a result, 
+tasks that require Matlab should be executed in processes
+separate from ASGS itself. 
+
+4. Compiled utilities and libraries built by ASGS
+
+ASGS provides a variety of compiled libraries and utilities, e.g.,
 netCDF and HDF5 which are required for ADCIRC and related utilities.
 This is done so that a consistent environment can be provided across
 a variety of machines - rather than relying on many of these machines
@@ -93,15 +118,15 @@ generally that:
   the compiling of other programs that require them (e.g., ADCIRC)
 * the final locations of the binary executables are recorded via PATH
 
-Adding support for new compiled tool or library is relatively
+Adding support for a new compiled tool or library is relatively
 straightforward.  What's not straightforward is the best way to add
-new custom utilities written in Fortran, C, etc. But it can be done
+new custom utilities in compiled languages. But it can be done
 pretty easily if it follows the form of what exists now. This means:
 
 * separate directory for the library or utility
 * knowledge of the final location of the libraries or executable binaries
 * Makefile, and if needed, a "configure" script
 
-Supported languages are the basics: C, Fortran, C++ - but this
-is entirely dependent on the compiler suites available. ASGS only
+Supported languages are the basics: C, Fortran (for existing utilities), 
+C++ - but this is entirely dependent on the compiler suites available. ASGS only
 properly supports two suites, GCC (includes gfortran) and Intel.
