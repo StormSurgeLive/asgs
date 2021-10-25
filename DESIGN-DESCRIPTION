@@ -11,8 +11,8 @@ likely that their changes are accepted upstream. This means that
 their work will persist and that their work to maintain their own
 fork against an upstream source is eliminated.
 
-[[ Brett this is a good point ... I know that this has happened
-   to several different groups ]]
+Therefore, it is recommended to consult with and plan to contribute
+back to the upstream project, "often and early!" :-)
 
 Architecture Philosophy
 =======================
@@ -66,25 +66,24 @@ consistency across platforms and also allows us to take full
 advantage of the numerous Perl modules that are available on
 CPAN. 
 
-3. The use of languages other than Perl for complex tasks in ASGS is not 
-totally disallowed, but it is discouraged. For example:
+3. The use of languages other than Perl for complex tasks in ASGS
+is not totally disallowed, but it is discouraged. For example:
 
-a. The python environment in ASGS is currently old (2.7) and there are no plans 
-to upgrade it in the forseeable future. Perl is well suited to our goals of 
-portability, maintainability, and desired longevity of code
-(backward compatibility). 
+a. The python environment in ASGS is currently old (2.7) and there
+are no plans to upgrade it in the forseeable future. Perl is well
+suited to our goals of portability, maintainability, and desired
+longevity of code (backward compatibility).
 
-b. Many of the numerically focused utilities
-that post process ADCIRC and SWAN output in the ASGS are written in 
-Fortran for historical reasons. However, the use of Fortran 
-in ASGS is now deprecated, and new compiled utilities should be
-developed in C or C++ and may be wrapped with Perl. 
+b. Many of the numerically focused utilities that post process ADCIRC
+and SWAN output in the ASGS are written in Fortran for historical
+reasons. However, the use of Fortran in ASGS is now deprecated,
+and new compiled utilities should be developed in C or C++ and may
+be wrapped with Perl.
 
-c. While Matlab is capable and widely used for numerical
-processing tasks, it is very difficult to deploy uniformly 
-across platforms due to its propietary nature. As a result, 
-tasks that require Matlab should be executed in processes
-separate from ASGS itself. 
+c. While Matlab is capable and widely used for numerical processing
+tasks, it is very difficult to deploy uniformly across platforms
+due to its propietary nature. As a result, tasks that require Matlab
+should be executed in processes separate from ASGS itself.
 
 4. Compiled utilities and libraries built by ASGS
 
