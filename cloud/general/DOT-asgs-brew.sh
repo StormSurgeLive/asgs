@@ -753,20 +753,23 @@ echo " --update-shell option"
 echo
 fi
 
-# runs script to install ADCIRC interactively
-build () {
-  if [ -z "${1}" ]; then
-    echo "The 'build' command requires an argument specifying what to build, e.g., 'build adcirc'"
-    exit
-  fi
+# 'build' is basically ASGS Shell Environment's "package manager"
+# these are the "optional" installs - from individual utilities
+# to "bundles" (e.g., a set of related, but optional Perl modules)
+build() {
   TO_BUILD=${1}
-  case "${1}" in
+  BUILD_OPTS=${2}
+  case "${TO_BUILD}" in
     adcirc)
-      init-adcirc.sh ${2}
+      init-adcirc.sh ${BUILD_OPTS}
+      ;;
+    jq)
+      init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
       ;;
     *)
-      echo "Only 'adcirc' supported at this time."
-      exit
+      echo 'Supported "build" options:'
+      echo '  adcirc - ADCIRC build wizard supporting different versions and patchsets'
+      echo '  jq     - "a lightweight and flexible command-line JSON processor"'
       ;;
   esac
 }
