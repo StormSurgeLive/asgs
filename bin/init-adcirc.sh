@@ -38,7 +38,7 @@ ADCIRCS=(
 "v55release"
 "v55release-swan-gfortran"
 "v55release-swan-gfortran-10"
-"v55.00"
+"v55.01"
 )
 NUM_ADC=${#ADCIRCS[@]}
 
@@ -62,7 +62,7 @@ _show_supported_versions()
   num=$(($num+1))
   printf "|%-2s) v55release-swan-gfortran-10| v55release with gfortran 10 default for swan  |\n" $num
   num=$(($num+1))
-  printf "|%-2s) v55.00                     | latest upstream                               |\n" $num
+  printf "|%-2s) v55.01                     | latest upstream                               |\n" $num
   echo  "\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/"
   echo
   if [ "${1}" != "noexit" ]; then
@@ -182,11 +182,11 @@ if [ "$INTERACTIVE" == "yes" ]; then
       # update to proper base branch
       ADCIRC_GIT_BRANCH=92ccdb974b7fb150 # v55release
       ;;
-    v55.00)
-      PATCHSET_NAME="v55.00"
+    v55.01)
+      PATCHSET_NAME="v55.01"
       PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
       # update to proper base branch
-      ADCIRC_GIT_BRANCH=v55.00
+      ADCIRC_GIT_BRANCH=v55.01
       ;;
     *)
       echo "ADCIRC 'version' '${ADCIRC_GIT_BRANCH}' is not officially supported at this time."
@@ -234,7 +234,7 @@ fi
     v54release)
       SWANDIR=${ADCIRCBASE}/swan
       ;;
-    v55.00|v55release|v55release-swan-gfortran|v55release-swan-gfortran-10|92ccdb974b7fb150)
+    v55.01|v55release|v55release-swan-gfortran|v55release-swan-gfortran-10|92ccdb974b7fb150)
       # Note v55release = sha256:92ccdb974b7fb150bb42b2536fce4d8c0bcee726
       SWANDIR=${ADCIRCBASE}/thirdparty/swan
       ;;   
