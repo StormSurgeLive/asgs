@@ -1463,10 +1463,11 @@ while getopts "c:e:s:h" optname; do
 done
 #
 # determine hpc environment via function from platforms.sh
-echo "HPCENVSHORT is '$HPCENVSHORT'"
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
+echo "(info) HPCENV is '$HPCENV'"
+echo "(info) HPCENVSHORT is '$HPCENVSHORT'"
 #
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
