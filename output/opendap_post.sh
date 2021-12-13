@@ -121,8 +121,11 @@ for server in ${SERVERS[*]}; do
    # opendap service  (from platforms.sh)
    writeTDSProperties $server $RUNPROPERTIES  # this writes to a local run.properties file
    if [[ $SCENARIO == "asgs.instance.status" ]]; then
-      cat run.properties >> $RUNPROPERTIES
-      rm run.properties # so we don't keep appending to it
+      # so we don't keep appending to it, only if it exists
+      if [ -e run.properties ]; then
+        cat run.properties >> $RUNPROPERTIES
+        rm run.properties
+      fi
       $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
       sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
    fi
