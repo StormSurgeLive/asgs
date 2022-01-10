@@ -92,7 +92,7 @@ NCPUCAPACITY=9999
 #NCPUCAPACITY=512
 NUMWRITERS=2
 ACCOUNT=null
-PARTITION=ncfs
+QUEUENAME=ncfs
 
 # Post processing and publication
 

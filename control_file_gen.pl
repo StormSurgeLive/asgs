@@ -299,8 +299,8 @@ if ( defined $hstime ) {
 # [de]activate output files with time step increment and with(out) appending.
 my $fort61specifier = &getSpecifier($fort61freq,$fort61append,$fort61netcdf);
 my $fort62specifier = &getSpecifier($fort62freq,$fort62append,$fort62netcdf);
-$fort61 = $fort61specifier . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
-$fort62 = $fort62specifier . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
+$fort61 = $fort61specifier . " 0.0 999.0 " . &getIncrement($fort61freq,$dt);
+$fort62 = $fort62specifier . " 0.0 999.0 " . &getIncrement($fort62freq,$dt);
 #
 my $fort63specifier = &getSpecifier($fort63freq,$fort63append,$fort63netcdf);
 my $fort64specifier = &getSpecifier($fort64freq,$fort64append,$fort64netcdf);
@@ -312,8 +312,8 @@ if ( defined $sparseoutput ) {
       $fort64specifier *= 4;
    }
 }
-$fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
-$fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
+$fort63 = $fort63specifier . " 0.0 999.0 " . &getIncrement($fort63freq,$dt);
+$fort64 = $fort64specifier . " 0.0 999.0 " . &getIncrement($fort64freq,$dt);
 my $fort7172specifier = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
 my $fort7374specifier = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
 # Casey 121009: Debug for sparse output.
@@ -322,8 +322,8 @@ if ( defined $sparseoutput ) {
       $fort7374specifier *= 4;
    }
 }
-$fort7172 = $fort7172specifier . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
-$fort7374 = $fort7374specifier . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
+$fort7172 = $fort7172specifier . " 0.0 999.0 " . &getIncrement($fort7172freq,$dt);
+$fort7374 = $fort7374specifier . " 0.0 999.0 " . &getIncrement($fort7374freq,$dt);
 if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";

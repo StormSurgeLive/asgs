@@ -27,14 +27,13 @@
 
 # Fundamental
 
-INSTANCENAME=hsofs-nam-bob-2021      # "name" of this ASGS process
+INSTANCENAME=uriv18-nam-bob-2021      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
-QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
 
 # Input files and templates
 
-GRIDNAME=hsofs
+GRIDNAME=uriv18
 source $SCRIPTDIR/config/mesh_defaults.sh
 
 #--------------------------------------------------------------------------
@@ -43,19 +42,14 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 # The default values of the following parameters are set in
 # config/mesh_defaults.sh, so these settings have to come after the
 # sourcing of the mesh_defaults.sh script.
-CONTROLTEMPLATE=hsofs_explicit.15.template
+CONTROLTEMPLATE=fort.15.template
 CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-#NAFILE=hsofs.with_advstate.13
-NAFILE=hsofs.13
+NAFILE=uriv18.13
 NAPROPERTIES=${NAFILE}.properties
-STATICOFFSET=0.2
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#  changes for 0.2286m sea_surface_height_above_geoid
-#--------------------------------------------------------------------------
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2020121500  #  2020080100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2021080100  #  2020080100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
@@ -68,7 +62,7 @@ BACKGROUNDMET=on          # NAM download/forcing
 TROPICALCYCLONE=off       # tropical cyclone forcing
    STORM=-1               # storm number, e.g. 05=ernesto in 2006
    YEAR=2021              # year of the storm
-WAVES=on                 # wave forcing
+WAVES=off                 # wave forcing
    REINITIALIZESWAN=no    # used to bounce the wave solution
 VARFLUX=off               # variable river flux forcing
    RIVERSITE=data.disaster.renci.org
@@ -79,23 +73,23 @@ CYCLETIMELIMIT="99:00:00"
 
 # Computational Resources (related defaults set in platforms.sh)
 
-NCPU=511                     # number of compute CPUs for all simulations
+NCPU=508                     # number of compute CPUs for all simulations
 NCPUCAPACITY=512
 #NCPU=511                     # number of compute CPUs for all simulations
 #NCPUCAPACITY=512
-NUMWRITERS=1
+NUMWRITERS=4
 ACCOUNT=null
-#PARTITION=ncfs
-QUEUENAME=ncfs
-
+PARTITION=ncfs
+ 
 # Post processing and publication
 
-INTENDEDAUDIENCE="general" # ( | "developers-only" | "professional"
+INTENDEDAUDIENCE="developers-only" # general" # ( | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_nowcast.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh ncfs_post_to_current.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
-OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
+#OPENDAPNOTIFY="bblanton@renci.org, asgs.cera.lsu@gmail.com, rluettich1@gmail.com, jason.g.fleming@gmail.com, asgsnotifications@opayq.com, cera.asgs.tk@gmail.com, asgsnotes4ian@gmail.com, janelle.fleming@seahorsecoastal.com"
+OPENDAPNOTIFY="bblanton@renci.org, rluettich1@gmail.com, dullman@uri.edu, dcrowley@uri.edu, iginis@uri.edu"
 #OPENDAPNOTIFY="bblanton@renci.org"
 NOTIFY_SCRIPT=ncfs_nam_notify.sh
 

@@ -30,6 +30,7 @@
 INSTANCENAME=ec95d-nam-bob      # "name" of this ASGS process
 SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
 RMQMessaging_Transmit=on
+QSCRIPTTEMPLATE=$SCRIPTDIR/config/2021/ncfs-dev/qscript.template.renci
 
 # Input files and templates
 
@@ -67,6 +68,7 @@ NCPUCAPACITY=128
 NUMWRITERS=0
 ACCOUNT=null
 #EXCLUDE="compute-9-xx"
+QUEUENAME="batch"
 
 # Post processing and publication
 
