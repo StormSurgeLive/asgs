@@ -928,27 +928,21 @@ downloadBackgroundMet()
    STATEFILE=${14}
    #
    THIS="asgs_main.sh>downloadBackgroundMet()"
-   APPLOGFILE=$RUNDIR/get_nam.pl.log
+   APPLOGFILE=$RUNDIR/get_nam_status.pl.log
    CURRENT_STATE="WAIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
    logMessage "$ENSTORM: $THIS: Downloading meteorological data." $APPLOGFILE
    cd $RUNDIR 2>> ${SYSLOG}
+   # download forecast data
    if [[ $ENSTORM != "nowcast" ]]; then
       advisoryLine=`grep ADVISORY $STATEFILE`
       ADVISORY=${advisoryLine##ADVISORY=}
       echo $ADVISORY > $RUNDIR/currentCycle
-      logMessage "According to the statefile ${STATEFILE}, the most recently downloaded cycle is ${ADVISORY}." $APPLOGFILE
-   fi
-   newAdvisoryNum=0
-   TRIES=0
-   while [[ $newAdvisoryNum -lt 2 ]]; do
-      appMessage "According to the statefile ${STATEFILE}, the most recently downloaded cycle is ${ADVISORY}." $APPLOGFILE
-      OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      appMessage "Downloading NAM data with the following command: perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}" $APPLOGFILE
-      newAdvisoryNum=`perl ${SCRIPTDIR}/get_nam.pl $OPTIONS 2>> ${SYSLOG}`
-      # if this forecast is not needed, then write a file to indicate
-      # that and return
-      if [[ $ENSTORM != "nowcast" && $newAdvisoryNum = "forecast-not-needed" ]]; then
+      logMessage "According to the statefile ${STATEFILE}, the most recently successfully executed nowcast is for cycle ${ADVISORY}." $APPLOGFILE
+         #OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
+         # if this forecast is not needed, then write a file to indicate
+         # that and return
+      if [[ $newAdvisoryNum = "forecast-not-needed" ]]; then
          echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS" > "$SCENARIODIR/forecast-not-needed"
          # write the start and end dates of the forecast to the run.properties file
          if [[ -e $RUNDIR/forecast.properties ]]; then
@@ -957,22 +951,44 @@ downloadBackgroundMet()
          fi
          return
       fi
-      if [[ $newAdvisoryNum -lt 2 ]]; then
-         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
-         sleep 60
-         TRIES=$[$TRIES + 1]
+      # write the start and end dates of the forecast to the run.properties file
+      if [[ -e $RUNDIR/forecast.properties ]]; then
+         cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
+         mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
       fi
-   done
-   # record the new advisory number to the statefile
-   logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newAdvisoryNum}." $APPLOGFILE
-   cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
-   sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
-   logMessage "Updating statefile $STATEFILE with new cycle number ${newAdvisoryNum}." $APPLOGFILE
-   cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
-   # write the start and end dates of the forecast to the run.properties file
-   if [[ -e $RUNDIR/forecast.properties ]]; then
-      cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-      mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
+   # download nowcast data
+   else
+      getNamStatusSuccess=1
+      newCycle=0
+      TRIES=0
+      # determine the cycle time corresponding to the current state of the simulation
+      csEpochSeconds=$(date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
+      hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+      lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
+      #     
+      # determine the latest NAM cycle posted by NCEP
+      while [[ $getNamStatusSuccess -ne 0 && $newCycle -le $lastCycle ]]; do
+         appMessage "According to the statefile ${STATEFILE}, the most recent successful nowcast cycle is $lastCycle." $APPLOGFILE
+         statusOptions="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR"
+         appMessage "Downloading NAM status with the following command: perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG}" $APPLOGFILE
+         newCycle=$(perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG})
+         if [[ $newCycle -le $lastCycle ]]; then
+             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
+             sleep 60
+             TRIES=$((TRIES + 1))
+         fi
+      done  
+      # record the new advisory number to the statefile
+      logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newCycle}." $APPLOGFILE
+      cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
+      sed 's/ADVISORY=.*/ADVISORY='$newCycle'/' $STATEFILE > ${STATEFILE}.new
+      logMessage "Updating statefile $STATEFILE with new cycle number ${newCycle}." $APPLOGFILE
+      cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+      # now download the actual nowcast data for the time range of interest
+      #OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
+      #namNowcastDownloadOptionss##"--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR"
+      appMessage "Downloading NAM nowcast data with the following command: perl ${SCRIPTDIR}/get_nam_data.pl $namNowcastDownloadOptions 2>> ${SYSLOG}" $APPLOGFILE
+      perl ${SCRIPTDIR}/get_nam_data.pl $namNowcastDownloadOptions 2>> ${SYSLOG}
    fi
 }
 #

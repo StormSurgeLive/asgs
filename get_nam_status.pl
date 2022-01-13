@@ -30,13 +30,11 @@ use Getopt::Long;
 use Date::Calc;
 use Cwd;
 #
-our $rundir;   # directory where the ASGS is running
-my $backsite; # ncep ftp site for nam data
-my $backdir;  # dir on ncep ftp site
+our $rundir = ".";    # directory where the ASGS is running
+my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
+my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
 my @altnamdirs; # alternate directories to look in for NAM data
 #
-my $date;     # date (UTC) corresponding to current ADCIRC time
-my $hour;     # hour (UTC) corresponding to current ADCIRC time
 our $this = "get_nam_status.pl";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
@@ -51,14 +49,12 @@ GetOptions(
 # create a hash of properties from run.properties
 our %properties;
 our $have_properties = 1;
-# open the run.properties file : it will be in $rundir on a nowcast
-my $proppath = $rundir; # we don't have the latest data yet, so we don't know what cycle we are on
-unless (open(RUNPROP,"<$proppath/run.properties")) {
-   &stderrMessage("WARNING","Failed to open $proppath/run.properties: $!.");
-   &appMessage("WARNING","Failed to open $proppath/run.properties: $!.");
+# open the run.properties file assuming it is in $rundir
+unless (open(RUNPROP,"<$rundir/run.properties")) {
+   &appMessage("INFO","Failed to open $rundir/run.properties: $!. Using configuration as specified on the command line, or default values found in this script.");
    $have_properties = 0;
 } else {
-   &appMessage("INFO","Opened $proppath/run.properties.");
+   &appMessage("INFO","Opened $rundir/run.properties.");
    while (<RUNPROP>) {
       my @fields = split ':',$_, 2 ;
       # strip leading and trailing spaces and tabs
@@ -67,10 +63,9 @@ unless (open(RUNPROP,"<$proppath/run.properties")) {
       $properties{$fields[0]} = $fields[1];
    }
    close(RUNPROP);
-   &appMessage("INFO","Closed $proppath/run.properties.");
+   &appMessage("INFO","Closed $rundir/run.properties.");
 }
 #
-&appMessage("DEBUG","hstime is $hstime");
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
 # open ftp connection
@@ -126,7 +121,7 @@ my $numSortedNamDirs = @sortedNamDirs;
 if ( $numSortedNamDirs == 0 ) {
    stderrMessage("INFO","Failed to find any NAM data directories. This script will be respawned.");
    printf STDOUT $dl;
-   exit;
+   exit 1;
 }
 # take the last one; this is the latest
 my $targetDir = $sortedNamDirs[-1];
@@ -140,14 +135,16 @@ $hcDirSuccess = $ftp->cwd($targetDir);
 unless ( $hcDirSuccess ) {
    stderrMessage("ERROR","ftp: Cannot change working directory to '$targetDir': " . $ftp->message);
    printf STDOUT $dl;
-   exit;
+   exit 1;
 }
 my $cyclehour;
 #my @allFiles = $ftp->ls();
 my @allFiles = grep /awip1200.tm00/, $ftp->ls();
 if (!@allFiles){
    #die "no awip1200 files yet in $targetDirs[-1]\n";
-   stderrMessage("ERROR","No awip1200.tm00 files yet in $targetDir.");
+   stderrMessage("INFO","No awip1200.tm00 files yet in $targetDir.");
+   printf STDOUT $dl;
+   exit 0;
 }
 # now sort the NAM files from lowest to highest (it appears that ls() does
 # not automatically do this for us)
@@ -162,14 +159,14 @@ TODAYSFILES : foreach my $file (@sortedFiles) {
 unless (defined $cyclehour ) {
    stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
    printf STDOUT $dl;
-   exit;
+   exit 1;
 } else {
    stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    $cycletime = $cycledate . $cyclehour;
 }
 stderrMessage("DEBUG","The cycletime is '$cycletime'.");
-printf STDOUT $dl;
-exit;
+printf STDOUT $cycletime;
+exit 0;
 #
 # write a log message to stderr
 sub stderrMessage () {
