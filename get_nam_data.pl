@@ -38,8 +38,8 @@
 #                 --backdir /pub/data/nccf/com/nam/prod
 #                 --stage nowcast
 #                 --scenario nowcast
+#                 --lastcycle 2005082900
 #                 --forecastlength 84
-#                 --altnamdirs /projects/ncfs/data/asgs5463,/projects/ncfs/data/asgs14174
 #                 --forecastcycle 00,06,12,18
 #                 --scriptdir /work/asgs
 #
@@ -50,62 +50,66 @@ use Net::FTP;
 use Getopt::Long;
 use Date::Calc;
 use Cwd;
-#
+# the following values are set on the command line
 our $rundir;   # directory where the ASGS is running
-my $scenariodir = "null"; # subdirectory where results are produced for a particular scenario
-my $backsite; # ncep ftp site for nam data
-my $backdir;  # dir on ncep ftp site
+my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
+my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
+our $scenario = "nowcast";  # the name of the subdir where the data will be used
+our $forecastLength = 84;   # keeps retrying until it has enough forecast files
+# the following values may be set on the command
+# line or read from the $RUNDIR/status/asgs.instance.status.json file
+my $stage = "nowcast";      # nowcast | forecast
+my $lastcycle = "null";     # most recent cycle for which a nowcast was completed
+our @forecastcycle = "00,06,12,18";   # nam cycles to run a forecast (not just nowcast)
+my $forecastselection = "latest";     # strict | latest
+my $forecastdownload = "only-to-run"; # only-to-run | all
+my $scriptdir = "null";
 # FIXME : $enstorm needs to be eliminated in favor of $stage which can be "nowcast" or "forecast"
 # and $scenario which will contain the name of the subdirectory where the results are produced
-our $enstorm;  # nowcast, or something else (which counts as a forecast) ; also the name of the subdir where the results are produced
-my $csdate;   # UTC date and hour (YYYYMMDDHH) of ADCIRC cold start
-my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
-my @altnamdirs; # alternate directories to look in for NAM data
-our $archivedruns; # path to previously conducted and archived files
-our @forecastcycle; # nam cycles to run a forecast (not just nowcast)
-my $scriptDir;  # directory where the wgrib2 executable is found
 #
+my $scenariodir = "null";   # subdirectory where results are produced for a particular scenario
 my $date;     # date (UTC) corresponding to current ADCIRC time
 my $hour;     # hour (UTC) corresponding to current ADCIRC time
 my @targetDirs; # directories to download NAM data from
-our $forecastLength = 84; # keeps retrying until it has enough forecast files
-                    # to go for the requested time period
 our $max_retries = 20; # max number of times to attempt download of forecast file
 our $num_retries = 0;
 our $had_enough = 0;
 my @nowcasts_downloaded;  # list of nowcast files that were
                           # successfully downloaded
-my $forecastselection = "null"; # "strict" or "latest"
-my $forecastdownload = "only-to-run"; # "only-to-run" or "all"
+#
+our $this = "get_nam_data.pl";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 #
 GetOptions(
-           "scenariodir=s" => \$scenariodir,
-           "rundir=s" => \$rundir,
+           "rundir=s" => \$rundir,          
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir,
-           "enstorm=s" => \$enstorm,
-           "csdate=s" => \$csdate,
+           "scenario=s" => \$scenario,
+           "lastcycle=s" => \$lastcycle,           
            "forecastLength=s" => \$forecastLength,
-           "hstime=s" => \$hstime,
-           "altnamdirs=s" => \@altnamdirs,
-           "archivedruns=s" => \$archivedruns,
+#
+           "stage=s" => \$stage,
            "forecastcycle=s" => \@forecastcycle,
            "forecastselection=s" => \$forecastselection,
            "forecastdownload=s" => \$forecastdownload,
-           "scriptdir=s" => \$scriptDir
+           "scriptdir=s" => \$scriptdir
           );
+
+#                 --rundir /scratch/asgs2827
+#                 --backsite ftp.ncep.noaa.gov
+#                 --backdir /pub/data/nccf/com/nam/prod
+#                 --stage nowcast
+#                 --scenario nowcast
+#                 --lastcycle 2005082900
+#                 --forecastlength 84
+#                 --forecastcycle 00,06,12,18
+#                 --scriptdir /work/asgs
 #
 # create a hash of properties from run.properties
 our %properties;
 our $have_properties = 1;
-# open the run.properties file : it will be in $rundir on a nowcast
-# and it will be in $rundir/$enstorm on a forecast
-my $proppath = $scenariodir;
-if ( $enstorm eq "nowcast" ) {
-   $proppath = $rundir; # we don't have the latest data yet, so we don't know what cycle we are on
-}
+# look in a subdirectory 
 unless (open(RUNPROP,"<$proppath/run.properties")) {
    &stderrMessage("WARNING","Failed to open $proppath/run.properties: $!.");
    &appMessage("WARNING","Failed to open $proppath/run.properties: $!.");
@@ -383,7 +387,7 @@ while ($datetime_needed <= $cycletime) {
                   $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
                   # perform a smoke test on the file we found to check that it is
                   # not corrupted (not a definitive test but better than nothing)
-                  unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+                  unless ( `$scriptdir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
                      stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
                      next;
                   }
@@ -602,7 +606,7 @@ sub getForecastData() {
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         unless ( `$scriptDir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         unless ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
             stderrMessage("INFO","The file '$localDir/$f' appears to be corrupted and will not be used.");
          } else {
             stderrMessage("INFO","'$f' has already been downloaded to '$localDir'.");

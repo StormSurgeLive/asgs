@@ -933,31 +933,8 @@ downloadBackgroundMet()
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
    logMessage "$ENSTORM: $THIS: Downloading meteorological data." $APPLOGFILE
    cd $RUNDIR 2>> ${SYSLOG}
-   # download forecast data
-   if [[ $ENSTORM != "nowcast" ]]; then
-      advisoryLine=`grep ADVISORY $STATEFILE`
-      ADVISORY=${advisoryLine##ADVISORY=}
-      echo $ADVISORY > $RUNDIR/currentCycle
-      logMessage "According to the statefile ${STATEFILE}, the most recently successfully executed nowcast is for cycle ${ADVISORY}." $APPLOGFILE
-         #OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-         # if this forecast is not needed, then write a file to indicate
-         # that and return
-      if [[ $newAdvisoryNum = "forecast-not-needed" ]]; then
-         echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS" > "$SCENARIODIR/forecast-not-needed"
-         # write the start and end dates of the forecast to the run.properties file
-         if [[ -e $RUNDIR/forecast.properties ]]; then
-            cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-            mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
-         fi
-         return
-      fi
-      # write the start and end dates of the forecast to the run.properties file
-      if [[ -e $RUNDIR/forecast.properties ]]; then
-         cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-         mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
-      fi
-   # download nowcast data
-   else
+   # N O W C A S T
+   if [[ $stage == "nowcast" ]]; then
       getNamStatusSuccess=1
       newCycle=0
       TRIES=0
@@ -989,6 +966,33 @@ downloadBackgroundMet()
       #namNowcastDownloadOptionss##"--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR"
       appMessage "Downloading NAM nowcast data with the following command: perl ${SCRIPTDIR}/get_nam_data.pl $namNowcastDownloadOptions 2>> ${SYSLOG}" $APPLOGFILE
       perl ${SCRIPTDIR}/get_nam_data.pl $namNowcastDownloadOptions 2>> ${SYSLOG}
+   else
+      # F O R E C A S T
+      # download forecast data
+      advisoryLine=`grep ADVISORY $STATEFILE`
+      ADVISORY=${advisoryLine##ADVISORY=}
+      echo $ADVISORY > $RUNDIR/currentCycle
+      logMessage "According to the statefile ${STATEFILE}, the most recently successfully executed nowcast is for cycle ${ADVISORY}." $APPLOGFILE
+         #OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
+         # if this forecast is not needed, then write a file to indicate
+         # that and return
+      if [[ $newAdvisoryNum = "forecast-not-needed" ]]; then
+         echo "perl ${SCRIPTDIR}/get_nam.pl $OPTIONS" > "$SCENARIODIR/forecast-not-needed"
+         # write the start and end dates of the forecast to the run.properties file
+         if [[ -e $RUNDIR/forecast.properties ]]; then
+            cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
+            mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
+         fi
+         return
+      fi
+      # write the start and end dates of the forecast to the run.properties file
+      if [[ -e $RUNDIR/forecast.properties ]]; then
+         cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
+         mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
+      fi
+   # download nowcast data
+   else
+
    fi
 }
 #
