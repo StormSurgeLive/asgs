@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #--------------------------------------------------------------
-# get_nam_status.pl: determines the latest available data
+# get_nam_status.pl: determines the latest available cycle(s)
 # from NCEP NAM for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
 # Copyright(C) 2022 Jason Fleming
@@ -30,41 +30,20 @@ use Getopt::Long;
 use Date::Calc;
 use Cwd;
 #
-our $rundir = ".";    # directory where the ASGS is running
-my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
-my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
-my @altnamdirs; # alternate directories to look in for NAM data
+my $startcycle = "null";  # optional arg that indicates start of range of interest
+my $backsite = "ftp.ncep.noaa.gov";          # ncep ftp site for nam data
+my $backdir = "/pub/data/nccf/com/nam/prod"; # dir on ncep ftp site
+my @cyclerange; # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest  
 #
 our $this = "get_nam_status.pl";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 #
 GetOptions(
-           "rundir=s" => \$rundir,
+           "startcycle=s" => \$startcycle,          
            "backsite=s" => \$backsite,
-           "backdir=s" => \$backdir,
-           "altnamdirs=s" => \@altnamdirs,
+           "backdir=s" => \$backdir
           );
-#
-# create a hash of properties from run.properties
-our %properties;
-our $have_properties = 1;
-# open the run.properties file assuming it is in $rundir
-unless (open(RUNPROP,"<$rundir/run.properties")) {
-   &appMessage("INFO","Failed to open $rundir/run.properties: $!. Using configuration as specified on the command line, or default values found in this script.");
-   $have_properties = 0;
-} else {
-   &appMessage("INFO","Opened $rundir/run.properties.");
-   while (<RUNPROP>) {
-      my @fields = split ':',$_, 2 ;
-      # strip leading and trailing spaces and tabs
-      $fields[0] =~ s/^\s|\s+$//g ;
-      $fields[1] =~ s/^\s|\s+$//g ;
-      $properties{$fields[0]} = $fields[1];
-   }
-   close(RUNPROP);
-   &appMessage("INFO","Closed $rundir/run.properties.");
-}
 #
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
@@ -92,18 +71,10 @@ unless ( $hcDirSuccess ) {
    exit 1;
 }
 #
-# everything below is designed to determine what is the
-# latest cycle available from NCEP (or locally?)
-#
-# if alternate (local) directories for NAM data were supplied, then remove the
-# commas from these directories
-if ( @altnamdirs ) {
-   @altnamdirs = split(/,/,join(',',@altnamdirs));
-}
-#
 # now go to the ftp site and 
 # get the list of nam dates where data is available
 # and report latest data available on the site
+# directory entries are named e.g., nam.20220111
 my @ncepDirs = $ftp->ls(); # gets all the current data dirs, incl. nam dirs
 my @namDirs;
 foreach my $dir (@ncepDirs) {
@@ -114,58 +85,136 @@ foreach my $dir (@ncepDirs) {
 # now sort the NAM dirs from lowest to highest (it appears that ls() does
 # not automatically do this for us)
 my @sortedNamDirs = sort { lc($a) cmp lc($b) } @namDirs;
-# getting the directory listing with NAM data directories in it;
-# if so, it is generally harmles because the asgs will just respawn get_nam_status.pl
-# (sanity check)
-my $numSortedNamDirs = @sortedNamDirs;
-if ( $numSortedNamDirs == 0 ) {
-   stderrMessage("INFO","Failed to find any NAM data directories. This script will be respawned.");
-   printf STDOUT $dl;
-   exit 1;
-}
-# take the last one; this is the latest
-my $targetDir = $sortedNamDirs[-1];
-#
-# determine the most recent date/hour ... this is the latest nam cycle time
-$targetDir =~ /nam.(\d+)/;
-my $cycledate = $1;
-&appMessage("DEBUG","The cycledate is '$cycledate'.");
-#
-$hcDirSuccess = $ftp->cwd($targetDir);
-unless ( $hcDirSuccess ) {
-   stderrMessage("ERROR","ftp: Cannot change working directory to '$targetDir': " . $ftp->message);
-   printf STDOUT $dl;
-   exit 1;
-}
-my $cyclehour;
-#my @allFiles = $ftp->ls();
-my @allFiles = grep /awip1200.tm00/, $ftp->ls();
-if (!@allFiles){
-   #die "no awip1200 files yet in $targetDirs[-1]\n";
-   stderrMessage("INFO","No awip1200.tm00 files yet in $targetDir.");
-   printf STDOUT $dl;
-   exit 0;
-}
-# now sort the NAM files from lowest to highest (it appears that ls() does
-# not automatically do this for us)
-my @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
-#
-my $cycletime;
-TODAYSFILES : foreach my $file (@sortedFiles) {
-   if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) {
-      $cyclehour = $1;
+# if the $startcycle was provided, remove any directories that
+# are before the date of the $startcycle
+my $startdate = "null";
+if ( $startcycle ne "null" ) {
+   $startcycle =~ /(\d{10})/;
+   $startdate = $1; 
+   my $numbefore = 0; # number of directories prior to the startcycle directory
+   DIRECTORIES : foreach $dir (@sortedNamDirs) {
+      $dir =~ /nam.(\d{10})/;
+      my $dirdate = $1;
+      if ( $dirdate < $startdate ) {
+         $numbefore++;
+      }
+   }
+   # toss directories that are before the startcycle
+   # (there may still be a directory with a date that 
+   #  has some cycles before the start cycle, we will
+   #  deal with that later)
+   for ( my $i=0; $i<$numbefore; $i++ ) {
+      shift(@sortedNamDirs);
    }
 }
-unless (defined $cyclehour ) {
+# sanity check
+my $numSortedNamDirs = @sortedNamDirs;
+if ( $numSortedNamDirs == 0 ) {
+   stderrMessage("WARNING","Failed to find any NAM data directories.");
+   printf STDOUT $dl;
+   exit 1;
+}
+# determine the latest NAM directory that has data in it
+# (a new directory may exist and be empty for some period
+#  of time, so cannot be counted on to contain the latest data)
+my $targetDir = "null";  # latest directory that is not empty
+my $targetDirFound = 0;  # true if the latest directory that is not empty has been found
+my @sortedFiles;         # data files in the most recent nam directory
+my $cycletime = "null";  # date and hour latest cycle
+my $cycledate = "null";  # date of latest cycle
+my $cyclehour = "null";  # hour of latest cycle
+LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
+   $targetDir = $sortedNamDirs[-1];
+   # determine the most recent date/hour ... this is the latest nam cycle time
+   $targetDir =~ /nam.(\d+)/;
+   $cycledate = $1;
+   &appMessage("DEBUG","The cycledate is '$cycledate'.");
+   # change to that directory and see if there are files in there
+   $hcDirSuccess = $ftp->cwd($backdir/$targetDir);
+   unless ( $hcDirSuccess ) {
+      stderrMessage("ERROR","ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
+      printf STDOUT $dl;
+      exit 1;
+   }
+   #my @allFiles = $ftp->ls();
+   my @allFiles = grep /awip1200.tm00/, $ftp->ls();
+   if (!@allFiles){
+      #die "no awip1200 files yet in $targetDirs[-1]\n";
+      stderrMessage("INFO","No awip1200.tm00 files yet in $targetDir.");
+      #printf STDOUT $dl;
+      #exit 0;
+      pop(@sortedNamDirs);
+   } else {
+      $targetDirFound = 1;
+      # now sort the NAM files from lowest to highest (it appears that ls() does
+      # not automatically do this for us)
+      @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
+   }
+}
+unless ( $targetDirFound && scalar(@sortedFiles) ) {
+   stderrMessage("ERROR","Could not find any NAM files in any NAM directory in the specified time range.");
+   printf STDOUT $dl;
+   exit 1;
+}
+#
+TODAYSFILES : foreach my $file (@sortedFiles) {
+   if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) {
+      $cyclehour = $1; # find the last one that matches the pattern
+   }
+}
+unless ( $cyclehour ne "null" ) {
    stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
    printf STDOUT $dl;
    exit 1;
 } else {
    stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    $cycletime = $cycledate . $cyclehour;
+   printf STDOUT $cycletime; # success
 }
-stderrMessage("DEBUG","The cycletime is '$cycletime'.");
-printf STDOUT $cycletime;
+stderrMessage("DEBUG","The cycletime is '$cycletime'."); 
+#
+# if the calling routine supplied a starting date/time, also write a JSON file 
+# that contains all the cycles available between the given starting
+# date/time and the latest available cycle (inclusive)
+if ( $startcycle != "null" ) {
+   my @cyclesInRange; # between startcycle and the latest
+   DIRECTORIES : foreach my $dir (@sortedNamDirs) {
+      # cd to the directory containing the NAM directories
+      my $hcDirSuccess = $ftp->cwd($backdir/$dir);
+      unless ( $hcDirSuccess ) {
+         stderrMessage("ERROR",
+            "ftp: Cannot change working directory to '$backdir/$dir': " . $ftp->message);
+         printf STDOUT $dl;
+         exit 1;
+      } 
+      $dir =~ /nam.(\d+)/;
+      my $thisdate = $1; 
+      my @allFiles = grep /awip1200.tm00/, $ftp->ls();
+      @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
+      my $thishour = "null";
+      my $thiscycle = "null";
+      FILES : foreach my $file (@sortedFiles) {
+         if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) {
+            $thishour = $1;  
+            $thiscycle = $thisdate . $thishour; 
+            if ( $thiscycle >= $startcycle && $thiscycle <= $cycletime ) {
+               push(@cyclesInRange,$thiscycle);
+            }
+         }
+      }
+   }
+   # now encode the list of cycles as json and write out
+   unless ( open(SJ,">test.json") ) {
+      &stderrMessage("ERROR","Could not open 'test.json' for writing: $!.");
+      exit 1;
+   }
+   my %namcycles;
+   $namcycles{"forcing.nam.cyclelist"} = \@cyclesInRange; 
+   my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
+   print SJ $json;
+   close(SJ);
+}
+# exit successfully
 exit 0;
 #
 # write a log message to stderr

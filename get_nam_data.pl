@@ -49,66 +49,55 @@ use strict;
 use Net::FTP;
 use Getopt::Long;
 use Date::Calc;
+use JSON:XS;
 use Cwd;
-# the following values are set on the command line
-our $rundir;   # directory where the ASGS is running
-my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
-my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
-our $scenario = "nowcast";  # the name of the subdir where the data will be used
-our $forecastLength = 84;   # keeps retrying until it has enough forecast files
+use File::Basename;
+
 # the following values may be set on the command
 # line or read from the $RUNDIR/status/asgs.instance.status.json file
-my $stage = "nowcast";      # nowcast | forecast
-my $lastcycle = "null";     # most recent cycle for which a nowcast was completed
-our @forecastcycle = "00,06,12,18";   # nam cycles to run a forecast (not just nowcast)
+# if they are set both ways, the commnd line takes precedence
+our $rundir = Cwd::cwd();   # directory where the data files will be stored
+my $stage = "null";      # nowcast | forecast
+my $startcycle = "null";    # most recent cycle for which a nowcast was completed
+my $endcycle = "null";      # cycle to nowcast to (meaningless in the forecast stage)
+my $scriptdir = dirname(__FILE__); # directory where this perl script can be found?
+our @forecastcycle = "00,06,12,18";   # nam cycles to run a forecast
 my $forecastselection = "latest";     # strict | latest
-my $forecastdownload = "only-to-run"; # only-to-run | all
-my $scriptdir = "null";
+my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
+my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
+our $forecastlength = 84;   # keeps retrying until it has enough forecast files
+my $forecastdownload = "only-to-run"; # only-to-run | all # controls whether met forecast files should be downloaded
 # FIXME : $enstorm needs to be eliminated in favor of $stage which can be "nowcast" or "forecast"
 # and $scenario which will contain the name of the subdirectory where the results are produced
-#
-my $scenariodir = "null";   # subdirectory where results are produced for a particular scenario
-my $date;     # date (UTC) corresponding to current ADCIRC time
-my $hour;     # hour (UTC) corresponding to current ADCIRC time
 my @targetDirs; # directories to download NAM data from
 our $max_retries = 20; # max number of times to attempt download of forecast file
 our $num_retries = 0;
 our $had_enough = 0;
-my @nowcasts_downloaded;  # list of nowcast files that were
-                          # successfully downloaded
+my @nowcasts_downloaded;  # list of nowcast files that were successfully downloaded
 #
 our $this = "get_nam_data.pl";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 #
 GetOptions(
+           # the following are available from the hook.status.json file
            "rundir=s" => \$rundir,          
-           "backsite=s" => \$backsite,
-           "backdir=s" => \$backdir,
-           "scenario=s" => \$scenario,
-           "lastcycle=s" => \$lastcycle,           
-           "forecastLength=s" => \$forecastLength,
-#
            "stage=s" => \$stage,
+           "startcycle=s" => \$startcycle,
+           "endcycle=s" => \$endcycle,           
+           # the following are available from the asgs.instance.status.json
+           "scriptdir=s" => \$scriptdir,
            "forecastcycle=s" => \@forecastcycle,
            "forecastselection=s" => \$forecastselection,
-           "forecastdownload=s" => \$forecastdownload,
-           "scriptdir=s" => \$scriptdir
+           "backsite=s" => \$backsite,
+           "backdir=s" => \$backdir,
+           "forecastlength=s" => \$forecastlength,
+           "forecastdownload=s" => \$forecastdownload
           );
-
-#                 --rundir /scratch/asgs2827
-#                 --backsite ftp.ncep.noaa.gov
-#                 --backdir /pub/data/nccf/com/nam/prod
-#                 --stage nowcast
-#                 --scenario nowcast
-#                 --lastcycle 2005082900
-#                 --forecastlength 84
-#                 --forecastcycle 00,06,12,18
-#                 --scriptdir /work/asgs
 #
-# create a hash of properties from run.properties
-our %properties;
-our $have_properties = 1;
+# create a hash of status parameters from $RUNDIR/status/asgs.instance.status.json
+our %status;
+our $have_status = 1;
 # look in a subdirectory 
 unless (open(RUNPROP,"<$proppath/run.properties")) {
    &stderrMessage("WARNING","Failed to open $proppath/run.properties: $!.");
@@ -597,7 +586,7 @@ sub getForecastData() {
       exit;
    }
    # forecast files are the list of files to retrieve
-   for (my $i=0; $i<=$forecastLength; $i+=3 ) {
+   for (my $i=0; $i<=$forecastlength; $i+=3 ) {
       my $hourString = sprintf("%02d",$cyclehour);
       my $f = "nam.t".$hourString."z.awip12".sprintf("%02d",$i).".tm00.grib2";
       # sometimes an error occurs in Net::FTP causing this script to bomb out;
@@ -640,7 +629,7 @@ sub getForecastData() {
                 # get the rest of them
       }
    }
-   if ( ($dl >= $forecastLength/3 ) || ($had_enough == 1) ) {
+   if ( ($dl >= $forecastlength/3 ) || ($had_enough == 1) ) {
       printf STDOUT $cycletime;
    } else {
       printf STDOUT "0";
