@@ -28,6 +28,7 @@ use strict;
 use Net::FTP;
 use Getopt::Long;
 use Date::Calc;
+use JSON::PP;
 use Cwd;
 #
 my $startcycle = "null";  # optional arg that indicates start of range of interest
@@ -92,7 +93,7 @@ if ( $startcycle ne "null" ) {
    $startcycle =~ /(\d{10})/;
    $startdate = $1; 
    my $numbefore = 0; # number of directories prior to the startcycle directory
-   DIRECTORIES : foreach $dir (@sortedNamDirs) {
+   DIRECTORIES : foreach my $dir (@sortedNamDirs) {
       $dir =~ /nam.(\d{10})/;
       my $dirdate = $1;
       if ( $dirdate < $startdate ) {
@@ -130,7 +131,7 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    $cycledate = $1;
    &appMessage("DEBUG","The cycledate is '$cycledate'.");
    # change to that directory and see if there are files in there
-   $hcDirSuccess = $ftp->cwd($backdir/$targetDir);
+   $hcDirSuccess = $ftp->cwd("$backdir/$targetDir");
    unless ( $hcDirSuccess ) {
       stderrMessage("ERROR","ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
       printf STDOUT $dl;
@@ -167,7 +168,7 @@ unless ( $cyclehour ne "null" ) {
    printf STDOUT $dl;
    exit 1;
 } else {
-   stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
+   #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    $cycletime = $cycledate . $cyclehour;
    printf STDOUT $cycletime; # success
 }
@@ -176,11 +177,12 @@ stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 # if the calling routine supplied a starting date/time, also write a JSON file 
 # that contains all the cycles available between the given starting
 # date/time and the latest available cycle (inclusive)
-if ( $startcycle != "null" ) {
+if ( $startcycle ne "null" ) {
    my @cyclesInRange; # between startcycle and the latest
    DIRECTORIES : foreach my $dir (@sortedNamDirs) {
+      #printf STDOUT "$dir\n"; #jgfdebug
       # cd to the directory containing the NAM directories
-      my $hcDirSuccess = $ftp->cwd($backdir/$dir);
+      my $hcDirSuccess = $ftp->cwd("$backdir/$dir");
       unless ( $hcDirSuccess ) {
          stderrMessage("ERROR",
             "ftp: Cannot change working directory to '$backdir/$dir': " . $ftp->message);
@@ -194,7 +196,9 @@ if ( $startcycle != "null" ) {
       my $thishour = "null";
       my $thiscycle = "null";
       FILES : foreach my $file (@sortedFiles) {
-         if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) {
+         #printf STDOUT "$file\n"; #jgfdebug
+         # anchor the .grib2 to end of string to avoid matching .grib2.idx
+         if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2$/ ) {
             $thishour = $1;  
             $thiscycle = $thisdate . $thishour; 
             if ( $thiscycle >= $startcycle && $thiscycle <= $cycletime ) {
@@ -204,7 +208,7 @@ if ( $startcycle != "null" ) {
       }
    }
    # now encode the list of cycles as json and write out
-   unless ( open(SJ,">test.json") ) {
+   unless ( open(SJ,">$this.json") ) {
       &stderrMessage("ERROR","Could not open 'test.json' for writing: $!.");
       exit 1;
    }
@@ -240,8 +244,8 @@ sub appMessage () {
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
    #
    # open an application log file
-   unless ( open(APPLOGFILE,">>$rundir/$this.log") ) {
-      &stderrMessage("ERROR","Could not open $rundir/$this.log for appending: $!.");
+   unless ( open(APPLOGFILE,">>$this.log") ) {
+      &stderrMessage("ERROR","Could not open $this.log for appending: $!.");
    }
    printf APPLOGFILE "$theTime $level: $this: $message\n";
    close(APPLOGFILE);
