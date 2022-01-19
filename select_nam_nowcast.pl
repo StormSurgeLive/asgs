@@ -38,7 +38,7 @@ my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
 #
 our $this = "select_nam_nowcast.pl";
 my $cyclelistfile = "get_nam_status.pl.json";
-my $selectedlistfile = "select_nam_nowcast.pl.json"
+my $selectedlistfile = "select_nam_nowcast.pl.json";
 #
 GetOptions(
            "forecastcycle=s" => \$forecastcycle
@@ -50,29 +50,38 @@ unless (open(F,"<$cyclelistfile")) {
     &stderrMessage("ERROR","Failed to open '$cyclelistfile': $!.");
     die;
 }
+# get_nam_status.pl.json looks like the following:
+# {
+#   "forcing.nam.cyclelist" : [
+#      2022011418,
+#      2022011500,
+#      2022011506,
+#      2022011512
+#   ]
+# }
 # slurp the file contents into a scalar variable
 my $file_content = do { local $/; <F> };
 close(F);
 my $ref = JSON::PP->new->decode($file_content);
-%cyclehash = %$ref;
-if ($keys ne "null" && exists($cyclehash{$keys})) {
-    print $cyclehash{$keys};
-} else {
-    print "null";
-}
+my %cyclehash = %$ref;
 # grab the list of cycles out of the hash
-my @cyclelist = $cyclehash{"forcing.nam.cyclelist"};
+my $cyclelistref = $cyclehash{"forcing.nam.cyclelist"};
+my @cyclelist = @$cyclelistref;
 #
 # nowcast to the most recent cycle that the Operator
 # has selected for a forecast
 my $foundit = 0;
 my $numnotfound = 0;
-@forecastcycles = split(",",$forecastcycle);
-CYCLES : for ( my $c=-1 ; ($c + scalar(@cyclelist))>0 ; $c-- ) {
-    $cycle =~ /(\d{8})(\d{2})/;
+my @forecastcycles = split(",",$forecastcycle);
+my $numcycles = @cyclelist;
+#printf STDOUT "$numcycles\n"; #jgfdebug
+CYCLES : for ( my $c=-1 ; ($c + $numcycles)>0 ; $c-- ) {
+    #printf STDOUT "$c $cyclelist[$c]\n"; #jgfdebug
+    $cyclelist[$c] =~ /(\d{8})(\d{2})/;
     my $cycleday = $1;
     my $cyclehour = $2;
     FORECASTTIMES : for ( my $f=-1 ; ($f + scalar(@forecastcycles))>-1 ; $f-- ) {  
+        #printf STDOUT "$f $forecastcycles[$f]\n"; #jgfdebug
         if ( $forecastcycles[$f] == $cyclehour ) {
             $foundit = 1;
             last CYCLES;
@@ -84,7 +93,7 @@ CYCLES : for ( my $c=-1 ; ($c + scalar(@cyclelist))>0 ; $c-- ) {
 # forecast we want to run
 if ( $foundit == 1 ) {
     for ( my $i=0 ; $i<$numnotfound ; $i++ ) {
-        pop(@forecastcycles);
+        pop(@cyclelist);
     }
 }
 # now encode the list of cycles as json and write out
@@ -93,7 +102,7 @@ unless ( open(SJ,">$this.json") ) {
     exit 1;
 }
 my %namcycles;
-$namcycles{"forcing.nam.cyclelist"} = \@forecastcycles; 
+$namcycles{"forcing.nam.cyclelist"} = \@cyclelist; 
 my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
 print SJ $json;
 close(SJ);
@@ -107,7 +116,7 @@ sub stderrMessage () {
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: $enstorm: get_nam.pl: $message\n";
+   printf STDERR "$theTime $level: $this: $message\n";
 }
 #
 # write a log message to a log file dedicated to this script (typically debug messages)
@@ -124,6 +133,6 @@ sub appMessage () {
    unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
       &stderrMessage("ERROR","Could not open $rundir/get_nam.pl.log for appending: $!.");
    }
-   printf APPLOGFILE "$theTime $level: $enstorm: get_nam.pl: $message\n";
+   printf APPLOGFILE "$theTime $level: $this:  $message\n";
    close(APPLOGFILE);
 }
