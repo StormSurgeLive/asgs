@@ -21,13 +21,10 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #
 #--------------------------------------------------------------
-# ref: http://www.cpc.ncep.noaa.gov/products/wesley/fast_downloading_grib.html
-#--------------------------------------------------------------
 $^W++;
 use strict;
 use Net::FTP;
 use Getopt::Long;
-use Date::Calc;
 use JSON::PP;
 use Cwd;
 #
@@ -209,7 +206,7 @@ if ( $startcycle ne "null" ) {
    }
    # now encode the list of cycles as json and write out
    unless ( open(SJ,">$this.json") ) {
-      &stderrMessage("ERROR","Could not open 'test.json' for writing: $!.");
+      &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
       exit 1;
    }
    my %namcycles;

@@ -943,18 +943,21 @@ downloadBackgroundMet()
       hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
       lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
       #     
-      # determine the latest NAM cycle posted by NCEP
+      # determine the status of the latest NAM cycle posted by NCEP,
+      # along with the range of cycles posted since the adcirc hotstart time
       while [[ $getNamStatusSuccess -ne 0 && $newCycle -le $lastCycle ]]; do
+         TRIES=$((TRIES + 1))
          appMessage "According to the statefile ${STATEFILE}, the most recent successful nowcast cycle is $lastCycle." $APPLOGFILE
-         statusOptions="--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR"
+         statusOptions="--startcycle $lastCycle --backsite $BACKSITE --backdir $BACKDIR"
          appMessage "Downloading NAM status with the following command: perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG}" $APPLOGFILE
          newCycle=$(perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG})
          if [[ $newCycle -le $lastCycle ]]; then
              RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
              sleep 60
-             TRIES=$((TRIES + 1))
          fi
-      done  
+      done
+      
+
       # record the new advisory number to the statefile
       logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newCycle}." $APPLOGFILE
       cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
