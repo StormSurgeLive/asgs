@@ -90,8 +90,7 @@ unless ( $hcDirSuccess ) {
 # forecast data for this cycle
 # J U M P   T O   F O R E C A S T
 if ( $stage eq "forecast" ) {
-      &getForecastData();
-   }
+   &getForecastData();
 }
 # N O W C A S T
 # loop over target directories, grabbing all files relevant to a nowcast
@@ -107,13 +106,13 @@ foreach my $dir (@targetDirs) {
    # form list of the files we want
    # for the nowcast files, we need to create at least one deeper
    # directory to hold the data for the NAMtoOWI.pl -- the nowcast file
-   # names do not indictate the date, and we may end up having to get
+   # names do not indicate the date, and we may end up having to get
    # multiple nowcasts and stringing them together ... these nowcasts
    # may span more than one day -- the prefix "erl." is arbitrary I think
    # but NAMtoOWI.pl is hardcoded to look for it
    $dir =~ /nam.(\d+)/;
    my $dirDate = $1;
-   $localDir = $cycletime."/nowcast/erl.".substr($dirDate,2);
+   my $localDir = $cycletime."/nowcast/erl.".substr($dirDate,2);
    unless ( -e $localDir ) {
       unless ( mkdir($localDir,0777) ) {
          stderrMessage("ERROR","Could not make the directory '$localDir': $!");
