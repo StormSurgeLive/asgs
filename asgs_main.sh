@@ -928,10 +928,9 @@ downloadBackgroundMet()
    STATEFILE=${14}
    #
    THIS="asgs_main.sh>downloadBackgroundMet()"
-   APPLOGFILE=$RUNDIR/get_nam_status.pl.log
    CURRENT_STATE="WAIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
-   logMessage "$ENSTORM: $THIS: Downloading meteorological data." $APPLOGFILE
+   logMessage "$ENSTORM: $THIS: Downloading meteorological data." 
    cd $RUNDIR 2>> ${SYSLOG}
    # N O W C A S T
    if [[ $stage == "nowcast" ]]; then
@@ -945,19 +944,21 @@ downloadBackgroundMet()
       #     
       # determine the status of the latest NAM cycle posted by NCEP,
       # along with the range of cycles posted since the adcirc hotstart time
+      APPLOGFILE=$RUNDIR/get_nam_status.pl.log
       while [[ $getNamStatusSuccess -ne 0 && $newCycle -le $lastCycle ]]; do
          TRIES=$((TRIES + 1))
          appMessage "According to the statefile ${STATEFILE}, the most recent successful nowcast cycle is $lastCycle." $APPLOGFILE
          statusOptions="--startcycle $lastCycle --backsite $BACKSITE --backdir $BACKDIR"
          appMessage "Downloading NAM status with the following command: perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG}" $APPLOGFILE
-         newCycle=$(perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG})
+         newCycle=$(perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${APPLOGFILE})
          if [[ $newCycle -le $lastCycle ]]; then
              RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
              sleep 60
          fi
-      done
-      
-
+      done  
+      APPLOGFILE=$RUNDIR/select_nam_nowcast.pl.log
+      # refine the list of NAM cycles to end the nowcast on the correct cycle
+      newCycle=$(perl $SCRIPTDIR/select_nam_nowcast.pl --forecastcycle "$FORECASTCYCLE" 2>> ${APPLOGFILE})
       # record the new advisory number to the statefile
       logMessage "$THIS: $ENSTORM: The new NAM cycle is ${newCycle}." $APPLOGFILE
       cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
@@ -965,10 +966,11 @@ downloadBackgroundMet()
       logMessage "Updating statefile $STATEFILE with new cycle number ${newCycle}." $APPLOGFILE
       cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
       # now download the actual nowcast data for the time range of interest
-      #OPTIONS="--scenariodir $SCENARIODIR --rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --forecastlength $FORECASTLENGTH --altnamdir $ALTNAMDIR --scriptdir $SCRIPTDIR --forecastcycle $FORECASTCYCLE --archivedruns ${ARCHIVEBASE}/${ARCHIVEDIR}"
-      #namNowcastDownloadOptionss##"--rundir $RUNDIR --backsite $BACKSITE --backdir $BACKDIR"
-      appMessage "Downloading NAM nowcast data with the following command: perl ${SCRIPTDIR}/get_nam_data.pl $namNowcastDownloadOptions 2>> ${SYSLOG}" $APPLOGFILE
-      perl ${SCRIPTDIR}/get_nam_data.pl $namNowcastDownloadOptions 2>> ${SYSLOG}
+      mkdir $RUNDIR/$newCycle 2>> $SYSLOG
+      mv get_nam_status.pl.* select_nam_nowcast.pl.* $RUNDIR/$newCycle 2>> $SYSLOG
+      cd $RUNDIR/$newCycle
+      APPLOGFILE=$RUNDIR/$newCycle/get_nam_data.pl.log
+      perl ${SCRIPTDIR}/get_nam_data.pl --stage $stage --startcycle $lastCycle --finishcycle $newCycle 2>> ${APPLOGFILE}
    else
       # F O R E C A S T
       # download forecast data

@@ -19,56 +19,30 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
-#
-#--------------------------------------------------------------
-# If nowcast data is requested, the script will grab the nowcast
-# data corresponding to the current ADCIRC time, and then grab all
-# successive nowcast data, if any.
-#
-# If forecast data is requested, the script will grab the
-# forecast data corresponding to the current ADCIRC time.
 #--------------------------------------------------------------
 # ref: http://www.cpc.ncep.noaa.gov/products/wesley/fast_downloading_grib.html
 #--------------------------------------------------------------
 # sample line to test this script :
 #
 # perl get_nam_data.pl \
-#                 --rundir /scratch/asgs2827
+#                 --startcycle 2005082900
+#                 --finishcycle 2005082906
+#                 --stage nowcast
+#                 --forecastcycle 00,06,12,18
 #                 --backsite ftp.ncep.noaa.gov
 #                 --backdir /pub/data/nccf/com/nam/prod
-#                 --stage nowcast
-#                 --scenario nowcast
-#                 --lastcycle 2005082900
-#                 --forecastlength 84
-#                 --forecastcycle 00,06,12,18
-#                 --scriptdir /work/asgs
-#
 #--------------------------------------------------------------
 $^W++;
 use strict;
 use Net::FTP;
 use Getopt::Long;
-use Date::Calc;
-use JSON:XS;
 use Cwd;
-use File::Basename;
-
-# the following values may be set on the command
-# line or read from the $RUNDIR/status/asgs.instance.status.json file
-# if they are set both ways, the commnd line takes precedence
-our $rundir = Cwd::cwd();   # directory where the data files will be stored
+my $startcycle = "null";   # most recent cycle for which a nowcast was completed
+my $finishcycle = "null";  # cycle to nowcast to (meaningless in the forecast stage)
 my $stage = "null";      # nowcast | forecast
-my $startcycle = "null";    # most recent cycle for which a nowcast was completed
-my $endcycle = "null";      # cycle to nowcast to (meaningless in the forecast stage)
-my $scriptdir = dirname(__FILE__); # directory where this perl script can be found?
-our @forecastcycle = "00,06,12,18";   # nam cycles to run a forecast
-my $forecastselection = "latest";     # strict | latest
+our $forecastcycle = "00,06,12,18";   # nam cycles to run a forecast
 my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
 my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
-our $forecastlength = 84;   # keeps retrying until it has enough forecast files
-my $forecastdownload = "only-to-run"; # only-to-run | all # controls whether met forecast files should be downloaded
-# FIXME : $enstorm needs to be eliminated in favor of $stage which can be "nowcast" or "forecast"
-# and $scenario which will contain the name of the subdirectory where the results are produced
 my @targetDirs; # directories to download NAM data from
 our $max_retries = 20; # max number of times to attempt download of forecast file
 our $num_retries = 0;
@@ -80,79 +54,13 @@ our $this = "get_nam_data.pl";
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 #
 GetOptions(
-           # the following are available from the hook.status.json file
-           "rundir=s" => \$rundir,          
-           "stage=s" => \$stage,
            "startcycle=s" => \$startcycle,
-           "endcycle=s" => \$endcycle,           
-           # the following are available from the asgs.instance.status.json
-           "scriptdir=s" => \$scriptdir,
-           "forecastcycle=s" => \@forecastcycle,
-           "forecastselection=s" => \$forecastselection,
+           "finishcycle=s" => \$finishcycle,  
+           "stage=s" => \$stage,
+           "forecastcycle=s" => \$forecastcycle,
            "backsite=s" => \$backsite,
-           "backdir=s" => \$backdir,
-           "forecastlength=s" => \$forecastlength,
-           "forecastdownload=s" => \$forecastdownload
-          );
-#
-# create a hash of status parameters from $RUNDIR/status/asgs.instance.status.json
-our %status;
-our $have_status = 1;
-# look in a subdirectory 
-unless (open(RUNPROP,"<$proppath/run.properties")) {
-   &stderrMessage("WARNING","Failed to open $proppath/run.properties: $!.");
-   &appMessage("WARNING","Failed to open $proppath/run.properties: $!.");
-   $have_properties = 0;
-} else {
-   &appMessage("INFO","Opened $proppath/run.properties.");
-   while (<RUNPROP>) {
-      my @fields = split ':',$_, 2 ;
-      # strip leading and trailing spaces and tabs
-      $fields[0] =~ s/^\s|\s+$//g ;
-      $fields[1] =~ s/^\s|\s+$//g ;
-      $properties{$fields[0]} = $fields[1];
-   }
-   close(RUNPROP);
-   &appMessage("INFO","Closed $proppath/run.properties.");
-}
-#
-# get forecast selection preference from run.properties
-# file if it was not specified on the command line
-# (i.e., command line option takes precedence)
-if ( $forecastselection eq "null" ) {
-   &appMessage("INFO","forecastselection was not specified on the command line.");
-   if ( $have_properties &&
-     exists($properties{"forcing.nwp.schedule.forecast.forecastselection"}) ) {
-      $forecastselection = $properties{"forcing.nwp.schedule.forecast.forecastselection"};
-      &appMessage("INFO","forcing.nwp.schedule.forecast.forecastselection was set to '$forecastselection' from the run.properties file.");
-   } else {
-      $forecastselection = "latest";
-      &appMessage("INFO","forcing.nwp.schedule.forecast.forecastselection was not available from the run.properties file. Setting it to the default value of 'latest'.");
-   }
-} else {
-   &appMessage("WARNING","forecastselection was set to '$forecastselection' on  the command line.");
-}
-#
-# get forecast download setting from run.properties
-# file if it was not specified on the command line
-# (i.e., command line option takes precedence)
-# FIXME : this is repeated code with forecastselection from above that should be turned into a sub
-# TODO : eventually get this parameter setting from scenario.json instead of run.properties
-if ( $forecastdownload eq "null" ) {
-   &appMessage("INFO","forecastdownload was not specified on the command line.");
-   if ( $have_properties &&
-     exists($properties{"forcing.nam.forecast.download"}) ) {
-      $forecastdownload = $properties{"forcing.nam.forecast.download"};
-      &appMessage("INFO","forcing.nam.forecast.download was set to '$forecastdownload' from the run.properties file.");
-   } else {
-      $forecastdownload = "only-to-run";
-      &appMessage("INFO","forcing.nam.forecast.download was not available from the run.properties file. Setting it to the default value of 'only-to-run'.");
-   }
-} else {
-   &appMessage("WARNING","forecastdownload was set to '$forecastdownload' on  the command line.");
-}
-#
-&appMessage("DEBUG","hstime is $hstime");
+           "backdir=s" => \$backdir
+);
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
 # open ftp connection
@@ -178,105 +86,14 @@ unless ( $hcDirSuccess ) {
    printf STDOUT $dl;
    exit 1;
 }
-# if this is not a nowcast, jump to the sub to get the
+# if this is a forecast, jump to the sub to get the
 # forecast data for this cycle
-if ( defined $enstorm ) {
-   unless ( $enstorm eq "nowcast" ) {
-      @forecastcycle = split(/,/,join(',',@forecastcycle));
+# J U M P   T O   F O R E C A S T
+if ( $stage eq "forecast" ) {
       &getForecastData();
-      exit;
    }
 }
-#
-# if alternate (local) directories for NAM data were supplied, then remove the
-# commas from these directories
-if ( @altnamdirs ) {
-   @altnamdirs = split(/,/,join(',',@altnamdirs));
-}
-#
-# Add directory where the ASGS is currently running to the list of
-# alternate NAM directories so that it can pick up grib2 files that
-# have been downloaded during previous cycles in the same ASGS instance
-# and are needed for the current cycle but are no longer available
-# from the NAM ftp site and have not yet been copied to one of the alternate
-# NAM directories
-push(@altnamdirs,$rundir);
-#
-# if the forecastselection was set to "strict", then we want
-# to nowcast to a cycle that occurs
-#    (a) today
-#    (b) after the adcirc (hotstart) time
-#    (c) as recently as possible
-#    (d) earliest in the list of forecastcycles, if that is
-#        before the current cycle time
-# So in this case we will want to compare the hotstart time
-# with the specified forecast cycles, pick the earliest forecast
-# cycle that is after the hotstart time, and discard nowcast files
-# after that.
-my $cycletime;
-TODAYSFILES : foreach my $file (@sortedFiles) {
-   if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2/ ) {
-      $cyclehour = $1;
-      $cycletime = $cycledate . $cyclehour;
-      if ( $forecastselection eq "latest" ) {
-         next;
-      }
-      if ( $forecastselection eq "strict" ) {
-         # find the first selected forecast cycle that
-         # is available after the adcirc time today
-         # (rather than just running the latest)
-         OURCYCLES : foreach my $fc (@forecastcycle) {
-            my $selected_cycle = $cycledate . $fc;
-            if ( $selected_cycle > $adcirctime && $selected_cycle == $cycletime) {
-               last TODAYSFILES;
-            }
-         }
-      }
-   }
-}
-stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
-unless (defined $cyclehour ) {
-   stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
-   exit;
-} else {
-   $cycletime = $cycledate . $cyclehour;
-}
-stderrMessage("DEBUG","The cycletime is '$cycletime'.");
-#
-# if we made it to here, then there must be some new files on the
-# NAM ftp site for us to run
-$hcDirSuccess = $ftp->cdup();
-unless ( $hcDirSuccess ) {
-   stderrMessage("ERROR",
-      "ftp: Cannot change working directory to parent of '$targetDirs[-1]': " . $ftp->message);
-   printf STDOUT $dl;
-   exit;
-}
-# create the local directores for this cycle if needed
-unless ( -e $cycletime ) {
-   unless ( mkdir($cycletime,0777) ) {
-      stderrMessage("ERROR","Could not make directory '$cycletime': $!.");
-      die;
-   }
-}
-# create the nowcast and forecast directory for this cycle if needed
-unless ( -e $cycletime."/nowcast" ) {
-   unless ( mkdir($cycletime."/nowcast",0777) ) {
-      stderrMessage("ERROR","Could not make directory '$cycletime/nowcast': $!.");
-      die;
-   }
-}
-unless ( -e $cycletime."/$enstorm" ) {
-   unless ( mkdir($cycletime."/$enstorm",0777) ) {
-      stderrMessage("ERROR","Could not make directory '$cycletime/$enstorm': $!.");
-      die;
-   }
-}
-#
-# NOWCAST
-my $localDir;    # directory where we are saving these files
-my @targetFiles; #
-#
+# N O W C A S T
 # loop over target directories, grabbing all files relevant to a nowcast
 foreach my $dir (@targetDirs) {
    stderrMessage("INFO","Downloading from directory '$dir'.");

@@ -106,6 +106,11 @@ $namcycles{"forcing.nam.cyclelist"} = \@cyclelist;
 my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
 print SJ $json;
 close(SJ);
+# write the cycle when the nowcast should end
+# so it can be captured by the calling routine 
+# (may be different than the latest nowcast)
+printf STDOUT $cyclelist[-1]; # success
+exit 0;
 #
 # write a log message to stderr
 sub stderrMessage () {
