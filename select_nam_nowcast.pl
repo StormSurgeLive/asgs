@@ -37,6 +37,7 @@ my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
 my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
 #
 our $this = "select_nam_nowcast.pl";
+my $ncepcycles = "forcing.nam.ncep.cyclelist";
 my $cyclelistfile = "get_nam_status.pl.json";
 my $selectedlistfile = "select_nam_nowcast.pl.json";
 #
@@ -52,7 +53,7 @@ unless (open(F,"<$cyclelistfile")) {
 }
 # get_nam_status.pl.json looks like the following:
 # {
-#   "forcing.nam.cyclelist" : [
+#   "forcing.nam.ncep.cyclelist" : [
 #      2022011418,
 #      2022011500,
 #      2022011506,
@@ -65,7 +66,7 @@ close(F);
 my $ref = JSON::PP->new->decode($file_content);
 my %cyclehash = %$ref;
 # grab the list of cycles out of the hash
-my $cyclelistref = $cyclehash{"forcing.nam.cyclelist"};
+my $cyclelistref = $cyclehash{$ncepcycles};
 my @cyclelist = @$cyclelistref;
 #
 # nowcast to the most recent cycle that the Operator
@@ -99,10 +100,10 @@ if ( $foundit == 1 ) {
 # now encode the list of cycles as json and write out
 unless ( open(SJ,">$this.json") ) {
     &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
-    exit 1;
+    die;
 }
 my %namcycles;
-$namcycles{"forcing.nam.cyclelist"} = \@cyclelist; 
+$namcycles{$ncepcycles} = \@cyclelist; 
 my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
 print SJ $json;
 close(SJ);

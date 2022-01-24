@@ -34,6 +34,7 @@ my $backdir = "/pub/data/nccf/com/nam/prod"; # dir on ncep ftp site
 my @cyclerange; # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest  
 #
 our $this = "get_nam_status.pl";
+my $ncepcycles = "forcing.nam.ncep.cyclelist";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 #
@@ -50,13 +51,13 @@ our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1);
 unless ( defined $ftp ) {
    stderrMessage("ERROR","ftp: Cannot connect to $backsite: $@");
    printf STDOUT $dl;
-   exit 1;
+   die;
 }
 my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
 unless ( $ftpLoginSuccess ) {
    stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
    printf STDOUT $dl;
-   exit 1;
+   die;
 }
 # switch to binary mode
 $ftp->binary();
@@ -66,7 +67,7 @@ unless ( $hcDirSuccess ) {
    stderrMessage("ERROR",
        "ftp: Cannot change working directory to '$backdir': " . $ftp->message);
    printf STDOUT $dl;
-   exit 1;
+   die;
 }
 #
 # now go to the ftp site and 
@@ -110,7 +111,7 @@ my $numSortedNamDirs = @sortedNamDirs;
 if ( $numSortedNamDirs == 0 ) {
    stderrMessage("WARNING","Failed to find any NAM data directories.");
    printf STDOUT $dl;
-   exit 1;
+   die;
 }
 # determine the latest NAM directory that has data in it
 # (a new directory may exist and be empty for some period
@@ -132,7 +133,7 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    unless ( $hcDirSuccess ) {
       stderrMessage("ERROR","ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
       printf STDOUT $dl;
-      exit 1;
+      die;
    }
    #my @allFiles = $ftp->ls();
    my @allFiles = grep /awip1200.tm00/, $ftp->ls();
@@ -152,7 +153,7 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
 unless ( $targetDirFound && scalar(@sortedFiles) ) {
    stderrMessage("ERROR","Could not find any NAM files in any NAM directory in the specified time range.");
    printf STDOUT $dl;
-   exit 1;
+   die;
 }
 #
 TODAYSFILES : foreach my $file (@sortedFiles) {
@@ -163,7 +164,7 @@ TODAYSFILES : foreach my $file (@sortedFiles) {
 unless ( $cyclehour ne "null" ) {
    stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
    printf STDOUT $dl;
-   exit 1;
+   die;
 } else {
    #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    $cycletime = $cycledate . $cyclehour;
@@ -184,7 +185,7 @@ if ( $startcycle ne "null" ) {
          stderrMessage("ERROR",
             "ftp: Cannot change working directory to '$backdir/$dir': " . $ftp->message);
          printf STDOUT $dl;
-         exit 1;
+         die;
       } 
       $dir =~ /nam.(\d+)/;
       my $thisdate = $1; 
@@ -207,10 +208,10 @@ if ( $startcycle ne "null" ) {
    # now encode the list of cycles as json and write out
    unless ( open(SJ,">$this.json") ) {
       &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
-      exit 1;
+      die;
    }
    my %namcycles;
-   $namcycles{"forcing.nam.cyclelist"} = \@cyclesInRange; 
+   $namcycles{$ncepcycles} = \@cyclesInRange; 
    my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
    print SJ $json;
    close(SJ);

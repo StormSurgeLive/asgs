@@ -932,6 +932,17 @@ downloadBackgroundMet()
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
    logMessage "$ENSTORM: $THIS: Downloading meteorological data." 
    cd $RUNDIR 2>> ${SYSLOG}
+   #
+   # if there isn't an archive directory for NAM data inside
+   # the instance directory, make one
+   if [[ ! -d $RUNDIR/nam ]]; then
+      mkdir -p $RUNDIR/nam 2>> $SYSLOG
+   fi
+   # if there isn't an archive directory for NAM data in the 
+   # ASGS WORK directory, make one
+   if [[ ! -d $WORK/nam ]]; then
+      mkdir -p $WORK/nam 2>> $SYSLOG
+   fi
    # N O W C A S T
    if [[ $stage == "nowcast" ]]; then
       getNamStatusSuccess=1
