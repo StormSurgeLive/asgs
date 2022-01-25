@@ -45,16 +45,17 @@
 use strict;
 no strict 'refs';
 
-#use NetCDF;
 use List::Util qw[min max];
 use Getopt::Long;
 use Date::Calc;
+use File::Basename;
+use JSON::PP;
 use Storable;
 use Cwd;
 ######################################################
 #             Variables declarations                 #
 ######################################################
-my $dataDir            = "./";               # path to NAM data
+my $dataDir            = "null";               # path to NAM data
 my $outDir             = "./";               # path to NAM u,v,p text data
 my $ptFile             = "null";             # file name of output grid lat/lon
 my $fort22             = 'fort.22';          # fort.22 path and filename
@@ -64,6 +65,8 @@ my $pressureMultiplier = 0.01;               # convert Pascals to mb by default
 my @namFormats         = qw(grb grib2 grb2); # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
 my $namFormat          = "grib2";            # default NAM format is netCDF
 my $stage              = "forecast";         # expect forecast data by default
+our $startcycle        = "null";             # e.g.: 2022012500 needed to disambiguate a forecast when multiple forecast series are present in one directory  
+my $selectfile         = "null";             # json file with the range of cycles
 my $scriptDir          = dirname(__FILE__);  # path to executables
 my $ptFile             = "$scriptDir/input/ptFile_oneEighth.txt";            # file name of output grid lat/lon
 my ( $wndFile, $presFile );                  # names of OWI wind/pre output files
@@ -80,8 +83,9 @@ my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recor
 my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
 my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
-our $scenario = "nullscenario";
 my $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
+our $this = "NAMtoOWIRamp.pl";
+my $ncepcycles = "forcing.nam.ncep.cyclelist";
 #
 ######################################################
 #                    Main Program                    #
@@ -93,6 +97,8 @@ GetOptions(
     "ptFile=s"             => \$ptFile,
     "namFormat=s"          => \$namFormat,
     "stage=s"              => \$stage,
+    "startcycle=s"         => \$startcycle,
+    "selectfile=s"         => \$selectfile,
     "awipGridNumber=s"     => \$awipGridNumber,
     "velocityMultiplier=s" => \$velocityMultiplier,
     "pressureMultiplier=s" => \$pressureMultiplier,
@@ -101,30 +107,41 @@ GetOptions(
     "scriptDir=s"          => \$scriptDir
 );
 #
-# create a hash of properties from run.properties
-our %properties;
-# open properties file
-unless (open(RUNPROP,"<run.properties")) {
-   stderrMessage("ERROR","Failed to open run.properties: $!.");
-   #die;
-} else {
-    while (<RUNPROP>) {
-        my @fields = split ':',$_, 2 ;
-        # strip leading and trailing spaces and tabs
-        $fields[0] =~ s/^\s|\s+$//g ;
-        $fields[1] =~ s/^\s|\s+$//g ;
-        $properties{$fields[0]} = $fields[1];
-    }
-    close(RUNPROP);
-    $scenario = $properties{"scenario"};
-}
-#
-# open an application log file for get_nam.pl
-unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
-   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");
+# open an application log 
+unless ( open(APPLOGFILE,">>$this.log") ) {
+   stderrMessage("ERROR","Could not open '$this.log' for appending: $!.");
    exit 1;
 }
-&stderrMessage( "INFO", "Started processing NAM data." );
+#
+# if a JSON file with a range of cycles was specified, then
+# load it 
+if ( $selectfile ne "null" ) {
+   my @cyclelist;
+   &stderrMessage("INFO","Loading selectfile $selectfile." );
+   unless ( open(SF,"<$selectfile") ) {
+      stderrMessage("ERROR","Could not open '$selectfile' for writing: $!.");
+      die;
+   }
+   # slurp the file contents into a scalar variable
+   my $file_content = do { local $/; <SF> };
+   close(SF);
+   # deserialize JSON
+   my $ref = JSON::PP->new->decode($file_content);
+   my %cyclehash = %$ref;
+   # grab the list of cycles out of the hash
+   my $cyclelistref = $cyclehash{$ncepcycles};
+   @cyclelist = @$cyclelistref;
+   if ( $stage eq "forecast" ) {
+      $startcycle = $cyclelist[-1];
+      if ( $dataDir eq "null" ) { 
+         $dataDir = "./erl." . substr($startcycle,2,6) . "/"; # path to NAM data
+      }
+   }
+   &stderrMessage("INFO","Using --startcycle $startcycle and --dataDir $dataDir.");  
+}
+if ( $dataDir eq "null" ) { 
+   $dataDir = "./";               # path to NAM data
+}
 #
 # check to make sure that outDir and dataDir have slashes at the
 # end (this script assumes they do)
@@ -147,25 +164,6 @@ $geoHeader = &processPtFile($ptFile);
 ######################################################
 #                    Subroutines                     #
 ######################################################
-
-################################################################################
-# NAME: &printDate
-# CALL: &printDate($message)
-# GOAL: print the given message along with the date/time
-################################################################################
-sub printDate() {
-    my $message = shift;
-    my @time    = localtime(time);
-    my $second  = $time[0];
-    my $minute  = sprintf "%2.2d", $time[1];
-    my $hour    = sprintf "%2.2d", $time[2];
-    my $day     = sprintf "%2.2d", $time[3];
-
-    my $month = sprintf "%2.2d", ( 1 + $time[4] );
-
-    my $year = sprintf "%4.4d", ( $time[5] + 1900 );
-    print "$message at $month/$day/$year $hour:$minute:$second \n";
-}
 
 ################################################################################
 # NAME: &processPtFile
@@ -229,46 +227,6 @@ sub processPtFile {
 
     #print "headerline=$headerLine\n";
     return $headerLine;
-
-}
-################################################################################
-# NAME: &convertTime
-# CALL: &convertTime(\@time);
-# GOAL: convert the netCDF epoch time to the OWI format time requirement
-################################################################################
-sub convertTime {
-    my $timeRef = shift;
-    my @time    = @$timeRef;
-    my $timeStep;
-    my $nTimes = @time;
-    my $count  = 0;
-    my ( @OWItime, $startTime, $endTime );
-    foreach my $tim (@time) {
-        my ( $sec, $min, $hour, $mday, $mon, $year ) = gmtime($tim);
-        $mon++;    # because the range is 0->11
-        $year = $year + 1900;             #because 1900 has been substracted before
-                                          #to have the date returned formatted
-        $sec  = sprintf "%2.2d", $sec;
-        $min  = sprintf "%2.2d", $min;
-        $hour = sprintf "%2.2d", $hour;
-        $mday = sprintf "%2.2d", $mday;
-        $mon  = sprintf "%2.2d", $mon;
-        $year = sprintf "%4.4d", $year;
-
-        if ( $count == 0 ) {
-            $startTime = $year . $mon . $mday . $hour;
-        }
-        if ( $count == $nTimes - 1 ) {
-            $endTime = $year . $mon . $mday . $hour;
-        }
-        $OWItime[$count] = $year . $mon . $mday . $hour . $min;
-        $count++;
-    }
-
-    # calculate time-step - assumed constant
-    $timeStep = ( $OWItime[1] - $OWItime[0] ) / 100;    # in hours
-                                                        #print "timeSte==$timeStep \n";
-    return ( \@OWItime, $startTime, $endTime, $timeStep );
 
 }
 ################################################################################
@@ -360,82 +318,6 @@ sub printOWIfiles {
     close(PRE);
 }
 ################################################################################
-# NAME: &getNetCDF
-# CALL: &getNetCDF
-# GOAL: get the u,v,p data and time info from the netCDF file
-################################################################################
-sub getNetCDF {
-    my $filename;
-
-    # check to be sure that the NetCDF file was specified on the command
-    # line before attempting to open
-    unless ( defined $ARGV[0] ) {
-        &stderrMessage( "ERROR", "NetCDF filename was not specified on command line." );
-        die;
-    }
-
-    # check for existence of netcdf file before attempting to open
-    unless ( -e $ARGV[0] ) {
-        &stderrMessage( "ERROR", "NetCDF file '$ARGV[0]' does not exist." );
-        die;
-    }
-    if ( $ARGV[0] =~ /.gz$/ ) {
-        `gunzip $ARGV[0]`;
-        $filename = $`;
-    }
-    else {
-        $filename = $ARGV[0];
-    }
-
-    #	my $ncid = NetCDF::open($filename,NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
-    #NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
-    #print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
-    for my $var ( 0 .. $nVars - 1 )    # var ids are 0, 1 and 2 if we have 3 variables
-    {
-        #	 NetCDF::varinq($ncid,$var,\$name,\$dataType,$nDims,\@dimIds,\$nAtts);
-        my $dimID = splice( @dimIds, 0, $nDims );
-
-        # print "VAR: $var: NAME: $name, DATA TYPE: $dataType, NDIMS: $nDims, DIMIDS: $dimID, NATTS: $nAtts\n";
-        $varId{$name} = $var;          # array of variable ID numbers as a function of variable name
-        $dimId{$name} = $dimID;
-    }
-
-    # get x,y,time dimensions
-    #NetCDF::diminq($ncid, $dimId{'x'},$dimName,$nRec);
-    $nRec{'x'} = $nRec;
-
-    #NetCDF::diminq($ncid, $dimId{'y'},$dimName,$nRec);
-    $nRec{'y'} = $nRec;
-
-    #NetCDF::diminq($ncid, $dimId{'time'},$dimName,$nRec);
-    $nRec{'time'} = $nRec;
-
-    # get the time
-    #NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
-    ( $OWItimeRef, $startTime, $endTime, $timeStep ) = &convertTime( \@time );
-
-    #$mainHeader="Oceanweather WIN/PRE Format					$startTime   $endTime";
-    $mainHeader = "Oceanweather WIN/PRE Format                            $startTime     $startTime";    #jgf: Hey Eve, why is startTime here twice?
-    push @OWI_wnd,  $mainHeader;
-    push @OWI_pres, $mainHeader;
-    @OWItime = @$OWItimeRef;
-
-    # build the filenames
-    $wndFile  = 'NAM_' . $startTime . '_' . $endTime . '.222';
-    $presFile = 'NAM_' . $startTime . '_' . $endTime . '.221';
-
-    # # get u,v,p values
-    #NetCDF::varget($ncid, $varId{'velocity_we'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@ugrd);
-    my $nelems = @ugrd;
-
-    #NetCDF::varget($ncid, $varId{'velocity_sn'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@vgrd);
-    #NetCDF::varget($ncid, $varId{'atm_pressure'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@atmp);
-    # close netCDF file
-    #NetCDF::close($ncid);
-    # figure out each time-step record length
-    $recordLength = $nelems / $nRec{'time'};
-}
-################################################################################
 # NAME: &rotateAndFormat
 # CALL: &rotateAndFormat()
 # GOAL: loop through time-steps to rotate and output at specific points with
@@ -508,7 +390,7 @@ sub rotateAndFormat {
 ################################################################################
 sub addToFort22 {
     open( F22, ">>$fort22" )
-      || die "ERROR: NAMtoOWIRamp.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
+      || die "ERROR: $this: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
     my $wtiminc = $timeStep * 3600;    # ts in seconds
     &stderrMessage( "INFO", "Appending the WTIMINC value of '$wtiminc' to the fort.22 file '$fort22'." );
     print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
@@ -525,7 +407,7 @@ sub getGrib2 {
     $fort22 = $outDir . $fort22;
     my @grib2Files;
     if ( $stage eq "nowcast" ) {
-
+        #  N O W C A S T
         # if these are nowcast files, we'll assume that the data are
         # six hours apart
         $timeStep = 6.0;    # in hours
@@ -550,15 +432,50 @@ sub getGrib2 {
             die;
         }
         foreach my $dir (@grib2Dirs) {
-            push( @grib2Files, glob( $dir . "/*." . $namFormat ) );
+            # e.g.:
+            # $dataDir/erl.220123/nam.t18z.awip1200.tm00.grib2
+            # $dataDir/erl.220124/nam.t00z.awip1200.tm00.grib2
+            # $dataDir/erl.220124/nam.t06z.awip1200.tm00.grib2
+            push( @grib2Files, glob( $dir . "/nam.*awip1200*." . $namFormat ) );
         }
     }
     else {
+        #  F O R E C A S T 
         # if these are forecast files, we'll assume that the data are
         # three hours apart, and that they are all located in the same
         # subdirectory
         $timeStep   = 3.0;                                     # in hours
-        @grib2Files = glob( $dataDir . "/*." . $namFormat );
+        # e.g.:
+        # ... --dataDir erl.220123 ...
+        # $dataDir/nam.t18z.awip1200.tm00.grib2
+        # $dataDir/nam.t18z.awip1203.tm00.grib2
+        # $dataDIr/nam.t18z.awip1206.tm00.grib2
+        # ...
+        # Determine the NAM cycle to convert
+        my $cycleHour = "null";
+        if ( $startcycle eq "null" ) {
+           # if this is a forecast and the $startcycle
+           # to use was not specified, then selec the 
+           # first one that has both a awip1200 and awip1203
+           # data file available
+           my @forecastcycles = qw(00 06 12 18);
+           foreach my $c (@forecastcycles) {
+              if ( -e "$dataDir/nam.t$c" . "z.awip1200.tm00.grib2" &&
+                   -e "$dataDir/nam.t$c" . "z.awip1203.tm00.grib2" ) {
+                 $cycleHour = $c;
+                 &stderrMessage("INFO","The forecast cycle was not specified so the $cycleHour Z cycle was selected.");
+                 last;
+              }
+           }
+           if ( $cycleHour eq "null" ) {
+              &stderrMessage("ERROR","The forecast cycle was not specified and the directory does not contain more than one forecast file for any cycle.");
+              die;
+           }
+        } else {
+           $startcycle =~ /\d{8}(\d{2})/;
+           $cycleHour = $1;
+        }
+        @grib2Files = glob( $dataDir . "/nam.t$cycleHour*." . $namFormat );
     }
     #
     # grab the start time (YYYYMMDDHH) of the files from the
@@ -821,7 +738,7 @@ sub stderrMessage () {
     my $year    = 1900 + $yearOffset;
     my $hms     = sprintf( "%02d:%02d:%02d", $hour, $minute, $second );
     my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-    printf STDERR "$theTime $level: $stage: NAMtoOWIRamp.pl: $message\n";
+    printf STDERR "$theTime $level: $stage: $this: $message\n";
 
     if ( $level eq "ERROR" ) {
         sleep 1;
@@ -839,5 +756,5 @@ sub appMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
 
-   printf APPLOGFILE "$theTime $level: $scenario: get_nam.pl: $message\n";
+   printf APPLOGFILE "$theTime $level: $stage: get_nam.pl: $message\n";
 }
