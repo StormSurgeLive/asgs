@@ -3,7 +3,7 @@
 # NAMtoOWIRamp.pl
 #--------------------------------------------------------------------------
 # Copyright(C) 2019 Brett Estrade
-# Copyright(C) 2011--2021 Jason Fleming
+# Copyright(C) 2011--2022 Jason Fleming
 # Copyright(C) 2010--2011 Eve-Marie Devaliere
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -22,30 +22,18 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------
 ################################################################################
-#                       	netcdfNAMtoOWIRamp                             #
-################################################################################
-# This script is triggered when a netCDF NAM file is received by LDM.
-# Its purpose is to convert the NAM data to OWI formatted data for use in
-# ADCIRC.
-################################################################################
-#                   The packages used are the following:                       #
-################################################################################
-#NetCDF                                                                        #
-#ArraySub								       #
-#Getopt									       #
-################################################################################
 #written by Eve-Marie Devaliere for UNC/FRF                                    #
 #additions for grib2 input and command line arguments by Jason Fleming for ASGS#
 #first written: 03/17/10                                                       #
-#last updated: 03/31/10                                            	       #
+#last updated: 03/31/10                                              	       #
 ################################################################################
 #
 # Example of usage for a set of grib2 files containing nowcast data:
 #
-# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
+# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --stage nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
 #
 # jgf20161118: Example for use with spatial extrapolation ramp
-# perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
+# perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --stage nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
 #
 # Example of partial grib2 download of NAM reanalysis :
 # day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done
@@ -62,39 +50,38 @@ use List::Util qw[min max];
 use Getopt::Long;
 use Date::Calc;
 use Storable;
+use Cwd;
 ######################################################
 #             Variables declarations                 #
 ######################################################
-my $dataDir            = "/data/renci/ADCIRC/wind/";        # path to NAM data
-my $outDir             = '/data/renci/ADCIRC/wind/src/';    # path to NAM u,v,p text data
-my $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
-my $ptFile             = 'ptFile.txt';                      # file name of output grid lat/lon
-my $fort22             = 'fort.22';                         # fort.22 path and filename
-my $awipGridNumber     = 221;                               # code that describes the grid num
-my $velocityMultiplier = 1.0;                               # multiplier for vels
-my $pressureMultiplier = 0.01;                              # convert Pascals to mb by default
-my $scriptDir          = ".";                               # path to executables
-my ( $wndFile, $presFile );                                 # names of OWI wind/pre output files
-my @namFormats = qw(grb grib2 grb2 netCDF);  # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
-my $namFormat  = "netCDF";                                  # default NAM format is netCDF
-my $namType    = "forecast";                                # expect forecast data by default
+my $dataDir            = "./";               # path to NAM data
+my $outDir             = "./";               # path to NAM u,v,p text data
+my $ptFile             = "null";             # file name of output grid lat/lon
+my $fort22             = 'fort.22';          # fort.22 path and filename
+my $awipGridNumber     = 218;                # integer that specifies the NAM domain and its grid
+my $velocityMultiplier = 1.0;                # multiplier for vels
+my $pressureMultiplier = 0.01;               # convert Pascals to mb by default
+my @namFormats         = qw(grb grib2 grb2); # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
+my $namFormat          = "grib2";            # default NAM format is netCDF
+my $stage              = "forecast";         # expect forecast data by default
+my $scriptDir          = dirname(__FILE__);  # path to executables
+my $ptFile             = "$scriptDir/input/ptFile_oneEighth.txt";            # file name of output grid lat/lon
+my ( $wndFile, $presFile );                  # names of OWI wind/pre output files
 my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
-my ( @ugrd, @vgrd, @atmp, @time, @OWI_wnd, @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
-my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recordLength );
-my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
-my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
-my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
-our $scenario = "nullscenario";
-
-
-# @ugrd holds the lambert gridded u wind velocity data, across all time steps
-# @vgrd holds the lambert gridded v wind velocity data, across all time steps
+# @ugrd, @vgrd holds the lambert gridded u,v wind velocity data, across all time steps
 # @atmp holds the lambert gridded atm. pressure data, across all time steps
+my ( @ugrd, @vgrd, @atmp, @time, @OWI_wnd, @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
 # $startTime and $endTime are date/time strings for main OWI header
 # $timeStep is the met time increment (WTIMINC), in hours
 # $mainHeader is at the top of the OWI files
 # @OWItime is the time in the header of each met data set (i.e., incl. minutes)
 # $recordLength is the number of grid points in the lambert gridded data
+my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recordLength );
+my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
+my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
+my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
+our $scenario = "nullscenario";
+my $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
 #
 ######################################################
 #                    Main Program                    #
@@ -103,10 +90,9 @@ our $scenario = "nullscenario";
 GetOptions(
     "dataDir=s"            => \$dataDir,
     "outDir=s"             => \$outDir,
-    "uvpFilename=s"        => \$uvpFilename,
     "ptFile=s"             => \$ptFile,
     "namFormat=s"          => \$namFormat,
-    "namType=s"            => \$namType,
+    "stage=s"              => \$stage,
     "awipGridNumber=s"     => \$awipGridNumber,
     "velocityMultiplier=s" => \$velocityMultiplier,
     "pressureMultiplier=s" => \$pressureMultiplier,
@@ -147,27 +133,14 @@ if ( substr($dataDir,-1,1) ne "/" ) { $dataDir .= "/"; }
 &stderrMessage( "INFO", "Started processing point file." );
 $geoHeader = &processPtFile($ptFile);
 # load NAM data
-if ( ( $namFormat eq "grib2" ) || ( $namFormat eq "grb2" ) || ( $namFormat eq "grb" ) ) {
-    &stderrMessage( "INFO", "Processing file(s)." );
-    &getGrib2($namType);
-    &addToFort22();    # have to add the record length to fort.22
-    &stderrMessage( "INFO", "Rotate and format each time-step." );
+&stderrMessage( "INFO", "Processing file(s)." );
+&getGrib2($stage);
+&addToFort22();    # have to add the record length to fort.22
+&stderrMessage( "INFO", "Rotate and format each time-step." );
 
-    # loop through the time-steps to run awips_interp
-    &rotateAndFormat();
-}
-elsif ( $namFormat eq "netCDF" ) {
+# loop through the time-steps to run awips_interp
+&rotateAndFormat();
 
-    #first get all the variables ids and dimensions ids from the netCDF file
-    &stderrMessage( "INFO", "Process netCDF file." );
-
-    #	&getNetCDF();
-    &addToFort22();    # have to add the record length to fort.22
-    &stderrMessage( "INFO", "Rotate and format each time-step." );
-
-    # loop through the time-steps to run awips_interp
-    &rotateAndFormat();
-}
 &stderrMessage( "INFO", "Print OWI files." );
 &printOWIfiles();
 &stderrMessage( "INFO", "Done processing NAM data." );
@@ -551,7 +524,7 @@ sub addToFort22 {
 sub getGrib2 {
     $fort22 = $outDir . $fort22;
     my @grib2Files;
-    if ( $namType eq "nowcast" ) {
+    if ( $stage eq "nowcast" ) {
 
         # if these are nowcast files, we'll assume that the data are
         # six hours apart
@@ -641,7 +614,7 @@ sub getGrib2 {
         my @factors;
         $factors[0] = 1.0;
         $endTime = "";
-        if ( $namType eq "nowcast" ) {
+        if ( $stage eq "nowcast" ) {
             my $temp = "";
             if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
                 my $com = "";
@@ -848,7 +821,7 @@ sub stderrMessage () {
     my $year    = 1900 + $yearOffset;
     my $hms     = sprintf( "%02d:%02d:%02d", $hour, $minute, $second );
     my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-    printf STDERR "$theTime $level: $namType: NAMtoOWIRamp.pl: $message\n";
+    printf STDERR "$theTime $level: $stage: NAMtoOWIRamp.pl: $message\n";
 
     if ( $level eq "ERROR" ) {
         sleep 1;
