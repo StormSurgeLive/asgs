@@ -35,8 +35,20 @@ case $HPCENVSHORT in
    grep 'batch job' jobID.tmp | grep -Eo [0-9]+ > jobID
    rm jobID.tmp
    ;;
+"queenbeeC")
+   # SLURM returns information similar to the following when a 
+   # job is submitted:
+   #
+   # asgs (LAv20a_nam_jgf_10kcms)> sbatch prep15.slurm
+   # Submitted batch job 127652 estimates 2 SUs from allocation xxxx_xxxx_xxxx. Estimated remaining SUs: 2306129
+   # JOBID      NAME                PARTITION  TIME_LIMIT  ST  NODES  REASON
+   # 127652     prep15.nowcast      single     2:00:00     PD  1      None
+   mv jobID jobID.tmp
+   cat jobID.tmp | awk '$1~/[0-9]+/ { print $1 }' > jobID
+   rm jobID.tmp
+   ;;
 *)
-   # on queenbee2 at least, the jobID file contains only
+   # on queenbee2 and supermic at least, the jobID file contains only
    # the jobID, so nothing needs to be done.
    ;;
 esac
