@@ -337,7 +337,8 @@ sub getForecastData() {
    # if we found at least two files, we assume have enough for
    # the next advisory
    if ( $dl >= 2 ) {
-      printf STDOUT $finishcycle;
+      # write out the datetime when the forecast ends
+      printf STDOUT $end_date;
       exit;
    } else {
       printf STDOUT "0";

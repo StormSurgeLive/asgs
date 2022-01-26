@@ -30,10 +30,10 @@
 #
 # Example of usage for a set of grib2 files containing nowcast data:
 #
-# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --stage nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
+# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --stage NOWCAST --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
 #
 # jgf20161118: Example for use with spatial extrapolation ramp
-# perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --stage nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
+# perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --stage NOWCAST --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
 #
 # Example of partial grib2 download of NAM reanalysis :
 # day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done
@@ -64,7 +64,7 @@ my $velocityMultiplier = 1.0;                # multiplier for vels
 my $pressureMultiplier = 0.01;               # convert Pascals to mb by default
 my @namFormats         = qw(grb grib2 grb2); # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
 my $namFormat          = "grib2";            # default NAM format is netCDF
-my $stage              = "forecast";         # expect forecast data by default
+my $stage              = "FORECAST";         # expect forecast data by default
 our $startcycle        = "null";             # e.g.: 2022012500 needed to disambiguate a forecast when multiple forecast series are present in one directory  
 my $selectfile         = "null";             # json file with the range of cycles
 my $scriptDir          = dirname(__FILE__);  # path to executables
@@ -74,12 +74,14 @@ my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataTyp
 # @ugrd, @vgrd holds the lambert gridded u,v wind velocity data, across all time steps
 # @atmp holds the lambert gridded atm. pressure data, across all time steps
 my ( @ugrd, @vgrd, @atmp, @time, @OWI_wnd, @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
-# $startTime and $endTime are date/time strings for main OWI header
+# $startTime and $endTime are date/time strings for main OWI header and used to name the output files
+our $startTime;
+our $endTime;
 # $timeStep is the met time increment (WTIMINC), in hours
 # $mainHeader is at the top of the OWI files
 # @OWItime is the time in the header of each met data set (i.e., incl. minutes)
 # $recordLength is the number of grid points in the lambert gridded data
-my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recordLength );
+my ( $OWItimeRef, $timeStep, $mainHeader, @OWItime, $recordLength );
 my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
 my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
@@ -110,7 +112,7 @@ GetOptions(
 # open an application log 
 unless ( open(APPLOGFILE,">>$this.log") ) {
    stderrMessage("ERROR","Could not open '$this.log' for appending: $!.");
-   exit 1;
+   die;
 }
 #
 # if a JSON file with a range of cycles was specified, then
@@ -131,7 +133,7 @@ if ( $selectfile ne "null" ) {
    # grab the list of cycles out of the hash
    my $cyclelistref = $cyclehash{$ncepcycles};
    @cyclelist = @$cyclelistref;
-   if ( $stage eq "forecast" ) {
+   if ( $stage eq "FORECAST" ) {
       $startcycle = $cyclelist[-1];
       if ( $dataDir eq "null" ) { 
          $dataDir = "./erl." . substr($startcycle,2,6) . "/"; # path to NAM data
@@ -161,6 +163,10 @@ $geoHeader = &processPtFile($ptFile);
 &stderrMessage( "INFO", "Print OWI files." );
 &printOWIfiles();
 &stderrMessage( "INFO", "Done processing NAM data." );
+
+printf STDOUT "$startTime_$endTime";
+exit;
+
 ######################################################
 #                    Subroutines                     #
 ######################################################
@@ -242,9 +248,10 @@ sub toOWIformat {
     # check for existence of the data file before attempting to open
     unless ( -e $file ) {
         &stderrMessage( "ERROR", "The data file '$file' does not exist." );
+        printf STDOUT "0";
         die;
     }
-    open my $FIL, '<', $file || die $!;
+    unless ( open my $FIL, '<', $file || die $!;
     my ( @ugrd, @vgrd, @atmp, @uLines, @vLines, @pLines, $uStr, $vStr, $pStr );
     undef($uStr);
     undef($vStr);
@@ -406,7 +413,7 @@ sub addToFort22 {
 sub getGrib2 {
     $fort22 = $outDir . $fort22;
     my @grib2Files;
-    if ( $stage eq "nowcast" ) {
+    if ( $stage eq "NOWCAST" ) {
         #  N O W C A S T
         # if these are nowcast files, we'll assume that the data are
         # six hours apart
@@ -531,7 +538,7 @@ sub getGrib2 {
         my @factors;
         $factors[0] = 1.0;
         $endTime = "";
-        if ( $stage eq "nowcast" ) {
+        if ( $stage eq "NOWCAST" ) {
             my $temp = "";
             if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
                 my $com = "";
@@ -756,5 +763,5 @@ sub appMessage () {
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
 
-   printf APPLOGFILE "$theTime $level: $stage: get_nam.pl: $message\n";
+   printf APPLOGFILE "$theTime $level: $stage: $this: $message\n";
 }
