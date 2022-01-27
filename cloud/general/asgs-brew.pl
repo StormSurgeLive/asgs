@@ -724,7 +724,7 @@ sub get_steps {
                 CPPFLAGS => { value => qq{-I$asgs_install_path/include}, how => q{append}, separator => q{ } },
                 LDFLAGS  => { value => qq{-L$asgs_install_path/lib},     how => q{append}, separator => q{ } },
 
-                # the following HDF5* vars are needed for netCDF4 python module
+                # the following HDF5* vars are needed in the environment for any netCDF4 python modules
                 HDF5_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },
                 HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },
                 HDF5_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },
@@ -757,7 +757,7 @@ sub get_steps {
             # augment existing %ENV (cumulative)
             export_ENV => {
                 NETCDFHOME     => { value => qq{$asgs_install_path},         how => q{replace} },
-                NETCDF4_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },    # needed for netCDF4 python module
+                NETCDF4_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },    # needed for any netCDF4 python module
                 NETCDF4_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },    # needed for netCDF4 python module
                 NETCDF4_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },    # needed for netCDF4 python module
             },
@@ -944,16 +944,16 @@ sub get_steps {
             },
         },
         {
-            # Note: updating the Python 2 version support must be done here and in the
+            # note: updating the python 2 version support must be done here and in the
             # ./cloud/general/init-python.sh script
-            # Note: this installs Python 2, Python 3 is currently not supported (needs a new step entry)
+            # note: this installs python 2, python 3 is currently not supported (needs a new step entry)
             key         => q{python},
-            name        => q{Step for installing Python 2.7.18 and required modules},
-            description => q{Install Python 2.7.18 locally and install required modules},
+            name        => q{step for installing python 2.7.18 and required modules},
+            description => q{install python 2.7.18 locally and install required modules},
             pwd         => q{./},
-            export_ENV  => {
+            export_env  => {
 
-                # putting this in $HOME/python27/asgs/build reflects what perlbrew's default
+                # putting this in $home/python27/asgs/build reflects what perlbrew's default
                 # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
                 PYTHONPATH => { value => $pythonpath,                               how => q{replace} },
                 PATH       => { value => qq{$pythonpath/bin:$asgs_home/.local/bin}, how => q{prepend} },
