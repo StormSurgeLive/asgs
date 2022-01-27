@@ -48,10 +48,7 @@ _install_asgs_python_modules () {
    wget $PIP_URL -O ./get-pip.py
    python - --prefix=$PYTHONPATH < ./get-pip.py
    pip install 'pika==1.1.0'    -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
-   # version constrain is due to Unidata's drop in support of Python 2.7 in v1.5.4 of the netCDF4 module
-   pip install 'numpy==1.16.6'  -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
-   # NOTE: installation of this netCDF4 installs numpy 1.16.6 if not specified before
-   pip install 'netCDF4==1.5.2' -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
+   pip install 'netCDF4==1.1.7.1' -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
    pip install python-pptx      -I --force-reinstall --ignore-installed --prefix=$PYTHONPATH
 }
 
