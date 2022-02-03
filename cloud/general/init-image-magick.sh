@@ -3,7 +3,7 @@
 OPT=${1-$ASGS_INSTALL_PATH}
 JOBS=${2-$ASGS_MAKEJOBS}
 
-IMAGEMAGICK_VERSION="7.1.0-9"
+IMAGEMAGICK_VERSION="7.1.0-22"
 
 if [ "$2" == "clean" ]; then 
   echo Cleaning Image Magick libraries and utilities
