@@ -28,6 +28,8 @@ use Getopt::Long;
 use JSON::PP;
 use Cwd;
 #
+# FIXME: remove ampersands from subroutine prefixes
+# 
 my $startcycle = "null";  # optional arg that indicates start of range of interest
 my $backsite = "null";          # ncep ftp site for nam data
 my $backdir = "null"; # dir on ncep ftp site

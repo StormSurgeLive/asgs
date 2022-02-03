@@ -47,8 +47,9 @@
 #                 --stage forecast \
 #                 --startcycle 2005082900      
 #--------------------------------------------------------------
-$^W++;
+# replace W++ with warnings and include strict and warnings in the following order:
 use strict;
+use warnings;
 use Net::FTP;
 use JSON::PP;
 use Getopt::Long;
@@ -61,8 +62,8 @@ our $startcycle = "null"; # most recent cycle for which a nowcast was completed
 my $finishcycle = "null"; # nowcast end (meaningless in the forecast stage)
 my $selectfile = "null";  # array of cycles to download
 my $stage = "null";       # nowcast | forecast
-our $max_retries = 20; # max number of times to attempt download of forecast file
-our %jsonhash;   # for deserializing and serializing json
+my $max_retries = 20; # max number of times to attempt download of forecast file
+my %jsonhash;   # for deserializing and serializing json
 my $backsite = "null";   # ncep ftp site for nam data
 my $backdir = "null";    # dir on ncep ftp site
 my $namdatadir = "null";    # main directory to download NAM data to
@@ -266,7 +267,7 @@ if ( $stage eq "NOWCAST" ) {
       $jsonhash{"forcing.nam.ncep.file.json.get"} = "$this.json";
       $jsonhash{"forcing.nam.ncep.nowcast.filelist.downloaded"} = \@files_downloaded;
       $jsonhash{"forcing.nam.ncep.nowcast.filelist.found"} = \@files_found;
-      &writeJSON(); 
+      writeJSON(\%jsonhash, $this); 
       printf STDOUT $finishcycle;     
    } else {
       printf STDOUT "0";
@@ -382,7 +383,7 @@ if ( $stage eq "FORECAST" ) {
       $jsonhash{"forcing.nam.ncep.file.json.get"} = "$this.json";
       $jsonhash{"forcing.nam.ncep.forecast.filelist.downloaded"} = \@files_downloaded;
       $jsonhash{"forcing.nam.ncep.forecast.filelist.found"} = \@files_found;
-      &writeJSON(); 
+      &writeJSON(\%jsonhash, $this); 
       # write out the datetime when the forecast ends
       printf STDOUT $end_date;
       exit;
@@ -530,22 +531,31 @@ sub setParameter () {
 #
 # write out the JSON file containing additional parameters
 # as added by this script
-sub writeJSON () {
+
+# FIXME : parentheses indicate a subroutine prototype and should not be used
+# 
+# FIXME : jsonhash should be passed in by reference ; rather than our
+#         benefit of readability
+# 
+sub writeJSON {
+   my ($jsonref, $this) = @_;
+   # json passed by reference and modified in this subroutine
+   # $this passed by valueF
    # add time stamp
-   my $lastupdatedref = $jsonhash{"lastupdated"};
+   my $lastupdatedref = $jsonref->{lastupdated};
    my @lastupdated = @$lastupdatedref;
-   my $timestamp = &getTimeStamp;
+   my $timestamp = getTimeStamp;
    my $ts_ref = { $this => $timestamp }; 
    push(@lastupdated,$ts_ref); 
-   $jsonhash{"lastupdated"} = \@lastupdated;
+   $jsonref->{lastupdated} = \@lastupdated;
    # write out
-   unless ( open(SJ,">$this.json") ) {
-      &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
+   unless ( open(my $SJ,">","$this.json") ) {
+      stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
       die;
    }
-   my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%jsonhash);
-   print SJ $json;
-   close(SJ);
+   my $json = JSON::PP->new->utf8->pretty->canonical->encode($jsonref);
+   print $SJ $json;
+   close($SJ);
 }
 #
 # write a log message to stderr
