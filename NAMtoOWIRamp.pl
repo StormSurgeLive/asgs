@@ -86,6 +86,8 @@ my $applyRamp    = "no";                                    # whether or not to 
 my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
 my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
 my $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
+our %jsonhash; # configuration data from $selectfile
+my @cyclelist;
 our $this = "NAMtoOWIRamp.pl";
 my $ncepcycles = "forcing.nam.ncep.cyclelist";
 #
@@ -118,10 +120,9 @@ unless ( open(APPLOGFILE,">>$this.log") ) {
 # if a JSON file with a range of cycles was specified, then
 # load it 
 if ( $selectfile ne "null" ) {
-   my @cyclelist;
-   &stderrMessage("INFO","Loading selectfile $selectfile." );
+   &stderrMessage("INFO","Loading configuration from json selectfile '$selectfile'." );
    unless ( open(SF,"<$selectfile") ) {
-      stderrMessage("ERROR","Could not open '$selectfile' for writing: $!.");
+      stderrMessage("ERROR","Could not open '$selectfile' for reading: $!.");
       die;
    }
    # slurp the file contents into a scalar variable
@@ -129,42 +130,46 @@ if ( $selectfile ne "null" ) {
    close(SF);
    # deserialize JSON
    my $ref = JSON::PP->new->decode($file_content);
-   my %cyclehash = %$ref;
-   # grab the list of cycles out of the hash
-   my $cyclelistref = $cyclehash{$ncepcycles};
-   @cyclelist = @$cyclelistref;
-   if ( $stage eq "FORECAST" ) {
-      $startcycle = $cyclelist[-1];
-      if ( $dataDir eq "null" ) { 
-         $dataDir = "./erl." . substr($startcycle,2,6) . "/"; # path to NAM data
-      }
-   }
-   &stderrMessage("INFO","Using --startcycle $startcycle and --dataDir $dataDir.");  
+   %jsonhash = %$ref;
 }
-if ( $dataDir eq "null" ) { 
-   $dataDir = "./";               # path to NAM data
+&setParameter( \$dataDir,   "forcing.nam.path.data",     cwd() );
+&setParameter( \$outDir,    "forcing.nam.path.data.owi", cwd() );
+&setParameter( \$namFormat, "forcing.nam.file.data.raw.format", "grib2" );
+&setParameter( \$stage,     "forcing.nam.stage", "null" );
+&setParameter( \$selectfile,"forcing.nam.ncep.file.json.select", "select_nam_nowcast.pl.json" );
+&setParameter( \$awipGridNumber,"forcing.nam.awip.grid", 218 );
+&setParameter( \$velocityMultiplier,"forcing.nam.data.owi.velocitymultiplier", 1.0 );
+&setParameter( \$pressureMultiplier,"forcing.nam.data.owi.pressuremultiplier", 0.01 );
+&setParameter( \$applyRamp,"forcing.nam.data.owi.applyramp", \0 ); # \0 creates JSON::false
+&setParameter( \$rampDistance,"forcing.nam.data.owi.rampdstance", 1.0 );
+&setParameter( \$scriptDir, "path.scriptdir", dirname(__FILE__) );
+# the default ptFile uses scriptdir so it has to be set
+# after scriptdir has been set
+&setParameter( \$ptFile,    "forcing.nam.data.owi.grid", $scriptDir."/input/ptFile_oneEighth.txt" );
+# grab the list of cycles out of the hash
+my $cyclelistref = $jsonhash{$ncepcycles};
+@cyclelist = @$cyclelistref;
+if ( $stage eq "FORECAST" ) {
+   $startcycle = $cyclelist[-1];
 }
-#
 # check to make sure that outDir and dataDir have slashes at the
 # end (this script assumes they do)
 if ( substr($outDir,-1,1) ne "/" ) { $outDir .= "/"; }
 if ( substr($dataDir,-1,1) ne "/" ) { $dataDir .= "/"; }
+#
 &stderrMessage( "INFO", "Started processing point file." );
 $geoHeader = &processPtFile($ptFile);
 # load NAM data
 &stderrMessage( "INFO", "Processing file(s)." );
 &getGrib2($stage);
 &addToFort22();    # have to add the record length to fort.22
-&stderrMessage( "INFO", "Rotate and format each time-step." );
-
 # loop through the time-steps to run awips_interp
+&stderrMessage( "INFO", "Rotate and format each time-step." );
 &rotateAndFormat();
-
 &stderrMessage( "INFO", "Print OWI files." );
 &printOWIfiles();
 &stderrMessage( "INFO", "Done processing NAM data." );
-
-printf STDOUT "$startTime_$endTime";
+printf STDOUT "$startTime\_$endTime";
 exit;
 
 ######################################################
@@ -251,7 +256,7 @@ sub toOWIformat {
         printf STDOUT "0";
         die;
     }
-    unless ( open my $FIL, '<', $file || die $!;
+    open my $FIL, '<', $file || die $!;
     my ( @ugrd, @vgrd, @atmp, @uLines, @vLines, @pLines, $uStr, $vStr, $pStr );
     undef($uStr);
     undef($vStr);
@@ -726,8 +731,8 @@ sub getGrib2 {
     push @OWI_pres, $mainHeader;
 
     # build the filenames
-    $wndFile  = $outDir . 'NAM_' . $startTime . '_' . $endTime . '.222';
-    $presFile = $outDir . 'NAM_' . $startTime . '_' . $endTime . '.221';
+    $wndFile  = "$outDir" . "NAM_$stage" . "_$startTime" . "_$endTime" . ".222";
+    $presFile = "$outDir" . "NAM_$stage" . "_$startTime" . "_$endTime" . ".221";
     &stderrMessage( "INFO", "Processed $numGrib2Files file(s)." );
     $nRec{'time'} = $numGrib2Files;
     if ( $numGrib2Files == 0 ) {
@@ -737,31 +742,49 @@ sub getGrib2 {
 
 }
 
-sub stderrMessage () {
-    my $level   = shift;
-    my $message = shift;
-    my @months  = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-    ( my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings ) = localtime();
-    my $year    = 1900 + $yearOffset;
-    my $hms     = sprintf( "%02d:%02d:%02d", $hour, $minute, $second );
-    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-    printf STDERR "$theTime $level: $stage: $this: $message\n";
-
-    if ( $level eq "ERROR" ) {
-        sleep 1;
-    }
+sub setParameter () {
+   my ( $paramref, $key, $default ) = @_;
+   if ( $$paramref eq "null" ) {
+      if ( %jsonhash && defined $jsonhash{$key} ) {
+         $$paramref = $jsonhash{$key};
+      } else {
+         $$paramref = $default;
+      }
+   }
+   # bomb out if there is no default value for the parameter
+   if ( $$paramref eq "null" ) { 
+      &stderrMessage("ERROR","The parameter '$key' was not specified.");
+      die;
+   }
 }
-
+#
+# write a log message to stderr
+sub stderrMessage () {
+   my ( $level, $message ) = @_;
+   my $theTime = &getTimeStamp;
+   printf STDERR "$theTime $level: $this: $message\n";
+}
 #
 # write a log message to a log file dedicated to this script (typically debug messages)
 sub appMessage () {
-   my $level = shift;
-   my $message = shift;
+   my ( $level, $message ) = @_;
+   my $theTime = &getTimeStamp;
+   #
+   # open an application log file 
+   unless ( open(APPLOGFILE,">>$this.log") ) {
+      &stderrMessage("ERROR","Could not open $this.log for appending: $!.");
+   }
+   printf APPLOGFILE "$theTime $level: $this: $message\n";
+   close(APPLOGFILE);
+}
+
+sub getTimeStamp () {
    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
    (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-
-   printf APPLOGFILE "$theTime $level: $stage: $this: $message\n";
+   my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms";
+   return $theTime;
 }
+
+

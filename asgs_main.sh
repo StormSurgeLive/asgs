@@ -935,13 +935,15 @@ downloadBackgroundMet()
    #
    # if there isn't an archive directory for NAM data inside
    # the instance directory, make one
-   if [[ ! -d $RUNDIR/nam ]]; then
-      mkdir -p $RUNDIR/nam 2>> $SYSLOG
+   instanceNamDir=$RUNDIR/nam
+   if [[ ! -d $instanceNamDir ]]; then
+      mkdir -p $instanceNamDir 2>> $SYSLOG
    fi
    # if there isn't an archive directory for NAM data in the 
    # ASGS WORK directory, make one
-   if [[ ! -d $WORK/nam ]]; then
-      mkdir -p $WORK/nam 2>> $SYSLOG
+   platformNamDir=$WORK/nam
+   if [[ ! -d $platformNamDir ]]; then
+      mkdir -p $platformNamDir 2>> $SYSLOG
    fi
    # N O W C A S T
    if [[ $stage == "NOWCAST" ]]; then
@@ -952,16 +954,53 @@ downloadBackgroundMet()
       csEpochSeconds=$(date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
       hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
       lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
-      #     
+      # create the json file to act as input to the status checker and nam downloader
+      escBACKDIR=${BACKDIR////'\/'}
+      escSCRIPTDIR=${SCRIPTDIR////'\/'}
+      escInstanceNamDir=${instanceNamDir////'\/'}
+      arrFORECASTCYCLE=${FORECASTCYCLE//,/\",\"}
+      boolApplyRamp=false
+      if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then 
+         boolApplyRamp=true
+      fi
+      ptFilePath=${SCRIPTDIR}/input/$PTFILE
+      escPtFilePath=${ptFilePath////'\/'} 
+      DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+      cat $SCRIPTDIR/get_nam.json.template         | \
+      sed -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/" \
+          -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
+          -e "s/%NULLGETNAMTEMPLATEFILE%/get_nam.json.template/" \
+          -e "s/%NULLNAMSTATUSFILE%/get_nam_status.pl.json/" \
+          -e "s/%NULLNAMSELECTFILE%/null/" \
+          -e "s/%NULLGETNAMFILE%/null/" \
+          -e "s/%NULLBACKSITE%/$BACKSITE/" \
+          -e "s/%NULLBACKDIR%/$escBACKDIR/" \
+          -e "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/" \
+          -e "s/%NULLSTAGE%/$stage/" \
+          -e "s/%NULLCYCLE%/$lastCycle/" \
+          -e "s/%NULLNAMOWIDATAPATH%/$escInstanceNamDir/" \
+          -e "s/%NULLNAMOWIGRID%/$escPtFilePath/" \
+          -e "s/%NULLNAMAWIPGRID%/218/" \
+          -e "s/%NULLNAMRAWFORMAT%/grib2/" \
+          -e "s/%NULLVELMULT%/$VELOCITYMULTIPLIER/" \
+          -e "s/%NULLPRESSMULT%/0.01/" \
+          -e "s/%NULLAPPLYRAMP%/$boolApplyRamp/" \
+          -e "s/%NULLRAMPDIST%/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
+          -e "s/%NULLNAMNOWCASTDOWNLOADED%/null/" \
+          -e "s/%NULLNAMNOWCASTFOUND%/null/" \
+          -e "s/%NULLNAMFORECASTDOWNLOADED%/null/" \
+          -e "s/%NULLNAMFORECASTFOUND%/null/" \
+          -e "s/%NULLLASTUPDATER%/$THIS/" \
+          -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
+          > get_nam_status.pl.json 2>> $SYSLOG
+           
       # determine the status of the latest NAM cycle posted by NCEP,
       # along with the range of cycles posted since the adcirc hotstart time
       APPLOGFILE=$RUNDIR/get_nam_status.pl.log
       while [[ $getNamStatusSuccess -ne 0 && $newCycle -le $lastCycle ]]; do
          TRIES=$((TRIES + 1))
          appMessage "According to the statefile ${STATEFILE}, the most recent successful nowcast cycle is $lastCycle." $APPLOGFILE
-         statusOptions="--startcycle $lastCycle --backsite $BACKSITE --backdir $BACKDIR"
-         appMessage "Downloading NAM status with the following command: perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${SYSLOG}" $APPLOGFILE
-         newCycle=$(perl ${SCRIPTDIR}/get_nam_status.pl $statusOptions 2>> ${APPLOGFILE})
+         newCycle=$(perl ${SCRIPTDIR}/get_nam_status.pl 2>> ${APPLOGFILE})
          if [[ $newCycle -le $lastCycle ]]; then
              RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
              sleep 60
@@ -977,12 +1016,9 @@ downloadBackgroundMet()
       logMessage "Updating statefile $STATEFILE with new cycle number ${newCycle}." $APPLOGFILE
       cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
       # now download the actual nowcast data for the time range of interest
-      mkdir $RUNDIR/$newCycle 2>> $SYSLOG
-      mv get_nam_status.pl.* select_nam_nowcast.pl.* $RUNDIR/$newCycle 2>> $SYSLOG
-      cd $RUNDIR/$newCycle
-      APPLOGFILE=$RUNDIR/$newCycle/get_nam_data.pl.log
+      # get_nam_data.pl will make a subdirectory for this ADVISORY
+      APPLOGFILE=$RUNDIR/get_nam_data.pl.log
       finishcycle=$(perl ${SCRIPTDIR}/get_nam_data.pl --stage $stage --selectfile select_nam_nowcast.pl.json 2>> ${APPLOGFILE})
-
    else
       # F O R E C A S T
       # download forecast data
@@ -2358,6 +2394,9 @@ while [ true ]; do
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM"  "$CURRENT_STATE" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
          timeRange=$(perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1)
+
+      # move the log and json files into the subdirectory for this ADVISORY
+      mv get_nam_status.pl.* select_nam_nowcast.pl.* $RUNDIR/$newCycle 2>> $SYSLOG  
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
             if [[ -e $ADVISDIR/$file ]]; then

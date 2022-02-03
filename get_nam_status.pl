@@ -29,11 +29,13 @@ use JSON::PP;
 use Cwd;
 #
 my $startcycle = "null";  # optional arg that indicates start of range of interest
-my $backsite = "ftp.ncep.noaa.gov";          # ncep ftp site for nam data
-my $backdir = "/pub/data/nccf/com/nam/prod"; # dir on ncep ftp site
+my $backsite = "null";          # ncep ftp site for nam data
+my $backdir = "null"; # dir on ncep ftp site
 my @cyclerange; # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest  
 #
 our $this = "get_nam_status.pl";
+my $jsonfile = "$this.json";
+our %jsonhash;
 my $ncepcycles = "forcing.nam.ncep.cyclelist";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
@@ -43,6 +45,46 @@ GetOptions(
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir
           );
+#
+# read JSON file to get any configuration info
+unless ( open(JF,"<$jsonfile") ) {
+   stderrMessage("INFO","Could not open '$jsonfile' for reading: $!.");
+} else {
+   # slurp the file contents into a scalar variable
+   my $file_content = do { local $/; <JF> };
+   close(JF);
+   # deserialize JSON
+   my $ref = JSON::PP->new->decode($file_content);
+   %jsonhash = %$ref;
+}
+#
+# grab config info and use it if it was not 
+# already provided on the command line
+# also set reasonable defaults
+if ( $backsite eq "null" ) {
+   if ( %jsonhash && defined $jsonhash{"forcing.nam.backsite"} ) {
+      $backsite = $jsonhash{"forcing.nam.backsite"};
+   } else {
+      $backsite = "ftp.ncep.noaa.gov";
+   }
+}
+if ( $backdir eq "null" ) {
+   if ( %jsonhash && defined $jsonhash{"forcing.nam.backdir"} ) {
+      $backdir = $jsonhash{"forcing.nam.backdir"};
+   } else {
+      $backdir = "/pub/data/nccf/com/nam/prod";
+   }
+}
+# if the startcycle was not provided, the script
+# will return a list of all the cycles available
+# from ncep
+if ( $startcycle eq "null" && %jsonhash ) {
+   my $cyclelistref = $jsonhash{"forcing.nam.ncep.cyclelist"};
+   my @cyclelist = @$cyclelistref;
+   if ( defined $cyclelist[0] ) {
+      $startcycle = $cyclelist[0]; 
+   }
+}
 #
 &appMessage("DEBUG","Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
@@ -100,11 +142,30 @@ if ( $startcycle ne "null" ) {
    }
    # toss directories that are before the startcycle
    # (there may still be a directory with a date that 
-   #  has some cycles before the start cycle, we will
-   #  deal with that later)
+   # has some cycles before the start cycle, we will
+   # deal with that later)
    for ( my $i=0; $i<$numbefore; $i++ ) {
       shift(@sortedNamDirs);
    }
+} else {
+   # startcycle was not specified, so find the 
+   # first date and time that data are available
+   $sortedNamDirs[0] =~ /nam.(\d{10})/;
+   $startdate = $1;
+   # change to that directory and see if there are files in there
+   $hcDirSuccess = $ftp->cwd("$backdir/$sortedNamDirs[0]");
+   unless ( $hcDirSuccess ) {
+      &stderrMessage("ERROR","ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " . $ftp->message);
+      printf STDOUT $dl;
+      die;
+   }
+   #my @allFiles = $ftp->ls();
+   my @earliestFiles = grep /awip1200.tm00/, $ftp->ls();
+   # now sort the NAM files from lowest to highest (it appears that ls() does
+   # not automatically do this for us)
+   my @sortedEarliestFiles = sort { lc($a) cmp lc($b) } @earliestFiles;
+   $sortedEarliestFiles[0] =~ /nam.t(\d+)z.awip1200.tm00.grib2/;
+   $startcycle = $1;
 }
 # sanity check
 my $numSortedNamDirs = @sortedNamDirs;
@@ -172,79 +233,90 @@ unless ( $cyclehour ne "null" ) {
 }
 stderrMessage("DEBUG","The cycletime is '$cycletime'."); 
 #
-# if the calling routine supplied a starting date/time, also write a JSON file 
+# write a JSON file 
 # that contains all the cycles available between the given starting
 # date/time and the latest available cycle (inclusive)
-if ( $startcycle ne "null" ) {
-   my @cyclesInRange; # between startcycle and the latest
-   DIRECTORIES : foreach my $dir (@sortedNamDirs) {
-      #printf STDOUT "$dir\n"; #jgfdebug
-      # cd to the directory containing the NAM directories
-      my $hcDirSuccess = $ftp->cwd("$backdir/$dir");
-      unless ( $hcDirSuccess ) {
-         stderrMessage("ERROR",
+my @cyclesInRange; # between startcycle and the latest
+DIRECTORIES : foreach my $dir (@sortedNamDirs) {
+   #printf STDOUT "$dir\n"; #jgfdebug
+   # cd to the directory containing the NAM directories
+   my $hcDirSuccess = $ftp->cwd("$backdir/$dir");
+   unless ( $hcDirSuccess ) {
+      stderrMessage("ERROR",
             "ftp: Cannot change working directory to '$backdir/$dir': " . $ftp->message);
-         printf STDOUT $dl;
-         die;
-      } 
-      $dir =~ /nam.(\d+)/;
-      my $thisdate = $1; 
-      my @allFiles = grep /awip1200.tm00/, $ftp->ls();
-      @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
-      my $thishour = "null";
-      my $thiscycle = "null";
-      FILES : foreach my $file (@sortedFiles) {
-         #printf STDOUT "$file\n"; #jgfdebug
-         # anchor the .grib2 to end of string to avoid matching .grib2.idx
-         if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2$/ ) {
-            $thishour = $1;  
-            $thiscycle = $thisdate . $thishour; 
-            if ( $thiscycle >= $startcycle && $thiscycle <= $cycletime ) {
-               push(@cyclesInRange,$thiscycle);
-            }
+      printf STDOUT $dl;
+      die;
+   } 
+   $dir =~ /nam.(\d+)/;
+   my $thisdate = $1; 
+   my @allFiles = grep /awip1200.tm00/, $ftp->ls();
+   @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
+   my $thishour = "null";
+   my $thiscycle = "null";
+   FILES : foreach my $file (@sortedFiles) {
+      #printf STDOUT "$file\n"; #jgfdebug
+      # anchor the .grib2 to end of string to avoid matching .grib2.idx
+      if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2$/ ) {
+         $thishour = $1;  
+         $thiscycle = $thisdate . $thishour; 
+         if ( $thiscycle >= $startcycle && $thiscycle <= $cycletime ) {
+            push(@cyclesInRange,$thiscycle);
          }
       }
    }
-   # now encode the list of cycles as json and write out
+}
+# add the parameters and the cycle list to the hash 
+$jsonhash{"forcing.nam.backsite"} = $backsite;
+$jsonhash{"forcing.nam.backdir"} = $backdir;
+$jsonhash{$ncepcycles} = \@cyclesInRange;
+&writeJSON;
+# exit successfully
+exit 0;
+
+sub writeJSON () {
+   my $lastupdatedref = $jsonhash{"lastupdated"};
+   my @lastupdated = @$lastupdatedref;
+   my $timestamp = &getTimeStamp;
+   my $ts_ref = { $this => $timestamp };
+   push(@lastupdated,$ts_ref);
+   $jsonhash{"lastupdated"} = \@lastupdated;
    unless ( open(SJ,">$this.json") ) {
       &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
       die;
    }
-   my %namcycles;
-   $namcycles{$ncepcycles} = \@cyclesInRange; 
-   my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
+   my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%jsonhash);
    print SJ $json;
    close(SJ);
 }
-# exit successfully
-exit 0;
 #
 # write a log message to stderr
 sub stderrMessage () {
    my $level = shift;
    my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: $this: $message\n";
+   my $theTime = &getTimeStamp;
+   printf STDERR "[$theTime] $level: $this: $message\n";
 }
 #
 # write a log message to a log file dedicated to this script (typically debug messages)
 sub appMessage () {
    my $level = shift;
    my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
+   my $theTime = &getTimeStamp;
    #
    # open an application log file
    unless ( open(APPLOGFILE,">>$this.log") ) {
       &stderrMessage("ERROR","Could not open $this.log for appending: $!.");
    }
-   printf APPLOGFILE "$theTime $level: $this: $message\n";
+   printf APPLOGFILE "[$theTime] $level: $this: $message\n";
    close(APPLOGFILE);
 }
+
+sub getTimeStamp () {
+   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   my $year = 1900 + $yearOffset;
+   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
+   my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms";
+   return $theTime;
+}
+

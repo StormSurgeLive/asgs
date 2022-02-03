@@ -27,23 +27,25 @@ use Getopt::Long;
 use Date::Calc;
 use JSON::PP;
 use Cwd;
-
-# the following values may be set on the command
-# line or read from the $RUNDIR/status/asgs.instance.status.json file
-# if they are set both ways, the commnd line takes precedence
-our $rundir = Cwd::cwd();   # directory where the data files will be stored
-our $forecastcycle = "00,06,12,18";   # nam cycles to run a forecast
-my $backsite = "ftp.ncep.noaa.gov";   # ncep ftp site for nam data
-my $backdir = "/pub/data/nccf/com/nam/prod";    # dir on ncep ftp site
+#
+my $forecastcycle = "null";   # nam cycles to run a forecast, e.g., "06,18"
+my @forecastcycles; # as a list instead of comma separated string
 #
 our $this = "select_nam_nowcast.pl";
 my $ncepcycles = "forcing.nam.ncep.cyclelist";
-my $cyclelistfile = "get_nam_status.pl.json";
-my $selectedlistfile = "select_nam_nowcast.pl.json";
+my $cyclelistfile = "get_nam_status.pl.json";  # input to this script
+my $selectedlistfile = "select_nam_nowcast.pl.json"; # output from this script
 #
 GetOptions(
            "forecastcycle=s" => \$forecastcycle
           );
+#
+# the command line forecastcycle will override
+# the value found in the json file
+if ( $forecastcycle ne "null" ) {
+   my @forecastcycles = split(",",$forecastcycle);  
+}
+#
 # open the file containing the list of 
 # cycles posted since the last cycle 
 # that was run by ASGS
@@ -51,29 +53,34 @@ unless (open(F,"<$cyclelistfile")) {
     &stderrMessage("ERROR","Failed to open '$cyclelistfile': $!.");
     die;
 }
-# get_nam_status.pl.json looks like the following:
-# {
-#   "forcing.nam.ncep.cyclelist" : [
-#      2022011418,
-#      2022011500,
-#      2022011506,
-#      2022011512
-#   ]
-# }
 # slurp the file contents into a scalar variable
 my $file_content = do { local $/; <F> };
 close(F);
 my $ref = JSON::PP->new->decode($file_content);
-my %cyclehash = %$ref;
+my %jsonhash = %$ref;
 # grab the list of cycles out of the hash
-my $cyclelistref = $cyclehash{$ncepcycles};
+my $cyclelistref = $jsonhash{$ncepcycles};
 my @cyclelist = @$cyclelistref;
+unless ( defined $cyclelist[0] ) {
+   &stderrMessage("ERROR","The file '$cyclelistfile' property 'forcing.nam.ncep.cyclelist' did not contain any cycles.");
+   die;
+}
+# grab the forecast cycles if it was not provided
+# on the command line
+unless ( defined $forecastcycles[0] ) {
+   if ( %jsonhash && defined $jsonhash{"forcing.nam.config.daily.forecastcycle"} ) {
+      my $forecastcyclesref = $jsonhash{"forcing.nam.config.daily.forecastcycle"};
+      @forecastcycles = @$forecastcyclesref;
+   } else {
+      @forecastcycles = qw(00 06 12 18);   # nam cycles to run a forecast
+   }
+}
 #
 # nowcast to the most recent cycle that the Operator
 # has selected for a forecast
 my $foundit = 0;
 my $numnotfound = 0;
-my @forecastcycles = split(",",$forecastcycle);
+
 my $numcycles = @cyclelist;
 #printf STDOUT "$numcycles\n"; #jgfdebug
 CYCLES : for ( my $c=-1 ; ($c + $numcycles)>0 ; $c-- ) {
@@ -102,43 +109,77 @@ unless ( open(SJ,">$this.json") ) {
     &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
     die;
 }
-my %namcycles;
-$namcycles{$ncepcycles} = \@cyclelist; 
-my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%namcycles);
-print SJ $json;
-close(SJ);
+$jsonhash{$ncepcycles} = \@cyclelist;
+$jsonhash{"forcing.nam.config.daily.forecastcycle"} = $forecastcycle;
+$jsonhash{"forcing.nam.ncep.file.json.select"} = "$this.json";
+&writeJSON();
 # write the cycle when the nowcast should end
 # so it can be captured by the calling routine 
 # (may be different than the latest nowcast)
 printf STDOUT $cyclelist[-1]; # success
 exit 0;
 #
+sub writeJSON () {
+   my $lastupdatedref = $jsonhash{"lastupdated"};
+   my @lastupdated = @$lastupdatedref;
+   my $timestamp = &getTimeStamp;
+   my $ts_ref = { $this => $timestamp };
+   push(@lastupdated,$ts_ref);
+   $jsonhash{"lastupdated"} = \@lastupdated;
+   unless ( open(SJ,">$this.json") ) {
+      &stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
+      die;
+   }
+   my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%jsonhash);
+   print SJ $json;
+   close(SJ);
+}
+#
+sub setParameter () {
+   my ( $paramref, $key, $default ) = @_;
+   if ( $$paramref eq "null" ) {
+      if ( %jsonhash && defined $jsonhash{$key} ) {
+         $$paramref = $jsonhash{$key};
+      } else {
+         $$paramref = $default;
+      }
+   }
+   # bomb out if there is no default value for the parameter
+   if ( $$paramref eq "null" ) {
+      &stderrMessage("ERROR","The parameter '$key' was not specified.");
+      die;
+   }
+}
+#
 # write a log message to stderr
 sub stderrMessage () {
    my $level = shift;
    my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: $this: $message\n";
+   my $theTime = &getTimeStamp;
+   printf STDERR "[$theTime] $level: $this: $message\n";
 }
 #
 # write a log message to a log file dedicated to this script (typically debug messages)
 sub appMessage () {
    my $level = shift;
    my $message = shift;
+   my $theTime = &getTimeStamp;
+   #
+   # open an application log file
+   unless ( open(APPLOGFILE,">>$this.log") ) {
+      &stderrMessage("ERROR","Could not open $this.log for appending: $!.");
+   }
+   printf APPLOGFILE "[$theTime] $level: $this: $message\n";
+   close(APPLOGFILE);
+}
+
+sub getTimeStamp () {
    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
    (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   #
-   # open an application log file for get_nam.pl
-   unless ( open(APPLOGFILE,">>$rundir/get_nam.pl.log") ) {
-      &stderrMessage("ERROR","Could not open $rundir/get_nam.pl.log for appending: $!.");
-   }
-   printf APPLOGFILE "$theTime $level: $this:  $message\n";
-   close(APPLOGFILE);
+   my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms";
+   return $theTime;
 }
+
+
