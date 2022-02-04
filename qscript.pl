@@ -262,7 +262,7 @@ while(<TEMPLATE>) {
     s/%jobtype%/$jobtype/g;
     # the email address of the ASGS Operator
     if ( $properties{"notification.emailnotify"} eq "yes" ) {
-       s/%notifyuser%/$properties{"notification.hpc.email.notifyuser"}/g;
+       s/%notifyuser%/$properties{"notification.email.job_failed_list"}/g;
     } else {
        s/%notifyuser%/noLineHere/g;
     }
