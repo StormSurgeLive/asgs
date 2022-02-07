@@ -766,18 +766,10 @@ build() {
     jq)
       init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
       ;;
-    python2)
-      init-python.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
-    python3)
-      init-python37.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
     *)
       echo 'Supported "build" options:'
       echo '  adcirc  - ADCIRC build wizard supporting different versions and patchsets'
       echo '  jq      - "a lightweight and flexible command-line JSON processor"'
-      echo '  python  - (deprecated) python2 (2.7.18), includes pip module installer"'
-      echo '  python3 - minimal python3 (3.7.10), includes pip3 module installer"'
       ;;
   esac
 }
