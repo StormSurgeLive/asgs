@@ -30,8 +30,7 @@ _verify() {
     *)
      verify_perl
      verify_python
-     verify_adcirc 
-     verify_regressions
+     verify_adcirc verify_regressions
      verify_ssh_config
      verify_email_config
      ;;      
@@ -57,21 +56,14 @@ verify_perl() {
 }
 
 verify_python() {
-  python $SCRIPTDIR/cloud/general/t/verify-python-modules.py
-  echo +
-  echo ++ Verifying Python scripts can pass compile phase \(python -m py_compile\)
-  for file in $(find . -name "*.py"); do
-    python -m py_compile $file > /dev/null 2>&1 && echo ok     $file || echo not ok $file;
-    # clean up potentially useful *.pyc (compiled python) files
-    rm -f ${file}c
-  done
-  echo +
   echo ++ Benchmarking and verifying netCDF4 module functionality
   rm -f ./*.nc # pre clean up
   pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
-  $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
+  python3.7 $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
   rm -f ./*.nc # post clean up
   popd > /dev/null 2>&1
+  # clean up all python cache dirs
+  find . -name __pycache__ | xargs -n1 rm -rfv
 }
 
 verify_regressions() {
