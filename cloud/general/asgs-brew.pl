@@ -592,7 +592,7 @@ sub get_steps {
     my $asgs_install_path = $opts_ref->{'install-path'};
     my $asgs_compiler     = $opts_ref->{compiler};
     my $asgs_home         = $opts_ref->{home};
-    my $asgs_tmpdir       = $opts_ref->{tmpdir};
+    my $asgs_tmpdir       = $opts_ref->{tmpdir} // q{/tmp};
     my $asgs_machine_name = $opts_ref->{machinename};
     my $makejobs          = $opts_ref->{'make-jobs'};
     my $brewflags         = $opts_ref->{brewflags};
