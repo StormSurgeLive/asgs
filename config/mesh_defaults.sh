@@ -261,6 +261,33 @@ case $GRIDNAME in
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
+   "TX2022a")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/TX2022a
+      GRIDFILE=TX2022a.14  # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=TX2022a_fort.15.template   # fort.15 template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=TX2022a_elev_stations.txt
+      VELSTATIONS=TX2022a_vel_stations.txt
+      METSTATIONS=TX2022a_met_stations.txt
+      NAFILE=TX2022a.13
+      NAPROPERTIES=${NAFILE}.properties
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=2.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;
       #
    "neflga_v12_geo"|"NEFLGAv12"|"NEFLGAv12b")
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
