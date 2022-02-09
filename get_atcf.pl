@@ -67,7 +67,9 @@ GetOptions(
            "trigger=s" => \$trigger,
            "nhcName=s" => \$nhcName
            );
-#
+
+# zero-pad storm if single digit
+$storm = sprintf qq{%02d}, $storm;
 my $hindcastfile="bal".$storm.$year.".dat";
 my $forecastfile="al".$storm.$year.".fst";
 #
