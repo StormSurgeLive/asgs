@@ -31,6 +31,7 @@ if [ "${1}" = "clean" ]; then
 fi
 
 ADCIRCS=(
+"v55.01"
 "v53release"
 "v53release-gfortran-10"
 "v53release-testsuite"
@@ -38,7 +39,6 @@ ADCIRCS=(
 "v55release"
 "v55release-swan-gfortran"
 "v55release-swan-gfortran-10"
-"v55.01"
 )
 NUM_ADC=${#ADCIRCS[@]}
 
@@ -47,6 +47,8 @@ _show_supported_versions()
   local num=0
   echo  '                                               ||ASGS Supported ADCIRC versions||'
   echo  '/~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\'
+  num=$(($num+1))
+  printf "|%-2s) v55.01                     | latest upstream                               |\n" $num
   num=$(($num+1))
   printf "|%-2s) v53release                 | standard version + updated platform support   |\n" $num
   num=$(($num+1))
@@ -61,8 +63,6 @@ _show_supported_versions()
   printf "|%-2s) v55release-swan-gfortran   | v55release with gfortran default for swan     |\n" $num
   num=$(($num+1))
   printf "|%-2s) v55release-swan-gfortran-10| v55release with gfortran 10 default for swan  |\n" $num
-  num=$(($num+1))
-  printf "|%-2s) v55.01                     | latest upstream                               |\n" $num
   echo  "\~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/"
   echo
   if [ "${1}" != "noexit" ]; then
