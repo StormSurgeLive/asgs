@@ -4,6 +4,9 @@ OPT=${1-$HOME/opt}
 COMPILER=${2-intel}
 JOBS=${3-1}
 
+_TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
+_ASGS_TMP=${_ASGS_TMP:-$_TMPDIR}
+
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
   cd $OPT/bin
@@ -19,11 +22,13 @@ if [ $2 == "clean" ]; then
 fi
 
 if [ $COMPILER == "intel" ]; then
+  echo Compiling HDF5 with Intel suite
   export CC=icc
   export FC=ifort
   export CXX=icpc
 fi
 if [ $COMPILER == "gfortran" ]; then
+  echo Compiling HDF5 with GCC suite
   export CC=gcc
   export FC=gfortran
   export CXX=g++
