@@ -1,0 +1,48 @@
+diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
+index 0fa6846..7863444 100644
+--- a/work/cmplrflags.mk
++++ b/work/cmplrflags.mk
+@@ -284,6 +284,16 @@ ifeq ($(compiler),intel)
+         FLIBS   := $(INCDIRS) -xAVX
+      endif
+   endif
++  ifeq ($(MACHINENAME),rostam) 
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
++     FLIBS   := $(INCDIRS) -xAVX
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX 
++        FLIBS   := $(INCDIRS) -xAVX
++     endif
++  endif
+   ifeq ($(MACHINENAME),queenbeeC) 
+      FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xCORE-AVX512
+      CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX512 
+@@ -294,16 +304,6 @@ ifeq ($(compiler),intel)
+         FLIBS   := $(INCDIRS) -xCORE-AVX512 
+      endif
+   endif
+-  ifeq ($(MACHINENAME),supermic) 
+-     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
+-     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
+-     FLIBS   := $(INCDIRS) -xAVX
+-     ifeq ($(DEBUG),trace)
+-        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX
+-        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX 
+-        FLIBS   := $(INCDIRS) -xAVX
+-     endif
+-  endif
+   endif
+   #
+   #@jasonfleming Added to fix bus error on hatteras@renci
+@@ -338,6 +338,9 @@ ifeq ($(compiler),intel)
+      ifeq ($(MACHINENAME),supermic)
+         FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
+      endif
++     ifeq ($(MACHINENAME),rostam)
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
++     endif
+      ifeq ($(MACHINENAME),stampede)
+         FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
