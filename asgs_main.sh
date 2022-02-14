@@ -930,7 +930,7 @@ downloadBackgroundMet()
    THIS="asgs_main.sh>downloadBackgroundMet()"
    CURRENT_STATE="WAIT"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
-   logMessage "$ENSTORM: $THIS: Downloading meteorological data." 
+   logMessage "$ENSTORM: $THIS: Downloading meteorological data."
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # if there isn't an archive directory for NAM data inside
@@ -939,7 +939,7 @@ downloadBackgroundMet()
    if [[ ! -d $instanceNamDir ]]; then
       mkdir -p $instanceNamDir 2>> $SYSLOG
    fi
-   # if there isn't an archive directory for NAM data in the 
+   # if there isn't an archive directory for NAM data in the
    # ASGS WORK directory, make one
    platformNamDir=$WORK/nam
    if [[ ! -d $platformNamDir ]]; then
@@ -955,16 +955,17 @@ downloadBackgroundMet()
       hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
       lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
       # create the json file to act as input to the status checker and nam downloader
+      escRUNDIR=${RUNDIR////'\/'}
       escBACKDIR=${BACKDIR////'\/'}
       escSCRIPTDIR=${SCRIPTDIR////'\/'}
       escInstanceNamDir=${instanceNamDir////'\/'}
       arrFORECASTCYCLE=${FORECASTCYCLE//,/\",\"}
       boolApplyRamp=false
-      if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then 
+      if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
          boolApplyRamp=true
       fi
       ptFilePath=${SCRIPTDIR}/input/$PTFILE
-      escPtFilePath=${ptFilePath////'\/'} 
+      escPtFilePath=${ptFilePath////'\/'}
       DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
       cat $SCRIPTDIR/get_nam.json.template         | \
       sed -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/" \
@@ -978,7 +979,7 @@ downloadBackgroundMet()
           -e "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/" \
           -e "s/%NULLSTAGE%/$stage/" \
           -e "s/%NULLCYCLE%/$lastCycle/" \
-          -e "s/%NULLNAMOWIDATAPATH%/$escInstanceNamDir/" \
+          -e "s/%NULLNAMOWIDATAPATH%/$escRUNDIR/" \
           -e "s/%NULLNAMOWIGRID%/$escPtFilePath/" \
           -e "s/%NULLNAMAWIPGRID%/218/" \
           -e "s/%NULLNAMRAWFORMAT%/grib2/" \
@@ -993,7 +994,7 @@ downloadBackgroundMet()
           -e "s/%NULLLASTUPDATER%/$THIS/" \
           -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
           > get_nam_status.pl.json 2>> $SYSLOG
-           
+
       # determine the status of the latest NAM cycle posted by NCEP,
       # along with the range of cycles posted since the adcirc hotstart time
       APPLOGFILE=$RUNDIR/get_nam_status.pl.log
@@ -1005,7 +1006,7 @@ downloadBackgroundMet()
              RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
              sleep 60
          fi
-      done  
+      done
       APPLOGFILE=$RUNDIR/select_nam_nowcast.pl.log
       # refine the list of NAM cycles to end the nowcast on the correct cycle
       newCycle=$(perl $SCRIPTDIR/select_nam_nowcast.pl --forecastcycle "$FORECASTCYCLE" 2>> ${APPLOGFILE})
@@ -2396,7 +2397,7 @@ while [ true ]; do
          timeRange=$(perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1)
 
       # move the log and json files into the subdirectory for this ADVISORY
-      mv get_nam_status.pl.* select_nam_nowcast.pl.* $RUNDIR/$newCycle 2>> $SYSLOG  
+      mv get_nam_status.pl.* select_nam_nowcast.pl.* $RUNDIR/$newCycle 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
             if [[ -e $ADVISDIR/$file ]]; then
@@ -2919,7 +2920,7 @@ while [ true ]; do
                break
             fi
          done
-         if [[ $runme -eq 0 ]]; then 
+         if [[ $runme -eq 0 ]]; then
             # increment the scenario package counter
             si=$((si + 1))
             if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
@@ -2985,7 +2986,7 @@ while [ true ]; do
       # moved it ... should we increment the scenario counter and just go on?
       # ... just using "continue" as below will have the effect of retrying this
       # forecast scenario
-      if [[ ! -d $STORMDIR ]]; then 
+      if [[ ! -d $STORMDIR ]]; then
          # increment the scenario package counter
          si=$((si + 1))
          if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
@@ -2993,7 +2994,7 @@ while [ true ]; do
          else
             logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to the next forecast scenario."
          fi
-         continue # no reason to continue processing this NAM forecast scenario at this point if it will not be run      
+         continue # no reason to continue processing this NAM forecast scenario at this point if it will not be run
       fi
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then

@@ -64,9 +64,8 @@
 # ec95d mesh. It was for a tides-only run.
 #perl ~/asgs/trunk/control_file_gen.pl --controltemplate ~/asgs/trunk/input/ec_95_fort.15_template --gridname fort.14 --cst 2012010100 --endtime 7 --dt 30.0 --nws 0 --scriptdir ~/asgs/trunk --hsformat binary --stormdir . --name hindcast --fort63freq 3600.0
 
-
-$^W++;
 use strict;
+use warnings;
 use Getopt::Long;
 use Date::Calc;
 use Cwd;
@@ -269,7 +268,7 @@ stderrMessage("INFO","The fort.15 file will be written to the directory $stormDi
 # type of forcing
 if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
    stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
-   &vortexModelParameters($nws);
+   vortexModelParameters($nws);
    # for getting the OWI wind time increment for blended winds
    # and appending it to the wtiminc line
    if ( abs($nws) == 30 || abs($nws) == 330 ) {
@@ -286,13 +285,13 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
       close(METFILE);
    }
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
-   &owiParameters();
+   owiParameters();
 } elsif ( defined $specifiedRunLength ) {
    stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
-   &customParameters();
+   customParameters();
 } elsif ( $enstorm eq "hindcast" ) {
    stderrMessage("DEBUG","This is a hindcast.");
-   &hindcastParameters();
+   hindcastParameters();
 }
 #
 # we want a hotstart file if this is a nowcast or hindcast
@@ -324,13 +323,13 @@ if ( defined $hstime ) {
    $nffr = 0;
 }
 # [de]activate output files with time step increment and with(out) appending.
-my $fort61specifier = &getSpecifier($fort61freq,$fort61append,$fort61netcdf);
-my $fort62specifier = &getSpecifier($fort62freq,$fort62append,$fort62netcdf);
-$fort61 = $fort61specifier . " 0.0 365.0 " . &getIncrement($fort61freq,$dt);
-$fort62 = $fort62specifier . " 0.0 365.0 " . &getIncrement($fort62freq,$dt);
+my $fort61specifier = getSpecifier($fort61freq,$fort61append,$fort61netcdf);
+my $fort62specifier = getSpecifier($fort62freq,$fort62append,$fort62netcdf);
+$fort61 = $fort61specifier . " 0.0 365.0 " . getIncrement($fort61freq,$dt);
+$fort62 = $fort62specifier . " 0.0 365.0 " . getIncrement($fort62freq,$dt);
 #
-my $fort63specifier = &getSpecifier($fort63freq,$fort63append,$fort63netcdf);
-my $fort64specifier = &getSpecifier($fort64freq,$fort64append,$fort64netcdf);
+my $fort63specifier = getSpecifier($fort63freq,$fort63append,$fort63netcdf);
+my $fort64specifier = getSpecifier($fort64freq,$fort64append,$fort64netcdf);
 if ( defined $sparseoutput ) {
    unless ( defined $fort63netcdf ) {
       $fort63specifier *= 4;
@@ -339,10 +338,10 @@ if ( defined $sparseoutput ) {
       $fort64specifier *= 4;
    }
 }
-$fort63 = $fort63specifier . " 0.0 365.0 " . &getIncrement($fort63freq,$dt);
-$fort64 = $fort64specifier . " 0.0 365.0 " . &getIncrement($fort64freq,$dt);
-my $fort7172specifier = &getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
-my $fort7374specifier = &getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
+$fort63 = $fort63specifier . " 0.0 365.0 " . getIncrement($fort63freq,$dt);
+$fort64 = $fort64specifier . " 0.0 365.0 " . getIncrement($fort64freq,$dt);
+my $fort7172specifier = getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
+my $fort7374specifier = getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
 
 # Casey 121009: Debug for sparse output.
 if ( defined $sparseoutput ) {
@@ -350,8 +349,8 @@ if ( defined $sparseoutput ) {
       $fort7374specifier *= 4;
    }
 }
-$fort7172 = $fort7172specifier . " 0.0 365.0 " . &getIncrement($fort7172freq,$dt);
-$fort7374 = $fort7374specifier . " 0.0 365.0 " . &getIncrement($fort7374freq,$dt);
+$fort7172 = $fort7172specifier . " 0.0 365.0 " . getIncrement($fort7172freq,$dt);
+$fort7374 = $fort7374specifier . " 0.0 365.0 " . getIncrement($fort7374freq,$dt);
 if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
@@ -416,17 +415,17 @@ if ( -e "$scriptdir/tides/tide_fac.x" && -x "$scriptdir/tides/tide_fac.x" ) {
 }
 #
 # load up stations
-$numelevstations = &getStations($elevstations,"elevation");
-$numvelstations = &getStations($velstations,"velocity");
+$numelevstations = getStations($elevstations,"elevation");
+$numvelstations = getStations($velstations,"velocity");
 if ( $nws eq "0" ) {
    stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.");
    $nummetstations = "NO LINE HERE";
 } else {
-   $nummetstations = &getStations($metstations,"meteorology");
+   $nummetstations = getStations($metstations,"meteorology");
 }
 #
 # load up the periodicflux data
-$fluxdata = &getPeriodicFlux($periodicflux);
+$fluxdata = getPeriodicFlux($periodicflux);
 #
 # apply static offset if specified
 my $offsetline = "NO LINE HERE";
@@ -661,35 +660,35 @@ printf RUNPROPS "WindModel : $wind_model\n";
 printf RUNPROPS "Model : $model\n";
 # write the names of the output files to the run.properties file
 stderrMessage("INFO","Writing file names and formats to run.properties file.");
-&writeFileName("fort.61",$fort61specifier);
-&writeFileName("fort.62",$fort62specifier);
-&writeFileName("fort.63",$fort63specifier);
-&writeFileName("fort.64",$fort64specifier);
-&writeFileName("fort.71",$fort7172specifier);
-&writeFileName("fort.72",$fort7172specifier);
-&writeFileName("fort.73",$fort7374specifier);
-&writeFileName("fort.74",$fort7374specifier);
-&writeFileName("maxele.63",$fort63specifier);
-&writeFileName("maxvel.63",$fort64specifier);
-&writeFileName("maxwvel.63",$fort7374specifier);
-&writeFileName("minpr.63",$fort7374specifier);
+writeFileName("fort.61",$fort61specifier);
+writeFileName("fort.62",$fort62specifier);
+writeFileName("fort.63",$fort63specifier);
+writeFileName("fort.64",$fort64specifier);
+writeFileName("fort.71",$fort7172specifier);
+writeFileName("fort.72",$fort7172specifier);
+writeFileName("fort.73",$fort7374specifier);
+writeFileName("fort.74",$fort7374specifier);
+writeFileName("maxele.63",$fort63specifier);
+writeFileName("maxvel.63",$fort64specifier);
+writeFileName("maxwvel.63",$fort7374specifier);
+writeFileName("minpr.63",$fort7374specifier);
 if ( $waves eq "on" ) {
-   &writeFileName("maxrs.63",$fort7374specifier);
-   &writeFileName("swan_DIR.63",$fort7374specifier);
-   &writeFileName("swan_DIR_max.63",$fort7374specifier);
-   &writeFileName("swan_HS.63",$fort7374specifier);
-   &writeFileName("swan_HS_max.63",$fort7374specifier);
-   &writeFileName("swan_TMM10.63",$fort7374specifier);
-   &writeFileName("swan_TMM10_max.63",$fort7374specifier);
-   &writeFileName("swan_TPS.63",$fort7374specifier);
-   &writeFileName("swan_TPS_max.63",$fort7374specifier);
+   writeFileName("maxrs.63",$fort7374specifier);
+   writeFileName("swan_DIR.63",$fort7374specifier);
+   writeFileName("swan_DIR_max.63",$fort7374specifier);
+   writeFileName("swan_HS.63",$fort7374specifier);
+   writeFileName("swan_HS_max.63",$fort7374specifier);
+   writeFileName("swan_TMM10.63",$fort7374specifier);
+   writeFileName("swan_TMM10_max.63",$fort7374specifier);
+   writeFileName("swan_TPS.63",$fort7374specifier);
+   writeFileName("swan_TPS_max.63",$fort7374specifier);
 }
 if ($inundationOutput eq "on") {
-   &writeFileName("initiallydry.63",$fort63specifier);
-   &writeFileName("inundationtime.63",$fort63specifier);
-   &writeFileName("maxinundepth.63",$fort63specifier);
-   &writeFileName("everdried.63",$fort63specifier);
-   &writeFileName("endrisinginun.63",$fort63specifier);
+   writeFileName("initiallydry.63",$fort63specifier);
+   writeFileName("inundationtime.63",$fort63specifier);
+   writeFileName("maxinundepth.63",$fort63specifier);
+   writeFileName("everdried.63",$fort63specifier);
+   writeFileName("endrisinginun.63",$fort63specifier);
 }
 close(RUNPROPS);
 stderrMessage("INFO","Wrote run.properties file $stormDir/run.properties.");
@@ -1364,7 +1363,7 @@ sub vortexModelParameters () {
 #
 # Writes a log message to standard error.
 #--------------------------------------------------------------------------
-sub stderrMessage () {
+sub stderrMessage {
    my $level = shift;
    my $message = shift;
    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);

@@ -22,32 +22,6 @@
 #--------------------------------------------------------------
 # ref: http://www.cpc.ncep.noaa.gov/products/wesley/fast_downloading_grib.html
 #--------------------------------------------------------------
-# sample lines to test this script:
-#
-## supply starting and ending nowcast cycle:
-#
-# perl get_nam_data.pl \
-#                 --startcycle 2005082900      \
-#                 --finishcycle 2005082906     \
-#                 --stage nowcast              \
-#
-# -- or --
-#
-## supply JSON file with a list of nowcast cycles to download:
-#
-# perl get_nam_data.pl \
-#                 --selectfile select_nam_nowcast.pl.json
-#                 --stage nowcast
-#
-# == or ==
-#
-## ask a specific forecast cycle:
-#
-# perl get_nam_data.pl \
-#                 --stage forecast \
-#                 --startcycle 2005082900      
-#--------------------------------------------------------------
-# replace W++ with warnings and include strict and warnings in the following order:
 use strict;
 use warnings;
 use Net::FTP;
@@ -55,9 +29,9 @@ use JSON::PP;
 use Getopt::Long;
 use Date::Calc;
 use File::Copy 'move';
-use File::Basename;
 use File::Path 'make_path';
 use Cwd;
+use ASGSUtil;
 our $startcycle = "null"; # most recent cycle for which a nowcast was completed
 my $finishcycle = "null"; # nowcast end (meaningless in the forecast stage)
 my $selectfile = "null";  # array of cycles to download
@@ -82,87 +56,76 @@ my @cyclelist;
 GetOptions(
            "stage=s" => \$stage,
            "startcycle=s" => \$startcycle,
-           "finishcycle=s" => \$finishcycle,  
+           "finishcycle=s" => \$finishcycle,
            "selectfile=s" => \$selectfile,
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir
 );
-# load the cycle list from the selectfile if it was specified
-if ( $selectfile eq "null" ) {
-   $selectfile = "select_nam_nowcast.pl.json";
-}
-unless ( open(SF,"<$selectfile") ) {
-   stderrMessage("ERROR","Could not open '$selectfile' for reading: $!.");
-   die;
-}
-# slurp the file contents into a scalar variable
-my $file_content = do { local $/; <SF> };
-close(SF);
+
+# slurp STDIN JSON request into a scalar variable
+my $file_content = do { local $/; <> };
 # deserialize JSON
-my $ref = JSON::PP->new->decode($file_content);
-%jsonhash = %$ref;
+my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab the list of cycles out of the hash
-my $cyclelistref = $jsonhash{$ncepcycles};
+my $cyclelistref = $jshash_ref->{"forcing.nam.ncep.cyclelist"};
 my @json_cyclelist = @$cyclelistref;
 
-# grab config info and use it if it was not 
+# grab config info and use it if it was not
 # already provided on the command line
 # also set reasonable defaults
+ASGSUtil::setParameter( $this, $jshash_ref, \$backsite,  "forcing.nam.backsite", "ftp.ncep.noaa.gov");
+ASGSUtil::setParameter( $this, $jshash_ref, \$backdir,   "forcing.nam.backdir",  "/pub/data/nccf/com/nam/prod");
+ASGSUtil::setParameter( $this, $jshash_ref, \$stage,     "forcing.nam.stage",    "null");
+ASGSUtil::setParameter( $this, $jshash_ref, \$namdatadir,"forcing.nam.path.data", cwd() );
+ASGSUtil::setParameter( $this, $jshash_ref, \$scriptdir, "path.scriptdir",        dirname(__FILE__) );
+ASGSUtil::writeJSON($jshash_ref, $this);
 
-&setParameter( \$backsite,  "forcing.nam.backsite", "ftp.ncep.noaa.gov");
-&setParameter( \$backdir,   "forcing.nam.backdir",  "/pub/data/nccf/com/nam/prod");
-&setParameter( \$stage,     "forcing.nam.stage",    "null");
-&setParameter( \$namdatadir,"forcing.nam.path.data", cwd() );
-&setParameter( \$scriptdir, "path.scriptdir",        dirname(__FILE__) );
-
-# the startcycle is a required parameter; if 
+# the startcycle is a required parameter; if
 # the finishcycle is not given, and this is
 # a nowcast, this script will necessarily fail;
-# if a start and end cycle are provided, but they are 
+# if a start and end cycle are provided, but they are
 # more than 6 hours apart, the cycles
 # in between will be filled in, assuming they are 6
 # hours apart
-if ( $startcycle eq "null" && %jsonhash ) {
+if ( $startcycle eq "null" ) {
    unless ( defined $json_cyclelist[0] ) {
-      &stderrMessage("ERROR","The cycle list was not specified.");
+      ASGSUtil::stderrMessage("ERROR", $this, "The cycle list was not specified.");
       die;
-   } 
+   }
 }
 
 # establish connection to the ftp site
-&appMessage("DEBUG","Connecting to $backsite:$backdir");
+ASGSUtil::appMessage("DEBUG", $this, "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if we were able to download the file(s) successfully
 # open ftp connection
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1);
 unless ( defined $ftp ) {
-   stderrMessage("ERROR","ftp: Cannot connect to $backsite: $@");
-   printf STDOUT $dl;
+   ASGSUtil::stderrMessage("ERROR", $this, "ftp: Cannot connect to $backsite: $@");
    die;
 }
 my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
 unless ( $ftpLoginSuccess ) {
-   stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
-   printf STDOUT $dl;
+   ASGSUtil::stderrMessage("ERROR", $this, "ftp: Cannot login: " . $ftp->message);
    die;
 }
 # switch to binary mode
 $ftp->binary();
 #
-#    N O W C A S T    D A T A 
+#    N O W C A S T    D A T A
 #
 # the Operator can provide a date range on the command
 # line, and we can fill in the intervening cycles here
 if ( $stage eq "NOWCAST" ) {
    # this is the cycle we are nowcasting from
    if ( $startcycle eq "null" ) {
-      $startcycle = $json_cyclelist[0];      
+      $startcycle = $json_cyclelist[0];
    }
    # this is the cycle we are nowcasting to
    if ( $finishcycle eq "null" ) {
-      if ( defined $json_cyclelist[-1] ) { 
+      if ( defined $json_cyclelist[-1] ) {
          $finishcycle = $json_cyclelist[-1];
       } else {
-         &stderrMessage("ERROR","This is a nowcast but the finishcycle was not specified.");
+         ASGSUtil::stderrMessage("ERROR", $this, "This is a nowcast but the finishcycle was not specified.");
          die;
       }
    }
@@ -186,35 +149,35 @@ if ( $stage eq "NOWCAST" ) {
          $thiscycle = $date_needed.$hour_needed;
          push(@cyclelist,$thiscycle);
       }
-   } 
+   }
    unless ( @cyclelist ) {
-      stderrMessage("ERROR","Could not create list of NAM cycles to download. Arguments --startcycle '$startcycle' and --finishcycle $finishcycle were provided.");   
+      ASGSUtil::stderrMessage("ERROR", $this, "Could not create list of NAM cycles to download. Arguments --startcycle '$startcycle' and --finishcycle $finishcycle were provided.");
       die;
-   } 
+   }
    # loop over cycles, grabbing all files relevant to a nowcast
    foreach my $cycle (@cyclelist) {
       $cycle =~ /(\d{8})/;
       my $dirDate = $1;
       my $remoteDir = "nam.$dirDate";
-      stderrMessage("INFO","Downloading from directory '$backdir/$remoteDir'.");
+      ASGSUtil::stderrMessage("INFO", $this, "Downloading from directory '$backdir/$remoteDir'.");
       my $hcDirSuccess = $ftp->cwd("$backdir/$remoteDir");
       unless ( $hcDirSuccess ) {
-         stderrMessage("ERROR",
+         ASGSUtil::stderrMessage("ERROR", $this,
             "ftp: Cannot change working directory to '$backdir/$remoteDir': " . $ftp->message);
          die;
       }
       # create the directory local to this ASGS instance where the
       # files will be stored (if it does not already exist)
-      # 
+      #
       # the NAM nowcast file names do not indicate the date, only the hour
-      # that the forecast was issued (and the hour from the issue time 
-      # that the forecast is valid, e.g., 
+      # that the forecast was issued (and the hour from the issue time
+      # that the forecast is valid, e.g.,
       # /pub/data/nccf/com/nam/prod/nam.20220123/nam.t18z.awip1200.tm00.grib2
       # NAMtoOWIRamp.pl is hardcoded to look in e.g. the erl.220123 dir for the 20220123 cycles
       my $localDir = $namdatadir."/erl.".substr($dirDate,2);
       unless ( -e $localDir ) {
          unless ( make_path($localDir) ) {
-            stderrMessage("ERROR","Could not make the directory '$localDir': $!");
+            ASGSUtil::stderrMessage("ERROR", $this, "Could not make the directory '$localDir': $!");
             die;
          }
       }
@@ -230,50 +193,50 @@ if ( $stage eq "NOWCAST" ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
          if ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
-            stderrMessage("INFO","'$f' has already been downloaded to '$localDir'.");
+            ASGSUtil::stderrMessage("INFO", $this, "'$f' has already been downloaded to '$localDir'.");
             $dl++;
             push(@files_found,"$localDir/$f");
             next;
          } else {
-            stderrMessage("INFO","The file '$localDir/$f' appears to be corrupted and will not be used.");
+            ASGSUtil::stderrMessage("INFO", $this, "The file '$localDir/$f' appears to be corrupted and will not be used.");
             unless ( move($localDir/$f,"$localDir/$f.error") ) {
-               stderrMessage("ERROR","Could not rename the file '$localDir/$f' to $localDir/$f.error: $!");
+               ASGSUtil::stderrMessage("ERROR", $this, "Could not rename the file '$localDir/$f' to $localDir/$f.error: $!");
                die;
             }
          }
       }
-      my $err = &partialGribDownload($dirDate, $f, $idxfile, $localDir);
+      my $err = partialGribDownload($dirDate, $f, $idxfile, $localDir);
       if ( $err == 0 ) {
-         stderrMessage("INFO","Download complete.");
+         ASGSUtil::stderrMessage("INFO", $this, "Download complete.");
          push(@nowcasts_downloaded,$dirDate.$hourString);
-         #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+         #ASGSUtil::stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
          if ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
             $dl++;
             push(@files_downloaded,"$localDir/$f");
          } else {
-            stderrMessage("ERROR","The file '$localDir/$f' appears to be corrupted and will not be used.");
+            ASGSUtil::stderrMessage("ERROR", $this, "The file '$localDir/$f' appears to be corrupted and will not be used.");
             unless ( move($localDir/$f,"$localDir/$f.error") ) {
-               stderrMessage("ERROR","Could not rename the file '$localDir/$f' to $localDir/$f.error: $!");
+               ASGSUtil::stderrMessage("ERROR", $this, "Could not rename the file '$localDir/$f' to $localDir/$f.error: $!");
             }
          }
       } else {
-         stderrMessage("ERROR","Failed to download '$f'.");
+         ASGSUtil::stderrMessage("ERROR", $this, "Failed to download '$f'.");
       }
    }
    # if we found at least two files, we assume have enough for the next advisory
    if ( $dl >= 2 ) {
-      $jsonhash{"forcing.nam.ncep.file.json.get"} = "$this.json";
-      $jsonhash{"forcing.nam.ncep.nowcast.filelist.downloaded"} = \@files_downloaded;
-      $jsonhash{"forcing.nam.ncep.nowcast.filelist.found"} = \@files_found;
-      writeJSON(\%jsonhash, $this); 
-      printf STDOUT $finishcycle;     
+      $jshash_ref->{"forcing.nam.ncep.file.json.get"} = "$this.json";
+      $jshash_ref->{"forcing.nam.ncep.nowcast.filelist.downloaded"} = \@files_downloaded;
+      $jshash_ref->{"forcing.nam.ncep.nowcast.filelist.found"} = \@files_found;
+      # write json response to file
+      ASGSUtil::writeJSON($jshash_ref, $this);
+      # write json response to STDOUT
+      printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
    } else {
-      printf STDOUT "0";
       die;
    }
-   1;
 }
 #
 #-----------------------------------------------------------
@@ -283,7 +246,7 @@ if ( $stage eq "NOWCAST" ) {
 if ( $stage eq "FORECAST" ) {
    # this is the cycle we are forecasting
    if ( $startcycle eq "null" ) {
-      $startcycle = $json_cyclelist[-1];      
+      $startcycle = $json_cyclelist[-1];
    }
    my @targetFiles="";
    # create a local directory for the data if it does
@@ -292,13 +255,13 @@ if ( $stage eq "FORECAST" ) {
    my $localDir = $namdatadir."/erl.".substr($startcycle,2,6);
    unless ( -e $localDir ) {
       unless ( make_path($localDir) ) {
-         stderrMessage("ERROR","Could not make the directory '$localDir': $!");
+         ASGSUtil::stderrMessage("ERROR", $this, "Could not make the directory '$localDir': $!");
          die;
       }
    }
    # write a properties file to document when the forecast starts and ends
    unless ( open(FP,">forecast.properties") ) {
-      stderrMessage("ERROR","Could not open 'forecast.properties' for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR", $this, "Could not open 'forecast.properties' for writing: $!.");
       die;
    }
    printf FP "forecastValidStart : $startcycle" . "0000\n";
@@ -308,10 +271,10 @@ if ( $stage eq "FORECAST" ) {
    my $dirDate = $1;
    my $cyclehour = $2;
    my $remoteDir = "nam.$dirDate";
-   appMessage("INFO","Downloading from directory '$backdir/$remoteDir'.");
+   ASGSUtil::appMessage("INFO", $this, "Downloading from directory '$backdir/$remoteDir'.");
    my $hcDirSuccess = $ftp->cwd("$backdir/$remoteDir");
    unless ( $hcDirSuccess ) {
-      stderrMessage("ERROR",
+      ASGSUtil::stderrMessage("ERROR", $this,
          "ftp: Cannot change working directory to '$backdir/$remoteDir': " . $ftp->message);
       die;
     }
@@ -326,38 +289,38 @@ if ( $stage eq "FORECAST" ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
          if ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
-            stderrMessage("INFO","'$f' has already been downloaded to '$localDir'.");
+            ASGSUtil::stderrMessage("INFO", $this, "'$f' has already been downloaded to '$localDir'.");
             $dl++;
             next;
          } else {
-            stderrMessage("INFO","The file '$localDir/$f' appears to be corrupted and will not be used.");
+            ASGSUtil::stderrMessage("INFO", $this, "The file '$localDir/$f' appears to be corrupted and will not be used.");
             unless ( move($localDir/$f,"$localDir/$f.error") ) {
-               stderrMessage("ERROR","Could not rename the file '$localDir/$f' to $localDir/$f.error: $!");
+               ASGSUtil::stderrMessage("ERROR", $this, "Could not rename the file '$localDir/$f' to $localDir/$f.error: $!");
                die;
             }
          }
       }
-      stderrMessage("INFO","Downloading '$f' to '$localDir'.");
+      ASGSUtil::stderrMessage("INFO", $this, "Downloading '$f' to '$localDir'.");
       my $success = 0;
       $num_retries = 1;
       my $idxfile = $f . ".idx";
       while ( $success == 0 && $num_retries < $max_retries ) {
-         my $stat = &partialGribDownload($dirDate, $f, $idxfile, $localDir);
+         my $stat = partialGribDownload($dirDate, $f, $idxfile, $localDir);
          # my $stat = $ftp->get($f,$localDir."/".$f);
          if ( $stat == 0 ) {
             $dl++;
             $success = 1;
-            stderrMessage("INFO","Downloaded in $num_retries attempt(s).");
-         } else {                       
-            stderrMessage("INFO","ftp: Get '$f' failed: " . $ftp->message);
+            ASGSUtil::stderrMessage("INFO", $this, "Downloaded in $num_retries attempt(s).");
+         } else {
+            ASGSUtil::stderrMessage("INFO", $this, "ftp: Get '$f' failed: " . $ftp->message);
             $num_retries++;
-            #stderrMessage("DEBUG","num_retries is $num_retries");
+            #ASGSUtil::stderrMessage("DEBUG","num_retries is $num_retries");
             sleep 60;
          }
       }
       if ( $num_retries >= $max_retries ) {
          $had_enough = 1;
-         stderrMessage("INFO","Retried download more than $max_retries times. Giving up on downloading $f.");
+         ASGSUtil::stderrMessage("INFO", $this, "Retried download more than $max_retries times. Giving up on downloading $f.");
          last;  # if we tried 10 times and couldn't get it, the files are
                 # probably not there at all, so don't spend time trying to
                 # get the rest of them
@@ -380,22 +343,22 @@ if ( $stage eq "FORECAST" ) {
    # if we found at least two files, we assume have enough for
    # the next advisory
    if ( $dl >= 2 ) {
-      $jsonhash{"forcing.nam.ncep.file.json.get"} = "$this.json";
-      $jsonhash{"forcing.nam.ncep.forecast.filelist.downloaded"} = \@files_downloaded;
-      $jsonhash{"forcing.nam.ncep.forecast.filelist.found"} = \@files_found;
-      &writeJSON(\%jsonhash, $this); 
-      # write out the datetime when the forecast ends
-      printf STDOUT $end_date;
+      $jshash_ref->{"forcing.nam.ncep.file.json.get"} = "$this.json";
+      $jshash_ref->{"forcing.nam.ncep.forecast.filelist.downloaded"} = \@files_downloaded;
+      $jshash_ref->{"forcing.nam.ncep.forecast.filelist.found"} = \@files_found;
+      ASGSUtil::writeJSON($jshash_ref, $this);
+      # write json response to STDOUT
+      printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
       exit;
    } else {
-      printf STDOUT "0";
       die;
    }
 }
+1;
 #
 # perform partial grib download using curl
 # only gets the U, V, P at mean sea level
-sub partialGribDownload () {
+sub partialGribDownload {
    my $dirDate = shift;
    my $f = shift;
    my $idxfile = shift;
@@ -407,15 +370,15 @@ sub partialGribDownload () {
    # https://nomads rather than $backsite
    my $idx = "https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$idxfile";
    # jgfdebug: save a local copy of the inventory file
-   appMessage("DEBUG","Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");
+   ASGSUtil::appMessage("DEBUG", $this, "Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");
    my $err=system("curl -f -s $idx -o $localDir/$idxfile");
    if ( $err != 0 ) {
-      stderrMessage("INFO","curl: Get '$idx' failed.");
+      ASGSUtil::stderrMessage("INFO", $this, "curl: Get '$idx' failed.");
       unlink("$localDir/$idxfile");
       return $err;
    }
    # download directly into list
-   #stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
+   #ASGSUtil::stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
    #my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
    my @rangeLines;    # inventory with computed ranges
    my $last = 0;      # number of immediately preceding lines with same starting byte index
@@ -424,14 +387,14 @@ sub partialGribDownload () {
    my $has_range = 0; # set to 1 if the inventory already has a range field
    #
    # open index file for this time period
-   appMessage("INFO","Parsing '$idx' to determine byte ranges of U, V, and P.");
+   ASGSUtil::appMessage("INFO", $this, "Parsing '$idx' to determine byte ranges of U, V, and P.");
    unless ( open(GRIBINVENTORY,"<$localDir/$idxfile") ) {
-      stderrMessage("ERROR","Could not open '$localDir/$idxfile' for appending: $!.");
+      ASGSUtil::stderrMessage("ERROR", $this, "Could not open '$localDir/$idxfile' for appending: $!.");
       return 1;
    }
    while(<GRIBINVENTORY>) {
       chomp($_);
-      #stderrMessage("INFO","$li");
+      #ASGSUtil::stderrMessage("INFO","$li");
       # check to see if this is grib2 inventory that already has a range field
       # if so, don't need to calculate the range
       if ($_ =~ /:range=/) {
@@ -501,90 +464,15 @@ sub partialGribDownload () {
    }
    # now join selected ranges and actually download the specified data
    my $range=join(",",@ranges);
-   appMessage("INFO","Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f.");
-   my $err=system("curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f");
+   ASGSUtil::appMessage("INFO", $this, "Downloading '$f' to '$localDir' with curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f.");
+   $err=system("curl -f -s -r \"$range\" https://nomads.ncep.noaa.gov$backdir/nam.$dirDate/$f -o $localDir/$f");
    if ( $err == 0 ) {
-      #stderrMessage("INFO","Download complete.");
+      #ASGSUtil::stderrMessage("INFO","Download complete.");
       return 0;
-      #stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
+      #ASGSUtil::stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
    } else {
-      stderrMessage("INFO","curl: Get '$f' failed.");
+      ASGSUtil::stderrMessage("INFO", $this, "curl: Get '$f' failed.");
       unlink("$localDir/$f");
       return 1;
    }
 }
-sub setParameter () {
-   my ( $paramref, $key, $default ) = @_;
-   if ( $$paramref eq "null" ) {
-      if ( %jsonhash && defined $jsonhash{$key} ) {
-         $$paramref = $jsonhash{$key};
-      } else {
-         $$paramref = $default;
-      }
-   }
-   # bomb out if there is no default value for the parameter
-   if ( $$paramref eq "null" ) { 
-      &stderrMessage("ERROR","The parameter '$key' was not specified.");
-      die;
-   }
-}
-#
-# write out the JSON file containing additional parameters
-# as added by this script
-
-# FIXME : parentheses indicate a subroutine prototype and should not be used
-# 
-# FIXME : jsonhash should be passed in by reference ; rather than our
-#         benefit of readability
-# 
-sub writeJSON {
-   my ($jsonref, $this) = @_;
-   # json passed by reference and modified in this subroutine
-   # $this passed by valueF
-   # add time stamp
-   my $lastupdatedref = $jsonref->{lastupdated};
-   my @lastupdated = @$lastupdatedref;
-   my $timestamp = getTimeStamp;
-   my $ts_ref = { $this => $timestamp }; 
-   push(@lastupdated,$ts_ref); 
-   $jsonref->{lastupdated} = \@lastupdated;
-   # write out
-   unless ( open(my $SJ,">","$this.json") ) {
-      stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
-      die;
-   }
-   my $json = JSON::PP->new->utf8->pretty->canonical->encode($jsonref);
-   print $SJ $json;
-   close($SJ);
-}
-#
-# write a log message to stderr
-sub stderrMessage () {
-   my ( $level, $message ) = @_;
-   my $theTime = &getTimeStamp;
-   printf STDERR "$theTime $level: $this: $message\n";
-}
-#
-# write a log message to a log file dedicated to this script (typically debug messages)
-sub appMessage () {
-   my ( $level, $message ) = @_;
-   my $theTime = &getTimeStamp;
-   #
-   # open an application log file 
-   unless ( open(APPLOGFILE,">>$this.log") ) {
-      &stderrMessage("ERROR","Could not open $this.log for appending: $!.");
-   }
-   printf APPLOGFILE "$theTime $level: $this: $message\n";
-   close(APPLOGFILE);
-}
-
-sub getTimeStamp () {
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms";
-   return $theTime;
-}
-
-
