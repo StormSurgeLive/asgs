@@ -2,7 +2,7 @@
 #--------------------------------------------------------------
 # metadata.pl: i/o for json, yaml, and run.properties files
 #--------------------------------------------------------------
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2021-2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -30,18 +30,20 @@
 # automatically using the file extension (.json, .yaml, or
 # .properties).
 #--------------------------------------------------------------
-$^W++;
 use strict;
+use warnings;
 use Getopt::Long;
 use JSON::PP;
 use YAML::Tiny;
 use Date::Calc;
 use Cwd;
+use File::Basename;
+use ASGSUtil;
 #
-my $keys = "null";          # keys for values to read FIXME: only works if a single key is provided
+my @keys;                   # array for keys to values to read
+my $keys_ref = \@keys;
 my $mapscalar = "null";     # key/value pairs to write
 my $metadatafile = "null";  # file that holds the json or yaml data
-my %mapping;                # deserialized hash
 my $file_content;           # entire file as slurped
 my $yaml;                   # content as string
 my $jsonify = 0;            # true if run.properties should be converted to scenario.json (overwriting any existing scenario.json)
@@ -101,79 +103,109 @@ my @outputfile_properties = (
     "Wind Velocity 10m Stations", "Wind Velocity 10m",
     "Maximum Wind Speed 10m",
 );
-
-our $this = "metadata.pl";
+my @values;  # to be returned
+my %properties;
+my $jshash_ref;
 #
 GetOptions(
            "metadatafile=s" => \$metadatafile,
-           "keys=s" => \$keys,
-           "mapsacalar=s" => \$mapscalar,
+           "keys=s{1,}" => \$keys_ref,
+           "mapscalar=s" => \$mapscalar,
            "converted-file-name=s" => \$convertedFileName,
            "jsonify" => \$jsonify,
            "redact" => \$redact
           );
-# open metadata file
+#
+#   r e a d   t h e   d a t a
+#
+my ($filename, $dirs, $suffix);
 if ($metadatafile eq "null") {
-   &stderrMessage("ERROR","Did not provide the name of the metadata file.");
-   exit 1;
-}
-# remove a trailing slash (if any, just in case)
-if ( substr($metadatafile,-1,1) eq "/" ) {
-    chop($metadatafile);
-}
-# determine the file type by grabbing all characters from last dot to end of line
-my ($type) = $metadatafile =~ /(\.[^.]+)$/;
-# determine path to the metadata file (if any was provided)
-my $dirpath = "";
-my $last_slash = rindex($metadatafile,"/");
-if ( $last_slash != -1 ) {
-    $dirpath = substr($metadatafile,0,$last_slash);
-}
-#
-#  J S O N
-if ( $type eq ".json" ) {
-    unless (open(F,"<$metadatafile")) {
-        &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
-        die;
-    }
+    # read json from STDIN
+    ASGSUtil::stderrMessage("INFO","A metadata file name was not provided; reading JSON from STDIN.");
     # slurp the file contents into a scalar variable
-    $file_content = do { local $/; <F> };
-    close(F);
-    my $ref = JSON::PP->new->decode($file_content);
-    %mapping = %$ref;
-    if ($keys ne "null" && exists($mapping{$keys})) {
-        print $mapping{$keys};
-    } else {
-        print "null";
-    }
-#
-#  Y A M L
-} elsif ( $type eq ".yaml" ) {
-    $yaml = YAML::Tiny->read($metadatafile);
-    if ($keys ne "null") {
-        my $value = $yaml->[0]->{$keys};
-        if (defined $value) {
-            print $value;
-        } else {
-            print "null";
+    $file_content = do { local $/; <> };
+    my $jshash_ref = JSON::PP->new->decode($file_content);
+    $suffix = ".json";
+} else {
+    ($filename, $dirs, $suffix) = fileparse($metadatafile);
+    #
+    #  J S O N
+    if ( $suffix eq ".json" ) {
+        my $F;
+        unless (open($F,"<$metadatafile")) {
+            ASGSUtil::stderrMessage(
+                      "ERROR",
+                      "Failed to open '$metadatafile': $!.");
+            die;
         }
-    }
-#
-#  P R O P E R T I E S
-} elsif ( $type eq ".properties" ) {
-    unless (open(RUNPROP,"<$metadatafile")) {
-        &stderrMessage("ERROR","Failed to open '$metadatafile': $!.");
+        # slurp the file contents into a scalar variable
+        $file_content = do { local $/; <$F> };
+        close($F);
+        my $jshash_ref = JSON::PP->new->decode($file_content);
+    #
+    #  Y A M L
+    } elsif ( $suffix eq ".yaml" ) {
+        $yaml = YAML::Tiny->read($metadatafile);
+    #
+    #  P R O P E R T I E S
+    } elsif ( $suffix eq ".properties" ) {
+        my $RUNPROP;
+        unless (open($RUNPROP,"<$metadatafile")) {
+            ASGSUtil::stderrMessage(
+                      "ERROR",
+                      "Failed to open '$metadatafile': $!.");
+            die;
+        }
+        while (<$RUNPROP>) {
+            my @fields = split ':',$_, 2 ;
+            # strip leading and trailing spaces and tabs
+            $fields[0] =~ s/^\s|\s+$//g ;
+            $fields[1] =~ s/^\s|\s+$//g ;
+            $properties{$fields[0]} = $fields[1];
+        }
+        close($RUNPROP);
+    #
+    #  U N R E C O G N I Z E D
+    } else {
+        ASGSUtil::stderrMessage(
+            "ERROR",
+            "Unrecognized file suffix: '$suffix'. ".
+            "Only .json, .yaml, and .properties are supported file types.");
         die;
     }
-    my %properties;
-    while (<RUNPROP>) {
-        my @fields = split ':',$_, 2 ;
-        # strip leading and trailing spaces and tabs
-        $fields[0] =~ s/^\s|\s+$//g ;
-        $fields[1] =~ s/^\s|\s+$//g ;
-        $properties{$fields[0]} = $fields[1];
+}
+#
+#   n o w   w r i t e   t h e   d a t a
+#
+if ( $suffix eq ".json" ) {
+    if ( $keys_ref ) {
+        foreach my $k (@$keys_ref) {
+            if ( exists($jshash_ref->{$k}) ) {
+                push(@values,$jshash_ref->{$k});
+            } else {
+                push(@values,"null");
+            }
+        }
+        print join(" ",@values);
+        exit;
     }
-    close(RUNPROP);
+} elsif ( $suffix eq ".yaml" ) {
+    if ( $keys_ref ) {
+        foreach my $k (@$keys_ref) {
+            my $value = $yaml->[0]->{$k};
+            if (defined $value) {
+                push(@values,$value);
+            } else {
+                push(@values,"null");
+            }
+        }
+        print join(" ",@values);
+        exit;
+    }
+} else {
+    #
+    #  p r o p e r t i e s   f i l e
+    #
     # filter out deprecated properties
     foreach my $dp (@deprecated_properties) {
         delete $properties{$dp};
@@ -187,12 +219,16 @@ if ( $type eq ".json" ) {
         }
     }
     # if a property value was requested, write the value to stdout and exit
-    if ($keys ne "null") {
-        if ( exists($properties{$keys})) {
-            print $properties{$keys};
-        } else {
-            print "null";
+    if ( $keys_ref ) {
+        foreach my $k (@$keys_ref) {
+            if ( exists($properties{$k})) {
+                my $value = $properties{$k};
+                push(@values,$value);
+            } else {
+                push(@values,"null");
+            }
         }
+        print join(" ",@values);
         exit;
     }
     # if there are leading and trailing parentheses, add this
@@ -248,49 +284,14 @@ if ( $type eq ".json" ) {
         }
         $properties{"adcirc.files.output"} = \@outputlist;
         # now encode as json and write out
-        unless ( open(SJ,">$dirpath/$convertedFileName") ) {
-            &stderrMessage("ERROR","Could not open '$dirpath/$convertedFileName' for writing: $!.");
+        unless ( open(SJ,">$dirs/$convertedFileName") ) {
+            ASGSUtil::stderrMessage("ERROR","Could not open '$dirs/$convertedFileName' for writing: $!.");
         }
         my $json = JSON::PP->new->utf8->pretty->canonical->encode(\%properties);
         print SJ $json;
         close(SJ);
     }
-} else {
-    &stderrMessage("ERROR","File type was not recognized (requires either 'json' or 'yaml' or '.properties').");
 }
-
 1;
 
-#
-# write a log message to stderr
-sub stderrMessage () {
-    my $level = shift;
-    my $message = shift;
-    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-       (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-    my $year = 1900 + $yearOffset;
-    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-    #printf STDERR "$theTime $level: $enstorm: get_nam.pl: $message\n";
-    printf STDERR "$theTime $level: $this: $message\n";
-    &appMessage($level,$message);
-}
-#
-# write a log message to a log file dedicated to this script (typically debug messages)
-sub appMessage () {
-    my $level = shift;
-    my $message = shift;
-    unless ( open(APPLOGFILE,">>metadata.pl.log") ) {
-        &stderrMessage("ERROR","Could not open '$this.log' for appending: $!.");
-        &appMessage("ERROR","Could not open '$this.log' for appending: $!.");
-        return;
-    }
-    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-    (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-    my $year = 1900 + $yearOffset;
-    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-    #printf APPLOGFILE "$theTime $level: $enstorm: get_nam.pl: $message\n";
-    printf APPLOGFILE "$theTime $level: $this: $message\n";
-    close(APPLOGFILE);
-}
+__END__

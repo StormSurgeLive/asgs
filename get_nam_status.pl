@@ -34,9 +34,6 @@ my $backsite = "null";          # ncep ftp site for nam data
 my $backdir = "null"; # dir on ncep ftp site
 my @cyclerange; # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest
 #
-our $this = "get_nam_status.pl";
-my $jsonfile = "$this.json";
-our %jsonhash;
 my $ncepcycles = "forcing.nam.ncep.cyclelist";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
@@ -55,9 +52,11 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab config info and use it if it was not
 # already provided on the command line
 # also set reasonable defaults
-ASGSUtil::setParameter( $this, $jshash_ref, \$backsite,  "forcing.nam.backsite", "ftp.ncep.noaa.gov");
-ASGSUtil::setParameter( $this, $jshash_ref, \$backdir,   "forcing.nam.backdir",  "/pub/data/nccf/com/nam/prod");
-
+ASGSUtil::setParameter( $jshash_ref, \$backsite,  "forcing.nam.backsite", "ftp.ncep.noaa.gov");
+ASGSUtil::setParameter( $jshash_ref, \$backdir,   "forcing.nam.backdir",  "/pub/data/nccf/com/nam/prod");
+$jshash_ref->{"forcing.nam.backsite"} = $backsite;
+$jshash_ref->{"forcing.nam.backdir"} = $backdir;
+#
 # if the startcycle was not provided, the script
 # will return a list of all the cycles available
 # from ncep
@@ -69,17 +68,21 @@ if ( $startcycle eq "null" && $jshash_ref ) {
    }
 }
 #
-ASGSUtil::appMessage("DEBUG", $this, "Connecting to $backsite:$backdir");
+ASGSUtil::appMessage(
+          "DEBUG",
+          "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
 # open ftp connection
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1);
 unless ( defined $ftp ) {
-   ASGSUtil::stderrMessage("ERROR", $this, "ftp: Cannot connect to $backsite: $@");
+   ASGSUtil::stderrMessage("ERROR",
+                           "ftp: Cannot connect to $backsite: $@");
    die;
 }
 my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
 unless ( $ftpLoginSuccess ) {
-   ASGSUtil::stderrMessage("ERROR", $this, "ftp: Cannot login: " . $ftp->message);
+   ASGSUtil::stderrMessage("ERROR",
+                           "ftp: Cannot login: " . $ftp->message);
    die;
 }
 # switch to binary mode
@@ -87,8 +90,9 @@ $ftp->binary();
 # cd to the directory containing the NAM files
 my $hcDirSuccess = $ftp->cwd($backdir);
 unless ( $hcDirSuccess ) {
-   ASGSUtil::stderrMessage("ERROR", $this,
-       "ftp: Cannot change working directory to '$backdir': " . $ftp->message);
+   ASGSUtil::stderrMessage("ERROR",
+                           "ftp: Cannot change working directory to '$backdir': " .
+                           $ftp->message);
    die;
 }
 #
@@ -135,7 +139,10 @@ if ( $startcycle ne "null" ) {
    # change to that directory and see if there are files in there
    $hcDirSuccess = $ftp->cwd("$backdir/$sortedNamDirs[0]");
    unless ( $hcDirSuccess ) {
-      stderrMessage("ERROR", $this, "ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " . $ftp->message);
+      ASGSUtil::stderrMessage(
+                "ERROR",
+                "ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " .
+                $ftp->message);
       die;
    }
    #my @allFiles = $ftp->ls();
@@ -149,7 +156,9 @@ if ( $startcycle ne "null" ) {
 # sanity check
 my $numSortedNamDirs = @sortedNamDirs;
 if ( $numSortedNamDirs == 0 ) {
-   stderrMessage("WARNING", $this, "Failed to find any NAM data directories.");
+   ASGSUtil::stderrMessage(
+             "WARNING",
+             "Failed to find any NAM data directories.");
    die;
 }
 # determine the latest NAM directory that has data in it
@@ -166,20 +175,21 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    # determine the most recent date/hour ... this is the latest nam cycle time
    $targetDir =~ /nam.(\d+)/;
    $cycledate = $1;
-   ASGSUtil::appMessage("DEBUG", $this, "The cycledate is '$cycledate'.");
+   ASGSUtil::appMessage("DEBUG",
+                        "The cycledate is '$cycledate'.");
    # change to that directory and see if there are files in there
    $hcDirSuccess = $ftp->cwd("$backdir/$targetDir");
    unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage("ERROR", $this, "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
-      printf STDOUT $dl;
+      ASGSUtil::stderrMessage("ERROR",
+                "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
       die;
    }
    #my @allFiles = $ftp->ls();
    my @allFiles = grep /awip1200.tm00/, $ftp->ls();
    if (!@allFiles){
       #die "no awip1200 files yet in $targetDirs[-1]\n";
-      ASGSUtils::stderrMessage("INFO", $this, "No awip1200.tm00 files yet in $targetDir.");
-      #printf STDOUT $dl;
+      ASGSUtil::stderrMessage("INFO",
+               "No awip1200.tm00 files yet in $targetDir.");
       #exit 0;
       pop(@sortedNamDirs);
    } else {
@@ -190,7 +200,9 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    }
 }
 unless ( $targetDirFound && scalar(@sortedFiles) ) {
-   ASGSUtils::stderrMessage("ERROR", $this, "Could not find any NAM files in any NAM directory in the specified time range.");
+   ASGSUtil::stderrMessage(
+             "ERROR",
+             "Could not find any NAM files in any NAM directory in the specified time range.");
    die;
 }
 #
@@ -200,27 +212,30 @@ TODAYSFILES : foreach my $file (@sortedFiles) {
    }
 }
 unless ( $cyclehour ne "null" ) {
-   ASGSUtils::stderrMessage("WARNING", $this, "Could not download the list of NAM files from NCEP.");
+   ASGSUtil::stderrMessage(
+             "WARNING",
+             "Could not download the list of NAM files from NCEP.");
    die;
 } else {
    #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    $cycletime = $cycledate . $cyclehour;
-   printf STDOUT $cycletime; # success
+   ASGSUtil::appMessage(
+             "DEBUG",
+             "The cycletime is '$cycletime'.");
 }
-ASGSUtil::stderrMessage("DEBUG", $this, "The cycletime is '$cycletime'.");
 #
 # write a JSON file
 # that contains all the cycles available between the given starting
 # date/time and the latest available cycle (inclusive)
 my @cyclesInRange; # between startcycle and the latest
 DIRECTORIES : foreach my $dir (@sortedNamDirs) {
-   #printf STDOUT "$dir\n"; #jgfdebug
    # cd to the directory containing the NAM directories
    my $hcDirSuccess = $ftp->cwd("$backdir/$dir");
    unless ( $hcDirSuccess ) {
-      ASGSUtils::stderrMessage("ERROR", $this,
-            "ftp: Cannot change working directory to '$backdir/$dir': " . $ftp->message);
-      printf STDOUT $dl;
+      ASGSUtil::stderrMessage(
+                "ERROR",
+                "ftp: Cannot change working directory to '$backdir/$dir': " .
+                $ftp->message);
       die;
    }
    $dir =~ /nam.(\d+)/;
@@ -230,7 +245,6 @@ DIRECTORIES : foreach my $dir (@sortedNamDirs) {
    my $thishour = "null";
    my $thiscycle = "null";
    FILES : foreach my $file (@sortedFiles) {
-      #printf STDOUT "$file\n"; #jgfdebug
       # anchor the .grib2 to end of string to avoid matching .grib2.idx
       if ( $file =~ /nam.t(\d+)z.awip1200.tm00.grib2$/ ) {
          $thishour = $1;
@@ -242,10 +256,9 @@ DIRECTORIES : foreach my $dir (@sortedNamDirs) {
    }
 }
 # add the parameters and the cycle list to the hash
-$jshash_ref->{"forcing.nam.backsite"} = $backsite;
-$jshash_ref->{"forcing.nam.backdir"} = $backdir;
+$jshash_ref->{"forcing.nam.ncep.file.json.status"} = basename($0);
 $jshash_ref->{$ncepcycles} = \@cyclesInRange;
-ASGSUtil::writeJSON($jshash_ref, $this);
-printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
+ASGSUtil::writeJSON($jshash_ref);
+print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 # exit successfully
 1;

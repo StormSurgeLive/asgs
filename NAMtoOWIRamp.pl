@@ -38,6 +38,7 @@ use Getopt::Long;
 use Date::Calc;
 use JSON::PP;
 use Storable;
+use File::Basename;
 use Cwd;
 use ASGSUtil qw[ASGSUtil::setParameter];
 ######################################################
@@ -59,7 +60,6 @@ my @namFormats         = qw(grb grib2 grb2); # accceptable file types for NAMdat
 # $startTime and $endTime are date/time strings for main OWI header and used to name the output files
 my $startTime;
 my $endTime;
-my $this = "NAMtoOWIRamp.pl";
 #
 ######################################################
 #                    Main Program                    #
@@ -84,52 +84,56 @@ my $file_content = do { local $/; <> };
 
 # deserialize JSON
 my $jshash_ref = JSON::PP->new->decode($file_content);
-$jshash_ref->{"forcing.nam.ncep.file.json.reproject"} = "$this.json";
+$jshash_ref->{"forcing.nam.ncep.file.json.reproject"} = basename($0);
 #
 # FIXME: Use complex data structures to simplify this
-ASGSUtil::setParameter( $this, $jshash_ref, \$dataDir,
+ASGSUtil::setParameter( $jshash_ref, \$dataDir,
               "forcing.nam.path.data", cwd() );
-ASGSUtil::setParameter( $this, $jshash_ref, \$outDir,
+ASGSUtil::setParameter( $jshash_ref, \$outDir,
               "forcing.nam.path.data.owi", cwd() );
-ASGSUtil::setParameter( $this, $jshash_ref, \$namFormat,
+ASGSUtil::setParameter( $jshash_ref, \$namFormat,
               "forcing.nam.file.data.raw.format", "grib2" );
-ASGSUtil::setParameter( $this, $jshash_ref, \$stage,
+ASGSUtil::setParameter( $jshash_ref, \$stage,
               "forcing.nam.stage", "null" );
-ASGSUtil::setParameter( $this, $jshash_ref, \$awipGridNumber,
+ASGSUtil::setParameter( $jshash_ref, \$awipGridNumber,
               "forcing.nam.awip.grid", 218 );
-ASGSUtil::setParameter( $this, $jshash_ref, \$velocityMultiplier,
+ASGSUtil::setParameter( $jshash_ref, \$velocityMultiplier,
               "forcing.nam.data.owi.velocitymultiplier", 1.0 );
-ASGSUtil::setParameter( $this, $jshash_ref, \$pressureMultiplier,
+ASGSUtil::setParameter( $jshash_ref, \$pressureMultiplier,
               "forcing.nam.data.owi.pressuremultiplier", 0.01 );
-ASGSUtil::setParameter( $this, $jshash_ref, \$applyRamp,
+ASGSUtil::setParameter( $jshash_ref, \$applyRamp,
               "forcing.nam.data.owi.applyramp", \0 ); # \0 creates JSON::false
-ASGSUtil::setParameter( $this, $jshash_ref, \$rampDistance,
+ASGSUtil::setParameter( $jshash_ref, \$rampDistance,
               "forcing.nam.data.owi.rampdistance", 1.0 );
-ASGSUtil::setParameter( $this, $jshash_ref, \$scriptDir,
+ASGSUtil::setParameter( $jshash_ref, \$scriptDir,
               "path.scriptdir", dirname(__FILE__) );
 #
 # the default ptFile uses scriptdir so it has to be set
 # after scriptdir has been set
-ASGSUtil::setParameter( $this, $jshash_ref, \$ptFile,
+ASGSUtil::setParameter( $jshash_ref, \$ptFile,
               "forcing.nam.data.owi.grid",
               $scriptDir."/input/ptFile_oneEighth.txt" );
 #
 # write out the initial JSON response file now for use in
 # debugging if there is a failure later in this script
-ASGSUtil::writeJSON($jshash_ref, $this);
+ASGSUtil::writeJSON($jshash_ref);
 #
-ASGSUtil::stderrMessage("INFO",$this,"Started processing point file '$ptFile'." );
-my $geoHeader = processPtFile($this, $ptFile, $jshash_ref);
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Started processing point file '$ptFile'." );
+my $geoHeader = processPtFile($ptFile, $jshash_ref);
 my $stagelc = lc $stage;
 $jshash_ref->{"forcing.nam.$stagelc.data.owi.header"} = $geoHeader;
 #
 # load NAM data
-ASGSUtil::stderrMessage("INFO",$this,"Processing grib/grib2 file(s)." );
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Processing grib/grib2 file(s)." );
 my ( @OWI_wnd, @OWI_pres, @OWItime, %nRec, $recordLength );
 my ( $wndFile, $presFile ); # file names
 # FIXME: use complex data structure to simplify this argument list
 getGrib2(
-         $this, $stage,
+         $stage,
          $dataDir, $outDir, $namFormat,
          \$timeStep, \$startTime, \$endTime,
          \@OWI_wnd, \@OWI_pres, \@OWItime,
@@ -140,29 +144,33 @@ $jshash_ref->{"forcing.nam.$stagelc.file.owi.velocity"} = $wndFile;
 $jshash_ref->{"forcing.nam.$stagelc.file.owi.pressure"} = $presFile;
 my $wtiminc = $timeStep * 3600;    # ts in seconds
 $jshash_ref->{"forcing.nam.$stagelc.data.owi.wtiminc.seconds"} = ($wtiminc * 1.0);
-ASGSUtil::writeJSON($jshash_ref, $this);
+ASGSUtil::writeJSON($jshash_ref,);
 # have to add the meteorology time increment to fort.22
-ASGSUtil::stderrMessage("INFO", $this,
+ASGSUtil::stderrMessage("INFO",
               "Adding WTIMINC value to fort.22 comment line." );
 my $F22;
 unless ( open( $F22, ">>", "fort.22" ) ) {
-   ASGSUtil::stderrMessage("ERROR", $this,
-                 "Failed to open OWI (NWS12) fort.22 file " .
-                 "to append a comment line with the " .
-                 "meteorological time increment.");
+   ASGSUtil::stderrMessage(
+             "ERROR",
+             "Failed to open OWI (NWS12) fort.22 file " .
+             "to append a comment line with the " .
+             "meteorological time increment.");
    die;
 }
-ASGSUtil::stderrMessage("INFO", $this,
-              "Appending the WTIMINC value of '$wtiminc' to the fort.22 file." );
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Appending the WTIMINC value of '$wtiminc' to the fort.22 file." );
 print $F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
 close($F22);
 #
 # loop through the time-steps to run awips_interp
-ASGSUtil::stderrMessage("INFO", $this, "Rotate and format each time-step." );
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Rotate and format each time-step." );
 my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
 # FIXME: Use complex data structures to simplify this arg list
 rotateAndFormat(
-                $this, $applyRamp, $geoHeader,
+                $applyRamp, $geoHeader,
                 \@ugrd_store_files, \@vgrd_store_files, \@atmp_store_files,
                 \@OWItime, \@OWI_wnd, \@OWI_pres,
                 \%nRec, $recordLength, $jshash_ref
@@ -172,13 +180,16 @@ $jshash_ref->{"forcing.nam.$stagelc.owi.pressure.recordlength"} = $recordLength;
 $jshash_ref->{"forcing.nam.$stagelc.owi.times"} = \@OWItime;
 #
 # write out OWI files
-ASGSUtil::stderrMessage("INFO", $this, "Print OWI files." );
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Print OWI files." );
 my $OF;
 #
 # write wind file
 unless ( open( $OF, '>', "$wndFile" ) ) {
-ASGSUtil::stderrMessage("INFO", $this,
-              "Could not open wind file '$wndFile': $!");
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Could not open wind file '$wndFile': $!");
    die;
 }
 foreach my $line (@OWI_wnd) {
@@ -188,18 +199,21 @@ close($OF);
 #
 # write pressure file
 unless ( open( $OF, '>', "$presFile" ) ) {
-   ASGSUtil::stderrMessage("INFO", $this,
-              "Could not open wind file '$wndFile': $!");
+   ASGSUtil::stderrMessage(
+             "INFO",
+             "Could not open wind file '$wndFile': $!");
    die;
 }
 foreach my $line (@OWI_pres) {
    print $OF $line . "\n";
 }
 close($OF);
-ASGSUtil::stderrMessage("INFO", $this, "Done processing NAM data." );
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Done processing NAM data." );
 
 # write json response to file
-ASGSUtil::writeJSON($jshash_ref, $this);
+ASGSUtil::writeJSON($jshash_ref);
 # write json response to STDOUT
 printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 1;
@@ -215,7 +229,7 @@ printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 # where to output data by extracting grid information
 ################################################################################
 sub processPtFile {
-    my ( $this, $ptFile, $jshash_ref ) = @_;
+    my ( $ptFile, $jshash_ref ) = @_;
 
     my ( @lat, @lon, $null, @ary,
          $swLat, $swLon, @uniqLat, @uniqLon,
@@ -225,8 +239,9 @@ sub processPtFile {
 
     # check for existence of lat/lon file before attempting to open
     unless ( -e $ptFile ) {
-        ASGSUtil::stderrMessage("ERROR", $this,
-                       "Grid specification file '$ptFile' does not exist." );
+        ASGSUtil::stderrMessage(
+                  "ERROR",
+                  "Grid specification file '$ptFile' does not exist." );
         die;
     }
     open my $PT, '<', $ptFile || die $!;
@@ -290,7 +305,9 @@ sub toOWIformat {
 
     # check for existence of the data file before attempting to open
     unless ( -e $file ) {
-        ASGSUtil::stderrMessage("ERROR",$this,"The data file '$file' does not exist." );
+        ASGSUtil::stderrMessage(
+                  "ERROR",
+                  "The data file '$file' does not exist." );
         printf STDOUT "0";
         die;
     }
@@ -354,14 +371,16 @@ sub toOWIformat {
 #	awips_lambert_interp - populate the OWI array with resulting data
 ################################################################################
 sub rotateAndFormat {
-    my ( $this, $applyRamp, $geoHeader,
+    my ( $applyRamp, $geoHeader,
          $ugrd_ref, $vgrd_ref, $atmp_ref,
          $OWItimeRef, $OWI_wnd_ref, $OWI_pres_ref,
          $nRec_ref, $recordLength, $jshash_ref
        ) = @_;
 
     for my $t ( 0 .. $nRec{'time'} - 1 ) {
-        ASGSUtil::appMessage("DEBUG", $this, "TS=$t" );
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "TS=$t" );
 
         my $ugrd_file = $ugrd_ref->[$t];
         my $vgrd_file = $vgrd_ref->[$t];
@@ -391,7 +410,9 @@ sub rotateAndFormat {
         }
         # NAM pressure data are in Pa
         if ( -f "rotataedNAM.txt" ) {
-           ASGSUtil::appMessage("DEBUG",$this,"Deleting old rotatedNAM.txt.");
+           ASGSUtil::appMessage(
+                     "DEBUG",
+                     "Deleting old rotatedNAM.txt.");
            unlink "rotatedNAM.txt";
         }
         my $cmd = "$scriptDir/lambertInterpRamp.x " .
@@ -406,7 +427,8 @@ sub rotateAndFormat {
                   "--background-pressure 101300.0 " .
                   "--pressure-column 3 " .
                   ">> reproject.log 2>&1";
-        ASGSUtil::appMessage("DEBUG", $this,
+        ASGSUtil::appMessage(
+                   "DEBUG",
                    "1: Reprojecting Lambert Conformal NAM data ".
                    "with the following command: $cmd" );
         $jshash_ref->{"forcing.nam.data.owi.reprojection.cmd"} = "$cmd";
@@ -415,7 +437,9 @@ sub rotateAndFormat {
         if ( !-f "rotatedNAM.txt" ) {
            die "\nrotatedNAM.txt DNE. on TS=$t\n";
         } else {
-           ASGSUtil::appMessage("DEBUG", $this, "$res");
+           ASGSUtil::appMessage(
+                     "DEBUG",
+                     "$res");
         }
         toOWIformat( 'rotatedNAM.txt', $geoHeader . "DT=" . $OWItimeRef->[$t], $OWI_wnd_ref, $OWI_pres_ref );
     }
@@ -428,7 +452,7 @@ sub rotateAndFormat {
 ################################################################################
 sub getGrib2 {
     my (
-        $this, $stage,
+        $stage,
         $dataDir, $outDir, $namFormat,
         $timeStep_ref, $startTime_ref, $endTime_ref,
         $OWI_wnd_ref, $OWI_pres_ref, $OWItime_ref,
@@ -464,9 +488,13 @@ sub getGrib2 {
             $grib2Dirs[0] = $dataDir;
         }
         my $numGrib2Dirs = @grib2Dirs;
-        ASGSUtil::stderrMessage("INFO",$this,"There is/are $numGrib2Dirs directories to process." );
+        ASGSUtil::stderrMessage(
+                  "INFO",
+                  "There is/are $numGrib2Dirs directories to process." );
         if ( $numGrib2Dirs == 0 ) {
-            ASGSUtil::stderrMessage("ERROR",$this,"There are no data directories to process." );
+            ASGSUtil::stderrMessage(
+                      "ERROR",
+                      "There are no data directories to process." );
             die;
         }
         foreach my $dir (@grib2Dirs) {
@@ -518,7 +546,9 @@ sub getGrib2 {
         `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
         $$startTime_ref = $1;
     }
-    ASGSUtil::appMessage("DEBUG",$this,"The start time is '$$startTime_ref'." );
+    ASGSUtil::appMessage(
+              "DEBUG",
+              "The start time is '$$startTime_ref'." );
     $$startTime_ref =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
     my $sy = $1;    # start year
     my $sm = $2;    # start month
@@ -536,7 +566,9 @@ sub getGrib2 {
 
     foreach my $file (@grib2Files) {
         $numGrib2Files++;
-        ASGSUtil::appMessage("DEBUG",$this,"Starting work on '$file'." );
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "Starting work on '$file'." );
         my $cycleHour = "00";
         if ( $namFormat eq "grib2" ) {
             # grab the cycle hour from the filename itself
@@ -551,7 +583,9 @@ sub getGrib2 {
             `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
             $cycleHour = $4;
         }
-        ASGSUtil::appMessage("DEBUG",$this,"The cycle hour is '$cycleHour'." );
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "The cycle hour is '$cycleHour'." );
         ( $fy, $fm, $fd, $fh, $fmin, $fs ) = Date::Calc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
 
         # calculate and save the end time ... last one will represent
@@ -598,13 +632,15 @@ sub getGrib2 {
 
             #ASGSUtil::stderrMessage("DEBUG","The dhrs is $dhrs.");
             if ( $dhrs > $$timeStep_ref ) {
-                ASGSUtil::stderrMessage("WARNING", $this,
-                   "The time difference between the files " .
-                   "is greater than $timeStep hours. " .
-                   "The intervening data will be linearly interpolated.");
+                ASGSUtil::stderrMessage(
+                          "WARNING",
+                          "The time difference between the files " .
+                          "is greater than $timeStep hours. " .
+                          "The intervening data will be linearly interpolated.");
                 $numInterp = $dhrs / $$timeStep_ref;
-                ASGSUtil::appMessage("DEBUG", $this,
-                   "There are $numInterp time increments to interpolate." );
+                ASGSUtil::appMessage(
+                          "DEBUG",
+                          "There are $numInterp time increments to interpolate." );
 
                 # calculate interpolating factors
                 for ( my $i = 1; $i <= $numInterp; $i++ ) {
@@ -622,7 +658,9 @@ sub getGrib2 {
                                                        0, $cycleHour, 0, 0 );
             $$endTime_ref = sprintf( "%4d%02d%02d%02d", $ey, $em, $ed, $eh );
         }
-        ASGSUtil::appMessage("DEBUG", $this, "The end time is '$$endTime_ref'." );
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "The end time is '$$endTime_ref'." );
         push( @OWItime, $$endTime_ref . "00" );    # add the minutes columns
                                               #
                                               # now grab the u,v,p data from the file
@@ -709,10 +747,11 @@ sub getGrib2 {
 
                 my $interpolatedTime = sprintf( "%4d%02d%02d%02d", $iy, $im, $iday, $ih );
 
-                ASGSUtil::stderrMessage("WARNING", $this,
-                   "Interpolating data at time $interpolatedTime " .
-                   "in the date range ($oldEndTime, $endTime) " .
-                   "with the interpolating factor $factors[$i-1].");
+                ASGSUtil::stderrMessage(
+                          "WARNING",
+                          "Interpolating data at time $interpolatedTime " .
+                          "in the date range ($oldEndTime, $endTime) " .
+                          "with the interpolating factor $factors[$i-1].");
 
                 # create output data ...
                 # this will be linearly interpolated in
@@ -773,11 +812,14 @@ sub getGrib2 {
     # build the filenames
     $$wndFile_ref  = "$outDir" . "/NAM_$stage" . "_$$startTime_ref" . "_$$endTime_ref" . ".222";
     $$presFile_ref = "$outDir" . "/NAM_$stage" . "_$$startTime_ref" . "_$$endTime_ref" . ".221";
-    ASGSUtil::stderrMessage("INFO", $this,
-                  "Processed $numGrib2Files file(s).");
+    ASGSUtil::stderrMessage(
+              "INFO",
+              "Processed $numGrib2Files file(s).");
     $$nRec_ref{'time'} = $numGrib2Files;
     if ( $numGrib2Files == 0 ) {
-        ASGSUtil::stderrMessage("ERROR", $this, "There were no files to process.");
+        ASGSUtil::stderrMessage(
+                  "ERROR",
+                  "There were no files to process.");
         die;
     }
     if ( $stage eq "FORECAST" ) {

@@ -22,7 +22,7 @@
 use strict;
 use warnings;
 
-use File::Basename;
+use File::Basename qw(basename);
 use Date::Calc;
 use JSON::PP;
 
@@ -37,31 +37,49 @@ sub run {
     print "Running the ASGSUtil perl module as an app is not supported.\n";
     exit EXIT_DIE;
 }
-
+#
+# stringify array - this is needed for numbers with
+# leading zeroes because they are not valid JSON
+sub stringify {
+   my ($array_ref) = @_;
+   foreach my $c (@$array_ref) {
+      $c = "$c";
+   }
+   return;
+}
 #
 # write out the JSON file containing additional parameters
 # as added by this script
 sub writeJSON {
-   my ($jshash_ref, $this) = @_;
    # json passed by reference and modified in this subroutine
+   my ( $jshash_ref ) = @_;
+   my ( $package, $filename, $line ) = caller;
+   my $calling_script = File::Basename::basename($filename);
     # add time stamp
    my $timestamp = _getTimeStamp();
    my $lastupdated_ref = $jshash_ref->{"lastupdated"};
-   my $ts_ref = { $this => $timestamp };
+   my $ts_ref = { $calling_script => $timestamp };
    push(@$lastupdated_ref,$ts_ref);
+   # stringify list of daily forecast cycles
+   # if they are present
+   my $forecastcyclesref = $jshash_ref->{"forcing.nam.config.daily.forecastcycle"};
+   if ( defined $forecastcyclesref ) {
+      stringify($forecastcyclesref);
+   }
    my $json = JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
    # write out
    my $SJ;
-   unless ( open($SJ,">","$this.json") ) {
-      stderrMessage("ERROR","Could not open '$this.json' for writing: $!.");
+   unless ( open($SJ,">","$calling_script.json") ) {
+      stderrMessage("ERROR","Could not open '$calling_script.json' for writing: $!.");
       die;
    }
    print $SJ $json;
    close($SJ);
+   return;
 }
 
 sub setParameter {
-   my ( $this, $jshash_ref, $param_ref, $key, $default ) = @_;
+   my ( $jshash_ref, $param_ref, $key, $default ) = @_;
    if ( $$param_ref eq "null" ) {
       if ( %$jshash_ref && defined $jshash_ref->{$key} ) {
          $$param_ref = $jshash_ref->{$key};
@@ -74,29 +92,39 @@ sub setParameter {
    }
    # bomb out if there is no default value for the parameter
    if ( $$param_ref eq "null" ) {
-      stderrMessage("ERROR",$this,"The parameter '$key' was not specified.");
+      stderrMessage("ERROR","The parameter '$key' was not specified.");
       die;
    }
+   return;
 }
 #
 # write a log message to stderr
 sub stderrMessage {
-   my ( $level, $this, $message ) = @_;
+   my ( $level, $message ) = @_;
    my $theTime = _getTimeStamp();
-   printf STDERR "$theTime $level: $this: $message\n";
+   my ($package, $filename, $line) = caller;
+   my $calling_script = File::Basename::basename($filename);
+   printf STDERR "$theTime $level: $calling_script: $message\n";
+   return;
 }
 #
 # write a log message to a log file dedicated to this script (typically debug messages)
 sub appMessage {
-   my ( $level, $this, $message ) = @_;
+   my ( $level, $message ) = @_;
    my $theTime = _getTimeStamp();
-   #
-   # open an application log file
-   unless ( open(APPLOGFILE,">>$this.log") ) {
-      stderrMessage($this,"ERROR","Could not open $this.log for appending: $!.");
+   my ($package, $filename, $line) = caller;
+   my $calling_script = File::Basename::basename($filename);
+   my $A;
+   unless ( open($A,">>","$calling_script.log") ) {
+      stderrMessage(
+            "ERROR",
+            "Could not open '$calling_script.log' for appending: ".
+            "$!.");
+      die;
    }
-   printf APPLOGFILE "$theTime $level: $this: $message\n";
-   close(APPLOGFILE);
+   printf $A "$theTime $level: $calling_script: $message\n";
+   close($A);
+   return;
 }
 
 sub _getTimeStamp {
@@ -107,7 +135,5 @@ sub _getTimeStamp {
    my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms";
    return $theTime;
 }
-
 1;
-
 __END__

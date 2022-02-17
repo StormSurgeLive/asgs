@@ -2,6 +2,7 @@
    "path.scriptdir" : "%NULLSCRIPTDIR%",
    "forcing.nam.path.data" : "%NULLNAMDATAPATH%",
    "forcing.nam.ncep.file.json.template" : "%NULLGETNAMTEMPLATEFILE%",
+   "forcing.nam.ncep.file.json.template.filled" : "%NULLGETNAMTEMPLATEFILLEDFILE%",
    "forcing.nam.ncep.file.json.status" : "%NULLNAMSTATUSFILE%",
    "forcing.nam.ncep.file.json.select" : "%NULLNAMSELECTFILE%",
    "forcing.nam.ncep.file.json.get" : "%NULLGETNAMFILE%",
@@ -11,28 +12,28 @@
       "%NULLFORECASTCYCLE%"
    ],
    "forcing.nam.stage" : "%NULLSTAGE%",
-   "forcing.nam.ncep.cyclelist" : [ 
-      %NULLCYCLE% 
+   "forcing.nam.ncep.cyclelist" : [
+      %NULLCYCLE%
    ],
    "forcing.nam.path.data.owi" : "%NULLNAMOWIDATAPATH%",
    "forcing.nam.file.data.owi.grid" : "%NULLNAMOWIGRID%",
    "forcing.nam.file.data.raw.format" : "%NULLNAMRAWFORMAT%",
-   "forcing.nam.awip.grid" : %NULLNAMAWIPGRID%,
-   "forcing.nam.data.owi.velocitymultiplier" : %NULLVELMULT%,
-   "forcing.nam.data.owi.pressuremultiplier" : %NULLPRESSMULT%,
-   "forcing.nam.data.owi.applyramp" : %NULLAPPLYRAMP%,
-   "forcing.nam.data.owi.rampdistance" : %NULLRAMPDIST%,   
+   "forcing.nam.awip.grid" : "%NULLNAMAWIPGRID%",
+   "forcing.nam.data.owi.velocitymultiplier" : "%NULLVELMULT%",
+   "forcing.nam.data.owi.pressuremultiplier" : "%NULLPRESSMULT%",
+   "forcing.nam.data.owi.applyramp" : "%NULLAPPLYRAMP%",
+   "forcing.nam.data.owi.rampdistance" : "%NULLRAMPDIST%",
    "forcing.nam.ncep.nowcast.filelist.downloaded" : [
-      %NULLNAMNOWCASTDOWNLOADED%
+      "%NULLNAMNOWCASTDOWNLOADED%"
    ],
    "forcing.nam.ncep.nowcast.filelist.found" : [
-      %NULLNAMNOWCASTFOUND%
+      "%NULLNAMNOWCASTFOUND%"
    ],
    "forcing.nam.ncep.forecast.filelist.downloaded" : [
-      %NULLNAMFORECASTDOWNLOADED%
+      "%NULLNAMFORECASTDOWNLOADED%"
    ],
    "forcing.nam.ncep.forecast.filelist.found" : [
-      %NULLNAMFORECASTFOUND%
+      "%NULLNAMFORECASTFOUND%"
    ],
    "lastupdated" : [
       { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }

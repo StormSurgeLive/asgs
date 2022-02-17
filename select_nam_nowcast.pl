@@ -32,7 +32,6 @@ use ASGSUtil;
 my $forecastcycle = "null";   # nam cycles to run a forecast, e.g., "06,18"
 my @forecastcycles; # as a list instead of comma separated string
 #
-my $this = "select_nam_nowcast.pl";
 my $ncepcycles = "forcing.nam.ncep.cyclelist";
 my $cyclelistfile = "get_nam_status.pl.json";  # input to this script
 my $selectedlistfile = "select_nam_nowcast.pl.json"; # output from this script
@@ -53,13 +52,15 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab the list of cycles out of the hash
 my $cyclelistref = $jshash_ref->{"forcing.nam.ncep.cyclelist"};
 my @cyclelist = @$cyclelistref;
-unless ( defined $cyclelist[0] ) {
-   ASGSUtil::stderrMessage("ERROR", $this, "The file '$cyclelistfile' property 'forcing.nam.ncep.cyclelist' did not contain any cycles.");
+if ( ! defined $cyclelist[0] ) {
+   ASGSUtil::stderrMessage(
+             "ERROR",
+             "The file '$cyclelistfile' property 'forcing.nam.ncep.cyclelist' did not contain any cycles.");
    die;
 }
 # grab the forecast cycles if it was not provided
 # on the command line
-unless ( defined $forecastcycles[0] ) {
+if ( ! defined $forecastcycles[0] ) {
    if ( $jshash_ref && defined $jshash_ref->{"forcing.nam.config.daily.forecastcycle"} ) {
       my $forecastcyclesref = $jshash_ref->{"forcing.nam.config.daily.forecastcycle"};
       @forecastcycles = @$forecastcyclesref;
@@ -98,9 +99,12 @@ if ( $foundit == 1 ) {
 }
 # now encode the list of cycles as json and write out
 $jshash_ref->{$ncepcycles} = \@cyclelist;
-$jshash_ref->{"forcing.nam.config.daily.forecastcycle"} = $forecastcycle;
-$jshash_ref->{"forcing.nam.ncep.file.json.select"} = "$this.json";
-ASGSUtil::writeJSON($jshash_ref, $this);
-printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
+$jshash_ref->{"forcing.nam.config.daily.forecastcycle"} = \@forecastcycles;
+$jshash_ref->{"forcing.nam.ncep.file.json.select"} = basename($0);
+ASGSUtil::writeJSON($jshash_ref);
+# leading zeroes are not valid JSON, so store
+# cycle hours (e.g., 00,06,12 etc) as strings
+ASGSUtil::stringify(\@forecastcycles);
+print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 1;
 #
