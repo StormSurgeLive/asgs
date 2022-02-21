@@ -42,6 +42,7 @@ use ASGSUtil;
 #
 my @keys;                   # array for keys to values to read
 my $keys_ref = \@keys;
+my $key;                    # single key for which value should be returned
 my $mapscalar = "null";     # key/value pairs to write
 my $metadatafile = "null";  # file that holds the json or yaml data
 my $file_content;           # entire file as slurped
@@ -110,6 +111,7 @@ my $jshash_ref;
 GetOptions(
            "metadatafile=s" => \$metadatafile,
            "keys=s{1,}" => \$keys_ref,
+           "key=s" => \$key,
            "mapscalar=s" => \$mapscalar,
            "converted-file-name=s" => \$convertedFileName,
            "jsonify" => \$jsonify,
@@ -124,7 +126,7 @@ if ($metadatafile eq "null") {
     ASGSUtil::stderrMessage("INFO","A metadata file name was not provided; reading JSON from STDIN.");
     # slurp the file contents into a scalar variable
     $file_content = do { local $/; <> };
-    my $jshash_ref = JSON::PP->new->decode($file_content);
+    $jshash_ref = JSON::PP->new->decode($file_content);
     $suffix = ".json";
 } else {
     ($filename, $dirs, $suffix) = fileparse($metadatafile);
@@ -141,7 +143,7 @@ if ($metadatafile eq "null") {
         # slurp the file contents into a scalar variable
         $file_content = do { local $/; <$F> };
         close($F);
-        my $jshash_ref = JSON::PP->new->decode($file_content);
+        $jshash_ref = JSON::PP->new->decode($file_content);
     #
     #  Y A M L
     } elsif ( $suffix eq ".yaml" ) {
@@ -178,7 +180,8 @@ if ($metadatafile eq "null") {
 #   n o w   w r i t e   t h e   d a t a
 #
 if ( $suffix eq ".json" ) {
-    if ( $keys_ref ) {
+
+    if ( @keys ) {
         foreach my $k (@$keys_ref) {
             if ( exists($jshash_ref->{$k}) ) {
                 push(@values,$jshash_ref->{$k});
@@ -187,6 +190,14 @@ if ( $suffix eq ".json" ) {
             }
         }
         print join(" ",@values);
+        exit;
+    }
+    if ( defined $key ) {
+        if ( exists($jshash_ref->{$key}) ) {
+            print $jshash_ref->{$key};
+        } else {
+            print "null";
+        }
         exit;
     }
 } elsif ( $suffix eq ".yaml" ) {

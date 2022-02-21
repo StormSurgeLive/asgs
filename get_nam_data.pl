@@ -57,7 +57,6 @@ GetOptions(
            "stage=s" => \$stage,
            "startcycle=s" => \$startcycle,
            "finishcycle=s" => \$finishcycle,
-
            "selectfile=s" => \$selectfile,
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir
@@ -68,22 +67,22 @@ my $file_content = do { local $/; <> };
 # deserialize JSON
 my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab the list of cycles out of the hash
-my $cyclelistref = $jshash_ref->{"forcing.nam.ncep.cyclelist"};
+my $cyclelistref = $jshash_ref->{"cyclelist"};
 my @json_cyclelist = @$cyclelistref;
 
 # grab config info and use it if it was not
 # already provided on the command line
 # also set reasonable defaults
 ASGSUtil::setParameter( $jshash_ref, \$backsite,
-                        "forcing.nam.backsite", "ftp.ncep.noaa.gov");
+                        "siteHost", "ftp.ncep.noaa.gov");
 ASGSUtil::setParameter( $jshash_ref, \$backdir,
-                        "forcing.nam.backdir", "/pub/data/nccf/com/nam/prod");
+                        "siteDir", "/pub/data/nccf/com/nam/prod");
 ASGSUtil::setParameter( $jshash_ref, \$stage,
-                        "forcing.nam.stage", "null");
+                        "stage", "null");
 ASGSUtil::setParameter( $jshash_ref, \$namdatadir,
-                        "forcing.nam.path.data", cwd() );
+                        "localDataDir", cwd() );
 ASGSUtil::setParameter( $jshash_ref, \$scriptdir,
-                        "path.scriptdir", dirname(__FILE__) );
+                        "scriptDir", dirname(__FILE__) );
 ASGSUtil::writeJSON($jshash_ref);
 
 # the startcycle is a required parameter; if
@@ -268,9 +267,9 @@ if ( $stage eq "NOWCAST" ) {
    }
    # if we found at least two files, we assume have enough for the next advisory
    if ( $dl >= 2 ) {
-      $jshash_ref->{"forcing.nam.ncep.file.json.get"} = basename($0);
-      $jshash_ref->{"forcing.nam.ncep.nowcast.filelist.downloaded"} = \@files_downloaded;
-      $jshash_ref->{"forcing.nam.ncep.nowcast.filelist.found"} = \@files_found;
+      $jshash_ref->{"get"} = basename($0).".json";
+      $jshash_ref->{"filesDownloaded"} = \@files_downloaded;
+      $jshash_ref->{"filesFromCache"} = \@files_found;
       # write json response to file
       ASGSUtil::writeJSON($jshash_ref);
       # write json response to STDOUT
@@ -409,12 +408,12 @@ if ( $stage eq "FORECAST" ) {
    # if we found at least two files, we assume have enough for
    # the next advisory
    if ( $dl >= 2 ) {
-      $jshash_ref->{"forcing.nam.ncep.file.json.get"} = basename($0);
-      $jshash_ref->{"forcing.nam.ncep.forecast.filelist.downloaded"} = \@files_downloaded;
-      $jshash_ref->{"forcing.nam.ncep.forecast.filelist.found"} = \@files_found;
+      $jshash_ref->{"get"} = basename($0);
+      $jshash_ref->{"filesDownloaded"} = \@files_downloaded;
+      $jshash_ref->{"filesFromCache"} = \@files_found;
       ASGSUtil::writeJSON($jshash_ref);
       # write json response to STDOUT
-      printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
+      print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
       exit;
    } else {
       die;

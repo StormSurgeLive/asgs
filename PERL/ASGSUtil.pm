@@ -62,10 +62,13 @@ sub writeJSON {
    push(@$lastupdated_ref,$ts_ref);
    # stringify list of daily forecast cycles
    # if they are present
-   my $forecastcyclesref = $jshash_ref->{"forcing.nam.config.daily.forecastcycle"};
+   my $forecastcyclesref = $jshash_ref->{"configDailyForecastcycles"};
    if ( defined $forecastcyclesref ) {
       stringify($forecastcyclesref);
    }
+   # add the name of this script
+   $jshash_ref->{"self"} = $calling_script;
+   # serialize
    my $json = JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
    # write out
    my $SJ;
@@ -129,11 +132,18 @@ sub appMessage {
 
 sub _getTimeStamp {
    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+   (my $second, my $minute, my $hour,
+    my $dayOfMonth, my $month, my $yearOffset,
+    my $dayOfWeek, my $dayOfYear, my $daylightSavings)
+    = localtime();
    my $year = 1900 + $yearOffset;
    my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms";
+   my ($D_y,$D_m,$D_d, $Dh,$Dm,$Ds, $dst) = Date::Calc::Timezone;
+   my $tzs = sprintf "%+03d00", $Dh;
+   my $theTime = "$year-$months[$month]-$dayOfMonth-T$hms$tzs";
    return $theTime;
 }
+
 1;
+
 __END__

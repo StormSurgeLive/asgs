@@ -34,7 +34,7 @@ my $backsite = "null";          # ncep ftp site for nam data
 my $backdir = "null"; # dir on ncep ftp site
 my @cyclerange; # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest
 #
-my $ncepcycles = "forcing.nam.ncep.cyclelist";
+my $ncepcycles = "cyclelist";
 #
 our @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 #
@@ -52,16 +52,16 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab config info and use it if it was not
 # already provided on the command line
 # also set reasonable defaults
-ASGSUtil::setParameter( $jshash_ref, \$backsite,  "forcing.nam.backsite", "ftp.ncep.noaa.gov");
-ASGSUtil::setParameter( $jshash_ref, \$backdir,   "forcing.nam.backdir",  "/pub/data/nccf/com/nam/prod");
-$jshash_ref->{"forcing.nam.backsite"} = $backsite;
-$jshash_ref->{"forcing.nam.backdir"} = $backdir;
+ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "ftp.ncep.noaa.gov");
+ASGSUtil::setParameter( $jshash_ref, \$backdir,   "siteDir",  "/pub/data/nccf/com/nam/prod");
+$jshash_ref->{"siteHost"} = $backsite;
+$jshash_ref->{"siteDir"} = $backdir;
 #
 # if the startcycle was not provided, the script
 # will return a list of all the cycles available
 # from ncep
 if ( $startcycle eq "null" && $jshash_ref ) {
-   my $cyclelistref = $jshash_ref->{"forcing.nam.ncep.cyclelist"};
+   my $cyclelistref = $jshash_ref->{"cyclelist"};
    my @cyclelist = @$cyclelistref;
    if ( defined $cyclelist[0] ) {
       $startcycle = $cyclelist[0];
@@ -256,8 +256,8 @@ DIRECTORIES : foreach my $dir (@sortedNamDirs) {
    }
 }
 # add the parameters and the cycle list to the hash
-$jshash_ref->{"forcing.nam.ncep.file.json.status"} = basename($0);
-$jshash_ref->{$ncepcycles} = \@cyclesInRange;
+$jshash_ref->{"status"} = basename($0).".json";
+$jshash_ref->{"cyclelist"} = \@cyclesInRange;
 ASGSUtil::writeJSON($jshash_ref);
 print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 # exit successfully

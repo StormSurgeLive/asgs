@@ -84,34 +84,34 @@ my $file_content = do { local $/; <> };
 
 # deserialize JSON
 my $jshash_ref = JSON::PP->new->decode($file_content);
-$jshash_ref->{"forcing.nam.ncep.file.json.reproject"} = basename($0);
+$jshash_ref->{"reproject"} = basename($0).".json";
 #
 # FIXME: Use complex data structures to simplify this
 ASGSUtil::setParameter( $jshash_ref, \$dataDir,
-              "forcing.nam.path.data", cwd() );
+              "localDataDir", cwd() );
 ASGSUtil::setParameter( $jshash_ref, \$outDir,
-              "forcing.nam.path.data.owi", cwd() );
+              "winPreDataDir", cwd() );
 ASGSUtil::setParameter( $jshash_ref, \$namFormat,
-              "forcing.nam.file.data.raw.format", "grib2" );
+              "namDataFormat", "grib2" );
 ASGSUtil::setParameter( $jshash_ref, \$stage,
-              "forcing.nam.stage", "null" );
+              "stage", "null" );
 ASGSUtil::setParameter( $jshash_ref, \$awipGridNumber,
-              "forcing.nam.awip.grid", 218 );
+              "awipGrid", 218 );
 ASGSUtil::setParameter( $jshash_ref, \$velocityMultiplier,
-              "forcing.nam.data.owi.velocitymultiplier", 1.0 );
+              "winPreConversionVelocityMultiplier", 1.0 );
 ASGSUtil::setParameter( $jshash_ref, \$pressureMultiplier,
-              "forcing.nam.data.owi.pressuremultiplier", 0.01 );
+              "winPreConversionPressureMultiplier", 0.01 );
 ASGSUtil::setParameter( $jshash_ref, \$applyRamp,
-              "forcing.nam.data.owi.applyramp", \0 ); # \0 creates JSON::false
+              "namBoundaryApplyRamp", \0 ); # \0 creates JSON::false
 ASGSUtil::setParameter( $jshash_ref, \$rampDistance,
-              "forcing.nam.data.owi.rampdistance", 1.0 );
+              "namBoundaryRampDistance", 1.0 );
 ASGSUtil::setParameter( $jshash_ref, \$scriptDir,
-              "path.scriptdir", dirname(__FILE__) );
+              "scriptDir", dirname(__FILE__) );
 #
 # the default ptFile uses scriptdir so it has to be set
 # after scriptdir has been set
 ASGSUtil::setParameter( $jshash_ref, \$ptFile,
-              "forcing.nam.data.owi.grid",
+              "winPreGridFile",
               $scriptDir."/input/ptFile_oneEighth.txt" );
 #
 # write out the initial JSON response file now for use in
@@ -123,7 +123,7 @@ ASGSUtil::stderrMessage(
           "Started processing point file '$ptFile'." );
 my $geoHeader = processPtFile($ptFile, $jshash_ref);
 my $stagelc = lc $stage;
-$jshash_ref->{"forcing.nam.$stagelc.data.owi.header"} = $geoHeader;
+$jshash_ref->{"winPreHeader"} = $geoHeader;
 #
 # load NAM data
 ASGSUtil::stderrMessage(
@@ -140,19 +140,19 @@ getGrib2(
          \%nRec, \$recordLength,
          \$wndFile, \$presFile, $jshash_ref
         );
-$jshash_ref->{"forcing.nam.$stagelc.file.owi.velocity"} = $wndFile;
-$jshash_ref->{"forcing.nam.$stagelc.file.owi.pressure"} = $presFile;
+$jshash_ref->{"winPreVelocityFile"} = $wndFile;
+$jshash_ref->{"winPrePressureFile"} = $presFile;
 my $wtiminc = $timeStep * 3600;    # ts in seconds
-$jshash_ref->{"forcing.nam.$stagelc.data.owi.wtiminc.seconds"} = ($wtiminc * 1.0);
+$jshash_ref->{"winPreWtimincSeconds"} = ($wtiminc * 1.0);
 ASGSUtil::writeJSON($jshash_ref,);
 # have to add the meteorology time increment to fort.22
 ASGSUtil::stderrMessage("INFO",
-              "Adding WTIMINC value to fort.22 comment line." );
+              "Adding WTIMINC value to fort.22 as a comment line." );
 my $F22;
 unless ( open( $F22, ">>", "fort.22" ) ) {
    ASGSUtil::stderrMessage(
              "ERROR",
-             "Failed to open OWI (NWS12) fort.22 file " .
+             "Failed to open WIN/PRE (a.k.a. OWI or NWS=12) fort.22 file " .
              "to append a comment line with the " .
              "meteorological time increment.");
    die;
@@ -175,9 +175,9 @@ rotateAndFormat(
                 \@OWItime, \@OWI_wnd, \@OWI_pres,
                 \%nRec, $recordLength, $jshash_ref
                );
-$jshash_ref->{"forcing.nam.$stagelc.owi.pressure.nrec"} = $nRec{"time"};
-$jshash_ref->{"forcing.nam.$stagelc.owi.pressure.recordlength"} = $recordLength;
-$jshash_ref->{"forcing.nam.$stagelc.owi.times"} = \@OWItime;
+$jshash_ref->{"winPreNumRecords"} = $nRec{"time"};
+$jshash_ref->{"winPreRecordLength"} = $recordLength;
+$jshash_ref->{"winPreDataTimes"} = \@OWItime;
 #
 # write out OWI files
 ASGSUtil::stderrMessage(
@@ -241,7 +241,7 @@ sub processPtFile {
     unless ( -e $ptFile ) {
         ASGSUtil::stderrMessage(
                   "ERROR",
-                  "Grid specification file '$ptFile' does not exist." );
+                  "WIN/PRE grid specification file '$ptFile' does not exist." );
         die;
     }
     open my $PT, '<', $ptFile || die $!;
@@ -406,7 +406,7 @@ sub rotateAndFormat {
         # run awip_interp
         my $rampDistance = -99999.0;
         if ( $applyRamp ) {
-           $rampDistance = $jshash_ref->{"forcing.nam.data.owi.rampdistance"};
+           $rampDistance = $jshash_ref->{"namBoundaryRampDistance"};
         }
         # NAM pressure data are in Pa
         if ( -f "rotataedNAM.txt" ) {
@@ -431,7 +431,7 @@ sub rotateAndFormat {
                    "DEBUG",
                    "1: Reprojecting Lambert Conformal NAM data ".
                    "with the following command: $cmd" );
-        $jshash_ref->{"forcing.nam.data.owi.reprojection.cmd"} = "$cmd";
+        $jshash_ref->{"reprojectionCmd"} = "$cmd";
         my $res = `$cmd`;
 
         if ( !-f "rotatedNAM.txt" ) {
@@ -461,7 +461,7 @@ sub getGrib2 {
         )
         = @_;
     # grab the list of cycles out of the hash
-    my $cyclelist_ref = $jshash_ref->{"forcing.nam.ncep.cyclelist"};
+    my $cyclelist_ref = $jshash_ref->{"cyclelist"};
     #
     my $fort22 = $outDir . '/fort.22';
     my @grib2Files;
@@ -517,7 +517,7 @@ sub getGrib2 {
     } else {
         #  F O R E C A S T
         $$startTime_ref = $cyclelist_ref->[-1];
-        $jshash_ref->{"forcing.nam.time.forecast.valid.start"} = "$$startTime_ref" . "0000";
+        $jshash_ref->{"namForecastValidStart"} = "$$startTime_ref" . "0000";
         # if these are forecast files, we'll assume that the data are
         # three hours apart, and that they are all located in the same
         # subdirectory
@@ -823,6 +823,6 @@ sub getGrib2 {
         die;
     }
     if ( $stage eq "FORECAST" ) {
-        $jshash_ref->{"forcing.nam.time.forecast.valid.end"} = "$$endTime_ref" . "0000";
+        $jshash_ref->{"namForecastValidEnd"} = "$$endTime_ref" . "0000";
     }
 }

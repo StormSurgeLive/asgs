@@ -23,16 +23,17 @@
 use strict;
 use warnings;
 use JSON::PP;
+use ASGSUtil;
 #
 # slurp the JSON response contents into a scalar variable
 my $file_content = do { local $/; <> };
 my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab the list of cycles out of the hash
-my $cyclelistref = $jshash_ref->{"forcing.nam.ncep.cyclelist"};
+my $cyclelistref = $jshash_ref->{"cyclelist"};
 if ( ! defined $cyclelistref->[0] ) {
    ASGSUtil::stderrMessage(
              "ERROR",
-             "The property 'forcing.nam.ncep.cyclelist' ".
+             "The property 'cyclelist' ".
              "did not contain any cycles.");
    die;
 }

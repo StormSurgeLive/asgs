@@ -951,9 +951,12 @@ downloadBackgroundMet()
       csEpochSeconds=$(date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
       hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
       lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
-      # create the json file to act as input to the status checker and nam downloader
-      escRUNDIR=${RUNDIR////'\/'}
+      # create the json file to act as input to the
+      # status checker and nam downloader
+      namTemplateName="get_nam_template.json"
+      # escape forward slashes to prevent sed from getting confused
       escBACKDIR=${BACKDIR////'\/'}
+      escRUNDIR=${RUNDIR////'\/'}
       escSCRIPTDIR=${SCRIPTDIR////'\/'}
       escInstanceNamDir=${instanceNamDir////'\/'}
       # JSON can't store numbers with leading zeroes, so we use
@@ -966,35 +969,25 @@ downloadBackgroundMet()
       ptFilePath=${SCRIPTDIR}/input/$PTFILE
       escPtFilePath=${ptFilePath////'\/'}
       DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
-      filledTemplateName="asgs_main.sh_get_nam_status.json"
-      cat $SCRIPTDIR/get_nam.json.template         | \
-      sed -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/" \
-          -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
-          -e "s/%NULLGETNAMTEMPLATEFILE%/get_nam.json.template/" \
-          -e "s/%NULLGETNAMTEMPLATEFILLEDFILE%/$filledTemplateName/" \
-          -e "s/%NULLNAMSTATUSFILE%/get_nam_status.pl.json/" \
-          -e "s/%NULLNAMSELECTFILE%/null/" \
-          -e "s/%NULLGETNAMFILE%/null/" \
-          -e "s/%NULLBACKSITE%/$BACKSITE/" \
-          -e "s/%NULLBACKDIR%/$escBACKDIR/" \
-          -e "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/" \
-          -e "s/%NULLSTAGE%/$stage/" \
-          -e "s/%NULLCYCLE%/$lastCycle/" \
-          -e "s/%NULLNAMOWIDATAPATH%/$escRUNDIR/" \
-          -e "s/%NULLNAMOWIGRID%/$escPtFilePath/" \
-          -e "s/%NULLNAMAWIPGRID%/218/" \
-          -e "s/%NULLNAMRAWFORMAT%/grib2/" \
-          -e "s/%NULLVELMULT%/$VELOCITYMULTIPLIER/" \
-          -e "s/%NULLPRESSMULT%/0.01/" \
-          -e "s/%NULLAPPLYRAMP%/$boolApplyRamp/" \
-          -e "s/%NULLRAMPDIST%/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
-          -e "s/%NULLNAMNOWCASTDOWNLOADED%/null/" \
-          -e "s/%NULLNAMNOWCASTFOUND%/null/" \
-          -e "s/%NULLNAMFORECASTDOWNLOADED%/null/" \
-          -e "s/%NULLNAMFORECASTFOUND%/null/" \
-          -e "s/%NULLLASTUPDATER%/$THIS/" \
-          -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
-          > $filledTemplateName 2>> $SYSLOG
+      filledNamTemplateName="asgs_main.sh_get_nam_status.json"
+      sed \
+         -e "s/%NULLGETNAMTEMPLATEFILE%/$namTemplateName/" \
+         -e "s/%NULLGETNAMTEMPLATEFILLEDFILE%/$filledNamTemplateName/" \
+         -e "s/%NULLBACKSITE%/$BACKSITE/" \
+         -e "s/%NULLBACKDIR%/$escBACKDIR/" \
+         -e "s/%NULLCYCLE%/$lastCycle/" \
+         -e "s/\"%NULLNAMNOWCASTDOWNLOADED%\"/null/" \
+         -e "s/\"%NULLNAMNOWCASTFOUND%\"/null/" \
+         -e "s/\"%NULLNAMFORECASTDOWNLOADED%\"/null/" \
+         -e "s/\"%NULLNAMFORECASTFOUND%\"/null/" \
+         -e "s/\"%NULLNAMSTATUSFILE%\"/null/" \
+         -e "s/\"%NULLNAMSELECTFILE%\"/null/" \
+         -e "s/\"%NULLGETNAMFILE%\"/null/" \
+         -e "s/%NULLLASTUPDATER%/$THIS/" \
+         -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
+          < $SCRIPTDIR/$namTemplateName \
+          > $filledNamTemplateName
+        2>> $SYSLOG
       # determine the status of the latest NAM cycle posted by NCEP,
       # along with the range of cycles posted since the adcirc hotstart time
       getNamStatusSuccess=1
@@ -1003,7 +996,10 @@ downloadBackgroundMet()
       while [[ $getNamStatusSuccess -ne 0 && $latestCycle -le $lastCycle ]]; do
          ((TRIES++))
          debugMessage "According to the statefile ${STATEFILE}, the most recently detected nowcast cycle is $lastCycle." $APPLOGFILE
-         latestCycle=$(${SCRIPTDIR}/get_nam_status.pl < $filledTemplateName | ${SCRIPTDIR}/latest.pl 2>> $SYSLOG)
+         latestCycle=$($SCRIPTDIR/get_nam_status.pl   \
+                       < $filledNamTemplateName       \
+                       | $SCRIPTDIR/latest.pl         \
+                     2>> $SYSLOG)
          if [[ $latestCycle -le $lastCycle ]]; then
              RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
              sleep 60
@@ -1011,7 +1007,20 @@ downloadBackgroundMet()
       done
       # refine the list of NAM cycles to end the nowcast on the correct cycle
       # then download the actual nowcast data for the time range of interest
-      $thisCycle=($SCRIPTDIR/select_nam_nowcast.pl < get_nam_status.pl.json | $SCRIPTDIR/get_nam_data.pl | $SCRIPTDIR/latest.pl 2>>$SYSLOG)
+      thisCycle=$(sed \
+                    "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/"   \
+                  < get_nam_status.pl.json                       \
+                  | $SCRIPTDIR/select_nam_nowcast.pl             \
+                  | $SCRIPTDIR/latest.pl                         \
+                2>> $SYSLOG)
+      sed \
+         -e "s/%NULLSTAGE%/$stage/"                   \
+         -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
+         -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
+          < select_nam_nowcast.pl.json \
+          | $SCRIPTDIR/get_nam_data.pl \
+          > /dev/null
+        2>> $SYSLOG
       # record the new advisory number to the statefile
       debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
       cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
@@ -1021,7 +1030,14 @@ downloadBackgroundMet()
    else
       # F O R E C A S T
       # download forecast data
-      sed "s/NOWCAST/FORECAST/" < select_nam_nowcast.pl.json | $SCRIPTDIR/get_nam_data.pl 2>>$SYSLOG > /dev/null
+      sed \
+         -e "s/%NULLSTAGE%/$stage/"                   \
+         -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
+         -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
+          < select_nam_nowcast.pl.json                \
+          | $SCRIPTDIR/get_nam_data.pl                \
+          > /dev/null
+        2>> $SYSLOG
       # write the start and end dates of the forecast to the run.properties file
       # this is deprecated with the intent to get this info
       # from get_nam_data.pl.json instead
@@ -2324,6 +2340,8 @@ while [ true ]; do
          hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
          lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
          scenarioMessage "Getting NAM data."
+         # are we sure that the current nam nowcast endtime is the
+         # same as the BEST track file end time??
          erroValue=1
          while [[ $erroValue -ne 0 ]]; do
             namEnd=$(perl $SCRIPTDIR/get_nam_data.pl --stage NOWCAST --selectfile get_nam_status.pl.json 2>> $SYSLOG 2>&1)
@@ -2386,8 +2404,28 @@ while [ true ]; do
          #
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM"  "$CURRENT_STATE" "Converting NAM data to OWI format."
          logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format."
-         ${SCRIPTDIR}/NAMtoOWIRamp.pl < get_nam_data.pl.json 2>> $SYSLOG > /dev/null
-         mv get_nam_status.pl.* select_nam_nowcast.pl.* $RUNDIR/$newCycle 2>> $SYSLOG
+         boolApplyRamp=false
+         if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
+            boolApplyRamp=true
+         fi
+         ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
+         escPtFilePath=${ptFilePath////'\/'}
+         sed \
+            -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
+            -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
+            -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
+            -e "s/%NULLNAMRAWFORMAT%/grib2/" \
+            -e "s/\"%NULLVELMULT%\"/$VELOCITYMULTIPLIER/" \
+            -e "s/\"%NULLPRESSMULT%\"/0.01/" \
+            -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
+            -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
+             < get_nam_data.pl.json \
+             | $SCRIPTDIR/NAMtoOWIRamp.pl \
+             > /dev/null
+           2>> $SYSLOG
+         preFile=$($SCRIPTDIR/metadata.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
+         winFile=$($SCRIPTDIR/metadata.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
             if [[ -e $ADVISDIR/$file ]]; then
@@ -2396,10 +2434,8 @@ while [ true ]; do
             fi
          done
          # create links to the OWI files
-         NAM221=$(ls NAM_${timeRange}.221 2>> $SYSLOG)
-         NAM222=$(ls NAM_${timeRange}.222 2>> $SYSLOG)
-         ln -s $NAM221 fort.221 2>> ${SYSLOG}
-         ln -s $NAM222 fort.222 2>> ${SYSLOG}
+         ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
+         ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
@@ -2928,18 +2964,38 @@ while [ true ]; do
          THIS="asgs_main.sh"
          cd $SCENARIODIR 2>> ${SYSLOG}
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Converting NAM data to OWI format."
-         NAMOPTIONS=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --stage stage \
-            --applyRamp $SPATIALEXTRAPOLATIONRAMP \
-            --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE \
-            --selectfile select_nam_nowcast.pl.json --outDir ${STORMDIR}/ \
-            --velocityMultiplier $VELOCITYMULTIPLIER --scriptDir ${SCRIPTDIR}"
-         logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format with the following options : $NAMOPTIONS"
-         timeRange=$(perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $NAMOPTIONS >> ${SYSLOG} 2>&1)
+         boolApplyRamp=false
+         if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
+            boolApplyRamp=true
+         fi
+         ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
+         escPtFilePath=${ptFilePath////'\/'}
+         sed \
+            -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
+            -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
+            -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
+            -e "s/%NULLNAMRAWFORMAT%/grib2/" \
+            -e "s/\"%NULLVELMULT%\"/$VELOCITYMULTIPLIER/" \
+            -e "s/\"%NULLPRESSMULT%\"/0.01/" \
+            -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
+            -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
+             < get_nam_data.pl.json \
+             | $SCRIPTDIR/NAMtoOWIRamp.pl \
+             > /dev/null
+           2>> $SYSLOG
+         preFile=$($SCRIPTDIR/metadata.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
+         winFile=$($SCRIPTDIR/metadata.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+         # copy log data to scenario.log
+         for file in lambert_diag.out reproject.log ; do
+            if [[ -e $ADVISDIR/$file ]]; then
+               scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
+               cat $ADVISDIR/$file >> $SCENARIOLOG
+            fi
+         done
          # create links to the OWI files
-         NAM221=$(ls NAM_${timeRange}.221 2>> $SYSLOG);
-         NAM222=$(ls NAM_${timeRange}.222 2>> $SYSLOG);
-         ln -s $NAM221 fort.221 2>> ${SYSLOG}
-         ln -s $NAM222 fort.222 2>> ${SYSLOG}
+         ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
+         ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
          CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       # if there is no forcing from an external data source, set control options

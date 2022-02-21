@@ -1,6 +1,8 @@
 {
-   "dataType" : "forcing",
-   "source" : "nam",
+   "version" : "0.1",
+   "category" : "forcing",
+   "forcing" : "meteorology",
+   "meteorology" : "nam",
    "scriptDir" : "%NULLSCRIPTDIR%",
    "localDataDir" : "%NULLNAMDATAPATH%",
    "template" : "%NULLGETNAMTEMPLATEFILE%",
