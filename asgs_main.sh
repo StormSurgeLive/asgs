@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+
 #trap read debug
 #----------------------------------------------------------------
 # asgs_main.sh: This is the main driver script for the ADCIRC Surge Guidance
@@ -209,7 +209,7 @@ checkHotstart()
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
          fi
          failureOccurred=$?
-         errorOccurred=`expr index "$HSTIME" ERROR`
+         errorOccurred=$(expr index "$HSTIME" ERROR)
          if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
             RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS>$ENSTORM" "FAIL "Hstime failed: $HSTIME""
             fatal "$THIS: The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
@@ -486,9 +486,9 @@ prep()
              PE=0
              format="%04d"
              while [[ $PE -lt $NCPU ]]; do
-                PESTRING=`printf "$format" $PE`
+                PESTRING=$(printf "$format" $PE)
                 ln -s $ADVISDIR/$ENSTORM/fort.26 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.26 2>> ${SYSLOG}
-                PE=`expr $PE + 1`
+                PE=$(($PE + 1))
              done
           fi
        fi
@@ -513,7 +513,7 @@ prep()
              if [[ $HOTSTARTCOMP = subdomain ]]; then
                 cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
              fi
-             PE=`expr $PE + 1`
+             PE=$(($PE + 1))
           done
           logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
           # add a delay here because on certain platforms, the filesystem
@@ -558,7 +558,7 @@ prep()
                    break
                 else
                    sleep 60
-                   waitMinutes=`expr $waitMinutes + 1`
+                   waitMinutes=$(($waitMinutes + 1))
                 fi
              done
              if [[ $waitMinutes -ge 60 ]]; then
@@ -583,7 +583,7 @@ prep()
                 while [ $PE -lt $NCPU ]; do
                    PESTRING=`printf "$format" $PE`
                    cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
-                   PE=`expr $PE + 1`
+                   PE=$(($PE + 1))
                 done
                 logMessage "$ENSTORM: $THIS: Completed copy of subdomain hotstart files."
                 # add a delay here because on certain platforms, the filesystem
@@ -777,7 +777,7 @@ prepFile()
    *)
       logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
       echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$!\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
@@ -986,7 +986,7 @@ downloadBackgroundMet()
          -e "s/%NULLLASTUPDATER%/$THIS/" \
          -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
           < $SCRIPTDIR/$namTemplateName \
-          > $filledNamTemplateName
+          > $filledNamTemplateName \
         2>> $SYSLOG
       # determine the status of the latest NAM cycle posted by NCEP,
       # along with the range of cycles posted since the adcirc hotstart time
@@ -1019,7 +1019,7 @@ downloadBackgroundMet()
          -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
           < select_nam_nowcast.pl.json \
           | $SCRIPTDIR/get_nam_data.pl \
-          > /dev/null
+          > /dev/null                  \
         2>> $SYSLOG
       # record the new advisory number to the statefile
       debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
@@ -1036,8 +1036,8 @@ downloadBackgroundMet()
          -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
           < select_nam_nowcast.pl.json                \
           | $SCRIPTDIR/get_nam_data.pl                \
-          > /dev/null
-        2>> $SYSLOG
+          > /dev/null                                 \
+        2>> ${SYSLOG}
       # write the start and end dates of the forecast to the run.properties file
       # this is deprecated with the intent to get this info
       # from get_nam_data.pl.json instead
@@ -1065,7 +1065,7 @@ downloadRiverFluxData()
    SCRIPTDIR=${10}
    DEFAULTFILE=${11}
    USERIVERFILEONLY=${12}
-#
+
    THIS="asgs_main.sh>downloadRiverFluxData()"
    OPTIONS="--advisdir $ADVISDIR --meshfile $MESHFILE --riversite $RIVERSITE --riverdir $RIVERDIR --riveruser $RIVERUSER --riverdataprotocol $RIVERDATAPROTOCOL --enstorm $ENSTORM --csdate $CSDATE --hstime $HSTIME --scriptdir $SCRIPTDIR --defaultfile $DEFAULTFILE"
    TRIES=0
@@ -1104,7 +1104,7 @@ checkTimeLimit()
    # bash interprets numbers with leading zeroes as octal ... the 10# prefix
    # tells bash that the numbers are base 10
    limit=$((10#$hours * 3600 + 10#$minutes * 60 + 10#$seconds)) # in seconds
-   endTime=`date +%s`
+   endTime=$(date +%s)
    runTime=$(($endTime - $STARTTIME))
    if [[ $runTime -gt $limit ]]; then
       hoursEnd=$(($limit / 3600))
@@ -1112,7 +1112,7 @@ checkTimeLimit()
       minutesEnd=$(($remainder / 60))
       secondsEnd=$(($remainder % 60))
       format="%02d:%02d:%02d"
-      hms=`printf "$format" $hoursEnd $minutesEnd $secondsEnd`
+      hms=$(printf "$format" $hoursEnd $minutesEnd $secondsEnd)
       warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
       return 1
    else
@@ -1137,14 +1137,16 @@ monitorJobs()
    logMessage "$ENSTORM_TEMP: $THIS: Waiting for $ENSTORM_TEMP job to start."
    until [[ -e ${ENSTORM_TEMP}.run.start ]]; do
       writeScenarioFilesStatus
-      postScenarioStatus
+      if [[ $enablePostStatus == "yes" ]]; then
+         postScenarioStatus
+      fi
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "Still waiting for $ENSTORM_TEMP job to start for Adv=${ADVISORY} ..."
       sleep $jobCheckIntervalSeconds
    done
    CURRENT_STATE="RUNN"
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM_TEMP" "$CURRENT_STATE" "The $ENSTORM_TEMP job has started."
    logMessage "$ENSTORM_TEMP: $THIS: The $ENSTORM_TEMP job has started."
-   startTime=`date +%s`  # epoch seconds
+   startTime=$(date +%s)  # epoch seconds
    retries=0  # count resubmits on hatteras due to io errors
    #
    # Keep checking every $jobCheckIntervalSeconds to see if the job has
@@ -1160,7 +1162,9 @@ monitorJobs()
    #
    while [[ 1 ]]; do
       writeScenarioFilesStatus
-      postScenarioStatus
+      if [[ $enablePostStatus == "yes" ]]; then
+         postScenarioStatus
+      fi
       # execute the FortCheck.py code to get a %complete status, but only
       # do this for jobs that will generate a fort.61.nc file (p)adc{irc,swan}
       if [[ -e "fort.61.nc" && $ENSTORM_TEMP =~ "adc"  ]] ; then
@@ -1173,7 +1177,7 @@ monitorJobs()
       fi
 
       # check job run status
-      if ! checkTimeLimit $startTime $WALLTIME ; then
+      if [[ $(checkTimeLimit $startTime $WALLTIME) -eq 1 ]]; then
          THIS="asgs_main.sh>monitorJobs()"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "[$DATETIME] $THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error  # <-OVERWRITE
@@ -1208,12 +1212,12 @@ monitorJobs()
             # system has had a chance to write the job log file, or
             # until 5 minutes have passed
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> jobs.status
-            overLimitTime=`date +%s`
+            overLimitTime=$(date +%s)
             until [[ -e ${ENSTORM_TEMP}.out ]]; do
                logMessage "$ENSTORM_TEMP: $THIS: Waiting for queueing system to write out the job log file ${ENSTORM_TEMP}.out."
                sleep 60
-               nowTime=`date +%s`
-               if [[ `expr $nowTime - $overLimitTime` -gt 300 ]]; then
+               nowTime=$(date +%s)
+               if [[ $(($nowTime - $overLimitTime)) -gt 300 ]]; then
                   warn "$ENSTORM_TEMP: $THIS: After 5 minutes, the ${ENSTORM_TEMP}.out file did not appear. Proceeding with error recovery."
                   break
                fi
@@ -1227,7 +1231,7 @@ monitorJobs()
             # and if so, resubmit the job
             $SCRIPTDIR/monitoring/hatteras/hatteras_io_error_detector.pl --outfile ${ENSTORM_TEMP}.out >> $SYSLOG 2>&1
             if [[ -e netcdf_io.error ]]; then
-               retries=`expr $retries + 1`
+               retries=$(($retries + 1))
                logMessage "$ENSTORM_TEMP: $THIS: There was an i/o error reading the hotstart file. Resubmitting job."
                retriesStr=`printf "%02d" $retries`
                # store ends of subdomain logs
@@ -1276,7 +1280,9 @@ monitorJobs()
    #
    # terminate redirect processes for centralized logging
    writeScenarioFilesStatus  # final status update for files
-   postScenarioStatus
+   if [[ $enablePostStatus == "yes" ]]; then
+      postScenarioStatus
+   fi
    sleep 30 # give buffers a chance to flush to the filesystem
    finalizeCentralizedScenarioLogging
    #
@@ -1378,12 +1384,16 @@ submitJob()
             warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             writeScenarioFilesStatus  # final status update for files
-            postScenarioStatus
+            if [[ $enablePostStatus == "yes" ]]; then
+               postScenarioStatus
+            fi
             sleep $jobSubmitInterval
          fi
       done
       writeScenarioFilesStatus  # final status update for files
-      postScenarioStatus
+      if [[ $enablePostStatus == "yes" ]]; then
+         postScenarioStatus
+      fi
       ;;
 #
 #  No queueing system, just mpiexec (used on standalone computers)
@@ -1391,7 +1401,7 @@ submitJob()
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
-      CPUREQUEST=`expr $NCPU + $NUMWRITERS`
+      CPUREQUEST=$(($NCPU + $NUMWRITERS))
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
@@ -1742,7 +1752,7 @@ hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
    # check to see if the LASTSUBDIR is actually a URL
-   urlCheck=`expr match "$LASTSUBDIR" 'http'`
+   urlCheck=$(expr match "$LASTSUBDIR" 'http')
    if [[ $urlCheck -eq 4 ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
@@ -1848,7 +1858,7 @@ fi
 #fi
 #
 # Check for any issues or inconsistencies in configuration parameters.
-if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+if [[ $(($NCPU + $NUMWRITERS)) -gt $NCPUCAPACITY ]]; then
    fatal "$THIS: NCPUCAPACITY must be greater than or equal to NCPU plus NUMWRITERS, however NCPUCAPACITY=$NCPUCAPACITY and NUMWRITERS=$NUMWRITERS and NCPU=$NCPU."
 fi
 #
@@ -2410,6 +2420,7 @@ while [ true ]; do
          fi
          ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
          escPtFilePath=${ptFilePath////'\/'}
+         escSCENARIODIR=${SCENARIODIR////'\/'}
          sed \
             -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
             -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
@@ -2423,8 +2434,8 @@ while [ true ]; do
              | $SCRIPTDIR/NAMtoOWIRamp.pl \
              > /dev/null
            2>> $SYSLOG
-         preFile=$($SCRIPTDIR/metadata.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
-         winFile=$($SCRIPTDIR/metadata.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         preFile=$($SCRIPTDIR/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
+         winFile=$($SCRIPTDIR/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
          mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2773,7 +2784,7 @@ while [ true ]; do
       # Check for a misconfiguration where the Operator has set the
       # number of CPUs and number of writers greater than the total
       # number of CPUs that will ever be available.
-      if [[ `expr $NCPU + $NUMWRITERS` -gt $NCPUCAPACITY ]]; then
+      if [[ $(($NCPU + $NUMWRITERS)) -gt $NCPUCAPACITY ]]; then
          error "$ENSTORM: $THIS: The requested number of CPUs for $ENSTORM is set to $NCPU and the number of writer processors has been set to $NUMWRITERS but the total number of requested CPUs exceeds the NCPUCAPACITY parameter value of ${NCPUCAPACITY}; therefore this scenario will never be able to execute. This scenario is being abandoned."
          # increment the scenario package counter
          si=$[$si + 1]
@@ -2790,7 +2801,7 @@ while [ true ]; do
             # check to see if the deadline has passed for submitting
             # forecast jobs for this cycle.
             if [[ $forecastSelection = "latest" ]]; then
-               if ! checkTimeLimit $cycleStartTime $CYCLETIMELIMIT ; then
+               if [[ $(checkTimeLimit $cycleStartTime $CYCLETIMELIMIT) -eq 1 ]]; then
                   THIS="asgs_main.sh"
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   warn "[${DATETIME}] $ENSTORM: $THIS: The deadline for submitting jobs ($CYCLETIMELIMIT) has passed for this cycle."
@@ -2817,11 +2828,11 @@ while [ true ]; do
                # look to see if the job ended (either success or failure)
                if [[ ! -e $ensembleMemDir/${runType}.${ensembleMemName}.run.finish && ! -e $ensembleMemDir/${runType}.${ensembleMemName}.run.error ]]; then
                   # job is still going, add its cpus to the total that are currently engaged
-                  cpusEngaged=`expr $cpusEngaged + $cpuRequest`
+                  cpusEngaged=$(($cpusEngaged + $cpuRequest))
                fi
             done
             debugMessage "$ENSTORM: $THIS: The next scenario ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
-            if [[ `expr $NCPU + $NUMWRITERS + $cpusEngaged` -le $NCPUCAPACITY ]]; then
+            if [[ $(($NCPU + $NUMWRITERS + $cpusEngaged)) -le $NCPUCAPACITY ]]; then
                #debugMessage "Sufficient capacity exists to run the next job."
                break      # we now have the spare capacity to run this scenario
             else
@@ -2883,7 +2894,7 @@ while [ true ]; do
          fi
          NWS=$BASENWS
          if [[ $WAVES = on ]]; then
-            NWS=`expr $BASENWS + 300`
+            NWS=$(($BASENWS + 300))
          fi
          METOPTIONS=" --dir $ADVISDIR --storm $STORM --year $YEAR --coldstartdate $CSDATE --hotstartseconds $HSTIME --nws $NWS --name $ENSTORM $STORMTRACKOPTIONS"
          if [[ ${PERCENT} != default ]]; then
@@ -2936,11 +2947,11 @@ while [ true ]; do
          fi
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # determine whether a NAM forecast was specified for this cycle
-         $forecastCyclesArray=(${FORECASTCYCLE//,/ })
+         forecastCyclesArray=( ${FORECASTCYCLE//,/ } )
          cycleHour=${ADVISORY:8:2}
          logMessage "$ENSTORM: $THIS: The specified FORECASTCYCLE includes '$FORECASTCYCLE' and this cycleHour is '$cycleHour'."
          runme=0
-         for fc in $forecastCyclesArray ; do
+         for fc in ${forecastCyclesArray[@]} ; do
             if [[ $cycleHour -eq $fc ]]; then
                runme=1
                break
@@ -2970,6 +2981,8 @@ while [ true ]; do
          fi
          ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
          escPtFilePath=${ptFilePath////'\/'}
+         escSCENARIODIR=${SCENARIODIR////'\/'}
+         mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          sed \
             -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
             -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
@@ -2983,14 +2996,13 @@ while [ true ]; do
              | $SCRIPTDIR/NAMtoOWIRamp.pl \
              > /dev/null
            2>> $SYSLOG
-         preFile=$($SCRIPTDIR/metadata.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
-         winFile=$($SCRIPTDIR/metadata.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
-         mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+         preFile=$($SCRIPTDIR/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+         winFile=$($SCRIPTDIR/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
             if [[ -e $ADVISDIR/$file ]]; then
                scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
-               cat $ADVISDIR/$file >> $SCENARIOLOG
+               cat $ADVISDIR/$file >> $SCENARIOLOG 2>> $SYSLOG
             fi
          done
          # create links to the OWI files

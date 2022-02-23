@@ -701,7 +701,7 @@ exit;
 # If an output file will be available, its name and type is written
 # to the run.properties file.
 #--------------------------------------------------------------------------
-sub writeFileName () {
+sub writeFileName {
    my $identifier = shift;
    my $specifier = shift;
    #
@@ -780,7 +780,7 @@ sub writeFileName () {
 # the output frequency, whether or not the files should be appended,
 # and whether or not the netcdf format is used (ascii is the default).
 #--------------------------------------------------------------------------
-sub getSpecifier () {
+sub getSpecifier {
    my $freq = shift;
    my $append = shift;
    my $netcdf = shift;
@@ -811,7 +811,7 @@ sub getSpecifier () {
 # Determines the correct time step increment based on the output frequency
 # and time step size.
 #--------------------------------------------------------------------------
-sub getIncrement () {
+sub getIncrement {
    my $freq = shift;
    my $timestepsize = shift;
    my $increment;
@@ -828,7 +828,7 @@ sub getIncrement () {
 #
 # Pulls in the stations from an external file.
 #--------------------------------------------------------------------------
-sub getStations () {
+sub getStations {
    my $station_file = shift;
    my $station_type = shift;
 #
@@ -899,7 +899,7 @@ sub getPeriodicFlux {
 # Determines parameter values for the control file when running
 # ADCIRC during a hindcast with no met forcing.
 #--------------------------------------------------------------------------
-sub hindcastParameters () {
+sub hindcastParameters {
     $rundesc = "cs:$csdate"."0000 cy: ASGS hindcast";
     $RNDAY = $endtime; #FIX: this should be a date, not days
     $addHours = $RNDAY*24.0;  # used to calculate number of datasets in files
@@ -918,7 +918,7 @@ sub hindcastParameters () {
 # Determines parameter values for the control file when running
 # ADCIRC without external forcing (e.g., for running ADCIRC tests).
 #--------------------------------------------------------------------------
-sub customParameters () {
+sub customParameters {
     $rundesc = "cs:$csdate"."0000 cy: ASGS";
     my $alreadyElapsedDays = 0.0;
     if ( defined $hstime && $hstime != 0 ) {
@@ -965,7 +965,7 @@ sub customParameters () {
 # Determines parameter values for the control file when running
 # ADCIRC with OWI formatted meteorological data (NWS12).
 #--------------------------------------------------------------------------
-sub owiParameters () {
+sub owiParameters {
    #
    # open met file
    open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) file $stormDir/fort.22 for reading: $!.";
@@ -1000,24 +1000,14 @@ sub owiParameters () {
    # determine the date time of the start and end of the OWI files
    my $owistart = $hotstartdate; # reasonable default
    my $owiend = "nullend";
-   # if converted from NAM output
-   my @fort221 = glob($stormDir."/NAM*.221");
+   my @fort221 = glob($stormDir."/*.221");
    if (@fort221) {
-      $fort221[0] =~ /NAM_(\d+)/;
-      $owistart = $1;
-      $fort221[0] =~ /(\d+).221$/;
-      $owiend = $1;
-   } else {
-      # owi files supplied as-is
-      my @fort221 = glob($stormDir."/*.221");
-      if (@fort221) {
-         open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file $stormDir/$fort221[0]: $!.";
-         my $header221 = <FORT221>;
-         close(FORT221);
-         my @fields221 = split(" ",$header221);
-         $owistart = $fields221[-2];
-         $owiend = $fields221[-1];
-      }
+      open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file $stormDir/$fort221[0]: $!.";
+      my $header221 = <FORT221>;
+      close(FORT221);
+      my @fields221 = split(" ",$header221);
+      $owistart = $fields221[-2];
+      $owiend = $fields221[-1];
    }
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart ASGS NAM";
@@ -1030,7 +1020,8 @@ sub owiParameters () {
    $os = 0;
    #
    # get difference
-   (my $ddays, my $dhrs, my $dmin, my $dsec)
+   print "cs:'$csdate' cy:'$owistart'";
+   my ( $ddays, $dhrs, $dmin, $dsec )
            = Date::Calc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $oy,$om,$od,$oh,0,0);
@@ -1067,14 +1058,14 @@ sub owiParameters () {
    $es = 0;
    #
    # get difference
-   (my $ddays, my $dhrs, my $dmin, my $dsec)
+   ( $ddays, $dhrs, $dmin, $dsec )
            = Date::Calc::Delta_DHMS(
                 $cy,$cm,$cd,$ch,0,0,
                 $ey,$em,$ed,$eh,0,0);
    # find the new total run length in days
    $RNDAY = $ddays + $dhrs/24.0 + $dmin/1440.0 + $dsec/86400.0;
    # determine the number of hours of this run, from hotstart to end
-   (my $ddays, my $dhrs, my $dmin, my $dsec)
+   ( $ddays, $dhrs, $dmin, $dsec)
            = Date::Calc::Delta_DHMS(
                 $ny,$nm,$nd,$nh,0,0,
                 $ey,$em,$ed,$eh,0,0);
@@ -1097,11 +1088,10 @@ sub owiParameters () {
 # the with tropical cyclone vortex models (asymmetric, nws=19; or
 # generalized asymmetric holland model, nws=20).
 #--------------------------------------------------------------------------
-sub vortexModelParameters () {
+sub vortexModelParameters {
    my $nws = shift;
    my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    $ensembleid = $enstorm;
-   my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    #
    # open met file containing datetime data
    unless (open(METFILE,"<$metfile")) {

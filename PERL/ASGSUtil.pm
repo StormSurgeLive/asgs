@@ -107,7 +107,7 @@ sub stderrMessage {
    my $theTime = _getTimeStamp();
    my ($package, $filename, $line) = caller;
    my $calling_script = File::Basename::basename($filename);
-   printf STDERR "$theTime $level: $calling_script: $message\n";
+   print STDERR "$theTime $level: $calling_script: $message\n";
    return;
 }
 #
@@ -125,7 +125,7 @@ sub appMessage {
             "$!.");
       die;
    }
-   printf $A "$theTime $level: $calling_script: $message\n";
+   print $A "$theTime $level: $calling_script: $message\n";
    close($A);
    return;
 }
