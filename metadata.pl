@@ -84,10 +84,12 @@ my @outputfile_properties = (
     "Maximum Wind Speed 10m",
 );
 my @values;  # to be returned
+my $all = 0; # if true, even the deprecated properties should be returned
 my %properties;
 my $jshash_ref;
 #
 GetOptions(
+           "all" => \$all,
            "redact" => \$redact
           );
 #
@@ -105,8 +107,10 @@ while (<>) {
 #   m u n g e   t h e   d a t a
 #
 # filter out deprecated properties
-foreach my $dp (@deprecated_properties) {
-    delete $properties{$dp};
+unless ( $all ) {
+    foreach my $dp (@deprecated_properties) {
+        delete $properties{$dp};
+    }
 }
 # filter out redacted properties if requested
 if ( $redact ) {

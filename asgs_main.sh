@@ -2818,11 +2818,13 @@ while [ true ]; do
                fi
                # parse the run.properties to see what the cpu request is for this job
                # ... if the was never submitted, there won't be a cpurequest property
-               cpuRequest=`grep 'cpurequest' $ensembleMemDir/run.properties | sed 's/cpurequest.*://' | sed 's/^\s//'`
+               cpuRequest=$(${SCRIPTDIR}/metadata.pl --all                \
+                  < ${ensembleMemDir}/run.properties 2>> $SYSLOG          \
+                  | ${SCRIPTDIR}/bashJSON.pl --key cpurequest 2>> $SYSLOG)
                if [[ -z $cpuRequest ]]; then
                   continue   # this job was never submitted, so doesn't count; go to the next directory
                fi
-               # parse out the name of the ensemble member
+               # parse out the name of the scenario
                ensembleMemName=`basename $ensembleMemDir`
                runType=`awk '$1 == "Model" { print tolower($3) }' ${ensembleMemDir}/run.properties`
                # look to see if the job ended (either success or failure)
