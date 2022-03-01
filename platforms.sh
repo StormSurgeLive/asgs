@@ -420,7 +420,7 @@ init_desktop()
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n "
+  SUBMITSTRING="mpiexec "
   SCRATCH=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
@@ -428,7 +428,7 @@ init_desktop()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
-  TDS=(renci_tds)
+  TDS=()
   MAKEJOBS=1
 }
 
@@ -587,7 +587,7 @@ writeTDSProperties()
 set_hpc() {
    local THIS="platforms.sh>set_hpc()"
    echo "$THIS: Setting the values of HPCENV and HPCENVSHORT."
-   fqdn=`hostname --long`
+   fqdn=$(hostname --long)
    echo "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
@@ -623,16 +623,20 @@ set_hpc() {
       HPCENV=qbc.loni.org
       HPCENVSHORT=queenbeeC
    fi
-   if [[ ${fqdn:0:4} = "smic" ]]; then
+   if [[ ${fqdn:0:4} == "smic" ]]; then
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic
    fi
-   if [[ ${fqdn:0:2} = "ht" ]]; then
+   if [[ ${fqdn:0:2} == "ht" ]]; then
       HPCENV=hatteras.renci.org
       HPCENVSHORT=hatteras
    fi
-   if [[ ${fqdn:0:5} = "jason" ]]; then
+   if [[ ${fqdn:0:5} == "jason" ]]; then
       HPCENV=desktop.seahorsecoastal.com
+      HPCENVSHORT=desktop
+   fi
+   if [ 1 -eq $(hostname --fqdn | grep -c soldier) ]; then
+      HPCENV=soldier.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi
    if [[ "${ASGS_MACHINE_NAME}" = "docker" ]]; then
@@ -641,7 +645,7 @@ set_hpc() {
    fi
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
-      plat=`$WORK/asgs/bin/guess platform`
+      plat=$($SCRIPTDIR/bin/guess platform)
       HPCENVSHORT=$plat
       HPCENV=$plat
    fi
@@ -726,7 +730,7 @@ env_dispatch() {
 # * doesn't affect environmenta "by reference" (implicitly)
 # * echo's "return" so it can be captured by called using $() syntax
 # e.g.,
-#   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST") 
+#   QUEUENAME=$(HPCQueueHints "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
 HPC_Queue_Hint()
 {
    # default, returned if conditions not met
@@ -734,7 +738,7 @@ HPC_Queue_Hint()
    local HPCENV=$2
    local QOS=$3
    local CPUREQUEST=$4
-   case "$HPCENV" in 
+   case "$HPCENV" in
    "frontera.tacc.utexas.edu")
      # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
      # "small" queue ... this includes wind-only parallel jobs ... the PPN
@@ -754,8 +758,8 @@ HPC_Queue_Hint()
        echo "single"
      else
        echo $DEFAULT_QUEUENAME
-     fi 
-   ;; 
+     fi
+   ;;
    *)
      echo $DEFAULT_QUEUENAME
    ;;
@@ -771,7 +775,7 @@ HPC_PPN_Hint()
    local HPCENV=$3
    local QOS=$4
    local DEFAULT_PPN=$5 # default, returned if conditions not met
-   case "$HPCENV" in 
+   case "$HPCENV" in
    "supermic.hpc.lsu.edu")
      if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
        echo 20
@@ -785,7 +789,7 @@ HPC_PPN_Hint()
      else
        echo $DEFAULT_PPN
      fi
-   ;; 
+   ;;
    *)
      echo $DEFAULT_PPN
    ;;
@@ -798,7 +802,7 @@ HPC_PPN_Hint()
 # * doesn't affect environments "by reference" (implicitly)
 # * echo's "return" so it can be captured by called using $() syntax
 # e.g.,
-#   RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST") 
+#   RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
 HPC_Reservation_Hint()
 {
    # default, returned if conditions not met
@@ -806,7 +810,7 @@ HPC_Reservation_Hint()
    local HPCENV=$2
    local QOS=$3
    local CPUREQUEST=$4
-   case "$HPCENV" in 
+   case "$HPCENV" in
    "frontera.tacc.utexas.edu")
      # on frontera, if a job uses only 1 or 2 nodes, it must be submitted to the
      # "small" queue ... this includes wind-only parallel jobs ... the PPN
