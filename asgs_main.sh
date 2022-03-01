@@ -996,9 +996,9 @@ downloadBackgroundMet()
       while [[ $getNamStatusSuccess -ne 0 && $latestCycle -le $lastCycle ]]; do
          ((TRIES++))
          debugMessage "According to the statefile ${STATEFILE}, the most recently detected nowcast cycle is $lastCycle." $APPLOGFILE
-         latestCycle=$($SCRIPTDIR/get_nam_status.pl   \
+         latestCycle=$(get_nam_status.pl   \
                        < $filledNamTemplateName       \
-                       | $SCRIPTDIR/latest.pl         \
+                       | latest.pl         \
                      2>> $SYSLOG)
          if [[ $latestCycle -le $lastCycle ]]; then
              RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
@@ -1010,15 +1010,15 @@ downloadBackgroundMet()
       thisCycle=$(sed \
                     "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/"   \
                   < get_nam_status.pl.json                       \
-                  | $SCRIPTDIR/select_nam_nowcast.pl             \
-                  | $SCRIPTDIR/latest.pl                         \
+                  | select_nam_nowcast.pl                        \
+                  | latest.pl                                    \
                 2>> $SYSLOG)
       sed \
          -e "s/%NULLSTAGE%/$stage/"                   \
          -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
          -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
           < select_nam_nowcast.pl.json \
-          | $SCRIPTDIR/get_nam_data.pl \
+          | get_nam_data.pl            \
           > /dev/null                  \
         2>> $SYSLOG
       # record the new advisory number to the statefile
@@ -1035,7 +1035,7 @@ downloadBackgroundMet()
          -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
          -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
           < select_nam_nowcast.pl.json                \
-          | $SCRIPTDIR/get_nam_data.pl                \
+          | get_nam_data.pl                           \
           > /dev/null                                 \
         2>> ${SYSLOG}
       # write the start and end dates of the forecast to the run.properties file
@@ -2354,7 +2354,7 @@ while [ true ]; do
          # same as the BEST track file end time??
          erroValue=1
          while [[ $erroValue -ne 0 ]]; do
-            namEnd=$(perl $SCRIPTDIR/get_nam_data.pl --stage NOWCAST --selectfile get_nam_status.pl.json 2>> $SYSLOG 2>&1)
+            namEnd=$(get_nam_data.pl --stage NOWCAST --selectfile get_nam_status.pl.json 2>> $SYSLOG 2>&1)
             erroValue=$?
             if [[ erroValue -ne 0 ]]; then
                sleep 60
@@ -2434,8 +2434,8 @@ while [ true ]; do
              | $SCRIPTDIR/NAMtoOWIRamp.pl \
              > /dev/null
            2>> $SYSLOG
-         preFile=$($SCRIPTDIR/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
-         winFile=$($SCRIPTDIR/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
+         winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
          mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2820,7 +2820,7 @@ while [ true ]; do
                # ... if the was never submitted, there won't be a cpurequest property
                cpuRequest=$(${SCRIPTDIR}/metadata.pl --all                \
                   < ${ensembleMemDir}/run.properties 2>> $SYSLOG          \
-                  | ${SCRIPTDIR}/bashJSON.pl --key cpurequest 2>> $SYSLOG)
+                  | bashJSON.pl --key cpurequest 2>> $SYSLOG)
                if [[ -z $cpuRequest ]]; then
                   continue   # this job was never submitted, so doesn't count; go to the next directory
                fi
@@ -2998,8 +2998,8 @@ while [ true ]; do
              | $SCRIPTDIR/NAMtoOWIRamp.pl \
              > /dev/null
            2>> $SYSLOG
-         preFile=$($SCRIPTDIR/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
-         winFile=$($SCRIPTDIR/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+         preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+         winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
             if [[ -e $ADVISDIR/$file ]]; then
