@@ -1,0 +1,81 @@
+{
+  "statusCode": 0,
+  "body": {
+    "message": "string",
+    "version": "string",
+    "request": "string",
+    "response_time": 0,
+    "accessed": "string",
+    "data": {
+      "nhc": {
+        "forecast": [
+          {
+            "year": 0,
+            "basin_abbreviation": "string",
+            "basin_string": "string",
+            "available_advisories": [
+              {
+                "advisory": "string",
+                "start": "string",
+                "end": "string",
+                "duration": 0
+              }
+            ]
+          }
+        ],
+        "best_track": [
+          {
+            "year": 0,
+            "basin_abbreviation": "string",
+            "basin_string": "string",
+            "available_advisories": [
+              {
+                "advisory": "string",
+                "start": "string",
+                "end": "string",
+                "duration": 0
+              }
+            ]
+          }
+        ]
+      },
+      "hwrf": [
+        {
+          "storm": "string",
+          "min_forecast_date": "string",
+          "max_forecast_date": "string",
+          "first_available_cycle": "string",
+          "last_available_cycle": "string",
+          "latest_complete_cycle": "string",
+          "latest_complete_forecast_start": "string",
+          "latest_complete_forecast_end": "string",
+          "latest_complete_forecast_length": "string"
+        }
+      ],
+      "gfs-ncep": {
+        "latest_complete_forecast": "string",
+        "latest_complete_forecast_start": "string",
+        "latest_complete_forecast_end": "string",
+        "first_available_cycle": "string",
+        "last_available_cycle": "string",
+        "max_forecast_date": "string",
+        "min_forecast_date": "string",
+        "cycle_list": [
+          "string"
+        ]
+      },
+      "nam-ncep": {
+        "latest_complete_forecast": "string",
+        "latest_complete_forecast_start": "string",
+        "latest_complete_forecast_end": "string",
+        "first_available_cycle": "string",
+        "last_available_cycle": "string",
+        "max_forecast_date": "string",
+        "min_forecast_date": "string",
+        "cycle_list": [
+          "string"
+        ]
+      }
+    }
+  }
+}
