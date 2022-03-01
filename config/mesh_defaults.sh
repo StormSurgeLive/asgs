@@ -261,19 +261,19 @@ case $GRIDNAME in
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
-   "TX2022a")
+   "TXLA22a")
       #
-      INPUTDIR=$SCRIPTDIR/input/meshes/TX2022a
-      GRIDFILE=TX2022a.14  # mesh (fort.14) file
+      INPUTDIR=$SCRIPTDIR/input/meshes/TXLA22a
+      GRIDFILE=TXLA22a.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=TX2022a_fort.15.template   # fort.15 template
+      CONTROLTEMPLATE=TXLA22a_fort.15.template   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=TX2022a_elev_stations.txt
-      VELSTATIONS=TX2022a_vel_stations.txt
-      METSTATIONS=TX2022a_met_stations.txt
-      NAFILE=TX2022a.13
+      ELEVSTATIONS=TXLA22a_elev_stations.txt
+      VELSTATIONS=TXLA22a_vel_stations.txt
+      METSTATIONS=TXLA22a_met_stations.txt
+      NAFILE=TXLA22a.13
       NAPROPERTIES=${NAFILE}.properties
       RIVERINIT=null                           # this mesh has no rivers ...
       RIVERFLUX=null
