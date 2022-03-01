@@ -3,7 +3,7 @@
 # NAMtoOWIRamp.pl
 #--------------------------------------------------------------------------
 # Copyright(C) 2019 Brett Estrade
-# Copyright(C) 2011--2021 Jason Fleming
+# Copyright(C) 2011--2022 Jason Fleming
 # Copyright(C) 2010--2011 Eve-Marie Devaliere
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -22,79 +22,44 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------
 ################################################################################
-#                       	netcdfNAMtoOWIRamp                             #
-################################################################################
-# This script is triggered when a netCDF NAM file is received by LDM.
-# Its purpose is to convert the NAM data to OWI formatted data for use in
-# ADCIRC.
-################################################################################
-#                   The packages used are the following:                       #
-################################################################################
-#NetCDF                                                                        #
-#ArraySub								       #
-#Getopt									       #
-################################################################################
 #written by Eve-Marie Devaliere for UNC/FRF                                    #
 #additions for grib2 input and command line arguments by Jason Fleming for ASGS#
 #first written: 03/17/10                                                       #
-#last updated: 03/31/10                                            	       #
+#last updated: 03/31/10                                              	       #
 ################################################################################
-#
-# Example of usage for a set of grib2 files containing nowcast data:
-#
-# perl ~/asgs/NAMtoOWIRamp.pl --ptFile ~/Ida/ptFile.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ~/Ida --outDir ~/Ida/test/ --velocityMultiplier 0.9 --scriptDir ~/asgs
-#
-# jgf20161118: Example for use with spatial extrapolation ramp
-# perl ~/asgs/2014stable/NAMtoOWIRamp.pl --ptFile ~/asgs/2014stable/input/ptFile_hsofs.txt --namFormat grib2 --namType nowcast --awipGridNumber 218 --dataDir ./ --outDir ./ --velocityMultiplier 1.0 --scriptDir ~/asgs/2014stable --applyRamp yes --rampDistance 1.0
-#
-# Example of partial grib2 download of NAM reanalysis :
-# day=1 ; while [[ $day -lt 32 ]]; do daystring=`printf %02d $day`; echo $daystring ; TARGETURL=https://www.ncei.noaa.gov/data/north-american-mesoscale-model/access/historical/analysis/201907/201907${daystring} ; for cycle in 00 06 12 18 ; do  $METSCRIPTDIR/get_inv.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.inv | grep -E "(PRMSL|UGRD:10 m above ground|VGRD:10 m above ground)" | $METSCRIPTDIR/get_grib.pl $TARGETURL/namanl_218_201907${daystring}_${cycle}00_000.grb2 namanl_218_201907${daystring}_${cycle}00_000.grb2 ; done ; day=`expr $day + 1`; done
-#
 #
 ######################################################
 #      Packages and exportation requirements         #
 ######################################################
 use strict;
-no strict 'refs';
-
-#use NetCDF;
+use warnings;
 use List::Util qw[min max];
 use Getopt::Long;
 use Date::Calc;
+use JSON::PP;
 use Storable;
+use File::Basename;
+use Cwd;
+use ASGSUtil qw[ASGSUtil::setParameter];
 ######################################################
 #             Variables declarations                 #
 ######################################################
-my $dataDir            = "/data/renci/ADCIRC/wind/";        # path to NAM data
-my $outDir             = '/data/renci/ADCIRC/wind/src/';    # path to NAM u,v,p text data
-my $uvpFilename        = 'uvp.txt';                         # filename of NAM u,v,p text data
-my $ptFile             = 'ptFile.txt';                      # file name of output grid lat/lon
-my $fort22             = 'fort.22';                         # fort.22 path and filename
-my $awipGridNumber     = 221;                               # code that describes the grid num
-my $velocityMultiplier = 1.0;                               # multiplier for vels
-my $pressureMultiplier = 0.01;                              # convert Pascals to mb by default
-my $scriptDir          = ".";                               # path to executables
-my ( $wndFile, $presFile );                                 # names of OWI wind/pre output files
-my @namFormats = qw(grb grib2 grb2 netCDF);  # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
-my $namFormat  = "netCDF";                                  # default NAM format is netCDF
-my $namType    = "forecast";                                # expect forecast data by default
-my ( $nDims, $nVars, $nAtts, $recDim, $dimName, %varId, @dimIds, $name, $dataType, %data, %dimId, %nRec, $nRec );
-my ( @ugrd, @vgrd, @atmp, @time, @OWI_wnd, @miniOWI_wnd, @OWI_pres, @miniOWI_pres, @zeroOffset, $geoHeader );
-my ( $OWItimeRef, $startTime, $endTime, $timeStep, $mainHeader, @OWItime, $recordLength );
-my $applyRamp    = "no";                                    # whether or not to apply a spatial extrapolation ramp
-my $rampDistance = 1.0;                                     # distance in lambert coords to ramp vals to zero
-my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
-our $scenario = "nullscenario";
-
-
-# @ugrd holds the lambert gridded u wind velocity data, across all time steps
-# @vgrd holds the lambert gridded v wind velocity data, across all time steps
-# @atmp holds the lambert gridded atm. pressure data, across all time steps
-# $startTime and $endTime are date/time strings for main OWI header
-# $timeStep is the met time increment (WTIMINC), in hours
-# $mainHeader is at the top of the OWI files
-# @OWItime is the time in the header of each met data set (i.e., incl. minutes)
-# $recordLength is the number of grid points in the lambert gridded data
+my $dataDir = "null";      # path to NAM data
+my $outDir = "null";       # path to NAM u,v,p text data
+my $ptFile = "null";       # file name of output grid lat/lon
+my $namFormat = "null";    # default NAM format is netCDF
+my $stage = "null";        # expect forecast data by default
+my $scriptDir = "null";    # path to executables
+my $timeStep = "null";     # met time increment (WTIMINC), in hours
+my $applyRamp = "null";    # whether or not to apply a spatial extrapolation ramp
+my $rampDistance = "null"; # distance in lambert coords to ramp vals to zero
+my $awipGridNumber = "null";     # integer that specifies the NAM domain and its grid
+my $velocityMultiplier = "null"; # multiplier for vels
+my $pressureMultiplier = "null"; # convert Pascals to mb by default
+my @namFormats         = qw(grb grib2 grb2); # accceptable file types for NAMdata (grb, grib2, and grb2 also used as file extension)
+# $startTime and $endTime are date/time strings for main OWI header and used to name the output files
+my $startTime;
+my $endTime;
 #
 ######################################################
 #                    Main Program                    #
@@ -103,10 +68,9 @@ our $scenario = "nullscenario";
 GetOptions(
     "dataDir=s"            => \$dataDir,
     "outDir=s"             => \$outDir,
-    "uvpFilename=s"        => \$uvpFilename,
     "ptFile=s"             => \$ptFile,
     "namFormat=s"          => \$namFormat,
-    "namType=s"            => \$namType,
+    "stage=s"              => \$stage,
     "awipGridNumber=s"     => \$awipGridNumber,
     "velocityMultiplier=s" => \$velocityMultiplier,
     "pressureMultiplier=s" => \$pressureMultiplier,
@@ -114,100 +78,170 @@ GetOptions(
     "rampDistance=s"       => \$rampDistance,
     "scriptDir=s"          => \$scriptDir
 );
+
+# get JSON request from STDIN
+my $file_content = do { local $/; <> };
+
+# deserialize JSON
+my $jshash_ref = JSON::PP->new->decode($file_content);
+$jshash_ref->{"reproject"} = basename($0).".json";
 #
-# create a hash of properties from run.properties
-our %properties;
-# open properties file
-unless (open(RUNPROP,"<run.properties")) {
-   stderrMessage("ERROR","Failed to open run.properties: $!.");
-   #die;
-} else {
-    while (<RUNPROP>) {
-        my @fields = split ':',$_, 2 ;
-        # strip leading and trailing spaces and tabs
-        $fields[0] =~ s/^\s|\s+$//g ;
-        $fields[1] =~ s/^\s|\s+$//g ;
-        $properties{$fields[0]} = $fields[1];
-    }
-    close(RUNPROP);
-    $scenario = $properties{"scenario"};
-}
+# FIXME: Use complex data structures to simplify this
+ASGSUtil::setParameter( $jshash_ref, \$dataDir,
+              "localDataDir", cwd() );
+ASGSUtil::setParameter( $jshash_ref, \$outDir,
+              "winPreDataDir", cwd() );
+ASGSUtil::setParameter( $jshash_ref, \$namFormat,
+              "namDataFormat", "grib2" );
+ASGSUtil::setParameter( $jshash_ref, \$stage,
+              "stage", "null" );
+ASGSUtil::setParameter( $jshash_ref, \$awipGridNumber,
+              "awipGrid", 218 );
+ASGSUtil::setParameter( $jshash_ref, \$velocityMultiplier,
+              "winPreConversionVelocityMultiplier", 1.0 );
+ASGSUtil::setParameter( $jshash_ref, \$pressureMultiplier,
+              "winPreConversionPressureMultiplier", 0.01 );
+ASGSUtil::setParameter( $jshash_ref, \$applyRamp,
+              "namBoundaryApplyRamp", \0 ); # \0 creates JSON::false
+ASGSUtil::setParameter( $jshash_ref, \$rampDistance,
+              "namBoundaryRampDistance", 1.0 );
+ASGSUtil::setParameter( $jshash_ref, \$scriptDir,
+              "scriptDir", dirname(__FILE__) );
 #
-# open an application log file for get_nam.pl
-unless ( open(APPLOGFILE,">>NAMtoOWIRamp.pl.log") ) {
-   stderrMessage("ERROR","Could not open 'NAMtoOWIRamp.pl.log' for appending: $!.");
-   exit 1;
-}
-&stderrMessage( "INFO", "Started processing NAM data." );
+# the default ptFile uses scriptdir so it has to be set
+# after scriptdir has been set
+ASGSUtil::setParameter( $jshash_ref, \$ptFile,
+              "winPreGridFile",
+              $scriptDir."/input/ptFile_oneEighth.txt" );
 #
-# check to make sure that outDir and dataDir have slashes at the
-# end (this script assumes they do)
-if ( substr($outDir,-1,1) ne "/" ) { $outDir .= "/"; }
-if ( substr($dataDir,-1,1) ne "/" ) { $dataDir .= "/"; }
-&stderrMessage( "INFO", "Started processing point file." );
-$geoHeader = &processPtFile($ptFile);
+# write out the initial JSON response file now for use in
+# debugging if there is a failure later in this script
+ASGSUtil::writeJSON($jshash_ref);
+#
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Started processing point file '$ptFile'." );
+my $geoHeader = processPtFile($ptFile, $jshash_ref);
+my $stagelc = lc $stage;
+$jshash_ref->{"winPreHeader"} = $geoHeader;
+#
 # load NAM data
-if ( ( $namFormat eq "grib2" ) || ( $namFormat eq "grb2" ) || ( $namFormat eq "grb" ) ) {
-    &stderrMessage( "INFO", "Processing file(s)." );
-    &getGrib2($namType);
-    &addToFort22();    # have to add the record length to fort.22
-    &stderrMessage( "INFO", "Rotate and format each time-step." );
-
-    # loop through the time-steps to run awips_interp
-    &rotateAndFormat();
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Processing grib/grib2 file(s)." );
+my ( @OWI_wnd, @OWI_pres, @OWItime, %nRec, $recordLength );
+my ( $wndFile, $presFile ); # file names
+# FIXME: use complex data structure to simplify this argument list
+getGrib2(
+         $stage,
+         $dataDir, $outDir, $namFormat,
+         \$timeStep, \$startTime, \$endTime,
+         \@OWI_wnd, \@OWI_pres, \@OWItime,
+         \%nRec, \$recordLength,
+         \$wndFile, \$presFile, $jshash_ref
+        );
+$jshash_ref->{"winPreVelocityFile"} = $wndFile;
+$jshash_ref->{"winPrePressureFile"} = $presFile;
+my $wtiminc = $timeStep * 3600;    # ts in seconds
+$jshash_ref->{"winPreWtimincSeconds"} = ($wtiminc * 1.0);
+ASGSUtil::writeJSON($jshash_ref,);
+# have to add the meteorology time increment to fort.22
+ASGSUtil::stderrMessage("INFO",
+              "Adding WTIMINC value to fort.22 as a comment line." );
+my $F22;
+unless ( open( $F22, ">>", "fort.22" ) ) {
+   ASGSUtil::stderrMessage(
+             "ERROR",
+             "Failed to open WIN/PRE (a.k.a. OWI or NWS=12) fort.22 file " .
+             "to append a comment line with the " .
+             "meteorological time increment.");
+   die;
 }
-elsif ( $namFormat eq "netCDF" ) {
-
-    #first get all the variables ids and dimensions ids from the netCDF file
-    &stderrMessage( "INFO", "Process netCDF file." );
-
-    #	&getNetCDF();
-    &addToFort22();    # have to add the record length to fort.22
-    &stderrMessage( "INFO", "Rotate and format each time-step." );
-
-    # loop through the time-steps to run awips_interp
-    &rotateAndFormat();
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Appending the WTIMINC value of '$wtiminc' to the fort.22 file." );
+print $F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
+close($F22);
+#
+# loop through the time-steps to run awips_interp
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Rotate and format each time-step." );
+my ( @ugrd_store_files, @vgrd_store_files, @atmp_store_files );
+# FIXME: Use complex data structures to simplify this arg list
+rotateAndFormat(
+                $applyRamp, $geoHeader,
+                \@ugrd_store_files, \@vgrd_store_files, \@atmp_store_files,
+                \@OWItime, \@OWI_wnd, \@OWI_pres,
+                \%nRec, $recordLength, $jshash_ref
+               );
+$jshash_ref->{"winPreNumRecords"} = $nRec{"time"};
+$jshash_ref->{"winPreRecordLength"} = $recordLength;
+$jshash_ref->{"winPreDataTimes"} = \@OWItime;
+#
+# write out OWI files
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Print OWI files." );
+my $OF;
+#
+# write wind file
+unless ( open( $OF, '>', "$wndFile" ) ) {
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Could not open wind file '$wndFile': $!");
+   die;
 }
-&stderrMessage( "INFO", "Print OWI files." );
-&printOWIfiles();
-&stderrMessage( "INFO", "Done processing NAM data." );
+foreach my $line (@OWI_wnd) {
+   print $OF $line . "\n";
+}
+close($OF);
+#
+# write pressure file
+unless ( open( $OF, '>', "$presFile" ) ) {
+   ASGSUtil::stderrMessage(
+             "INFO",
+             "Could not open wind file '$wndFile': $!");
+   die;
+}
+foreach my $line (@OWI_pres) {
+   print $OF $line . "\n";
+}
+close($OF);
+ASGSUtil::stderrMessage(
+          "INFO",
+          "Done processing NAM data." );
+
+# write json response to file
+ASGSUtil::writeJSON($jshash_ref);
+# write json response to STDOUT
+printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
+1;
+
 ######################################################
 #                    Subroutines                     #
 ######################################################
 
 ################################################################################
-# NAME: &printDate
-# CALL: &printDate($message)
-# GOAL: print the given message along with the date/time
-################################################################################
-sub printDate() {
-    my $message = shift;
-    my @time    = localtime(time);
-    my $second  = $time[0];
-    my $minute  = sprintf "%2.2d", $time[1];
-    my $hour    = sprintf "%2.2d", $time[2];
-    my $day     = sprintf "%2.2d", $time[3];
-
-    my $month = sprintf "%2.2d", ( 1 + $time[4] );
-
-    my $year = sprintf "%4.4d", ( $time[5] + 1900 );
-    print "$message at $month/$day/$year $hour:$minute:$second \n";
-}
-
-################################################################################
-# NAME: &processPtFile
-# CALL: &processPtFile($file)
+# NAME: processPtFile
+# CALL: processPtFile($file)
 # GOAL: process the 'point file' aka 'lat/lon file' used by awips_interp to know
 # where to output data by extracting grid information
 ################################################################################
 sub processPtFile {
-    my $ptFile = shift;
+    my ( $ptFile, $jshash_ref ) = @_;
 
-    my ( @lat, @lon, $null, @ary, $swLat, $swLon, @uniqLat, @uniqLon, $nLat, $nLon, $nPts, %seen, @uniqLatSorted, @uniqLonSorted, $dx, $dy );
+    my ( @lat, @lon, $null, @ary,
+         $swLat, $swLon, @uniqLat, @uniqLon,
+         $nLat, $nLon, $nPts, %seen,
+         @uniqLatSorted, @uniqLonSorted,
+         $dx, $dy );
 
     # check for existence of lat/lon file before attempting to open
     unless ( -e $ptFile ) {
-        &stderrMessage( "ERROR", "Grid specification file '$ptFile' does not exist." );
+        ASGSUtil::stderrMessage(
+                  "ERROR",
+                  "WIN/PRE grid specification file '$ptFile' does not exist." );
         die;
     }
     open my $PT, '<', $ptFile || die $!;
@@ -259,58 +293,22 @@ sub processPtFile {
 
 }
 ################################################################################
-# NAME: &convertTime
-# CALL: &convertTime(\@time);
-# GOAL: convert the netCDF epoch time to the OWI format time requirement
-################################################################################
-sub convertTime {
-    my $timeRef = shift;
-    my @time    = @$timeRef;
-    my $timeStep;
-    my $nTimes = @time;
-    my $count  = 0;
-    my ( @OWItime, $startTime, $endTime );
-    foreach my $tim (@time) {
-        my ( $sec, $min, $hour, $mday, $mon, $year ) = gmtime($tim);
-        $mon++;    # because the range is 0->11
-        $year = $year + 1900;             #because 1900 has been substracted before
-                                          #to have the date returned formatted
-        $sec  = sprintf "%2.2d", $sec;
-        $min  = sprintf "%2.2d", $min;
-        $hour = sprintf "%2.2d", $hour;
-        $mday = sprintf "%2.2d", $mday;
-        $mon  = sprintf "%2.2d", $mon;
-        $year = sprintf "%4.4d", $year;
-
-        if ( $count == 0 ) {
-            $startTime = $year . $mon . $mday . $hour;
-        }
-        if ( $count == $nTimes - 1 ) {
-            $endTime = $year . $mon . $mday . $hour;
-        }
-        $OWItime[$count] = $year . $mon . $mday . $hour . $min;
-        $count++;
-    }
-
-    # calculate time-step - assumed constant
-    $timeStep = ( $OWItime[1] - $OWItime[0] ) / 100;    # in hours
-                                                        #print "timeSte==$timeStep \n";
-    return ( \@OWItime, $startTime, $endTime, $timeStep );
-
-}
-################################################################################
-# NAME: &toOWIformat
-# CALL: &toOWIformat($file,$header);
+# NAME: toOWIformat
+# CALL: toOWIformat($file,$header);
 # GOAL: convert the file $file to OWI format (for one TS) with the header $header
 ################################################################################
 sub toOWIformat {
-    my ( $file, $header ) = @_;
-    push @OWI_wnd,  $header;
-    push @OWI_pres, $header;
+    my ( $file, $header, $OWI_wnd_ref, $OWI_pres_ref ) = @_;
+
+    push @$OWI_wnd_ref,  $header;
+    push @$OWI_pres_ref, $header;
 
     # check for existence of the data file before attempting to open
     unless ( -e $file ) {
-        &stderrMessage( "ERROR", "The data file '$file' does not exist." );
+        ASGSUtil::stderrMessage(
+                  "ERROR",
+                  "The data file '$file' does not exist." );
+        printf STDOUT "0";
         die;
     }
     open my $FIL, '<', $file || die $!;
@@ -330,8 +328,8 @@ sub toOWIformat {
     close $FIL;
     my $nTot      = @ugrd - 1;
     my $miniCount = 0;
-    for my $i ( 0 .. $nTot )     # can do u, v and p at the same time
-    {
+    for my $i ( 0 .. $nTot ) {    # can do u, v and p at the same time
+
         my $u = sprintf( "% 10f", $ugrd[$i] );
         my $v = sprintf( "% 10f", $vgrd[$i] );
 
@@ -342,15 +340,13 @@ sub toOWIformat {
             $uStr = $uStr . "$u";    # concatenate values together
             $vStr = $vStr . "$v";
             $pStr = $pStr . "$p";
-        }
-        else {
+        } else {
             $uStr = $u;              # concatenate values together
             $vStr = $v;
             $pStr = $p;
         }
-        if (   ( $miniCount == 7 )
-            || ( $i == $nTot ) )     # 8 values per line or reach the end of the file
-        {
+        # 8 values per line or reach the end of the file
+        if ( ( $miniCount == 7 ) || ( $i == $nTot ) ) {
             $miniCount = 0;
             push @uLines, $uStr;
             push @vLines, $vStr;
@@ -358,123 +354,37 @@ sub toOWIformat {
             undef($uStr);
             undef($vStr);
             undef($pStr);
-        }
-        else {
+        } else {
             $miniCount++;
         }
     }
-
     # push the lines in the array representing each file
-    push @OWI_wnd,  @uLines;
-    push @OWI_wnd,  @vLines;
-    push @OWI_pres, @pLines;
+    push @$OWI_wnd_ref,  @uLines;
+    push @$OWI_wnd_ref,  @vLines;
+    push @$OWI_pres_ref, @pLines;
 }
+
 ################################################################################
-# NAME: &printOWIfiles
-# CALL: &printOWIfiles
-# GOAL: print the .wnd and .pre OWI files from their corresponding arrays
-################################################################################
-sub printOWIfiles {
-    open( WND, '>' . $wndFile );
-    foreach my $line (@OWI_wnd) {
-        print WND $line . "\n";
-    }
-    close(WND);
-    open( PRE, '>' . $presFile );
-    foreach my $line (@OWI_pres) {
-        print PRE $line . "\n";
-    }
-    close(PRE);
-}
-################################################################################
-# NAME: &getNetCDF
-# CALL: &getNetCDF
-# GOAL: get the u,v,p data and time info from the netCDF file
-################################################################################
-sub getNetCDF {
-    my $filename;
-
-    # check to be sure that the NetCDF file was specified on the command
-    # line before attempting to open
-    unless ( defined $ARGV[0] ) {
-        &stderrMessage( "ERROR", "NetCDF filename was not specified on command line." );
-        die;
-    }
-
-    # check for existence of netcdf file before attempting to open
-    unless ( -e $ARGV[0] ) {
-        &stderrMessage( "ERROR", "NetCDF file '$ARGV[0]' does not exist." );
-        die;
-    }
-    if ( $ARGV[0] =~ /.gz$/ ) {
-        `gunzip $ARGV[0]`;
-        $filename = $`;
-    }
-    else {
-        $filename = $ARGV[0];
-    }
-
-    #	my $ncid = NetCDF::open($filename,NetCDF::NOWRITE) or die "can't open file $ARGV[0], error $! \n";
-    #NetCDF::inquire($ncid,\$nDims,\$nVars,\$nAtts,\$recDim);
-    #print "ndims=$nDims  nVar=$nVars, natt=$nAtts, recDim=$recDim\n";
-    for my $var ( 0 .. $nVars - 1 )    # var ids are 0, 1 and 2 if we have 3 variables
-    {
-        #	 NetCDF::varinq($ncid,$var,\$name,\$dataType,$nDims,\@dimIds,\$nAtts);
-        my $dimID = splice( @dimIds, 0, $nDims );
-
-        # print "VAR: $var: NAME: $name, DATA TYPE: $dataType, NDIMS: $nDims, DIMIDS: $dimID, NATTS: $nAtts\n";
-        $varId{$name} = $var;          # array of variable ID numbers as a function of variable name
-        $dimId{$name} = $dimID;
-    }
-
-    # get x,y,time dimensions
-    #NetCDF::diminq($ncid, $dimId{'x'},$dimName,$nRec);
-    $nRec{'x'} = $nRec;
-
-    #NetCDF::diminq($ncid, $dimId{'y'},$dimName,$nRec);
-    $nRec{'y'} = $nRec;
-
-    #NetCDF::diminq($ncid, $dimId{'time'},$dimName,$nRec);
-    $nRec{'time'} = $nRec;
-
-    # get the time
-    #NetCDF::varget($ncid, $varId{'time'},0,$nRec{'time'},\@time);
-    ( $OWItimeRef, $startTime, $endTime, $timeStep ) = &convertTime( \@time );
-
-    #$mainHeader="Oceanweather WIN/PRE Format					$startTime   $endTime";
-    $mainHeader = "Oceanweather WIN/PRE Format                            $startTime     $startTime";    #jgf: Hey Eve, why is startTime here twice?
-    push @OWI_wnd,  $mainHeader;
-    push @OWI_pres, $mainHeader;
-    @OWItime = @$OWItimeRef;
-
-    # build the filenames
-    $wndFile  = 'NAM_' . $startTime . '_' . $endTime . '.222';
-    $presFile = 'NAM_' . $startTime . '_' . $endTime . '.221';
-
-    # # get u,v,p values
-    #NetCDF::varget($ncid, $varId{'velocity_we'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@ugrd);
-    my $nelems = @ugrd;
-
-    #NetCDF::varget($ncid, $varId{'velocity_sn'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@vgrd);
-    #NetCDF::varget($ncid, $varId{'atm_pressure'},[0,0,0],[$nRec{'time'},$nRec{'y'},$nRec{'x'}],\@atmp);
-    # close netCDF file
-    #NetCDF::close($ncid);
-    # figure out each time-step record length
-    $recordLength = $nelems / $nRec{'time'};
-}
-################################################################################
-# NAME: &rotateAndFormat
-# CALL: &rotateAndFormat()
+# NAME: rotateAndFormat
+# CALL: rotateAndFormat()
 # GOAL: loop through time-steps to rotate and output at specific points with
 #	awips_lambert_interp - populate the OWI array with resulting data
 ################################################################################
 sub rotateAndFormat {
-    for my $t ( 0 .. $nRec{'time'} - 1 ) {
-        &appMessage( "DEBUG", "TS=$t" );
+    my ( $applyRamp, $geoHeader,
+         $ugrd_ref, $vgrd_ref, $atmp_ref,
+         $OWItimeRef, $OWI_wnd_ref, $OWI_pres_ref,
+         $nRec_ref, $recordLength, $jshash_ref
+       ) = @_;
 
-        my $ugrd_file = $ugrd_store_files[$t];
-        my $vgrd_file = $vgrd_store_files[$t];
-        my $atmp_file = $atmp_store_files[$t];
+    for my $t ( 0 .. $nRec{'time'} - 1 ) {
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "TS=$t" );
+
+        my $ugrd_file = $ugrd_ref->[$t];
+        my $vgrd_file = $vgrd_ref->[$t];
+        my $atmp_file = $atmp_ref->[$t];
 
         # select subset of array corresponding at the particular time-step
         my $miniUgrd_ref = retrieve($ugrd_file) or die $!;
@@ -485,7 +395,7 @@ sub rotateAndFormat {
         unlink( $ugrd_file, $vgrd_file, $atmp_file );
 
         # # print u,v,p file
-        my $uvpFile = $outDir . $uvpFilename;
+        my $uvpFile = $outDir . '/uvp.txt';
         open( my $OUT, '>', $uvpFile )
           or die "Can't open output file ($uvpFile), error: $! \n";
         for my $i ( 0 .. $recordLength - 1 ) {
@@ -494,70 +404,77 @@ sub rotateAndFormat {
         close $OUT;
 
         # run awip_interp
-        if ( $applyRamp eq "yes" ) {
-
-            # NAM pressure data are in Pa
-            if ( -f "rotataedNAM.txt" ) {
-                &appMessage("DEBUG","Deleting old rotatedNAM.txt.");
-                unlink "rotatedNAM.txt";
-            }
-
-            my $com = "$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance $rampDistance --background-pressure 101300.0 --pressure-column 3 >> reproject.log 2>&1";
-            &appMessage( "DEBUG", "1: Reprojecting Lambert Conformal NAM data with the following command: $com" );
-            my $res = `$com`;
-            if ( !-f "rotatedNAM.txt" ) {
-                die "\nrotatedNAM.txt DNE. on TS=$t\n";
-            }
-            else {
-                &appMessage( "DEBUG", "$res" );
-            }
-
-            #                   &stderrMessage("DEBUG","Applying spatial ramp.");
-
+        my $rampDistance = -99999.0;
+        if ( $applyRamp ) {
+           $rampDistance = $jshash_ref->{"namBoundaryRampDistance"};
         }
-        else {
-            &appMessage(
-                "DEBUG",
-                "2: Reprojecting Lambert Conformal NAM data with the following command: $scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1"
-            );
-            `$scriptDir/lambertInterpRamp.x --grid-number $awipGridNumber --num-columns 3 --lambert-data-inputfile $uvpFile --target-point-file $ptFile --geographic-data-outputfile rotatedNAM.txt --wind-units velocity --wind-multiplier $velocityMultiplier --ramp-distance -99999.0 >> reproject.log 2>&1`;
-
-            #&stderrMessage("DEBUG","Not applying spatial ramp.");
+        # NAM pressure data are in Pa
+        if ( -f "rotataedNAM.txt" ) {
+           ASGSUtil::appMessage(
+                     "DEBUG",
+                     "Deleting old rotatedNAM.txt.");
+           unlink "rotatedNAM.txt";
         }
-        &toOWIformat( 'rotatedNAM.txt', $geoHeader . "DT=" . $OWItime[$t] );
+        my $cmd = "$scriptDir/lambertInterpRamp.x " .
+                  "--grid-number $awipGridNumber " .
+                  "--num-columns 3 " .
+                  "--lambert-data-inputfile $uvpFile " .
+                  "--target-point-file $ptFile " .
+                  "--geographic-data-outputfile rotatedNAM.txt " .
+                  "--wind-units velocity " .
+                  "--wind-multiplier $velocityMultiplier " .
+                  "--ramp-distance $rampDistance " .
+                  "--background-pressure 101300.0 " .
+                  "--pressure-column 3 " .
+                  ">> reproject.log 2>&1";
+        ASGSUtil::appMessage(
+                   "DEBUG",
+                   "1: Reprojecting Lambert Conformal NAM data ".
+                   "with the following command: $cmd" );
+        $jshash_ref->{"reprojectionCmd"} = "$cmd";
+        my $res = `$cmd`;
+
+        if ( !-f "rotatedNAM.txt" ) {
+           die "\nrotatedNAM.txt DNE. on TS=$t\n";
+        } else {
+           ASGSUtil::appMessage(
+                     "DEBUG",
+                     "$res");
+        }
+        toOWIformat( 'rotatedNAM.txt', $geoHeader . "DT=" . $OWItimeRef->[$t], $OWI_wnd_ref, $OWI_pres_ref );
     }
 }
-################################################################################
-# NAME: &addToFort22
-# CALL: &addToFort22()
-# GOAL: loop through time-steps to rotate and output at specific points with
-#	awips_lambert_interp - populate the OWI array with resulting data
-################################################################################
-sub addToFort22 {
-    open( F22, ">>$fort22" )
-      || die "ERROR: NAMtoOWIRamp.pl: Failed to open OWI (NWS12) fort.22 file to append a comment line with the met time increment.";
-    my $wtiminc = $timeStep * 3600;    # ts in seconds
-    &stderrMessage( "INFO", "Appending the WTIMINC value of '$wtiminc' to the fort.22 file '$fort22'." );
-    print F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
-    close(F22);
-
-}
 
 ################################################################################
-# NAME: &getGrib2
-# CALL: &getGrib2
+# NAME: getGrib2
+# CALL: getGrib2
 # GOAL: get the u,v,p data and time info from the grib2 files
 ################################################################################
 sub getGrib2 {
-    $fort22 = $outDir . $fort22;
+    my (
+        $stage,
+        $dataDir, $outDir, $namFormat,
+        $timeStep_ref, $startTime_ref, $endTime_ref,
+        $OWI_wnd_ref, $OWI_pres_ref, $OWItime_ref,
+        $nRec_ref, $recordLength_ref,
+        $wndFile_ref, $presFile_ref, $jshash_ref
+        )
+        = @_;
+    # grab the list of cycles out of the hash
+    my $cyclelist_ref = $jshash_ref->{"cyclelist"};
+    #
+    my $fort22 = $outDir . '/fort.22';
     my @grib2Files;
-    if ( $namType eq "nowcast" ) {
 
+    if ( $stage eq "NOWCAST" ) {
+        $$startTime_ref = $cyclelist_ref->[0];
+        $$endTime_ref = $cyclelist_ref->[-1];
+        #  N O W C A S T
         # if these are nowcast files, we'll assume that the data are
         # six hours apart
-        $timeStep = 6.0;    # in hours
-                            # assume grib2 files are located in directories
-                            # called 'erl.yymmdd' where yymmdd is the year month day
+        $$timeStep_ref = 6.0;  # in hours
+                               # assume grib2 files are located in directories
+                               # called 'erl.yymmdd' where yymmdd is the year month day
         my @grib2Dirs;
         if ( $namFormat eq "grib2" ) {
             # assume that $dataDir points to a directory containing
@@ -571,36 +488,68 @@ sub getGrib2 {
             $grib2Dirs[0] = $dataDir;
         }
         my $numGrib2Dirs = @grib2Dirs;
-        &stderrMessage( "INFO", "There is/are $numGrib2Dirs directories to process." );
+        ASGSUtil::stderrMessage(
+                  "INFO",
+                  "There is/are $numGrib2Dirs directories to process." );
         if ( $numGrib2Dirs == 0 ) {
-            &stderrMessage( "ERROR", "There are no data directories to process." );
+            ASGSUtil::stderrMessage(
+                      "ERROR",
+                      "There are no data directories to process." );
             die;
         }
         foreach my $dir (@grib2Dirs) {
-            push( @grib2Files, glob( $dir . "/*." . $namFormat ) );
+            # e.g.:
+            # $dataDir/erl.220123/nam.t18z.awip1200.tm00.grib2
+            # $dataDir/erl.220124/nam.t00z.awip1200.tm00.grib2
+            # $dataDir/erl.220124/nam.t06z.awip1200.tm00.grib2
+            #
+            # eliminate any data file that is before or after
+            # the time range of interest
+            my @thisDirFiles = glob( $dir . "/nam.*awip1200*." . $namFormat );
+            foreach my $file (@thisDirFiles) {
+               $file =~ /erl.(\d\d)(\d\d)(\d\d)\/nam.t(\d\d)/;
+               my $cycletime = "20$1$2$3$4";
+               if ( $cycletime >= $$startTime_ref && $cycletime <= $$endTime_ref ) {
+                  push( @grib2Files, $file );
+               }
+            }
         }
-    }
-    else {
+    } else {
+        #  F O R E C A S T
+        $$startTime_ref = $cyclelist_ref->[-1];
+        $jshash_ref->{"namForecastValidStart"} = "$$startTime_ref" . "0000";
         # if these are forecast files, we'll assume that the data are
         # three hours apart, and that they are all located in the same
         # subdirectory
-        $timeStep   = 3.0;                                     # in hours
-        @grib2Files = glob( $dataDir . "/*." . $namFormat );
+        $$timeStep_ref = 3.0; # in hours
+        # e.g.:
+        # $dataDir/erl.220123/nam.t18z.awip1200.tm00.grib2
+        # $dataDir/erl.220123/nam.t18z.awip1203.tm00.grib2
+        # $dataDIr/erl.220123/nam.t18z.awip1206.tm00.grib2
+        # ...
+        # Determine the NAM cycle to convert
+        $$startTime_ref =~ /\d{2}(\d{2})(\d{2})(\d{2})(\d{2})/;
+        my $dir = "erl.$1$2$3";
+        my $cycleHour = $4;
+        @grib2Files = glob( "$dataDir/$dir/nam.t$cycleHour*." . $namFormat );
     }
+
     #
     # grab the start time (YYYYMMDDHH) of the files from the
     # inventory in the first file ... this assumes that glob returns
     # the files in ascending order.
     if ( $namFormat eq "grb" ) {
         `$scriptDir/wgrib -v $grib2Files[0] | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
-        $startTime = $1;
+        $$startTime_ref = $1;
     }
     if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
         `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
-        $startTime = $1;
+        $$startTime_ref = $1;
     }
-    &appMessage( "DEBUG", "The start time is '$startTime'." );
-    $startTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+    ASGSUtil::appMessage(
+              "DEBUG",
+              "The start time is '$$startTime_ref'." );
+    $$startTime_ref =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
     my $sy = $1;    # start year
     my $sm = $2;    # start month
     my $sd = $3;    # start day
@@ -609,7 +558,7 @@ sub getGrib2 {
     my ( $fy, $fm, $fd, $fh, $fmin, $fs );    # forecast yr, mon, day, hr, mn, sec
     my $numGrib2Files = 0;
     my $oldCycleHour  = 0;
-    my $oldEndTime    = $startTime;
+    my $oldEndTime    = $$startTime_ref;
     my @oldRawUVP;
     my $dhrs = 0;
     my ( $oey, $oem, $oed, $oeh, $oemin, $oes );    # old end time
@@ -617,7 +566,9 @@ sub getGrib2 {
 
     foreach my $file (@grib2Files) {
         $numGrib2Files++;
-        &appMessage( "DEBUG", "Starting work on '$file'." );
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "Starting work on '$file'." );
         my $cycleHour = "00";
         if ( $namFormat eq "grib2" ) {
             # grab the cycle hour from the filename itself
@@ -632,7 +583,9 @@ sub getGrib2 {
             `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
             $cycleHour = $4;
         }
-        &appMessage( "DEBUG", "The cycle hour is '$cycleHour'." );
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "The cycle hour is '$cycleHour'." );
         ( $fy, $fm, $fd, $fh, $fmin, $fs ) = Date::Calc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
 
         # calculate and save the end time ... last one will represent
@@ -640,19 +593,19 @@ sub getGrib2 {
         my $numInterp = 0;
         my @factors;
         $factors[0] = 1.0;
-        $endTime = "";
-        if ( $namType eq "nowcast" ) {
+        $$endTime_ref = "";
+        if ( $stage eq "NOWCAST" ) {
             my $temp = "";
             if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
                 my $com = "";
                 $com  = "$scriptDir/wgrib2 $file -match PRMSL";
                 $temp = `$com`;
                 $temp =~ m/d=(\d+)/;
-                $endTime = $1;
+                $$endTime_ref = $1;
             }
             if ( $namFormat eq "grb" ) {
                 `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
-                $endTime = $1;
+                $$endTime_ref = $1;
             }
 
             # check to see if there are any missing cycles ... if so, then
@@ -667,19 +620,27 @@ sub getGrib2 {
             $oem = $2;
             $oed = $3;
             $oeh = $4;
-            $endTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+            $$endTime_ref =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
             $ney = $1;
             $nem = $2;
             $ned = $3;
             $neh = $4;
-            ( my $ddays, $dhrs, my $dsec ) = Date::Calc::Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, $ney, $nem, $ned, $neh, 0, 0 );
+            ( my $ddays, $dhrs, my $dsec ) =
+                Date::Calc::Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0,
+                                        $ney, $nem, $ned, $neh, 0, 0 );
             $dhrs = $dhrs + $ddays * 24;
 
-            #&stderrMessage("DEBUG","The dhrs is $dhrs.");
-            if ( $dhrs > $timeStep ) {
-                &stderrMessage( "WARNING", "The time difference between the files is greater than $timeStep hours. The intervening data will be linearly interpolated." );
-                $numInterp = $dhrs / $timeStep;
-                &appMessage( "DEBUG", "There are $numInterp time increments to interpolate." );
+            #ASGSUtil::stderrMessage("DEBUG","The dhrs is $dhrs.");
+            if ( $dhrs > $$timeStep_ref ) {
+                ASGSUtil::stderrMessage(
+                          "WARNING",
+                          "The time difference between the files " .
+                          "is greater than $timeStep hours. " .
+                          "The intervening data will be linearly interpolated.");
+                $numInterp = $dhrs / $$timeStep_ref;
+                ASGSUtil::appMessage(
+                          "DEBUG",
+                          "There are $numInterp time increments to interpolate." );
 
                 # calculate interpolating factors
                 for ( my $i = 1; $i <= $numInterp; $i++ ) {
@@ -692,11 +653,15 @@ sub getGrib2 {
             }
         }
         else {
-            ( $ey, $em, $ed, $eh, $emin, $es ) = Date::Calc::Add_Delta_DHMS( $sy, $sm, $sd, $sh, 0, 0, 0, $cycleHour, 0, 0 );
-            $endTime = sprintf( "%4d%02d%02d%02d", $ey, $em, $ed, $eh );
+            ( $ey, $em, $ed, $eh, $emin, $es ) =
+               Date::Calc::Add_Delta_DHMS( $sy, $sm, $sd,        $sh, 0, 0,
+                                                       0, $cycleHour, 0, 0 );
+            $$endTime_ref = sprintf( "%4d%02d%02d%02d", $ey, $em, $ed, $eh );
         }
-        &appMessage( "DEBUG", "The end time is '$endTime'." );
-        push( @OWItime, $endTime . "00" );    # add the minutes columns
+        ASGSUtil::appMessage(
+                  "DEBUG",
+                  "The end time is '$$endTime_ref'." );
+        push( @OWItime, $$endTime_ref . "00" );    # add the minutes columns
                                               #
                                               # now grab the u,v,p data from the file
         my @rawU;
@@ -760,8 +725,8 @@ sub getGrib2 {
         my @nxny = split( " ", shift(@rawU) );
         shift(@rawV);    # get rid of header line
         shift(@rawP);    # get rid of header line
-                         #&stderrMessage("INFO","nlon is $nxny[0] nlat is $nxny[1].");
-        $recordLength = $nxny[0] * $nxny[1];
+                         #ASGSUtil::stderrMessage("INFO","nlon is $nxny[0] nlat is $nxny[1].");
+        $$recordLength_ref = $nxny[0] * $nxny[1];
         my @rawUVP = ( @rawU, @rawV, @rawP );
 
         # interpolate if necessary
@@ -776,26 +741,43 @@ sub getGrib2 {
 
         if ( $numInterp > 0 ) {
             for ( my $i = 1; $i <= $numInterp; $i++ ) {
-                ( my $iy, my $im, my $iday, my $ih, my $imin, my $isec ) = Date::Calc::Add_Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0, 0, $i * $timeStep, 0, 0 );
+                ( my $iy, my $im, my $iday, my $ih, my $imin, my $isec )
+                   = Date::Calc::Add_Delta_DHMS( $oey, $oem, $oed, $oeh, 0, 0,
+                                                      0, $i * $timeStep, 0, 0 );
 
                 my $interpolatedTime = sprintf( "%4d%02d%02d%02d", $iy, $im, $iday, $ih );
 
-                &stderrMessage( "WARNING", "Interpolating data at time $interpolatedTime in the date range ($oldEndTime, $endTime) with the interpolating factor $factors[$i-1]." );
+                ASGSUtil::stderrMessage(
+                          "WARNING",
+                          "Interpolating data at time $interpolatedTime " .
+                          "in the date range ($oldEndTime, $endTime) " .
+                          "with the interpolating factor $factors[$i-1].");
 
-                # create output data ... this will be linearly interpolated in
-                # time between two valid datasets - each 3rd of the interpolation is distribted among @ugrd, @vgrd, and @atmp
+                # create output data ...
+                # this will be linearly interpolated in
+                # time between two valid datasets -
+                # each 3rd of the interpolation is distributed
+                # among @ugrd, @vgrd, and @atmp
 
-                for ( my $uvp_index = 0; $uvp_index < $recordLength; $uvp_index++ ) {
-                    my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] ) * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
+                for ( my $uvp_index = 0;
+                         $uvp_index < $$recordLength_ref;
+                         $uvp_index++ ) {
+                    my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] )
+                              * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
                     push( @tmp_ugrd, $val );
                 }
-                for ( my $uvp_index = $recordLength; $uvp_index < 2 * $recordLength; $uvp_index++ ) {
-                    my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] ) * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
+                for ( my $uvp_index = $$recordLength_ref;
+                         $uvp_index < 2 * $$recordLength_ref;
+                         $uvp_index++ ) {
+                    my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] )
+                              * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
                     push( @tmp_vgrd, $val );
                 }
-
-                for ( my $uvp_index = 2 * $recordLength; $uvp_index < 3 * $recordLength; $uvp_index++ ) {
-                    my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] ) * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
+                for ( my $uvp_index = 2 * $$recordLength_ref;
+                         $uvp_index < 3 * $$recordLength_ref;
+                         $uvp_index++ ) {
+                    my $val = ( $rawUVP[$uvp_index] - $oldRawUVP[$uvp_index] )
+                              * $factors[ $i - 1 ] + $oldRawUVP[$uvp_index];
                     push( @tmp_atmp, $val );
                 }
             }
@@ -803,14 +785,13 @@ sub getGrib2 {
         else {
             # there wasn't any data missing between the last file and
             # the current one, so just push the data into the arrays
-
-            foreach my $val ( @rawUVP[ ( 0 .. ( $recordLength - 1 ) ) ] ) {
+            foreach my $val ( @rawUVP[ ( 0 .. ( $$recordLength_ref - 1 ) ) ] ) {
                 push( @tmp_ugrd, $val );
             }
-            foreach my $val ( @rawUVP[ ( $recordLength .. ( 2 * $recordLength - 1 ) ) ] ) {
+            foreach my $val ( @rawUVP[ ( $$recordLength_ref .. ( 2 * $$recordLength_ref - 1 ) ) ] ) {
                 push( @tmp_vgrd, $val );
             }
-            foreach my $val ( @rawUVP[ ( 2 * $recordLength .. ( 3 * $recordLength - 1 ) ) ] ) {
+            foreach my $val ( @rawUVP[ ( 2 * $$recordLength_ref .. ( 3 * $$recordLength_ref - 1 ) ) ] ) {
                 push( @tmp_atmp, $val );
             }
         }
@@ -819,52 +800,29 @@ sub getGrib2 {
         store \@tmp_vgrd, $vgrd_store_file;
         store \@tmp_atmp, $atmp_store_file;
 
-        $oldEndTime   = $endTime;
+        $oldEndTime   = $$endTime_ref;
         $oldCycleHour = $cycleHour;
         @oldRawUVP    = @rawUVP;
     }
 
-    $mainHeader = "Oceanweather WIN/PRE Format                            $startTime     $endTime";
-    push @OWI_wnd,  $mainHeader;
-    push @OWI_pres, $mainHeader;
+    my $mainHeader = "Oceanweather WIN/PRE Format                            $startTime     $endTime";
+    push @$OWI_wnd_ref,  $mainHeader;
+    push @$OWI_pres_ref, $mainHeader;
 
     # build the filenames
-    $wndFile  = $outDir . 'NAM_' . $startTime . '_' . $endTime . '.222';
-    $presFile = $outDir . 'NAM_' . $startTime . '_' . $endTime . '.221';
-    &stderrMessage( "INFO", "Processed $numGrib2Files file(s)." );
-    $nRec{'time'} = $numGrib2Files;
+    $$wndFile_ref  = "$outDir" . "/NAM_$stage" . "_$$startTime_ref" . "_$$endTime_ref" . ".222";
+    $$presFile_ref = "$outDir" . "/NAM_$stage" . "_$$startTime_ref" . "_$$endTime_ref" . ".221";
+    ASGSUtil::stderrMessage(
+              "INFO",
+              "Processed $numGrib2Files file(s).");
+    $$nRec_ref{'time'} = $numGrib2Files;
     if ( $numGrib2Files == 0 ) {
-        &stderrMessage( "ERROR", "There were no files to process." );
+        ASGSUtil::stderrMessage(
+                  "ERROR",
+                  "There were no files to process.");
         die;
     }
-
-}
-
-sub stderrMessage () {
-    my $level   = shift;
-    my $message = shift;
-    my @months  = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-    ( my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings ) = localtime();
-    my $year    = 1900 + $yearOffset;
-    my $hms     = sprintf( "%02d:%02d:%02d", $hour, $minute, $second );
-    my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-    printf STDERR "$theTime $level: $namType: NAMtoOWIRamp.pl: $message\n";
-
-    if ( $level eq "ERROR" ) {
-        sleep 1;
+    if ( $stage eq "FORECAST" ) {
+        $jshash_ref->{"namForecastValidEnd"} = "$$endTime_ref" . "0000";
     }
-}
-
-#
-# write a log message to a log file dedicated to this script (typically debug messages)
-sub appMessage () {
-   my $level = shift;
-   my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-
-   printf APPLOGFILE "$theTime $level: $scenario: get_nam.pl: $message\n";
 }

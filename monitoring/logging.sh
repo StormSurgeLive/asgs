@@ -472,8 +472,10 @@ writeASGSInstanceStatus()
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
     echo "adcirc.version : $ADCIRCVERSION" >> $statfile
     # convert to asgs.instance.status.json
-    $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $statfile --converted-file-name $jsonfile 2>> $SYSLOG
-    sed --in-place "s/$USER/\$USER/g" $statusDir/$jsonfile
+    $SCRIPTDIR/metadata.pl --redact \
+       < $statfile                  \
+       > $jsonfile                  \
+     2>> $SYSLOG
 }
 #
 # post the asgs instance status and hook status files to opendap

@@ -1,0 +1,38 @@
+{
+   "dataType" : "forcing",
+   "source" : "nam",
+   "scriptDir" : "%NULLSCRIPTDIR%",
+   "localDataDir" : "%NULLNAMDATAPATH%",
+   "template" : "%NULLGETNAMTEMPLATEFILE%",
+   "filled" : "%NULLGETNAMTEMPLATEFILLEDFILE%",
+   "status" : "%NULLNAMSTATUSFILE%",
+   "select" : "%NULLNAMSELECTFILE%",
+   "get" : "%NULLGETNAMFILE%",
+   "reproject" : "%NULLREPROJECTNAMFILE%",
+   "siteHost" : "%NULLBACKSITE%",
+   "siteDir" : "%NULLBACKDIR%",
+   "configDailyForecastCycles" : [
+      "%NULLFORECASTCYCLE%"
+   ],
+   "stage" : "%NULLSTAGE%",
+   "cyclelist" : [
+      %NULLCYCLE%
+   ],
+   "winPreDataDir" : "%NULLNAMWINPREDATAPATH%",
+   "winPreGridFile" : "%NULLNAMWINPREGRID%",
+   "namDataFormat" : "%NULLNAMRAWFORMAT%",
+   "awipGrid" : "%NULLNAMAWIPGRID%",
+   "winPreConversionVelocityMultiplier" : "%NULLVELMULT%",
+   "winPreConversionPressureMultiplier" : "%NULLPRESSMULT%",
+   "namBoundaryApplyRamp" : "%NULLAPPLYRAMP%",
+   "namBoundaryRampDistance" : "%NULLRAMPDIST%",
+   "filesDownloaded" : [
+      "%NULLNAMNOWCASTDOWNLOADED%"
+   ],
+   "filesFromCache" : [
+      "%NULLNAMNOWCASTFOUND%"
+   ],
+   "lastupdated" : [
+      { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }
+   ]
+}
