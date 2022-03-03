@@ -726,32 +726,96 @@ prepFile()
    # for "$ppn"
    _PPN=$(HPC_PPN_Hint "serial" "$SERQUEUE" "$HPCENV" "$QOS" "1")
    echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR/run.properties
-   unset _PPN
-
-   if [[ $QUEUESYS = "SLURM" ]]; then
-      # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
-      _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "1")
-      echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR/run.properties
-      unset _RESERVATION
-      echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
-      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
-   fi
-
+   # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
+   _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "1")
+   echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR/run.properties
+   echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
+   echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    #
    # start log redirect processes for centralized logging
    initCentralizedScenarioLogging
    #
+   # build queue script
+   qScriptRequestTemplate=$SCRIPTDIR/qscript_request_template.json
+   qScriptRequest=$SCENARIODIR/qscript_request_$JOBTYPE.json
+   qScriptResponse=$SCENARIODIR/qscript_response_$JOBTYPE.json
+   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+   parallelism=serial
+   forncpu=$NCPU
+   DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   # keep sed from getting confused by escaping slashes
+   escSCRIPTDIR=${SCRIPTDIR////'\/'}
+   escADCIRCDIR=${ADCIRCDIR////'\/'}
+   escQSCRIPTTEMPLATE=${QSCRIPTTEMPLATE////'\/'}
+   escADVISDIR=${ADVISDIR////'\/'}
+   escSYSLOG=${SYSLOG////'\/'}
+   escSCENARIOLOG=${SCENARIOLOG////'\/'}
+   #
+   # create queue script request by filling in template
+   # with data needed to create queue script
+   sed \
+      -e "s/%jobtype%/$JOBTYPE/" \
+      -e "s/%qscripttemplate%/$escQSCRIPTTEMPLATE/" \
+      -e "s/%parallelism%/$parallelism/" \
+      -e "s/%ncpu%/$NCPU/" \
+      -e "s/%forncpu%/$NCPU/" \
+      -e "s/%numwriters%/$NUMWRITERS/" \
+      -e "s/%joblauncher%/$JOBLAUNCHER/" \
+      -e "s/%walltime%/$ADCPREPWALLTIME/" \
+      -e "s/%walltimeformat%/$WALLTIMEFORMAT/" \
+      -e "s/%ppn%/${_PPN}/" \
+      -e "s/%queuename%/$QUEUENAME/" \
+      -e "s/%serqueue%/$SERQUEUE/" \
+      -e "s/%account%/$ACCOUNT/" \
+      -e "s/%advisdir%/$escADVISDIR/" \
+      -e "s/%scriptdir%/$escSCRIPTDIR/" \
+      -e "s/%adcircdir%/$escADCIRCDIR/" \
+      -e "s/%scenario%/$SCENARIO/" \
+      -e "s/%reservation%/${_RESERVATION}/" \
+      -e "s/%constraint%/$CONSTRAINT/" \
+      -e "s/%qos%/$QOS/" \
+      -e "s/%syslog%/$escSYSLOG/" \
+      -e "s/%scenariolog%/$escSCENARIOLOG/" \
+      -e "s/%hotstartcomp%/$HOTSTARTCOMP/" \
+      -e "s/%queuesys%/$QUEUESYS/" \
+      -e "s/%hpcenvshort%/$HPCENVSHORT/" \
+      -e "s/%asgsadmin%/$ASGSADMIN/" \
+      -e "s/%NULLLASTUPDATER%/$THIS/" \
+      -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
+      < $qScriptRequestTemplate \
+      > $qScriptRequest \
+    2>> $SYSLOG
+   unset _PPN
+   unset _RESERVATION
+   # generate queue script
+   $SCRIPTDIR/qscript.pl < $qScriptRequest   \
+                         > $qScriptResponse 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      fatal "Failed to generate queue script."
+   fi
+   # extract queue script name from response
+   qscript=$(bashJSON.pl --key "qScriptFileName"        \
+                        < $qScriptResponse 2>> $SYSLOG)
+   # extract queue script from response
+   bashJSON.pl --key "script" < $qScriptResponse 2>> $SYSLOG \
+                              | base64 -d                    \
+                              > $qscript 2>> $SYSLOG
+   # check to make sure the file is there
+   if [[ ! -e $qscript ]]; then
+      fatal "Failed to extract queue script $qscript from $qScriptResponse."
+   fi
+   # update the run.properties file
+   echo "hpc.job.$JOBTYPE.file.qscript : $qscript" >> run.properties
+   #
    case $QUEUESYS in
    "SLURM" | "PBS" | "SGE" )
-      queuesyslc=`echo $QUEUESYS | tr '[:upper:]' '[:lower:]'`
+      queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Preparing queue script for adcprep.${JOBTYPE}.${queuesyslc}."
-      scenarioMessage "$ENSTORM: $THIS: Preparing queue script for adcprep with the following: perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE"
-      perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE >> scenario.log 2> >(awk -v this=$QSCRIPTGEN -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log )
       # submit adcprep job, check to make sure queue script submission
       # succeeded, and if not, retry
       local jobSubmitInterval=60
       while [ true ];  do
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
          # submit job , capture stdout from sbatch and direct it
          # to scenario.log; capture stderr and send to all logs
@@ -790,7 +854,6 @@ prepFile()
       fi
       ;;
    esac
-
 }
 #
 # subroutine that calls an external script over and over until it
@@ -1321,7 +1384,89 @@ submitJob()
       CLOPTIONS="${CLOPTIONS} -S -R"
       LOCALHOTSTART="--localhotstart"
    fi
-   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "hpc.job.${JOBTYPE}.cloptions : \"$CLOPTIONS\"" >> $ADVISDIR/$ENSTORM/run.properties
+   echo "hpc.job.${JOBTYPE}.localhotstart : $LOCALHOTSTART" >> $ADVISDIR/$ENSTORM/run.properties
+   _CPUREQUEST=$(($NCPU + $NUMWRITERS))
+   _PPN=$(HPC_PPN_Hint "parallel" "$QUEUENAME" "$HPCENV" "$QOS" "$PPN" )
+   _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
+   _QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
+   #
+   # build queue script
+   qScriptRequestTemplate=$SCRIPTDIR/qscript_request_template.json
+   qScriptRequest=$SCENARIODIR/qscript_request_$JOBTYPE.json
+   qScriptResponse=$SCENARIODIR/qscript_response_$JOBTYPE.json
+   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+   if [[ $QUEUESYS == "serial" ]]; then
+      parallelism=serial
+   else
+      parallelism=parallel
+   fi
+   DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   # keep sed from getting confused by escaping slashes
+   escSCRIPTDIR=${SCRIPTDIR////'\/'}
+   escADCIRCDIR=${ADCIRCDIR////'\/'}
+   escQSCRIPTTEMPLATE=${QSCRIPTTEMPLATE////'\/'}
+   escADVISDIR=${ADVISDIR////'\/'}
+   escSYSLOG=${SYSLOG////'\/'}
+   escSCENARIOLOG=${SCENARIOLOG////'\/'}
+   #
+   # create queue script request by filling in template
+   # with data needed to create queue script
+   sed \
+      -e "s/%jobtype%/$JOBTYPE/" \
+      -e "s/%qscripttemplate%/$escQSCRIPTTEMPLATE/" \
+      -e "s/%parallelism%/$parallelism/" \
+      -e "s/%ncpu%/$NCPU/" \
+      -e "s/%forncpu%/$NCPU/" \
+      -e "s/%numwriters%/$NUMWRITERS/" \
+      -e "s/%joblauncher%/$JOBLAUNCHER/" \
+      -e "s/%walltime%/$WALLTIME/" \
+      -e "s/%walltimeformat%/$WALLTIMEFORMAT/" \
+      -e "s/%ppn%/${_PPN}/" \
+      -e "s/%queuename%/${_QUEUENAME}/" \
+      -e "s/%serqueue%/$SERQUEUE/" \
+      -e "s/%account%/$ACCOUNT/" \
+      -e "s/%advisdir%/$escADVISDIR/" \
+      -e "s/%scriptdir%/$escSCRIPTDIR/" \
+      -e "s/%adcircdir%/$escADCIRCDIR/" \
+      -e "s/%scenario%/$SCENARIO/" \
+      -e "s/%reservation%/${_RESERVATION}/" \
+      -e "s/%constraint%/$CONSTRAINT/" \
+      -e "s/%qos%/$QOS/" \
+      -e "s/%syslog%/$escSYSLOG/" \
+      -e "s/%scenariolog%/$escSCENARIOLOG/" \
+      -e "s/%hotstartcomp%/$HOTSTARTCOMP/" \
+      -e "s/%queuesys%/$QUEUESYS/" \
+      -e "s/%hpcenvshort%/$HPCENVSHORT/" \
+      -e "s/%asgsadmin%/$ASGSADMIN/" \
+      -e "s/%NULLLASTUPDATER%/$THIS/" \
+      -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
+      < $qScriptRequestTemplate \
+      > $qScriptRequest \
+    2>> $SYSLOG
+   unset _CPUREQUEST
+   unset _PPN
+   unset _RESERVATION
+   unset _QUEUENAME
+   # generate queue script
+   $SCRIPTDIR/qscript.pl < $qScriptRequest   \
+                         > $qScriptResponse 2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      fatal "Failed to generate queue script."
+   fi
+   # extract queue script name from response
+   qscript=$(bashJSON.pl --key "qScriptFileName"        \
+                        < $qScriptResponse 2>> $SYSLOG)
+   # extract queue script from response
+   bashJSON.pl --key "script" < $qScriptResponse 2>> $SYSLOG \
+                              | base64 -d                    \
+                              > $qscript 2>> $SYSLOG
+   # check to make sure the file is there
+   if [[ ! -e $qscript ]]; then
+      fatal "Failed to extract queue script $qscript from $qScriptResponse."
+   fi
+   # update the run.properties file
+   echo "hpc.job.$JOBTYPE.file.qscript : $qscript" >> run.properties
    #
    # start the job in a queueing system-dependent way
    case $QUEUESYS in
@@ -1359,10 +1504,8 @@ submitJob()
       echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    #
-   #  SLURM PBS SGE LoadLeveler LSF
-   "SLURM" | "PBS" | "SGE" | "LoadLeveler" | "LSF" )
-      queuesyslc=`echo $QUEUESYS | tr '[:upper:]' '[:lower:]'`
-      perl $SCRIPTDIR/$QSCRIPTGEN --jobtype $JOBTYPE 2>&1 | awk -v this=$QSCRIPTGEN -f $SCRIPTDIR/monitoring/timestamp.awk >> $ADVISDIR/$ENSTORM/scenario.log
+   "SLURM" | "PBS" )
+      queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
@@ -1371,7 +1514,7 @@ submitJob()
       #
       # submit job, check to make sure qsub succeeded, and if not, retry (forever)
       while [ true ];  do
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+         DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
          $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
          if [[ $? == 0 ]]; then
@@ -1395,10 +1538,11 @@ submitJob()
          postScenarioStatus
       fi
       ;;
-#
-#  No queueing system, just mpiexec (used on standalone computers)
+   #
+   # No queueing system, just mpiexec (used on standalone computers
+   # and small clusters)
    "mpiexec")
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
+      DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S'%z)
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
       CPUREQUEST=$(($NCPU + $NUMWRITERS))
