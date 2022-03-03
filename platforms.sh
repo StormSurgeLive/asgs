@@ -419,6 +419,8 @@ init_desktop()
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
+  QUEUENAME=mpiexec
+  SERQUEUE=cmd
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=/srv/asgs
