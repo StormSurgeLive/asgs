@@ -89,6 +89,8 @@ my $hsformat="binary";  # input param for hotstart format: binary or netcdf
 my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
 my $hotswan = "on"; # "off" if swan has to be cold started (only on first nowcast)
 our $netcdf4;  # if defined, then netcdf files should use netcdf4 formatting
+my $output_start = "0.0"; # days after cold start when output should start
+my $output_end = "9999.0"; # days after cold start when output should end
 #
 my @TRACKS = (); # should be few enough to store all in an array for easy access
 my $controltemplate;
@@ -324,9 +326,11 @@ if ( defined $hstime ) {
 }
 # [de]activate output files with time step increment and with(out) appending.
 my $fort61specifier = getSpecifier($fort61freq,$fort61append,$fort61netcdf);
+my $incr = getIncrement($fort61freq,$dt);
+$fort61 = "$fort61specifier $output_start $output_end $incr";
 my $fort62specifier = getSpecifier($fort62freq,$fort62append,$fort62netcdf);
-$fort61 = $fort61specifier . " 0.0 365.0 " . getIncrement($fort61freq,$dt);
-$fort62 = $fort62specifier . " 0.0 365.0 " . getIncrement($fort62freq,$dt);
+$incr = getIncrement($fort62freq,$dt);
+$fort62 = "$fort62specifier $output_start $output_end $incr";
 #
 my $fort63specifier = getSpecifier($fort63freq,$fort63append,$fort63netcdf);
 my $fort64specifier = getSpecifier($fort64freq,$fort64append,$fort64netcdf);
@@ -338,8 +342,10 @@ if ( defined $sparseoutput ) {
       $fort64specifier *= 4;
    }
 }
-$fort63 = $fort63specifier . " 0.0 365.0 " . getIncrement($fort63freq,$dt);
-$fort64 = $fort64specifier . " 0.0 365.0 " . getIncrement($fort64freq,$dt);
+$incr = getIncrement($fort63freq,$dt);
+$fort63 = "$fort63specifier $output_start $output_end $incr";
+$incr = getIncrement($fort64freq,$dt);
+$fort64 = "$fort64specifier $output_start $output_end $incr";
 my $fort7172specifier = getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
 my $fort7374specifier = getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
 
@@ -349,8 +355,11 @@ if ( defined $sparseoutput ) {
       $fort7374specifier *= 4;
    }
 }
-$fort7172 = $fort7172specifier . " 0.0 365.0 " . getIncrement($fort7172freq,$dt);
-$fort7374 = $fort7374specifier . " 0.0 365.0 " . getIncrement($fort7374freq,$dt);
+$incr = getIncrement($fort7172freq,$dt);
+$fort7172 = "$fort7172specifier $output_start $output_end $incr";
+$incr = getIncrement($fort7172freq,$dt);
+$fort7374 = "$fort7374specifier $output_start $output_end $incr";
+
 if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
