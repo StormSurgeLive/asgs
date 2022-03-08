@@ -948,9 +948,9 @@ downloadBackgroundMet()
    # N O W C A S T
    if [[ $stage == "NOWCAST" ]]; then
       # determine the cycle time corresponding to the current state of the simulation
-      csEpochSeconds=$(date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
+      csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
       hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
-      lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
+      lastCycle=$(TZ=UTC date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
       # create the json file to act as input to the
       # status checker and nam downloader
       namTemplateName="get_nam_template.json"
@@ -2346,9 +2346,9 @@ while [ true ]; do
    case $BACKGROUNDMET in
       "namBlend")
          # determine the cycle time corresponding to the current state of the simulation
-         csEpochSeconds=$(date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
+         csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
          hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
-         lastCycle=$(date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
+         lastCycle=$(TZ=UTC date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
          scenarioMessage "Getting NAM data."
          # are we sure that the current nam nowcast endtime is the
          # same as the BEST track file end time??
