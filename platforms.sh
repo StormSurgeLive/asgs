@@ -505,20 +505,13 @@ writeTDSProperties()
    DOWNLOADPREFIX=""   # after thredds/fileServer
    case $SERVER in
    "renci_tds")
-      # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
-      # http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-      # http://tds.renci.org:8080/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-      # http://tds.renci.org:8080/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
       THREDDSHOST=tds.renci.org # WWW hostname for emailed links
       OPENDAPHOST=renci_tds     # alias in $HOME/.ssh/config
-      OPENDAPPORT=":8080"
+      OPENDAPPORT=":80"
       OPENDAPPROTOCOL="http"
       OPENDAPBASEDIR=/projects/ncfs/opendap/data
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
       echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> $RUNPROPERTIES
-      #DOWNLOADPREFIX="http://tds.renci.org:8080/thredds/fileServer/DataLayers/asgs/"
-      #CATALOGPREFIX="http://tds.renci.org:8080/thredds/DataLayers/asgs/"
-      #OPENDAPBASEDIR=/projects/ees/DataLayers/asgs/
       ;;
 
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
