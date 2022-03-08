@@ -75,6 +75,7 @@ QUEUENAME="batch"
 INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+FINISH_NOWCAST_SCENARIO=( run_adda.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
 OPENDAPNOTIFY="bblanton@renci.org"

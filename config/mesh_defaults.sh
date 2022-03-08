@@ -263,20 +263,20 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-   "NCSC_SAB_v1.15")
+   "NCSC_SAB_v1.20")
       #
-      INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.15
-      GRIDFILE=NCSC_SAB_v1.15.grd
+      INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.20
+      GRIDFILE=NCSC_SAB_v1.20.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       #CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
       CONTROLTEMPLATE=fort.15.template
       # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
+      #CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
       CONTROLPROPERTIES=fort.15.properties
       ELEVSTATIONS=elev_stat.151
       VELSTATIONS=vel_stat.151
       METSTATIONS=met_stat.151
-      NAFILE=NCSC_SAB_v1.15.13
+      NAFILE=NCSC_SAB_v1.20.13
       NAPROPERTIES=${NAFILE}.properties
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
