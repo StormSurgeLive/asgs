@@ -16,6 +16,14 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 
+# preflight checkes and warnings
+if [ -n "$_ASGSH_PID" ]; then
+  echo
+  echo "$0 can't be run inside of asgsh."
+  echo
+  exit 1
+fi
+
 BATCH=$1
 
 # can tweak _ASGS_TMP default if TMPDIR is set in the environment
@@ -108,6 +116,7 @@ fi
 
 echo
 echo "Platform name       : $platform"
+echo "SCRIPTDIR           : $(pwd)"
 echo "WORK                : $WORK"
 echo "SCRATCH             : $SCRATCH"
 echo "ASGS Build directory: $_ASGS_TMP"
@@ -116,36 +125,38 @@ echo
 # Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
 if [ -z "$BATCH" ]; then
   read -p "Does the above system information look correct? [Y/n] " _looks_correct
-  if [[ -n "$_looks_correct" && "$_looks_correct" != Y ]]; then
+  if [[ -n "$_looks_correct" && "${_looks_correct^^}" != Y ]]; then
     echo Set up aborted. Ensure platform is supported, then try again. exiting...
     exit
   fi
   echo
-  read -p "Which asgs branch would you like to checkout from Github ('.' to skip checkout)? [master] " repo
+  read -p "Which asgs branch from Github should be used ('skip' or '.' to skip)? [master] " repo
 
   if [ -z "$repo" ]; then
     repo=master
   fi
  
-  if [ "$repo" != "." ]; then
+  if [[ "$repo" != "." && ${repo,,} != "skip" ]]; then
     git checkout $repo 2> /dev/null
     if [ $? -gt 0 ]; then
+     echo
      echo error checking out $repo
      read -p "skip checkout and proceed? [y/N] " skip
-     if [[ -z "$skip" || "$skip" = "n" ]]; then
+     if [[ -z "$skip" || "${skip^^}" = "N" ]]; then
        echo exiting ...
        exit
      fi
     fi
   else
-    echo leaving git repo in current state 
+    echo
+    echo "skipping 'git checkout', branch untouched ..." 
   fi
 fi
 
 _compiler=$DEFAULT_COMPILER
 if [ -z "$BATCH" ]; then
   echo
-  read -p "Which compiler family would you like to use, 'gfortran' or 'intel'? [$_compiler] " compiler
+  read -p "Which compiler 'family' would you like to use, 'gfortran' or 'intel'? [$_compiler] " compiler
 fi
 
 if [ -z "$compiler" ]; then
@@ -153,36 +164,15 @@ if [ -z "$compiler" ]; then
 fi
 
 if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
-  echo "compiler must be 'gfortran' or 'intel'"
+  echo
+  echo "'$compiler' is not valid, compiler must be 'gfortran' or 'intel'"
   exit 1
 fi
 
-_default_installpath=$WORK/opt
+_default_profile=default-$(basename "$(pwd)")
 if [ -z "$BATCH" ]; then
   echo
-  echo "(note: shell variables like \$HOME or \$WORK will not be expanded)?"
-  read -p "Where do you want to install libraries and some utilities? [$_default_installpath] " installpath
-fi
-
-if [ -z "$installpath" ]; then
-  installpath=$_default_installpath
-fi
-
-if [ -z "$BATCH" ]; then
-  if [ -d "$installpath" ]; then
-    echo
-    read -p "(warning) - '$installpath' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit 
-    if [[ -z "$quit" || "$quit" = Y ]]; then
-      echo exiting ...
-      exit 
-    fi
-  fi
-fi
-
-_default_profile=default
-if [ -z "$BATCH" ]; then
-  echo
-  read -p "What is a short name you'd like to use to name the asgsh profile associated with this installation? [\"$_default_profile\"] " profile
+  read -p "Name of this installation? [\"$_default_profile\"] " profile
 fi
 
 if [ -z "$profile" ]; then
@@ -190,14 +180,43 @@ if [ -z "$profile" ]; then
 fi
 
 if [ -z "$BATCH" ]; then
-  if [ -e $HOME/.asgs/default ]; then
+  if [ -e $HOME/.asgs/$profile ]; then
     echo
-    read -p "(warning) - it appears an 'default' profile already exists from a previous installation. Is it okay to proceed and overwrite? [y/N] " overwrite
-    if [[ -z "$overwrite" || "$overwrite" = "no" ]]; then
+    read -p "(warning) - it appears an '$profile' profile already exists from a previous installation. Is it okay to proceed and overwrite? [y/N] " overwrite
+    if [[ -z "$overwrite" || "${overwrite^^}" == "N" ]]; then
       echo exiting ...
       exit
     fi
   fi
+fi
+
+
+_default_installpath=$WORK/opt
+if [ -z "$BATCH" ]; then
+  echo
+  read -p "Install base for libraries and some utilities? [$_default_installpath] " installpath
+fi
+
+if [ -z "$installpath" ]; then
+  installpath=$_default_installpath
+fi
+
+if [ -z "$BATCH" ]; then
+  if [ -d "$installpath/$profile" ]; then
+    echo
+    read -p "(warning) - '$installpath/$profile' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit 
+    if [[ -z "$quit" || "${quit^^}" == Y ]]; then
+      echo exiting ...
+      exit 
+    fi
+  fi
+fi
+
+if [ -e $HOME/bin/asgsh ]; then
+  echo "(warning) - '$HOME/bin/asgsh' has been detected. Use of this path is deprecated and will be removed."
+fi
+if [ -e $HOME/bin/update-asgs ]; then
+  echo "(warning) - $HOME/bin/update-asgs' has been detected. Use of this path is deprecated and will be removed."
 fi
 
 cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform"
@@ -209,9 +228,12 @@ if [ -z "$BATCH" ]; then
   read -p "Run command above, y/N? [N] " run
 fi
 
+rm -v $HOME/bin/asgsh       2> /dev/null
+rm -v $HOME/bin/update-asgs 2> /dev/null
+
 # creates a script that is basically a wrapper around the asgs-brew.pl
 # command that results from the use of this guide installation
-if [[ "$run" = "y" || -n "$BATCH" ]]; then
+if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   scriptdir=$(pwd)
   full_command=$scriptdir/$cmd
   echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
@@ -244,8 +266,12 @@ if [[ "$run" = "y" || -n "$BATCH" ]]; then
   echo "fi"                                               >> ./update-asgs  
   chmod 700 ./update-asgs
   mkdir $HOME/bin 2> /dev/null
-  mv -v ./update-asgs $HOME/bin/update-asgs
   $cmd
 else
-  echo command not run
+  echo "You chose '$run', so the wizard has exited without executing the install command"
+  echo
+  echo "If you changed your mind or made mistake, copy/paste the following and hit <enter>,"
+  echo
+  printf "\t$cmd\n"
+  echo
 fi
