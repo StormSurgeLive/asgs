@@ -1,11 +1,11 @@
 #!/bin/bash
 #----------------------------------------------------------------
 #
-# config_defaults.sh: This script provides the default 
+# config_defaults.sh: This script provides the default
 # configuration parameters for the ASGS.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2014--2019 Jason Fleming
+# Copyright(C) 2014--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -23,11 +23,11 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-# This gets re-read at the start of each cycle and scenario; it 
+# This gets re-read at the start of each cycle and scenario; it
 # should not contain anything that changes with the ASGS state
 # (e.g., the scenario package counter variable $si) or
 # anything associated exclusively with the initialization of
-# asgs (e.g., HPCENV).  
+# asgs (e.g., HPCENV).
 THIS=$(basename -- $0)
 
    BACKGROUNDMET=on
@@ -72,3 +72,7 @@ THIS=$(basename -- $0)
    SPATIALEXTRAPOLATIONRAMP=yes
    SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
    INITPOST=( null_post.sh )
+   # Operators should set the value of this parameter
+   # to their email address in their ~/.asgsh_profile files
+   # on each platform
+   ASGSADMIN=null
