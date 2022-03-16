@@ -766,10 +766,14 @@ build() {
     jq)
       init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
       ;;
+    replaycli)
+      init-replaycli.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
     *)
       echo 'Supported "build" options:'
-      echo '  adcirc  - ADCIRC build wizard supporting different versions and patchsets'
-      echo '  jq      - "a lightweight and flexible command-line JSON processor"'
+      echo '  adcirc    - ADCIRC build wizard supporting different versions and patchsets'
+      echo '  jq        - "a lightweight and flexible command-line JSON processor"'
+      echo '  replaycli - a client for StormReplay.com, an ASGS related service'
       ;;
   esac
 }
