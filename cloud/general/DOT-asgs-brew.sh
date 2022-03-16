@@ -29,7 +29,7 @@
 # impact can't be offloaded to the child process that is invoked when
 # running external scripts.
 
-I="(info)      "
+I="(info)"
 W="(!! warning)"
 
 asgsh() {  # disable
@@ -105,7 +105,7 @@ _is_a_num()
 }
 
 _pwd() {
-  echo "${I} ... $(pwd)"
+  echo "${I} Current directory: $(pwd)"
 }
 
 # change to a directory know by asgsh
@@ -743,13 +743,8 @@ echo "  'list adcirc' to see what builds of ADCIRC exist"
 echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
 echo "  'run' to initiated ASGS for loaded profile"
 echo "  'help' for full list of options and features"
-echo "  'goto scriptdir' to change current directory to ASGS' script directory"
 echo "  'verify' the current ASGS Shell Environment is set up properly"
 echo "  'exit' to return to the login shell"
-echo
-echo "NOTE: This is a fully function bash shell environment; to update asgsh"
-echo "or to recreate it, exit this shell and run asgs-brew.pl with the"
-echo " --update-shell option"
 echo
 fi
 
@@ -837,10 +832,10 @@ alias vr="verify regressions"
 
 if [ -n "$_asgsh_splash" ]; then
 # show important directories
-show scriptdir
-goto scriptdir
+  show scriptdir
+  goto scriptdir
 else
-goto scriptdir >/dev/null 2>&1
+  goto scriptdir >/dev/null 2>&1
 fi
 
 # when started, ASGS Shell loads the 'default' profile,
