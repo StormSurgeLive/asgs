@@ -46,6 +46,8 @@ help() {
   echo
   echo ASGS Shell Commands:
   echo "   build   adcirc              - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
+  echo "           jq                  - optionally installs “jq”, which is an awk like utility but for JSON data"
+  echo "           replaycli           - optionally installs Perl script that interacts with StormReplay.com service"
   echo "   clone   profile             - launches guided process for cloning the current profile, including copying the configuratin file"
   echo "   define  config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command"
   echo "           editor              - defines default editor, (\$EDITOR)"
@@ -76,7 +78,7 @@ help() {
   echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
   echo "   rebuild profile             - wizard for recreating an ASGS profile using an existing configuration file"
   echo "   rl                          - reload current profile, equivalent to 'load profile <current-profile-name>'"
-  echo "   run                         - runs asgs using config file, \$ASGS_CONFIG must be defined (see 'define config'); most handy after 'load'ing a profile"
+  echo "   run                         - runs asgs using config file, requires that \$ASGS_CONFIG is set; most handy after 'load'ing a profile"
   echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
   echo "   show    <param>             - shows specified profile variables, to see current list type 'show help'"
   echo "           exported            - dumps all exported variables and provides a summary of what asgsh tracks"
@@ -88,7 +90,7 @@ help() {
   echo "           email_config        - verifies email configuration is correct"
   echo "           regressions         - runs regression test suite for previously solved issues"
   echo "           perl                - verifies the Perl environment and modules"
-  echo "           python              - verifies the Python 2.7 environment and modules"
+  echo "           python3             - verifies the Python 3.7 environment and modules"
   echo "           ssh_config          - checks \$HOME/.ssh/config is set up properly"
   echo "   exit                        - exits ASGS shell, returns \$USER to login shell"
 }
