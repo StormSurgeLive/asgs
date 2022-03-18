@@ -362,7 +362,7 @@ save() {
 rebuild() {
   case "${1}" in
     profile)
-      _default_base_profile=default
+      _default_base_profile=${_ASGSH_CURRENT_PROFILE:-default}
       read -p "Base profile [$_default_base_profile]? " _base_profile
       if [ -z "$_base_profile" ]; then
         _base_profile=$_default_base_profile
@@ -403,8 +403,7 @@ clone() {
       if [ -z "$new_profile_name" ]; then
         new_profile_name=$_default_new_profile
       fi
-      _year=$(date +%Y)
-      _default_new_config="$SCRIPTDIR/config/$_year/${new_profile_name}.sh"
+      _default_new_config=$(dirname $ASGS_CONFIG)/${new_profile_name}.sh
       read -p "Name of new config file? [$_default_new_config] " new_config
       if [ -z "$new_config" ]; then
         new_config=$_default_new_config
