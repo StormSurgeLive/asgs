@@ -22,20 +22,29 @@
 #--------------------------------------------------------------
 use strict;
 use warnings;
-use JSON::PP;
+use JSON::PP qw/decode_json/;
 use ASGSUtil;
 #
 # slurp the JSON response contents into a scalar variable
 my $file_content = do { local $/; <> };
-my $jshash_ref = JSON::PP->new->decode($file_content);
+if (not $file_content) {
+   ASGSUtil::stderrMessage( "ERROR", "Data piped for JSON decoding was empty.");
+   exit 1;
+}
+
+local $@;
+my $jshash_ref = eval { decode_json $file_content };
+if ($@) {
+   ASGSUtil::stderrMessage( "ERROR", "JSON::PP::decode_json failed: $@");
+   warn qq{Data piped:\n$file_content\n};
+   exit 1;
+}
+
 # grab the list of cycles out of the hash
 my $cyclelistref = $jshash_ref->{"cyclelist"};
 if ( ! defined $cyclelistref->[0] ) {
-   ASGSUtil::stderrMessage(
-             "ERROR",
-             "The property 'cyclelist' ".
-             "did not contain any cycles.");
-   die;
+   ASGSUtil::stderrMessage( "ERROR", "The property 'cyclelist' ".  "did not contain any cycles.");
+   exit 1;
 }
 printf $cyclelistref->[-1];
 1;
