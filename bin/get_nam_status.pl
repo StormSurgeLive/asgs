@@ -68,39 +68,40 @@ if ( $startcycle eq "null" && $jshash_ref ) {
    }
 }
 #
-ASGSUtil::appMessage(
-          "DEBUG",
-          "Connecting to $backsite:$backdir");
+ASGSUtil::appMessage( "DEBUG", "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
 # open ftp connection
-our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1);
-unless ( defined $ftp ) {
-   ASGSUtil::stderrMessage("ERROR",
-                           "ftp: Cannot connect to $backsite: $@");
-   die;
+our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1, Timeout => 120);
+unless ( defined $ftp ) { ASGSUtil::stderrMessage("ERROR", "ftp: Cannot connect to $backsite: $@");
+   exit 1;
 }
-my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
+my $ftpLoginSuccess = eval{ $ftp->login("anonymous",'-anonymous@') };
 unless ( $ftpLoginSuccess ) {
-   ASGSUtil::stderrMessage("ERROR",
-                           "ftp: Cannot login: " . $ftp->message);
-   die;
+   ASGSUtil::stderrMessage("ERROR", "ftp: Cannot login: " . $ftp->message);
+   exit 1;
 }
 # switch to binary mode
 $ftp->binary();
 # cd to the directory containing the NAM files
-my $hcDirSuccess = $ftp->cwd($backdir);
+my $hcDirSuccess = eval { $ftp->cwd($backdir) };
 unless ( $hcDirSuccess ) {
-   ASGSUtil::stderrMessage("ERROR",
-                           "ftp: Cannot change working directory to '$backdir': " .
-                           $ftp->message);
-   die;
+   ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir': " .  $ftp->message);
+   exit 1;
 }
 #
 # now go to the ftp site and
 # get the list of nam dates where data is available
 # and report latest data available on the site
 # directory entries are named e.g., nam.20220111
-my @ncepDirs = $ftp->ls(); # gets all the current data dirs, incl. nam dirs
+
+local $@;
+my @ncepDirs = eval { $ftp->ls() }; # gets all the current data dirs, incl. nam dirs
+if ($@) {
+   my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
+   ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list NCEP directories: } . $msg);
+   exit 1;
+}
+
 my @namDirs;
 foreach my $dir (@ncepDirs) {
    if ( $dir =~ /nam.\d+/ ) { # filter out non-nam dirs
@@ -137,16 +138,20 @@ if ( $startcycle ne "null" ) {
    $sortedNamDirs[0] =~ /nam.(\d{10})/;
    $startdate = $1;
    # change to that directory and see if there are files in there
-   $hcDirSuccess = $ftp->cwd("$backdir/$sortedNamDirs[0]");
+   $hcDirSuccess = eval { $ftp->cwd("$backdir/$sortedNamDirs[0]") };
    unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage(
-                "ERROR",
-                "ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " .
-                $ftp->message);
-      die;
+      ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " .  $ftp->message);
+      exit 1;
    }
    #my @allFiles = $ftp->ls();
-   my @earliestFiles = grep /awip1200.tm00/, $ftp->ls();
+   local $@;
+   my @earliestFiles = eval { grep /awip1200.tm00/, $ftp->ls() };
+   if ($@) {
+     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
+     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" files: } . $msg);
+     exit 1;
+   }
+   
    # now sort the NAM files from lowest to highest (it appears that ls() does
    # not automatically do this for us)
    my @sortedEarliestFiles = sort { lc($a) cmp lc($b) } @earliestFiles;
@@ -156,10 +161,8 @@ if ( $startcycle ne "null" ) {
 # sanity check
 my $numSortedNamDirs = @sortedNamDirs;
 if ( $numSortedNamDirs == 0 ) {
-   ASGSUtil::stderrMessage(
-             "WARNING",
-             "Failed to find any NAM data directories.");
-   die;
+   ASGSUtil::stderrMessage( "WARNING", "Failed to find any NAM data directories.");
+   exit 1;
 }
 # determine the latest NAM directory that has data in it
 # (a new directory may exist and be empty for some period
@@ -175,21 +178,26 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    # determine the most recent date/hour ... this is the latest nam cycle time
    $targetDir =~ /nam.(\d+)/;
    $cycledate = $1;
-   ASGSUtil::appMessage("DEBUG",
-                        "The cycledate is '$cycledate'.");
+   ASGSUtil::appMessage("DEBUG", "The cycledate is '$cycledate'.");
    # change to that directory and see if there are files in there
-   $hcDirSuccess = $ftp->cwd("$backdir/$targetDir");
+   $hcDirSuccess = eval { $ftp->cwd("$backdir/$targetDir") };
    unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage("ERROR",
-                "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
-      die;
+      ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
+      exit 1;
    }
    #my @allFiles = $ftp->ls();
-   my @allFiles = grep /awip1200.tm00/, $ftp->ls();
+
+   local $@;
+   my @allFiles = eval { grep /awip1200.tm00/, $ftp->ls() };
+   if ($@) {
+     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
+     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
+     exit 1;
+   }
+
    if (!@allFiles){
       #die "no awip1200 files yet in $targetDirs[-1]\n";
-      ASGSUtil::stderrMessage("INFO",
-               "No awip1200.tm00 files yet in $targetDir.");
+      ASGSUtil::stderrMessage("INFO", "No awip1200.tm00 files yet in $targetDir.");
       #exit 0;
       pop(@sortedNamDirs);
    } else {
@@ -200,10 +208,8 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    }
 }
 unless ( $targetDirFound && scalar(@sortedFiles) ) {
-   ASGSUtil::stderrMessage(
-             "ERROR",
-             "Could not find any NAM files in any NAM directory in the specified time range.");
-   die;
+   ASGSUtil::stderrMessage( "ERROR", "Could not find any NAM files in any NAM directory in the specified time range.");
+   exit 1;
 }
 #
 TODAYSFILES : foreach my $file (@sortedFiles) {
@@ -212,16 +218,12 @@ TODAYSFILES : foreach my $file (@sortedFiles) {
    }
 }
 unless ( $cyclehour ne "null" ) {
-   ASGSUtil::stderrMessage(
-             "WARNING",
-             "Could not download the list of NAM files from NCEP.");
-   die;
+   ASGSUtil::stderrMessage( "WARNING", "Could not download the list of NAM files from NCEP.");
+   exit 1;
 } else {
    #stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
    $cycletime = $cycledate . $cyclehour;
-   ASGSUtil::appMessage(
-             "DEBUG",
-             "The cycletime is '$cycletime'.");
+   ASGSUtil::appMessage( "DEBUG", "The cycletime is '$cycletime'.");
 }
 #
 # write a JSON file
@@ -230,17 +232,23 @@ unless ( $cyclehour ne "null" ) {
 my @cyclesInRange; # between startcycle and the latest
 DIRECTORIES : foreach my $dir (@sortedNamDirs) {
    # cd to the directory containing the NAM directories
-   my $hcDirSuccess = $ftp->cwd("$backdir/$dir");
+   my $hcDirSuccess = eval { $ftp->cwd("$backdir/$dir") };
    unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage(
-                "ERROR",
-                "ftp: Cannot change working directory to '$backdir/$dir': " .
+      ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$dir': " .
                 $ftp->message);
-      die;
+      exit 1;
    }
    $dir =~ /nam.(\d+)/;
    my $thisdate = $1;
-   my @allFiles = grep /awip1200.tm00/, $ftp->ls();
+
+   local $@;
+   my @allFiles = eval { grep /awip1200.tm00/, $ftp->ls() };
+   if ($@) {
+     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
+     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
+     exit 1;
+   }
+
    @sortedFiles = sort { lc($a) cmp lc($b) } @allFiles;
    my $thishour = "null";
    my $thiscycle = "null";
