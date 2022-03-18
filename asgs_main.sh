@@ -2085,6 +2085,7 @@ if [[ $START = coldstart ]]; then
    # initialize rivers ... therefore no met forcing.
    NWS=0
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
+   HINDCASTLENGTH=${HINDCASTLENGTH:-30.0} # needed or --endtime swallows "--nws" in control_file_gen.pl options
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstarting."
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Coldstart time is $CSDATE."
