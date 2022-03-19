@@ -1,0 +1,724 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+package bin::asgslint;
+
+use Util::H2O::More qw/h2o opt2h2o/;
+use Getopt::Long qw//;
+
+our $VERSION = q{1.0.0};
+
+use constant {
+    EXIT_SUCCESS => 0,
+    EXIT_ERROR   => 255,
+};
+
+#--
+#    TRIGGER must be ftp, rss, rssembedded, or atcf.
+#    NCPUCAPACITY must be greater than or at least equal to NCPU plus NUMWRITERS for each individual scenario.
+#    BACKGROUNDMET set to something other than allowable values : on, NAM, OWI, namBlend, and off.
+#    BACKGROUNDMET parameter can only be set to off or namBlend when TROPICALCYCLONE is set to something other than off.
+#    TROPICALCYCLONE and BACKGROUNDMET cannot both be on simultaneously
+#    TROPICALCYCLONE and BACKGROUNDMET cannot both be off simultaneousl
+#    LASTSUBDIR cannot be set to null in the config file if the ASGS is trying to hotstart (i.e., HOTORCOLD=hotstart), and the STATEFILE does not exist.
+#    LASTSUBDIR cannot be set to null in the STATEFILE file if it exists and the ASGS is trying to hotstart (i.e., HOTORCOLD=hotstart).
+#Done, Optional, if defined
+#    VORTEXMODEL parameter set to something other than SYMMETRIC, ASYMMETRIC, and GAHM.
+#    QUEUESYS must be serial, mpiexec, SLURM, or PBS.
+#    VORTEXMODEL parameter set to something other than GAHM when BACKGROUNDMET set to namBlend.
+#    if VARFLUX=on or VARFLUX=default for any ADCIRC version,
+#    If WAVES=on and SWANDT is sent in config, it must be in the range, 300 to 1200
+#    If WAVES=on and REINITIALIZESWAN is set in config, it must be either 'on' or 'off'
+#    If WAVES=on, adcswan and padcswan executables must be available via ADCIRCDIR (exported to environment via ADCIRC config)
+#    If WAVES=on, unhcat.exe executables must be available via SWANDIR (exported to environment via ADCIRC config)
+#    If WAVES=on, swaninit.template and $SWANTEMPLATE files exist in input/meshes/common/swan under either $SCRIPTDIR
+#    ADCIRC ENV checks
+#TODO
+#    If VARFLUX=default then verify that the file $INPUTDIR/$RIVERFLUX exists and has nonzero length
+#    if VARFLUX=on or VARFLUX=default and the ADCIRC version is less than v53, then verify that the file $INPUTDIR/$RIVERINIT exists and has nonzero length
+#    If VARFLUX=on and USERIVERFILEONLY=no then verify that
+#    RIVERDATAPROTOCOL is set to one of scp, ftp, or filesystem
+#    if RIVERDATAPROTOCOL=scp then verify that the ssh server $RIVERSITE is reachable as the user $RIVERUSER and that the directory $RIVERDIR exists and is readable
+#    if VARFLUX=on or VARFLUX=default for any ADCIRC version,
+#    verify that the file $INPUTDIR/$HINDCASTRIVERFLUX exists and has nonzero length
+#--
+
+my $CONFIG_VARS = {
+    INSTANCENAME => {
+        ord   => 1,
+        req   => 1,
+        check => [],
+        hint  => q{Must be defined, no spaces},
+    },
+    ASGSADMIN => { ord => 5, req => 0, check => [], hint => q{must be an email address}, },
+    PPN       => {
+        ord   => 10,
+        req   => 0,
+        check => [ \&_int ],
+        hint  => q{Must be integer greater than 0},
+    },
+    NCPU => {
+        ord   => 15,
+        req   => 1,
+        check => [ \&_int ],
+        hint  => q{Must be integer greater than 0},
+    },
+    NUMWRITERS => {
+        ord   => 20,
+        req   => 1,
+        check => [ \&_one ],
+        hint  => q{Must be integer greater than 0 (1 is recommended)},
+    },
+    NCPUCAPACITY => {
+        ord   => 25,
+        req   => 1,
+        check => [ \&_int ],
+        hint  => q{Must be integer greater than 0},
+    },
+    QUEUENAME => {
+        ord   => 30,
+        req   => 0,
+        check => [],
+        hint  => q{Name of the queue used for parallel compute jobs},
+    },
+    SERQUEUE => {
+        ord   => 35,
+        req   => 0,
+        check => [],
+        hint  => q{Name of the queue used for single processor jobs},
+    },
+    GRIDNAME      => {
+        ord => 40,
+        req => 1,
+        check => [],
+        hint => q{name of grid to use},
+    },
+    BACKGROUNDMET => {
+        ord   => 45,
+        req   => 1,
+        check => [ sub { _in( @_, qw/on off NAM OWI namBlend/ ) } ],
+        hint  => q{Must be: 'on', 'off', 'NAM', 'OWI', 'namBlend'},
+    },
+    TROPICALCYCLONE => {
+        ord   => 50,
+        req   => 1,
+        check => [],
+        hint  => q{Turn tropical cyclone forcing 'on' or 'off'},
+    },
+    TRIGGER => {
+        ord   => 55,
+        req   => 0,
+        check => [ sub { _in( @_, qw/ftp rss rssembedded atcf/ ) } ],
+        hint  => q{Must be: 'ftp', 'rss', 'rssembedded', or 'atcf'},
+    },
+    WAVES => {
+        ord   => 60,
+        req   => 1,
+        check => [ sub { _in( @_, qw/on off/ ) } ],
+        hint  => q{Turns SWAN coupling 'on' or 'off'},
+    },
+    VARFLUX => {
+        ord   => 65,
+        req   => 0,
+        check => [ sub { _in( @_, qw/on off default/ ) } ],
+        hint  => q{Turns on river flux boundary conditions support in ASGS and ADCIRC.},
+    },
+    INTENDEDAUDIENCE => {
+        ord   => 70,
+        req   => 1,
+        check => [],
+        hint  => q{Control type of notifications, 'dev', 'general', ...},
+    },
+    POSTPROCESS => {
+        ord   => 75,
+        req   => 1,
+        check => [],
+        hint  => q{List of post processing scripts},
+    },
+    OPENDAPNOTIFY => {
+        ord   => 80,
+        req   => 0,
+        check => [],
+        hint  => q{list of *emails notified when OPENDAPPOST is run via POSTPROCESS},
+    },
+    OPENDAPPOST => {
+        ord   => 80,
+        req   => 0,
+        check => [],
+        hint  => q{POSTPROCESS script used by THREDDS integration (used by monitoring/logging.sh)},
+    },
+    NOTIFY_SCRIPT => {
+        ord   => 85,
+        req   => 0,
+        check => [],
+        hint  => q{Script to handle notifications},
+    },
+    TDS => {
+        ord   => 90,
+        req   => 0,
+        check => [],
+        hint  => q{List of thredds servers to upload output},
+    },
+    COLDSTARTDATE => {
+        ord   => 95,
+        req   => 1,
+        check => [],
+        hint  => q{Start date for ramping model from zero state},
+    },
+    HINDCASTLENGTH => {
+        ord   => 100,
+        req   => 1,
+        check => [],
+        hint  => q{Length of time used to cold start},
+    },
+    HOTORCOLD => {
+        ord   => 105,
+        req   => 1,
+        check => [ sub { _in( @_, qw/coldstart hotstart/ ) } ],
+        hint  => q{Must be: 'coldstart' or 'hotstart'},
+    },
+    LASTSUBDIR => {
+        ord   => 110,
+        req   => 1,
+        check => [],
+        hint  => q{Used when HOTORCOLD is 'hotstart'.},
+    },
+    SCENARIOPACKAGESIZE => {
+        ord   => 115,
+        req   => 1,
+        check => [],
+        hint  => q{Determines what scenarios from the package to run.},
+    },
+    QUEUESYS => {
+        ord   => 120,
+        req   => 0,
+        check => [ sub { _in( @_, qw/mpiexec SLURM PBS/ ) } ],
+        hint  => q{If defined in config, must be: 'mpiexec', 'SLURM', or 'PBS'.},
+    },
+    VORTEXMODEL => {
+        ord   => 125,
+        req   => 0,
+        check => [ sub { _in( @_, qw/SYMMETRIC ASYMMETRIC GAHM/ ) } ],
+        hint  => q{If defined in config, must be: 'SYMMETRIC', 'ASYMMETRIC', or 'GAHM'.},
+    },
+    SWANDT => {
+        ord   => 130,
+        req   => 0,
+        check => [ \&_defer_check ],                                                             # defered until fatal_configcheck_WAVES_if_on
+        hint  => q{If defined and WAVES=on, reasonable values are integers between 300-1200.},
+    },
+    REINITIALIZESWAN => {
+        ord   => 135,
+        req   => 0,
+        check => [ \&_defer_check ],                                                             # defered until fatal_configcheck_WAVES_if_on
+        hint  => q{If defined and WAVES=on, must be: 'no' or 'yes'.},
+    },
+    SWANTEMPLATE => {
+        ord   => 140,
+        req   => 0,
+        check => [ \&_defer_check ],                                                                                             # defered until fatal_configcheck_WAVES_if_on
+        hint  => q{If WAVES=on, swaninit.template and $SWANTEMPLATE files must exist in $SCRIPTDIR/input/meshes/common/swan.},
+    },
+    EMAILNOTIFY => {
+        ord   => 145,
+        req   => 1,
+        check => [ sub { _in( @_, qw/yes no/ ) } ],
+        hint  => q{must be: 'yes' or 'no'; important for reliably controlling emails sent by POSTPROCESS hook scripts.},
+    },
+};
+
+# none of these variables should ever appear in a configuration file
+my $CONFIG_DISALLOWED = [
+    qw/PERL5LIB LDFLAGS LD_LIBRARY_PATH HDF5_LIBDIR PERLBREW_HOME HDF5_INCDIR ASGS_MESH_DEFAULTS CPPFLAGS PATH LIBRARY_PATH SCRIPTDIR NETCDF4_DIR ASGS_PLATFORMS ADCIRCDIR SCRATCH ASGS_BREW_FLAGS PERLBREW_PERL NETCDFHOME ASGS_INSTALL_PATH WORK PERLBREW_PATH PERLBREW_MANPATH MAGICK_HOME HDF5_DIR ADCIRC_META_DIR ADCIRC_GIT_REPO ASGS_META_DIR LD_RUN_PATH ADCIRC_PROFILE_NAME PERLBREW_ROOT LD_INCLUDE_PATH SWANDIR ASGS_HOME ADCIRC_GIT_BRANCH ASGS_MACHINE_NAME ADCIRC_GIT_URL ADCIRCBASE ASGS_MAKEJOBS PERL_CPANM_HOME NETCDF4_LIBDIR NETCDF4_INCDIR ASGS_TMPDIR ASGS_COMPILER ADCIRC_COMPILER _ASGS_EXPORTED_VARS _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS ADCIRC_BUILD_INFO/
+];
+
+# C H E C K  S C H E D U L E R
+#   these checks are done IN ORDER and the script dies
+#   when the *first* FATAL condition is detected
+#
+
+my $assert_checks = {
+    fatal_filecheck_ASGS_CONFIG              => 1,     # ensures $ASGS_CONFIG exists
+    fatal_configcheck_asgsh_vars             => 3,     # fatal if any of these exist in config since they are tracked by the profile
+    maybe_fatal_configcheck_missing          => 5,     # checks $ASGS_CONFIG/ENV for required variables
+    fatal_configcheck_FORCINGS               => 10,    # sanity check on TROPICALCYCLONE
+    fatal_configcheck_CPUs                   => 15,    # sanity check on requests CPUs
+    fatal_configcheck_HOTORCOLD              => 20,    # sanity check for configured hotstarts, inspects STATEFILE if exists
+    fatal_configcheck_VORTEXMODEL_if_defined => 25,    # ensures VORTEXMODEL setting, if defined in config, is consistent with BACKGROUNDMET
+    fatal_bincheck_ADCIRC                    => 30,    # ensures ADCIRC bins are available via PATH
+    fatal_configcheck_WAVES_if_on            => 35,    # ensures SWAN bins are in PATH no-op if WAVES=off
+};
+
+#
+# C H E C K  R O U T I N E S
+#
+
+sub fatal_filecheck_ASGS_CONFIG {
+    my $self = shift;
+    assert_FATAL(qq{ASGS_CONFIG: not defined.}) if not $ENV{ASGS_CONFIG};
+    assert_FATAL(
+        sprintf qq{ASGS_CONFIG: '%s' doesn't exist or can't be found.},
+        $ENV{ASGS_CONFIG}
+    ) if not -e $ENV{ASGS_CONFIG};
+    return EXIT_SUCCESS;
+}
+
+sub fatal_configcheck_asgsh_vars {
+    my $self = shift;
+    foreach my $var (@$CONFIG_DISALLOWED) {
+
+        # fatal if the variable even appears, doesn't need to be defined
+        my ( $var_found, $value ) = $self->_extract_from_config($var);
+        if ($var_found) {
+            assert_FATAL(
+                sprintf qq{'%s' should not exist in the config file, '%s'.},
+                $var, $ENV{ASGS_CONFIG}
+            );
+        }
+    }
+
+    return 1;
+}
+
+sub maybe_fatal_configcheck_missing {
+    my $self = shift;
+
+    # check if missing from config; ENV checks not incorporated yet since the config will override them
+    foreach my $var ( sort { $CONFIG_VARS->{$a}->{ord} <=> $CONFIG_VARS->{$b}->{ord} } keys %$CONFIG_VARS ) {
+
+        # ensure all required CONFIG_VARS are defined in ASGS_CONFIG
+        if ( $CONFIG_VARS->{$var}->{req} ) {
+
+            # ensures all required (req => 1) variables are defined, skips
+            # variables that are not required
+            if ( not _defined->( __PACKAGE__, $var ) ) {
+                my $hint = sprintf q{%s - %s}, $var, $CONFIG_VARS->{$var}->{hint};
+                assert_FATAL(
+                    sprintf qq{'%s' not defined in '%s'!\n%s},
+                    $var, $ENV{ASGS_CONFIG}, $hint
+                );
+            }
+
+            # checks all defined variables, even optional ones; then runs
+            # validation routines in the 'checks' field of the CONFIG_VARS hash
+        }
+        foreach my $check ( @{ $CONFIG_VARS->{$var}->{check} } ) {
+            if ( q{CODE} eq ref $check and _defined->( __PACKAGE__, $var ) ) {
+                if ( not $check->( __PACKAGE__, $var ) ) {
+                    my $hint = sprintf q{%s - %s}, $var, $CONFIG_VARS->{$var}->{hint};
+                    assert_FATAL(
+                        sprintf qq{'%s' check failed in '%s'!\n%s},
+                        $var, $ENV{ASGS_CONFIG}, $hint
+                    );
+                }
+            }
+        }
+    }
+
+    return 1;
+}
+
+sub fatal_configcheck_FORCINGS {
+    my $self = shift;
+
+    my $var_found;
+    ( $var_found, my $BACKGROUNDMET )   = $self->_extract_from_config(q{BACKGROUNDMET});
+    ( $var_found, my $TROPICALCYCLONE ) = $self->_extract_from_config(q{TROPICALCYCLONE});
+
+    assert_FATAL(
+        sprintf qq{BACKGROUNDMET and TROPICALCYCLONE can't both be the same value},
+        $ENV{ASGS_CONFIG}
+    ) if ( $BACKGROUNDMET eq $TROPICALCYCLONE );
+
+    #asgswisdom: BACKGROUNDMET parameter can only be set to off or namBlend when TROPICALCYCLONE is set to something other than off.
+    if ( $TROPICALCYCLONE eq q{off} and grep { $_ =~ m/$BACKGROUNDMET/ } (qw/off namBlend/) ) {
+        assert_FATAL(
+            sprintf qq{BACKGROUNDMET can't be set to 'off' or 'namBlend' if TROPICALCYCLONE is 'off' in '%s'},
+            $ENV{ASGS_CONFIG}
+        );
+    }
+
+    return 1;
+}
+
+sub fatal_configcheck_CPUs {
+    my $self = shift;
+
+    my $var_found;
+    ( $var_found, my $PPN )          = $self->_extract_from_config(q{PPN});
+    ( $var_found, my $NCPU )         = $self->_extract_from_config(q{NCPU});
+    ( $var_found, my $NUMWRITERS )   = $self->_extract_from_config(q{NUMWRITERS});
+    ( $var_found, my $NCPUCAPACITY ) = $self->_extract_from_config(q{NCPUCAPACITY});
+
+    assert_FATAL(
+        sprintf qq{NCPU+NUMWRITER exceeds NCPUCAPACITY in '%s'},
+        $ENV{ASGS_CONFIG}
+    ) if ( $NCPU + $NUMWRITERS > $NCPUCAPACITY );
+
+    return 1;
+}
+
+sub fatal_configcheck_HOTORCOLD {
+    my $self = shift;
+
+    my $var_found;
+    ( $var_found, my $LASTSUBDIR ) = $self->_extract_from_config(q{LASTSUBDIR});
+    ( $var_found, my $HOTORCOLD )  = $self->_extract_from_config(q{HOTORCOLD});
+    my $STATEFILE = $ENV{STATEFILE};
+
+    #asgswisdom: LASTSUBDIR cannot be set to null in the config file if the ASGS is trying to hotstart (i.e., HOTORCOLD=hotstart), and the STATEFILE does not exist.
+    if ( ( not $LASTSUBDIR or $LASTSUBDIR eq q{null} ) and $HOTORCOLD eq q{hotstart} and ( not $STATEFILE or not -e $STATEFILE ) ) {
+        assert_FATAL(
+            sprintf qq{LASTSUBDIR can't be 'null' if HOTORCOLD=hotstart in '%s' and STATEFILE doesn't exist.},
+            $ENV{ASGS_CONFIG}
+        );
+    }
+
+    #asgswisdom: LASTSUBDIR cannot be set to null in the STATEFILE file if it exists and the ASGS is trying to hotstart (i.e., HOTORCOLD=hotstart).
+    if ( $STATEFILE and -e $STATEFILE ) {
+        my $var_found;
+        ( $var_found, my $LASTSUBDIR ) = $self->_extract_from_statefile(q{LASTSUBDIR});
+        if ( ( not $LASTSUBDIR or $LASTSUBDIR eq q{null} ) and $HOTORCOLD eq q{hotstart} ) {
+            assert_FATAL(
+                sprintf qq{LASTSUBDIR can't be 'null' in STATEFILE if HOTORCOLD=hotstart in '%s' and STATEFILE exists.},
+                $ENV{ASGS_CONFIG}
+            );
+        }
+    }
+
+    return 1;
+}
+
+# Note: will only check if $VORTEXMODEL is defined, which
+# must be accounted for since this is part of the more in-depth
+# variable conflict checks
+sub fatal_configcheck_VORTEXMODEL_if_defined {
+    my $self = shift;
+
+    my $var_found;
+    ( $var_found, my $BACKGROUNDMET ) = $self->_extract_from_config(q{BACKGROUNDMET});
+    ( $var_found, my $VORTEXMODEL )   = $self->_extract_from_config(q{VORTEXMODEL});
+
+    # $VORTEXMODEL is optional and may not be defined
+    return EXIT_SUCCESS if not $VORTEXMODEL;
+
+    #asgswisdom: VORTEXMODEL parameter set to something other than GAHM when BACKGROUNDMET set to namBlend.
+    if ( $VORTEXMODEL eq q{GAHM} and $BACKGROUNDMET eq q{namBlend} ) {
+        assert_FATAL(
+            sprintf qq{VORTEXMODEL can't be 'GAHM' when BACKGROUNDMET is 'namBlend' in '%s'.},
+            $ENV{ASGS_CONFIG}
+        );
+    }
+
+    return 1;
+}
+
+sub fatal_bincheck_ADCIRC {
+    my $self = shift;
+
+    #asgswisdom: ADCIRCDIR and ADCIRC_BINS must be available in the environment.
+    if ( not $ENV{ADCIRCDIR} or not $ENV{ADCIRC_BINS} ) {
+        assert_FATAL(q{ADCIRCDIR and ADCIRC_BINS must be available in the environment.});
+    }
+
+    #asgswidom: All binaries listed in ADCIRC_BINS must exist in ADCIRCDIR and be in PATH 
+    foreach my $ADCIRC_bin ( split /\s+/, $ENV{ADCIRC_BINS} ) {
+        if ( not $self->_bin_ok( $ENV{ADCIRCDIR}, $ADCIRC_bin ) ) {
+            assert_FATAL( sprintf qq{$ADCIRC_bin is not found, but is required to be available via PATH to continue.} );
+        }
+    }
+
+    return 1;
+}
+
+sub fatal_configcheck_WAVES_if_on {
+    my $self = shift;
+
+    my $var_found;
+    ( $var_found, my $WAVES ) = $self->_extract_from_config(q{WAVES});
+    return EXIT_SUCCESS if ( $WAVES eq q{off} );
+
+    #asgswisdom: If WAVES=on and SWANDT is sent in config, it must be in the range, 300 to 1200
+    ( $var_found, my $SWANDT ) = $self->_extract_from_config(q{SWANDT});
+    if ( $SWANDT and not $self->_range( q{SWANDT}, 300, 1200 ) ) {
+        assert_FATAL(
+            sprintf qq{SWANDT must be defined if WAVES=on, in the range 300-1200, in '%s'.},
+            $ENV{ASGS_CONFIG}
+        );
+    }
+
+    #asgswisdom: If WAVES=on and REINITIALIZESWAN is set in config, it must be either 'on' or 'off'
+    ( $var_found, my $REINITIALIZESWAN ) = $self->_extract_from_config(q{REINITIALIZESWAN});
+    if ( $REINITIALIZESWAN and not $self->_in( q{REINITIALIZESWAN}, qw/yes no/ ) ) {
+        assert_FATAL(
+            sprintf qq{REINITIALIZESWAN must be defined if WAVES=on, must be 'yes' or 'no', in '%s'.},
+            $ENV{ASGS_CONFIG}
+        );
+    }
+
+    #asgswisdom: If WAVES=on, adcswan and padcswan executables must be available via ADCIRCDIR (exported to environment via ADCIRC config)
+    if (   not $ENV{ADCIRCDIR}
+        or not $self->_bin_ok( $ENV{ADCIRCDIR}, q{adcswan} )
+        or not $self->_bin_ok( $ENV{ADCIRCDIR}, q{padcswan} ) ) {
+        assert_FATAL( sprintf qq{adcswan and padswan are required if WAVES=on, via ADCIRCDIR which should be preferably defined in the environment.} );
+    }
+
+    #asgswisdom: If WAVES=on, unhcat.exe executables must be available via SWANDIR (exported to environment via ADCIRC config)
+    if (   not $ENV{SWANDIR}
+        or not -x sprintf( q{%s/%s}, $ENV{SWANDIR}, q{unhcat.exe} )
+        or system(q{which unhcat.exe > /dev/null 2>&1}) != EXIT_SUCCESS ) {
+        assert_FATAL( sprintf qq{unhcat.exe required if WAVES=on, via SWANDIR which should be preferably defined in the environment.} );
+    }
+
+    #asgswisdom: If WAVES=on, swaninit.template and $SWANTEMPLATE files exist in input/meshes/common/swan under either $SCRIPTDIR
+    ( $var_found, my $SWANTEMPLATE ) = $self->_extract_from_config(q{SWANTEMPLATE});
+    if (
+        $var_found
+        and (  not -e sprintf( q{%s/%s}, $ENV{SCRIPTDIR}, q{swaninit.template} )
+            or not -e sprintf( q{%s/%s}, $ENV{SCRIPTDIR}, $SWANTEMPLATE ) )
+    ) {
+        assert_FATAL( $CONFIG_VARS->{SWANTEMPLATE}->{hint} );
+    }
+
+    return 1;
+}
+
+#
+# V A L I D A T I O N  R O U T I N E S
+#
+
+# "no op", just used in variable config for clarity
+sub _defer_check {
+    return 1;
+}
+
+# does -x check on full path to binary + checks it's
+# in path using system's `which`
+sub _bin_ok {
+    my ( $self, $base_path, $bin_name ) = @_;
+    if ( not -x sprintf( q{%s/%s}, $base_path, $bin_name )
+        or system(qq{which $bin_name > /dev/null 2>&1}) != EXIT_SUCCESS ) {
+        return undef;
+    }
+    return 1;
+}
+
+# tests to see if variable exists in config and is a member of a set
+# of values
+sub _in {
+    my ( $self, $var, @valid_list ) = @_;
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( not $CFG_VALUE or not grep { $_ =~ m/^$CFG_VALUE$/ } @valid_list ) {
+        return undef;
+    }
+    return 1;
+}
+
+# tests to see if variable is an integer
+sub _int {
+    my ( $self, $var ) = @_;
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( int $CFG_VALUE < 1 ) {
+        return undef;
+    }
+    return 1;
+}
+
+# tests to see if variable is == 1
+sub _one {
+    my ( $self, $var ) = @_;
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( int $CFG_VALUE != 1 ) {
+        return undef;
+    }
+    return 1;
+}
+
+# tests to see if variable is in a range, inclusive
+sub _range {
+    my ( $self, $var, $min, $max ) = @_;
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( int $CFG_VALUE < $min or int $CFG_VALUE > $max ) {
+        return undef;
+    }
+    return 1;
+}
+
+# TRUE if "$var=" is found in ASGS_CONFIG or if the
+# $ENV{$var} hash key exists (but is not necessarily defined)
+# because in both cases, it is available for asgs_main.sh and all child
+# processes to use
+sub _exists {
+    my ( $self, $var ) = @_;
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( $CFG_VALUE or $ENV{$var} ) {
+        return 1;
+    }
+    return undef;
+}
+
+# true if the variable _exists_ and is also defined
+sub _defined {
+    my ( $self, $var ) = @_;
+
+    # $var existing is a necessary condition
+    return undef if not $self->_exists($var);
+
+    # now check if it's actually defined (i.e., not undef)
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( not $var_found or not defined $CFG_VALUE ) {
+        return undef;
+    }
+    return 1;
+}
+
+# tests to see if directory exists
+sub _dir_exists {
+    my ( $self, $var ) = @_;
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+    if ( not $CFG_VALUE or not -d $CFG_VALUE ) {
+        return undef;
+    }
+    return 1;
+}
+
+#
+# U T I L I T Y  R O U T I N E S
+#
+
+# returns a list; first variable is if the $var exists in $ASGS_CONFIG; the
+# second is the value of the assignment (undef if anything is on the RHS of
+# the '='
+sub _extract_from_config {
+    my ( $self, $varname ) = @_;
+    local $/;
+    open my $FH, q{<}, $ENV{ASGS_CONFIG} || die $!;
+    my $config = <$FH>;
+    close $FH;
+    $config =~ m/^\s*($varname)=([\w."\)\(\$}{\/:-]+)\s*#?/m;
+    return ( $1, $2 );
+}
+
+# asgswisdom: STATEFILE should only be defined in the environment and set by asgs_main.sh
+sub _extract_from_statefile {
+    my ( $self, $varname ) = @_;
+
+    # short circuit if not yet defined (will be the case for brand new profiles)
+    return undef if not $ENV{STATEFILE};
+
+    local $/;
+    open my $FH, q{<}, $ENV{STATEFILE} || die $!;
+    my $state = <$FH>;
+    close $FH;
+    $state =~ m/^\s*($varname)=([\w."\)\(\$}{\/:-]+)\s*#?/m;
+    return ( $1, $2 );
+}
+
+sub assert_FATAL {
+    my $MSG = shift;
+    warn qq{(!!! assert_FATAL): $MSG\n ... fix and rerun linter\n};
+    exit EXIT_ERROR;
+}
+
+sub _show_help {
+  print<<EOHELP;
+
+asgs-lint ($VERSION) ... A very strict, static ASGS configuration file checker.
+
+Quick Start - no options are required if ASGS_CONFIG is set:
+
+  1. ./asgsh
+  2. load profile # (select profile) 
+  3. asgs-lint    # command is available via PATH
+  4. if asgs-lint finds an issue with the config it'll exit;
+     fix the issue and rerun until there are no more issues
+     found
+
+
+Description:
+
+  Run inside of asgsh with a profile loaded, without any options ASGS_CONFIG
+  is examined for required or highly recommended settings. asgs-lint fails
+  on the first problem found. Fix the problem, then run again - until there
+  are no more issues found.
+
+  This tool is a static analysis tool; meaning it examines the text of ASGS_CONFIG
+  and any files contained herein as long as the file paths may be determined
+  with out executing or `source`'ing any shell scripts.
+
+Advanced Usage:
+
+  --help                         This help text
+  --config path/to/config.sh     Check a config other than ASGS_CONFIG
+  --list vars                    Summary of required variables and descriptions
+  --list disallowed              Summary of variables forbidden to be in ASGS_CONFIG,
+                                 because they conflict with important environmental variables
+
+Maintenance Note:
+
+This script is meant to be updated whenever new static checks
+are needed; usually as a result of a long debugging session that
+could have been caught using a static checker tool like this one.
+
+EOHELP
+}
+
+#
+# M A I N  D R I V E R
+#
+
+sub run {
+    my ($argv) = @_;
+    local %ENV = %ENV;
+
+    my @opts   = (qw/config=s help list=s/);
+    my $o      = h2o {}, opt2h2o(@opts);
+    Getopt::Long::GetOptionsFromArray( $argv, $o, @opts );
+
+    my $self = bless {}, __PACKAGE__;
+
+    if ( $o->help ) {
+      $self->_show_help;
+      return EXIT_SUCCESS;
+    }
+
+    if ( $o->list and $o->list eq q{vars} ) {
+        foreach my $var ( sort { $CONFIG_VARS->{$a}->{ord} <=> $CONFIG_VARS->{$b}->{ord} } keys %$CONFIG_VARS ) {
+            my $req = ($CONFIG_VARS->{$var}->{req}) ? q{[required]} : q{[optional]};
+            printf qq{%s %-19s %s\n}, $req, $var, $CONFIG_VARS->{$var}->{hint};
+        }
+        return EXIT_SUCCESS;
+    }
+
+    if ( $o->list and $o->list eq q{disallowed} ) {
+        foreach my $var (@$CONFIG_DISALLOWED) {
+            printf qq{%s\n}, $var;
+        }
+        return EXIT_SUCCESS;
+    }
+
+    if ($o->config) {
+      $ENV{ASGS_CONFIG} = $o->config;
+      printf qq{Linting configuration file, '%s' ...\n}, $ENV{ASGS_CONFIG};
+    }
+
+  DO_FATAL:
+    foreach my $check ( sort { $assert_checks->{$a} <=> $assert_checks->{$b} } keys %$assert_checks ) {
+        $self->$check();
+    }
+
+    return EXIT_SUCCESS;
+}
+
+exit run( \@ARGV // [] ) if not caller;
+
+1;
