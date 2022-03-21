@@ -268,7 +268,6 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.20
       GRIDFILE=NCSC_SAB_v1.20.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      #CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
       CONTROLTEMPLATE=fort.15.template
       # wind at 10m fort.15 template
       #CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
@@ -277,6 +276,34 @@ case $GRIDNAME in
       VELSTATIONS=vel_stat.151
       METSTATIONS=met_stat.151
       NAFILE=NCSC_SAB_v1.20.13
+      NAPROPERTIES=${NAFILE}.properties
+      RIVERINIT=v6brivers.88
+      RIVERFLUX=v6brivers_fort.20_default
+      HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
+      UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
+      ;;
+   "NCSC_SAB_v1.22")
+      #
+      INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.22
+      GRIDFILE=NCSC_SAB_v1.22.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=fort.15.template
+      # wind at 10m fort.15 template
+      #CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
+      CONTROLPROPERTIES=fort.15.properties
+      ELEVSTATIONS=elev_stat.151
+      VELSTATIONS=vel_stat.151
+      METSTATIONS=met_stat.151
+      NAFILE=NCSC_SAB_v1.22.13
       NAPROPERTIES=${NAFILE}.properties
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
