@@ -33,7 +33,6 @@ UNITOFFSETFILE=null
 SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
 #
 case $GRIDNAME in
-      #
    "LA_v19k-WithUpperAtch_chk")
       #
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v19k
@@ -322,7 +321,7 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
       ;;
    "hsofs_NE-hires_v2_depf2")
-      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2/
+      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2
       GRIDFILE=hsofs_NE-hires_v2_depf2.grd
       MESHPROPERTIES=${GRIDFILE}.nc.properties
       CONTROLTEMPLATE=hsofs_NE-hires_v2_depf2.15.template

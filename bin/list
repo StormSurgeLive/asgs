@@ -5,6 +5,8 @@ if [ -z "$_ASGSH_PID" ]; then
   exit 1;
 fi
 
+source $SCRIPTDIR/monitoring/logging.sh
+
 # list interface for lists of important things (registered ADCIRC builds, ASGS profiles)
 _list() {
   LISTNUM=1
@@ -36,10 +38,37 @@ _list() {
       fi
       ;;
     meshes)
+      ERRORS=0
+      FORCE=${2}
       for m in $(cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print $1}'); do
         printf "% 2d. %s\n" $LISTNUM $m
+        GRIDNAME=$(echo $m | sed 's/|.*$//')
+        source $ASGS_MESH_DEFAULTS
+        FILE="${INPUTDIR}/${GRIDFILE}"
+        if [ ! -d $INPUTDIR ]; then
+          mkdir -p $INPUTDIR
+        fi
+        if [[ ! -e $FILE || $FORCE ]]; then
+          echo "  Downloading ..."
+          echo "    $MESHURL/$GRIDFILE.xz"
+          echo "    ... -> $FILE"
+          pushd $INPUTDIR > /dev/null  2>&1
+          curl -s $MESHURL/$GRIDFILE.xz > $GRIDFILE.xz
+          unxz -f $GRIDFILE.xz > /dev/null 2>&1
+          STATUS=$?
+          if [ $STATUS != 0 ]; then
+            echo "    (failed !!!) uncompressing $GRIDFILE."
+            ERRORS=$(($ERRORS+1))
+          fi
+          popd > /dev/null 2>&1
+        fi
+        if [ -e $FILE ]; then
+          NE=$(head -n 2 $FILE | tail -n 1 | awk '{print $1}')
+          echo "$NE elements [$m]"
+        fi
         LISTNUM=$(($LISTNUM+1))
       done
+      echo Number of errors getting meshes: $ERRORS
       ;;
     platforms)
       cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
