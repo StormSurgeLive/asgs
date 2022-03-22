@@ -55,6 +55,7 @@ init_supermike()
   MATLABEXE=mex
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=16
   TDS=(lsu_tds)
   MAKEJOBS=8
@@ -76,6 +77,7 @@ init_queenbee()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LONI"
     RMQMessaging_ClusterName="Queenbee"
@@ -117,6 +119,7 @@ init_rostam()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=40
   CONSTRAINT=null
   RESERVATION=null
@@ -140,6 +143,7 @@ init_supermic()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LSU"
     RMQMessaging_ClusterName="SuperMIC"
@@ -179,6 +183,7 @@ init_queenbeeC()
   SUBMITSTRING=sbatch
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LONI"
     RMQMessaging_ClusterName="QueenbeeC"
@@ -243,6 +248,7 @@ init_hatteras()
   SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   WALLTIMEFORMAT="minutes"
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
@@ -266,6 +272,47 @@ init_hatteras()
   MAKEJOBS=8
 }
 #
+init_bridges2()
+{ #<- can replace the following with a custom script
+  local THIS="platforms.sh>env_dispatch()>init_bridges2()"
+  scenarioMessage "$THIS: Setting platforms-specific parameters."
+  HPCENV=bridges2.psc.edu
+  QUEUESYS=SLURM
+  QUEUENAME=RM-shared
+  SERQUEUE=RM-shared
+  PPN=128
+  CONSTRAINT=null
+  RESERVATION=null
+  QOS=null
+  QCHECKCMD=sacct
+  JOBLAUNCHER='mpirun '
+  ACCOUNT=null
+  SUBMITSTRING=sbatch
+  SSHKEY=~/.ssh/id_rsa
+  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template-bridges2-RM-Shared
+  QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  #GROUP="G-803086"
+  QSUMMARYCMD=null
+  QUOTACHECKCMD=null
+  ALLOCCHECKCMD=null
+  #
+  if [[ ${RMQMessaging_Enable} == "on" ]]; then
+    RMQMessaging_LocationName="PSC"
+    RMQMessaging_ClusterName="Bridges2"
+    RMQMessaging_NcoHome=$WORK/local
+  fi
+  #MATLABEXE=script # "script" means just execute matlab (don't use mex files)
+  # specify location of platform- and Operator-specific scripts to
+  # set up environment for different types of jobs
+  local THIS="platforms.sh>env_dispatch()>init_bridges2()"
+  ARCHIVE=enstorm_pedir_removal.sh
+  #ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+  #ARCHIVEDIR=2020 # is this used?
+  TDS=( renci_tds )
+  MAKEJOBS=8
+}
+#
 init_frontera()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_frontera()"
@@ -285,6 +332,7 @@ init_frontera()
   SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   GROUP="G-803086"
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
@@ -325,6 +373,7 @@ init_stampede2()
   SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   GROUP="G-803086"
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
@@ -360,6 +409,7 @@ init_lonestar5()
   SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   UMASK=006
   GROUP="G-803086"
   QSUMMARYCMD=null
@@ -411,7 +461,7 @@ init_desktop()
   HPCENV=jason-desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n "
+  SUBMITSTRING="mpiexec "
   SCRATCH=/srv/asgs
   SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
@@ -419,7 +469,7 @@ init_desktop()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
-  TDS=(renci_tds)
+  TDS=()
   MAKEJOBS=1
 }
 
@@ -469,6 +519,7 @@ init_penguin()
   SUBMITSTRING="mpirun"
   QSCRIPT=penguin.template.pbs
   QSCRIPTGEN=penguin.pbs.pl
+  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=40
   MAKEJOBS=8
 }
@@ -484,6 +535,11 @@ init_test()
 writeTDSProperties()
 {
    local THIS="platforms.sh>writeTDSProperties()"
+   SERVER=$1
+   RUNPROPERTIES=run.properties
+   if [[ $# -eq 2 ]]; then
+      RUNPROPERTIES=$2
+   fi
    scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
    operator=$USER
    SERVER=$1
@@ -578,7 +634,7 @@ writeTDSProperties()
 set_hpc() {
    local THIS="platforms.sh>set_hpc()"
    echo "$THIS: Setting the values of HPCENV and HPCENVSHORT."
-   fqdn=`hostname --long`
+   fqdn=$(hostname --long)
    echo "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
@@ -595,6 +651,11 @@ set_hpc() {
    if [[ ${fqdn:(-19)} = "ls5.tacc.utexas.edu" ]]; then
       HPCENV=lonestar5.tacc.utexas.edu
       HPCENVSHORT=lonestar5
+      return
+   fi
+   if [[ ${fqdn:9:16} = "bridges2.psc.edu" ]]; then
+      HPCENV=bridges2.psc.edu
+      HPCENVSHORT=bridges2
       return
    fi
    if [[ ${fqdn:(-24)} = "frontera.tacc.utexas.edu" ]]; then
@@ -626,13 +687,17 @@ set_hpc() {
       HPCENV=desktop.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi
+   if [ 1 -eq $(hostname --fqdn | grep -c soldier) ]; then
+      HPCENV=soldier.seahorsecoastal.com
+      HPCENVSHORT=desktop
+   fi
    if [[ "${ASGS_MACHINE_NAME}" = "docker" ]]; then
       HPCENV=docker.local
       HPCENVSHORT=docker
    fi
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
-      plat=`$WORK/asgs/bin/guess platform`
+      plat=$($SCRIPTDIR/bin/guess platform)
       HPCENVSHORT=$plat
       HPCENV=$plat
    fi
@@ -670,6 +735,9 @@ env_dispatch() {
           ;;
   "stampede2") allMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
+          ;;
+  "bridges2") allMessage "$THIS: Bridges2 (PSC) configuration found."
+          init_bridges2
           ;;
   "frontera") allMessage "$THIS: Frontera (TACC) configuration found."
           init_frontera
