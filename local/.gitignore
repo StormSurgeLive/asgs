@@ -1,0 +1,4 @@
+# ignore local directory contents
+*
+# but not this file itself
+!.gitignore
