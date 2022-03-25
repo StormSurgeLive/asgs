@@ -742,6 +742,13 @@ case $GRIDNAME in
       UNITOFFSETFILE=null
       ;;
    *)
-      warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
+      localMeshParameters=$SCRIPTDIR/local/config/mesh_defaults.sh
+      logMessage "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not found in config/mesh_defaults.sh so now ASGS is checking the file $localMeshParameters (if it exists)."
+      if [[ -e $localMeshParameters ]]; then
+         logMessage "cycle $CYCLE: $SCENARIO: $THIS: $localMeshParameters was found."
+         source $localMeshParameters
+      else
+         fatal "cycle $CYCLE: $SCENARIO: $THIS: The GRIDNAME $GRIDNAME was not recognized."
+      fi
       ;;
 esac
