@@ -251,7 +251,15 @@ RMQMessageRunProp()
 # set the name of the asgs log file
 setSyslogFileName()
 {
-   SYSLOG=`pwd`/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log
+   local DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   if [[ ! -d $WORK/log ]]; then
+      mkdir -p $WORK/log
+      echo "[$DATETIME] INFO: Created subdirectory for ASGS log files : '$WORK/log'."
+   else
+      echo "[$DATETIME] INFO: Found subdirectory for ASGS log files : '$WORK/log'."
+   fi
+   SYSLOG=${SYSLOG:-$WORK/log/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log}
+   consoleMessage "Set ASGS log file parameter SYSLOG to '$SYSLOG'." $SYSLOG
 }
 #
 # write an INFO-level message to the main asgs log file
