@@ -826,12 +826,16 @@ HPC_Reservation_Hint()
    ;;
    esac
 }
-
-localPlatformParameters=$SCRIPTDIR/local/platforms.sh
-logMessage "cycle $CYCLE: $SCENARIO: $THIS: Loading local platform paramters file $localPlatformParameters (if it exists)."
-if [[ -e $localMeshParameters ]]; then
-    logMessage "cycle $CYCLE: $SCENARIO: $THIS: $localPlatformParameters was found."
-    source $localMeshParameters
-else
-    logMessage "cycle $CYCLE: $SCENARIO: $THIS: $localPlatformParameters was not found."
-fi
+#-----------------------------------------------------------
+# TODO: Add code to support site-specific compute platforms
+# in asgs/local
+# https://github.com/StormSurgeLive/asgs/issues/751
+#-----------------------------------------------------------
+# localPlatformParameters=$SCRIPTDIR/local/platforms.sh
+# logMessage "cycle $CYCLE: $SCENARIO: $THIS: Loading local platform paramters file $localPlatformParameters (if it exists)."
+# if [[ -e $localMeshParameters ]]; then
+#    logMessage "cycle $CYCLE: $SCENARIO: $THIS: $localPlatformParameters was found."
+#    source $localMeshParameters
+# else
+#    logMessage "cycle $CYCLE: $SCENARIO: $THIS: $localPlatformParameters was not found."
+# fi
