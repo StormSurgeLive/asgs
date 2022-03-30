@@ -2,7 +2,7 @@
  %EnsembleID%
  1, 25.0, 1, 10, 100.0      ! NFOVER NONFATA OVERRIDE,WARNING ELEV, FORT.69, KILL RUN ELEV
  1                          ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
--1000                       ! NSCREEN - OUTPUT TO UNIT 6 PARAMETER
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
 %IHOT%                      ! IHOT - HOT START OPTION PARAMETER
  2                          ! ICS - COORDINATE SYSTEM OPTION PARAMETER
  0                          ! IM - MODEL RUN TYPE: 0,10,20,30 = 2DDI, 1,11,21,31 = 3D(VS), 2 = 3D(DSS)

@@ -2,7 +2,7 @@
  %EnsembleID%
  1             ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
  2             ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
- -1000         ! NSCREEN - UNIT 6 OUTPUT OPTION PARAMETER
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
  %IHOT%        !  IHOT - HOT START PARAMETER
  2             ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
  511112  ! smagorinski ! IM - MODEL SELECTION PARAMETER 

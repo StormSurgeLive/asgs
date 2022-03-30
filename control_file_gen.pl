@@ -70,7 +70,7 @@ use Getopt::Long;
 use Date::Calc;
 use Cwd;
 #
-
+my $nscreen=-1000; # frequency of time step output to STDOUT(+) or adcirc.log(-)
 my $fort61freq=0; # output frequency in SECONDS
 my $fort61append; # if defined, output files will be appended across hotstarts
 my $fort62freq=0; # output frequency in SECONDS
@@ -175,6 +175,7 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "hstime=s" => \$hstime,
            "advisdir=s" => \$advisdir,
            "scriptdir=s" => \$scriptdir,
+           "nscreen=s"   => \$nscreen,
            "fort61freq=s" => \$fort61freq,
            "fort62freq=s" => \$fort62freq,
            "fort63freq=s" => \$fort63freq,
@@ -474,6 +475,8 @@ while(<TEMPLATE>) {
     # if we are looking at the first line, fill in the name of the storm
     # and the advisory number, if available
     s/%StormName%/$rundesc/;
+    # fill in frequency of time step output to STDOUT or adcirc.log
+    s/%NSCREEN%/$nscreen/;
     # if we are looking at the DT line, fill in the time step (seconds)
     s/%DT%/$dt/;
     # if we are looking at the RNDAY line, fill in the total run time (days)

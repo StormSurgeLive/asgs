@@ -2,7 +2,7 @@ ASGS %StormName%
 %EnsembleID%
  1, 25.0, 1, 10, 100.0      ! NFOVER NONFATA OVERRIDE,WARNING ELEV, FORT.69, KILL RUN ELEV
  1                          ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
- -1000                      ! NSCREEN - OUTPUT TO UNIT 6 PARAMETER
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
  %IHOT%                     ! IHOT - HOT START OPTION PARAMETER
  2                          ! ICS - COORDINATE SYSTEM OPTION PARAMETER
  511112  ! 5=CGWCE_LS_2PartSV to support Smagorinsky ! IM 

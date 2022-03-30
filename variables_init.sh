@@ -47,6 +47,7 @@ variables_init()
    GRIDFILE=fort.14
    GRIDNAME=fort14
    OUTPUTOPTIONS=
+   NSCREEN=-1000
    ARCHIVEBASE=/dev/null
    ARCHIVEDIR=null
    FORECASTCYCLE="00,06,12,18"
