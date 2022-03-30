@@ -2,7 +2,7 @@ HSOFS %StormName%
 %EnsembleID%
 1  20.0 1 20 100.0                       ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
 0                                        ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
--1000                                    ! NSCREEN - OUTPUT TO UNIT 6 PARAMETER
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
 %IHOT%                                   ! IHOT - HOT START OPTION PARAMETER
 2                                        ! ICS - COORDINATE SYSTEM OPTION PARAMETER
 111112                                   ! IM - MODEL RUN TYPE: 0,10,20,30 = 2DDI, 1,11,21,31 = 3D(VS), 2 = 3D(DSS)
@@ -43,16 +43,16 @@ M2                                       ! TIPOTAG - NAME OF TIDAL POTENTIAL CON
 N2                                       ! TIPOTAG - NAME OF TIDAL POTENTIAL CONSTITUENT
 0.04639800 0.000137879699487 0.693  %N2NF%  %N2EQARG%
 O1                                       ! TIPOTAG - NAME OF TIDAL POTENTIAL CONSTITUENT
-0.10051400 0.000067597744151 0.695  %O1NF%  %O1EQARG% 
+0.10051400 0.000067597744151 0.695  %O1NF%  %O1EQARG%
 P1                                       ! TIPOTAG - NAME OF TIDAL POTENTIAL CONSTITUENT
 0.04683400 0.000072522945975 0.706  %P1NF%  %P1EQARG%
 Q1                                       ! TIPOTAG - NAME OF TIDAL POTENTIAL CONSTITUENT
-0.01925600 0.000064958541129 0.695  %Q1NF%  %Q1EQARG% 
+0.01925600 0.000064958541129 0.695  %Q1NF%  %Q1EQARG%
 S2                                       ! TIPOTAG - NAME OF TIDAL POTENTIAL CONSTITUENT
 0.11284100 0.000145444104333 0.693  %S2NF%  %S2EQARG%
 8                                        ! NBFR - NUMBER OF PERIODIC FORCING FREQUENCIES ON ELEVATION SPECIFIED BOUNDARIES
 K1                                       ! BOUNTAG - FORCING CONSTITUENT NAME
-0.000072921158358  %K1NF%  %K1EQARG% 
+0.000072921158358  %K1NF%  %K1EQARG%
 K2                                       ! BOUNTAG - FORCING CONSTITUENT NAME
 0.000145842317201  %K2NF%  %K2EQARG%
 M2                                       ! BOUNTAG - FORCING CONSTITUENT NAME
@@ -60,7 +60,7 @@ M2                                       ! BOUNTAG - FORCING CONSTITUENT NAME
 N2                                       ! BOUNTAG - FORCING CONSTITUENT NAME
 0.000137879699487  %N2NF%  %N2EQARG%
 O1                                       ! BOUNTAG - FORCING CONSTITUENT NAME
-0.000067597744151  %O1NF%  %O1EQARG% 
+0.000067597744151  %O1NF%  %O1EQARG%
 P1                                       ! BOUNTAG - FORCING CONSTITUENT NAME
 0.000072522945975  %P1NF%  %P1EQARG%
 Q1                                       ! BOUNTAG - FORCING CONSTITUENT NAME
