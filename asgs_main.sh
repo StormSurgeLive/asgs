@@ -3339,11 +3339,23 @@ while [ true ]; do
             echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
             scriptIndex=0
             for script in "${POSTPROCESS[@]}" ; do
+               POSTCOMMAND="${OUTPUTDIR}/$script $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
                logMessage "$SCENARIO: $THIS: Executing POSTPROCESS hook ${OUTPUTDIR}/$script."
-               com="${OUTPUTDIR}/$script $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+               logMessage "$SCENARIP: $THIS: Current directory: " $(pwd)
+               logMessage "$ENSTORM: $THIS: Attempting, $POSTCOMMAND"
+
+               # send RMQ log
                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "WAIT" "$script $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR"
-               $com
+
+               # run script, check exit status
+               $POSTCOMMAND
+               STATUS=$?
+               if [ $STATUS != 0 ]; then
+                 logMessage "$ENSTORM: $THIS: POSTPROCESS hook, $script, failed with command $POSTCOMMAND"
+                 logMessage "$ENSTORM: $THIS: POSTPROCESS hook, $script, failed with status $STATUS"
+               fi
             done
+
             DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
             echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
             # notify analysts that new results are available
