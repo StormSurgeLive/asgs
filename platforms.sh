@@ -35,6 +35,10 @@
 
 source ${SCRIPTDIR}/monitoring/logging.sh
 
+# all platforms default to the same value for OPENDAPPOST; but would
+# like to move out of here entirely
+OPENDAPPOST=${OPENDAPPOST:-opendap_post.sh} #<~ $SCRIPTDIR/output/ assumed
+
 init_supermike()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_supermike()"
@@ -50,12 +54,10 @@ init_supermike()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
   MATLABEXE=mex
   MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
   QSCRIPTGEN=tezpur.pbs.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=16
   TDS=(lsu_tds)
   MAKEJOBS=8
@@ -77,7 +79,6 @@ init_queenbee()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LONI"
     RMQMessaging_ClusterName="Queenbee"
@@ -86,7 +87,6 @@ init_queenbee()
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   TDS=( lsu_tds )
-  SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -116,10 +116,8 @@ init_rostam()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=40
   CONSTRAINT=null
   RESERVATION=null
@@ -143,7 +141,6 @@ init_supermic()
   SUBMITSTRING=qsub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LSU"
     RMQMessaging_ClusterName="SuperMIC"
@@ -153,7 +150,6 @@ init_supermic()
   ACCOUNT=null
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
-  SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -183,7 +179,6 @@ init_queenbeeC()
   SUBMITSTRING=sbatch
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   if [[ ${RMQMessaging_Enable} == "on" ]]; then
     RMQMessaging_LocationName="LONI"
     RMQMessaging_ClusterName="QueenbeeC"
@@ -219,7 +214,6 @@ init_pod()
   fi
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   local THIS="platforms.sh>env_dispatch()>init_pod()"
-  SSHKEY=~/.ssh/id_rsa.pub
   RESERVATION=null
   PPN=28
   ARCHIVE=enstorm_pedir_removal.sh
@@ -245,10 +239,8 @@ init_hatteras()
   ACCOUNT=null
   SUBMITSTRING=sbatch
   SCRATCH=/projects/ncfs/data
-  SSHKEY=~/.ssh/id_rsa.pub
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   WALLTIMEFORMAT="minutes"
   QSUMMARYCMD=null
   QUOTACHECKCMD="df -h /projects/ncfs"
@@ -288,10 +280,8 @@ init_frontera()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   GROUP="G-803086"
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
@@ -329,10 +319,8 @@ init_stampede2()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   GROUP="G-803086"
   QSUMMARYCMD=null
   QUOTACHECKCMD=null
@@ -365,10 +353,8 @@ init_lonestar5()
   ACCOUNT=null
   PPN=24
   SUBMITSTRING=sbatch
-  SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   UMASK=006
   GROUP="G-803086"
   QSUMMARYCMD=null
@@ -400,7 +386,6 @@ init_docker()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=${SCRATCH:-/scratch/$USER}
-  SSHKEY=id_rsa_docker
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -424,7 +409,6 @@ init_desktop()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=/srv/asgs
-  SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
@@ -443,7 +427,6 @@ init_desktop_serial() # changed from init_desktop-serial due to bash complaints
   QCHECKCMD="ps -aux | grep adcirc "
   SUBMITSTRING="./"
   SCRATCH=/srv/asgs
-  SSHKEY=id_rsa_jason-desktop-serial
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
@@ -460,7 +443,6 @@ init_Poseidon()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
   SCRATCH=/home/fhrl/Documents/asgs_processing
-  SSHKEY=id_rsa_jason-desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
@@ -480,7 +462,6 @@ init_penguin()
   SUBMITSTRING="mpirun"
   QSCRIPT=penguin.template.pbs
   QSCRIPTGEN=penguin.pbs.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   PPN=40
   MAKEJOBS=8
 }
