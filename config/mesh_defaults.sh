@@ -36,6 +36,8 @@ case $GRIDNAME in
       #
    "LA_v19k-WithUpperAtch_chk")
       #
+      nodes=1593485
+      elements=3102441
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v19k
       GRIDFILE=LA_v19k-WithUpperAtch_chk.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -65,6 +67,8 @@ case $GRIDNAME in
       #
    "LA_v20a-WithUpperAtch_chk"|"LAv20a")
       #
+      nodes=1593485
+      elements=3102441
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a
       GRIDFILE=LA_v20a-WithUpperAtch_chk.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -92,6 +96,8 @@ case $GRIDNAME in
       ;;
    "LAv21a")
       #
+      nodes=1593485
+      elements=3102441
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a # <--<< SAME DIRECTORY AS LAST YEAR
       GRIDFILE=LA_v21a-WithUpperAtch_chk.grd   # mesh (fort.14) file
       OLDGRIDFILE="LA_v20a-WithUpperAtch_chk.grd"
@@ -121,6 +127,8 @@ case $GRIDNAME in
       ;;
    "LAv21c")
       #
+      nodes=1593485
+      elements=3102441
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a # <--<< SAME DIRECTORY AS LAST YEAR
       GRIDFILE=LA_v21c-WithUpperAtch_chk.grd   # mesh (fort.14) file
       OLDGRIDFILE="LA_v21a-WithUpperAtch_chk.grd"
@@ -151,6 +159,8 @@ case $GRIDNAME in
       #
    "ec95d"|"EC95d")
       #
+      nodes=31435
+      elements=58369
       INPUTDIR=$SCRIPTDIR/input/meshes/ec95d
       GRIDFILE=ec_95d.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -179,6 +189,8 @@ case $GRIDNAME in
       #
    "tx2008_r35h"|"TX2008")
       #
+      nodes=3352598
+      elements=6675517
       INPUTDIR=$SCRIPTDIR/input/meshes/texas2008_r35h
       GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -208,6 +220,8 @@ case $GRIDNAME in
       #
    "tx2017"|"CTXCS2017")
       #
+      nodes=4535035
+      elements=8975076
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2017
       GRIDFILE=ctx_gr_p01E01.grd # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -236,6 +250,8 @@ case $GRIDNAME in
       #
    "tx2020a"|"TX2020a")
       #
+      nodes=4266444
+      elements=8456596
       INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
       GRIDFILE=tx2020a.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -263,6 +279,8 @@ case $GRIDNAME in
       ;;
       #
    "neflga_v12_geo"|"NEFLGAv12"|"NEFLGAv12b")
+      nodes=2968735
+      elements=5910443
       INPUTDIR=$SCRIPTDIR/input/meshes/neflga
       GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -294,6 +312,8 @@ case $GRIDNAME in
       #
    "nc_inundation_v9.99_w_rivers"|"NCv999")
       #
+      nodes=624782
+      elements=1234231
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -321,34 +341,10 @@ case $GRIDNAME in
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
       ;;
-   "hsofs_NE-hires_v2_depf2")
-      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2/
-      GRIDFILE=hsofs_NE-hires_v2_depf2.grd
-      MESHPROPERTIES=${GRIDFILE}.nc.properties
-      CONTROLTEMPLATE=hsofs_NE-hires_v2_depf2.15.template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=hsofs_stations_2020-02-01.txt
-      VELSTATIONS=$ELEVSTATIONS
-      METSTATIONS=$ELEVSTATIONS
-      NAFILE=hsofs_NE-hires_v2_with_mann_advstate.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
-      SWANDT=1800                 # swan timestep / coupling interval (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
-      UNITOFFSETFILE=unit_offset_hsofs.dat
-      ;;
    "hsofs"|"HSOFS")
       #
+      nodes=1813443
+      elements=3564104
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
       GRIDFILE=hsofs.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
@@ -376,6 +372,8 @@ case $GRIDNAME in
       ;;
    "SABv20a")
       #
+      nodes=5584241
+      elements=11066018
       INPUTDIR=$SCRIPTDIR/input/meshes/SABv20a
       GRIDFILE=SABv20a.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -404,6 +402,8 @@ case $GRIDNAME in
       #
    "WFLv18")
       #
+      nodes=1147947
+      elements=2283949
       INPUTDIR=$SCRIPTDIR/input/meshes/WFLv18
       GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
@@ -432,6 +432,8 @@ case $GRIDNAME in
       #
    "southfl_v11-1_final"|"SFLv111")
       #
+      nodes=2249093
+      elements=4480230
       INPUTDIR=$SCRIPTDIR/input/meshes/southfl
       GRIDFILE=southfl_v11-1_final.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -460,6 +462,8 @@ case $GRIDNAME in
       #
    "CenFlv7"|"eccl_v7_geo_z")
       #
+      nodes=1406658
+      elements=2793617
       INPUTDIR=$SCRIPTDIR/input/meshes/cenfl
       GRIDFILE=eccl_v7_geo_z.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -488,6 +492,8 @@ case $GRIDNAME in
       #
    "FEMAR3")
       #
+      nodes=1875689
+      elements=3731099
       INPUTDIR=$SCRIPTDIR/input/meshes/femar3
       GRIDFILE=FEMA_R3_20110303_MSL.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -517,6 +523,8 @@ case $GRIDNAME in
       #
    "FEMAR2")
       #
+      nodes=604790
+      elements=1188640
       INPUTDIR=$SCRIPTDIR/input/meshes/femar2
       GRIDFILE=FEMA_R2_norivers_gcs_mNAVD.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -545,6 +553,8 @@ case $GRIDNAME in
       #
    "NAC2014")
       #
+      nodes=3110470
+      elements=6167588
       INPUTDIR=$SCRIPTDIR/input/meshes/naccs
       GRIDFILE=NAC2014_R01_ClosedRivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -573,6 +583,8 @@ case $GRIDNAME in
       #
    "NGOMv19b")
       #
+      nodes=2051450
+      elements=4065608
       INPUTDIR=${SCRIPTDIR}/input/meshes/NGOMv19b # grid and other input files
       GRIDFILE=NGOM_RT_v19b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -602,6 +614,8 @@ case $GRIDNAME in
       #
    "EGOMv20b")
       #
+      nodes=2219482
+      elements=4398700
       INPUTDIR=${SCRIPTDIR}/input/meshes/EGOMv20b # grid and other input files
       GRIDFILE=EGOM-RT_v20b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -630,6 +644,8 @@ case $GRIDNAME in
       #
    "Shinnecock")
       #
+      nodes=3070
+      elements=5780
       INPUTDIR=${SCRIPTDIR}/input/meshes/shinnecock # grid and other input files
       GRIDFILE=shinnecock_inlet_coarse.grd
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -657,6 +673,8 @@ case $GRIDNAME in
       ;;
    "ec2001_v2e"|"EC2001v2e")
       #
+      nodes=254565
+      elements=492179
       INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       GRIDFILE=ec2001_v2e.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -686,6 +704,8 @@ case $GRIDNAME in
       ;;
    "OPENWATERv1e")
       #
+      nodes=616113
+      elements=1198417
       INPUTDIR=$SCRIPTDIR/input/meshes/OPENWATER
       GRIDFILE=openwater.grd  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -715,6 +735,8 @@ case $GRIDNAME in
       ;;
    "PRVI15")
       #
+      nodes=2733258
+      elements=5392748
       INPUTDIR=$SCRIPTDIR/input/meshes/PRVI
       GRIDFILE=PRVI15_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
