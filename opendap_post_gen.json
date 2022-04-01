@@ -1,0 +1,72 @@
+{
+   "version" : "0.1",
+   "category" : "opendap",
+   "opendap" : "post",
+   "config" : {
+      "runProperties" : "/work/user/asgs22222/15/nhcConsensus/run.properties",
+      "platform" : "/home/jason/Campaigns/Development/asgs/config/platforms.yaml",
+      "opendap" : "/home/jason/Campaigns/Development/asgs/config/opendap_servers.yaml",
+      "opendapPostTemplate" : "/home/jason/Campaigns/Development/asgs/output/opendap_post_gen.tt2",
+      "opendapPostTemplateJSON" : "/home/jason/Campaigns/Development/asgs/output/opendap_post_gen_template.json",
+      "opendapPostJSON" : "/home/jason/Campaigns/Development/asgs/opendap_post_gen.json"
+   },
+   "paths" : {
+      "scriptDir" : "/home/jason/Campaigns/Development/asgs",
+      "cycleDir" : "/work/user/asgs22222/15",
+      "statusDir" : "/work/user/asgs22222/status",
+      "custom" : "%CUSTOMDIR%"
+   },
+   "adcirc" : {
+      "coldStartDate" : "2005072500",
+      "runStartTime" : "2005082900",
+      "mesh" : "HSOFS"
+   },
+   "hpc" : {
+      "env" : "supermic.hpc.lsu.edu",
+      "envShort" : "supermic"
+   },
+   "forcing" : {
+      "cycle" : "15",
+      "scenario" : "nowcast",
+      "scenarioNumber" : "-1",
+      "tropicalCyclone" : "on",
+      "backgroundMeteorology" : "off",
+      "year" : null,
+      "nwpModel" : null,
+      "stormName" : null,
+      "stormNumber" : null,
+      "basin" : "al"
+   },
+   "monitoring" : {
+      "logging" : {
+         "system" : "/work/user/syslog.log",
+         "cycle" : "/work/user/asgs22222/15/cycle.log",
+         "scenario" : "/work/user/asgs22222/15/nhcConsensus/scenario.log"
+      }
+   },
+   "instanceName" : "HSOFS_al122005_ope",
+   "servers" : {
+      "default" : [ "lsu_tds","tacc_tds" ],
+      "archive" : [ "backblaze" ],
+      "status" : [ "lsu_tds" ],
+      "custom" : [ "myserver" ]
+   },
+   "files" : {
+      "default" : [ "inputfile1","metadatafile","outputfile1","outputfile2" ],
+      "archive" : [ "inputfile1","inputfile2","metadatafile1","metadatafile2" ],
+      "status" : [ "status1.json","status2.json" ],
+      "custom" : [ "myfile" ]
+   },
+   "notification" : {
+      "email" : {
+         "enable" : "no",
+         "default" : [ "person@recipient.net","person2@other.net" ],
+         "archive" : [ "" ],
+         "status" : [ "" ],
+         "custom" : [ "student@u.edu" ]
+      }
+   },
+   "lastmodified" : [
+      { "asgs_main.sh" : "2022-Apr-01-T14:56:47-0400" }
+   ]
+ }

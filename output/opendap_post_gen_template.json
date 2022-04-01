@@ -1,0 +1,72 @@
+{
+   "version" : "0.1",
+   "category" : "opendap",
+   "opendap" : "post",
+   "config" : {
+      "runProperties" : "%RUNPROPERTIES%",
+      "platform" : "%PLATFORMYAML%",
+      "opendap" : "%OPENDAPYAML%",
+      "opendapPostTemplate" : "%SCRIPTTEMPLATE%",
+      "opendapPostTemplateJSON" : "%SCRIPTTEMPLATEJSON%",
+      "opendapPostJSON" : "%OPENDAPPOSTJSON%"
+   },
+   "paths" : {
+      "scriptDir" : "%SCRIPTDIR%",
+      "cycleDir" : "%CYCLEDIR%",
+      "statusDir" : "%STATUSDIR%",
+      "custom" : "%CUSTOMDIR%"
+   },
+   "adcirc" : {
+      "coldStartDate" : "%COLDSTARTDATE%",
+      "runStartTime" : "%RUNSTARTTIME%",
+      "mesh" : "%GRIDNAME%"
+   },
+   "hpc" : {
+      "env" : "%HPCENV%",
+      "envShort" : "%HPCENVSHORT%"
+   },
+   "forcing" : {
+      "cycle" : "%CYCLE%",
+      "scenario" : "%SCENARIO%",
+      "scenarioNumber" : "%SCENARIONUMBER%",
+      "tropicalCyclone" : "%TROPICALCYCLONE%",
+      "backgroundMeteorology" : "%BACKGROUNDMET%",
+      "year" : null,
+      "nwpModel" : null,
+      "stormName" : null,
+      "stormNumber" : null,
+      "basin" : "al"
+   },
+   "monitoring" : {
+      "logging" : {
+         "system" : "%SYSLOG%",
+         "cycle" : "%CYCLELOG%",
+         "scenario" : "%SCENARIOLOG%"
+      }
+   },
+   "instanceName" : "%INSTANCENAME%",
+   "servers" : {
+      "default" : [ "%DEFAULTDESTS%" ],
+      "archive" : [ "%ARCHIVEDESTS%" ],
+      "status" : [ "%STATUSDESTS%" ],
+      "custom" : [ "%CUSTOMDESTS%" ]
+   },
+   "files" : {
+      "default" : [ "%DEFAULTFILES%" ],
+      "archive" : [ "%ARCHIVEFILES%" ],
+      "status" : [ "%STATUSFILES%" ],
+      "custom" : [ "%CUSTOMFILES%" ]
+   },
+   "notification" : {
+      "email" : {
+         "enable" : "%ENABLEOPENDAPNOTIFY%",
+         "default" : [ "%DEFAULTEMAILS%" ],
+         "archive" : [ "%ARCHIVEEMAILS%" ],
+         "status" : [ "%STATUSEMAILS%" ],
+         "custom" : [ "%CUSTOMEMAILS%" ]
+      }
+   },
+   "lastmodified" : [
+      { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }
+   ]
+ }
