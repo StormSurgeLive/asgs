@@ -54,6 +54,7 @@ my $trigger = "rss"; # the data source used to detect a new advisory
              # that is embedded in the RSS xml file, rather than following
              # the external link to the text of the forecast/advisory
 my $nhcName; # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
+my $insecure;# if set, use "http" instead of "https"
 my $body;    # text of the forecast/advisory
 GetOptions(
            "statefile=s" => \$statefile,
@@ -65,7 +66,8 @@ GetOptions(
            "year=s" => \$year,
            "adv=s" => \$adv,
            "trigger=s" => \$trigger,
-           "nhcName=s" => \$nhcName
+           "nhcName=s" => \$nhcName,
+           "insecure" => \$insecure,
            );
 
 # zero-pad storm if single digit
@@ -230,7 +232,7 @@ while (!$dl) {
          # note: only use "https:" when NOAA's production hostname is being utilized
          # this is to make testing with 'replay' servers easier by not having to
          # create an https endpoint (doable but inconvenient for testing)
-         my $protocol = ( $rsssite =~ m/nhc\.noaa\.gov$/ ) ? q{https} : q{http};
+         my $protocol = ($insecure) ? q{http} : q{https};
 
          my $url = sprintf("%s://%s/index-at.xml", $protocol, $rsssite);
          my $response = $http->get($url);
