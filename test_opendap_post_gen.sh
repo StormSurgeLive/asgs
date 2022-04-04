@@ -6,6 +6,7 @@ SCRIPTDIR=~/Campaigns/Development/asgs
 PLATFORMYAML=$SCRIPTDIR/config/platforms.yaml
 OPENDAPYAML=$SCRIPTDIR/config/opendap_servers.yaml
 ADVISDIR=/work/user/asgs22222/15
+ADVISDIR=/work/user/asgs22222/15/nowcast
 STATUSDIR=/work/user/asgs22222/status
 CUSTOMDIR=/mypath
 SYSLOG=/work/user/syslog.log
@@ -50,6 +51,7 @@ escCUSTOMDIR=${CUSTOMDIR////'\/'}
 escPLATFORMYAML=${PLATFORMYAML////'\/'}
 escOPENDAPYAML=${OPENDAPYAML////'\/'}
 escCYCLEDIR=${ADVISDIR////'\/'}
+escSCENARIODIR=${SCENARIODIR////'\/'}
 escSTATUSDIR=${STATUSDIR////'\/'}
 escSYSLOG=${SYSLOG////'\/'}
 escCYCLELOG=${CYCLELOG////'\/'}
@@ -90,6 +92,7 @@ sed \
     -e "s/%OPENDAPPOSTJSON%/$escOPENDAPPOSTJSON/" \
     -e "s/%SCRIPTDIR%/$escSCRIPTDIR/" \
     -e "s/%CYCLEDIR%/$escCYCLEDIR/" \
+    -e "s/%SCENARIODIR%/$escSCENARIODIR/" \
     -e "s/%STATUSDIR%/$escSTATUSDIR/" \
     -e "s/%COLDSTARTDATE%/$COLDSTARTDATE/" \
     -e "s/%GRIDNAME%/$GRIDNAME/" \

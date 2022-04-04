@@ -13,6 +13,7 @@
    "paths" : {
       "scriptDir" : "%SCRIPTDIR%",
       "cycleDir" : "%CYCLEDIR%",
+      "scenarioDir" : "%SCENARIODIR%",
       "statusDir" : "%STATUSDIR%",
       "custom" : "%CUSTOMDIR%"
    },

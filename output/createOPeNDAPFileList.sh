@@ -102,10 +102,8 @@ else
 fi
 FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
 #
-FILESSTRING="("
-for string in ${FILES[*]}; do
-   FILESSTRING="$FILESSTRING $string"
-done
-FILESSTRING="$FILESSTRING )"
-echo "post.opendap.files : $FILESSTRING" >> run.properties
-
+# write the files to the run.properties file
+echo "post.opendap.files : ( ${FILES[@]} )" >> run.properties
+# also write this as a json file
+fileList=$(printf ",\"%s\"" "${FILES[@]}")
+echo "{ \"opendapFiles\" : [ ${fileList:1} ] }" > post.opendap.files.json

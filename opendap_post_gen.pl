@@ -38,17 +38,25 @@ GetOptions("postType=s" => \$postType);
 my $file_content = do { local $/; <> };
 my $jshash_ref = JSON::PP->new->decode($file_content);
 # set the type of data/server to post to opendap
+# i.e., default, archive, status, or custom
 $jshash_ref->{'postType'} = $postType;
 #-----------------------------------------------------------------
-#       C R E A T E   T E M P L A T E   P R O C E S S O R
+#          T E M P L A T E   P R O C E S S O R
 #-----------------------------------------------------------------
 my $paths_ref = $jshash_ref->{'paths'};
-my $scriptdir = $paths_ref->{'scriptdir'};
+# load list of files
+my $scenarioDir = $paths_ref->{'scenarioDir'};
+
+
+my $file_content = do { local $/; <> };
 #
+# create processor
+my $scriptDir = $paths_ref->{'scriptDir'};
 my $tt = Template->new({
-    INCLUDE_PATH => $scriptdir,
+    INCLUDE_PATH => $scriptDir,
 }) || die "$Template::ERROR\n";
 #
+# now process template
 $tt->process('output/opendap_post_gen.tt2', $jshash_ref) || die $tt->error();
 
 1;
