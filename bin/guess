@@ -1,40 +1,82 @@
 #!/usr/bin/env bash
 
 # used inside and outside of the asgsh environment
+#
+# D O  N O T   M A N U A L L Y  A D D  P L A T F O R M S  H E R E  A N Y M O R E
+# See ./platforms/README
+#
+
+export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR:-.}
 
 _guess_platform()
 {
   default_platform=unknown
+  HOSTNAME=$(hostname --fqdn)
+
   if [ "$USER" = vagrant ]; then
     default_platform=vagrant
   elif [ "$_ASGS_CONTAINER" = "docker" ]; then
     default_platform=docker
-  elif [ 1 -eq $(hostname --fqdn | grep -c ht3) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c ht3) ]; then
     default_platform=hatteras
-  elif [ 1 -eq $(hostname --fqdn | grep -c ht4) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c ht4) ]; then
     default_platform=hatteras
-  elif [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c qb1) ]; then
     default_platform=queenbee
-  elif [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c qb2) ]; then
     default_platform=queenbee
-  elif [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c qbc) ]; then
     default_platform=queenbeeC
-  elif [ 1 -eq $(hostname --fqdn | grep -c smic) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c smic) ]; then
     default_platform=supermic
-  elif [ 1 -eq $(hostname --fqdn | grep -c ls5) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c ls5) ]; then
     default_platform=lonestar5
-  elif [ 1 -eq $(hostname --fqdn | grep -c stampede2) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c stampede2) ]; then
     default_platform=stampede2
-  elif [ 1 -eq $(hostname --fqdn | grep -c frontera) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c frontera) ]; then
     default_platform=frontera
-  elif [ 1 -eq $(hostname --fqdn | grep -c soldier) ]; then
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c soldier) ]; then
     default_platform=desktop
-  elif [ 1 -eq $(hostname --fqdn | grep -c rostam) ]; then
-    default_platform=rostam
   fi
+
+  # IF NOT FOUND ABOVE ... dive into platforms defined in ./platforms/
+  _PLATFORMS=()
+  if [ $default_platform == unknown ]; then
+    if [ -d .//platforms ]; then
+      for platform in $(find ./platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+        _PLATFORMS+=($platform);
+      done
+      for platform in "${_PLATFORMS[@]}"; do
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ./platforms/${platform}/init.sh ]]; then
+            default_platform=$platform
+            break
+        fi
+      done
+      unset _PLATFORMS
+    fi
+  fi
+
+  # look in $ASGS_LOCAL_DIR, if ENV is set
+  if [ $default_platform == unknown ]; then
+    if [[ -n "${ASGS_LOCAL_DIR}" && -d ${ASGS_LOCAL_DIR}/platforms ]]; then
+      for platform in $(find ${ASGS_LOCAL_DIR}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+        _PLATFORMS+=($platform);
+      done
+      for platform in "${_PLATFORMS[@]}"; do
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh ]]; then
+            default_platform=$platform
+            break
+        fi
+      done
+    fi
+  fi
+
+  # return overall determination of platform
   if [ $default_platform != unknown ]; then
     echo "$default_platform"
   fi
+
+  return
 }
 
 _guess(){

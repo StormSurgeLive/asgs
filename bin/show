@@ -5,8 +5,8 @@ if [ -z "$_ASGSH_PID" ]; then
   exit 1;
 fi
 
-I="(info)   "
-W="(warning)"
+I="(info)"
+W="(!! warning)"
 
 # prints value of provided variable name
 _show() {
@@ -184,9 +184,14 @@ _show() {
         echo "${W} WORK is not defined as anything. Try, 'define config /path/to/work' first"
       fi
       ;;
-    *) echo "'show' requires one of the supported parameters:"
-       echo config adcircbase adcircdir adcircbranch adcircremote machinename adcirccompiler asgscompiler home
-       echo installpath brewflags editor instancename rundir scratchdir scriptdir statefile syslog workdir
+    platform_init)
+      if [ -n "${PLATFORM_INIT}" ]; then
+        echo "${I} PLATFORM_INIT is defined as '${PLATFORM_INIT}'"
+      else
+        echo "${W} PLATFORM_INIT is not defined, which may be ok; older supported platforms do not use them."
+      fi
+      ;;
+    *) echo "'${1}' is not known to the 'show' command"
       ;;
   esac 
 }
