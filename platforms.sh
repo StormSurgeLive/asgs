@@ -33,34 +33,13 @@
 # alias lsta='ls -lth *.state | head'
 #
 
-source ${SCRIPTDIR}/monitoring/logging.sh
-
-init_supermike()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_supermike()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=mike.hpc.lsu.edu
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  QUEUENAME=workq
-  SERQUEUE=single
-  ACCOUNT=null
-  SUBMITSTRING=qsub
-  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPT=$SCRIPTDIR/input/machines/supermike/supermike.template.pbs
-  MATLABEXE=mex
-  MCRROOT=/usr/local/packages/license/matlab/r2017a # for matlab mex files
-  QSCRIPTGEN=tezpur.pbs.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  PPN=16
-  TDS=(lsu_tds)
-  MAKEJOBS=8
-}
 #
+# D O  N O T   M A N U A L L Y  A D D  P L A T F O R M S  H E R E  A N Y M O R E
+# See ./platforms/README
+#
+
+source ${SCRIPTDIR:-.}/monitoring/logging.sh
+
 init_queenbee()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_queenbee()"
@@ -98,35 +77,6 @@ init_queenbee()
   MAKEJOBS=8
 }
 #
-init_rostam()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_rostam()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=rostam.cct.lsu.edu
-  QUEUESYS=SLURM
-  QCHECKCMD=squeue
-  QSUMMARYCMD=squeue
-  QUOTACHECKCMD=null
-  ALLOCCHECKCMD=null
-  QUEUENAME=marvin  # same as SLURM partition
-  SERQUEUE=marvin
-  ACCOUNT=null
-  SUBMITSTRING=sbatch
-  JOBLAUNCHER='srun -N %nnodes%'
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  PPN=40
-  CONSTRAINT=null
-  RESERVATION=null
-  REMOVALCMD="rm"
-  TDS=( lsu_tds )
-  MAKEJOBS=8
-}
 init_supermic()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
@@ -196,38 +146,6 @@ init_queenbeeC()
   MAKEJOBS=8
 }
 
-init_pod()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_pod()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=pod.penguincomputing.com
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  ACCOUNT=null
-  QSUMMARYCMD=null
-  QUOTACHECKCMD=null
-  ALLOCCHECKCMD=null
-  QUEUENAME=B30
-  SERQUEUE=B30
-  SUBMITSTRING=qsub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  if [[ ${RMQMessaging_Enable} == "on" ]]; then
-    RMQMessaging_LocationName="Penguin"
-    RMQMessaging_ClusterName="POD"
-    RMQMessaging_NcoHome="$HOME/local"
-  fi
-  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  local THIS="platforms.sh>env_dispatch()>init_pod()"
-  SSHKEY=~/.ssh/id_rsa.pub
-  RESERVATION=null
-  PPN=28
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  TDS=(renci_tds)
-  MAKEJOBS=8
-}
 init_hatteras()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_hatteras()"
@@ -468,22 +386,7 @@ init_Poseidon()
   ARCHIVEDIR=$SCRATCH
   MAKEJOBS=1
 }
-init_penguin()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_penguin()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=pod.penguincomputing.com
-  #HOSTNAME=login-29-45.pod.penguincomputing.com
-  QUEUESYS=PBS
-  QCHECKCMD=qstat
-  SCRATCH=/home/$USER
-  SUBMITSTRING="mpirun"
-  QSCRIPT=penguin.template.pbs
-  QSCRIPTGEN=penguin.pbs.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  PPN=40
-  MAKEJOBS=8
-}
+
 init_test()
 { #<- can replace the following with a custom script
   QUEUESYS=Test
@@ -586,11 +489,6 @@ set_hpc() {
    echo "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
-   if [[ ${fqdn:(-18)} = "rostam.cct.lsu.edu" ]]; then
-      HPCENV=${fqdn:(-18)}
-      HPCENVSHORT=rostam
-      return
-   fi
    if [[ ${fqdn:(-25)} = "stampede2.tacc.utexas.edu" ]]; then
       HPCENV=${fqdn:(-25)}
       HPCENVSHORT=stampede2
@@ -647,22 +545,42 @@ set_hpc() {
    echo "$THIS: The value of HPCENV is ${HPCENV}."
    echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
 }
+
+# general init function for platforms defined using the
+# the init script as the first argument
+init_platform()
+{
+  local INIT=${1}
+  if [ -z "${INIT}" ]; then
+    echo "(warn !!!) platform init script must be specified as the first argument! No platform init.sh known."
+    return
+  fi
+  if [ ! -e "${INIT}" ]; then
+    echo "(warn !!!) Can't find init script, '$INIT'! No platform selected."
+    return
+  fi
+  printf "... attempting to load '$INIT' ... "
+  source $INIT
+  if [ $? -eq 0 ]; then
+    printf "OK\n"
+  else
+    echo
+    echo "(warn !!!) Failed to load '$INIT'! No platform selected."
+  fi
+  return
+}
+
 #
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
+ PLATFORM_INIT=$2
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  echo "(info)    $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "pod") allMessage "$THIS: POD (Penguin) configuration found."
-          init_pod
-          ;;
   "hatteras") allMessage "$THIS: Hatteras (RENCI) configuration found."
           init_hatteras
-          ;;
-  "supermike") allMessage "$THIS: Supermike (LSU) configuration found."
-          init_supermike
           ;;
   "queenbee") allMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
@@ -684,33 +602,28 @@ env_dispatch() {
           ;;
   "desktop") allMessage "$THIS: desktop configuration found."
           init_desktop
-           ;;
+          ;;
   "desktop-serial") consoleMessage "$THIS: desktop-serial configuration found."
           init_desktop-serial
-           ;;
+          ;;
   "docker") allMessage "$THIS: docker configuration found."
           init_docker
-           ;;
+          ;;
   "poseidon") allMessage "$THIS: Poseidon configuration found."
           init_Poseidon
-           ;;
-  "penguin") allMessage "$THIS: Penguin configuration found."
-          init_penguin
-           ;;
-  "rostam") allMessage "$THIS: rostam configuration found."
-          init_rostam
-           ;;
+          ;;
   "vagrant") allMessage "$THIS: vagrant configuration found."
           init_vagrant
-           ;;
+          ;;
   "docker") allMessage "$THIS: docker configuration found."
           init_docker
-           ;;
+          ;;
   "test") allMessage "$THIS: test environment (default) configuration found."
           init_test
-           ;;
-  *) fatal "$THIS: '$HPCENVSHORT' is not a supported environment; currently supported options: stampede2, lonestar5, supermike, queenbee, supermic, hatteras, desktop, desktop-serial, docker, su_tds, lsu_ccr_tds, renci_tds, tacc_tds, tacc_tds2"
-     ;;
+          ;;
+  *) # fallback for new method of initializing a platform
+          init_platform "$PLATFORM_INIT"
+          ;;
   esac
 
   # support arbitrarily $USER customizations after platforms.sh has been utilized

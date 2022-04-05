@@ -44,7 +44,7 @@ readConfig()
    # Initialize model parameters to appropriate values
    source ${SCRIPTDIR}/config/model_defaults.sh
    # HPC environment defaults (using the functions in platforms.sh)
-   env_dispatch ${HPCENVSHORT}
+   env_dispatch "$HPCENVSHORT"
    # set email addresses etc according to the Operator
    source ${SCRIPTDIR}/config/operator_defaults.sh
    # set default output file formats and frequencies

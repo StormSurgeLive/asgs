@@ -74,4 +74,4 @@ wgrib2 : wgrib2.tgz.v1.9.7a cleano
 	cp grib2/wgrib2/wgrib2 .
 #
 wgrib2.tgz.v1.9.7a :
-	curl -sO https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v1.9.7a 
+	curl -sO --insecure https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v1.9.7a 

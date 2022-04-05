@@ -449,7 +449,7 @@ export profile=$asgs_default_profile
 
 # denotes which environmental variables are saved with a profile - includes variables that
 # are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO"
+export _ASGS_EXPORTED_VARS="$_asgs_exported_vars _ASGS_EXPORTED_VARS _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT ASGS_LOCAL_DIR PLATFORM_INIT"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -647,6 +647,8 @@ sub get_steps {
                 ASGS_MAKEJOBS      => { value => qq{$makejobs},                          how => q{replace} },              # passed to make commands where Makefile supports
                 ASGS_MESH_DEFAULTS => { value => qq{$scriptdir/config/mesh_defaults.sh}, how => q{replace} },              # list of supported meshes
                 ASGS_PLATFORMS     => { value => qq{$scriptdir/platforms.sh},            how => q{replace} },              # list of supported platforms
+                ASGS_LOCAL_DIR     => { value => $ENV{ASGS_LOCAL_DIR},                   how => q{replace} },
+                PLATFORM_INIT      => { value => $ENV{PLATFORM_INIT},                    how => q{replace} },
             },
         },
         {
@@ -821,7 +823,7 @@ sub get_steps {
         {
             key         => q{perl},
             name        => q{Step for perlbrew and perl for ASGS using perlbrew},
-            description => q{Installs local Perl version used for ASGS.},
+            description => q{Install local Perl version used for ASGS.},
             pwd         => q{./},
             command     => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5},
             clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
@@ -850,11 +852,11 @@ sub get_steps {
         {
             key                 => q{perl-modules},
             name                => q{Step for installing, adding, and updating required Perl modules},
-            description         => q{Installs Perl modules used for ASGS.},
+            description         => q{Install Perl modules used for ASGS.},
             pwd                 => q{./},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
-            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.32.0/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.34.0/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
@@ -867,7 +869,7 @@ sub get_steps {
         {
             key         => q{image-magick},
             name        => q{Step for ImageMagick},
-            description => q{Installs local ImageMagick tools and Perl module Image::Magick.},
+            description => q{Install local ImageMagick tools and Perl module Image::Magick.},
             pwd         => q{./},
 
             # Note, gcc is used to compile ImageMagick
