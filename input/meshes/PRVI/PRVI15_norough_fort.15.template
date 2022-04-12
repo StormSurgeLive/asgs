@@ -2,7 +2,7 @@
  %EnsembleID%
  1 20.0 1 20 100.0                      ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
  0                                      ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
- -1000                                  ! NSCREEN - SCREEN OUTPUT (0=NO SCREEN OUTPUT, 1=SCREEN OUTPUT)
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
  %IHOT%                                 ! IHOT - HOT START PARAM (0=COLD START, 1=HOT START)
  2                                      ! ICS - POLAR COORDINATE OPTION (1=CART COORDS, 2=POLAR COORDS)
  0                                      ! IM - MODEL TYPE (0=2DDI, 1=3DL VS, 2=3DL DSS)

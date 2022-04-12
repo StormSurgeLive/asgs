@@ -2,7 +2,7 @@ southfl-v11-1 %StormName%
 %EnsembleID%
 1 20.0 1 20 100.0     ! NFOVER - NONFATAL ERROR OVERRIDE
 0                     ! NABOUT - ABREVIATED OUTPUT
-100                   ! NSCREEN - OUTPUT TO UNIT 6 (i.e., screen or stdout)
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
 %IHOT%                ! IHOT - HOT START
 2                     ! ICS - COORDINATE SYSTEM OPTION PARAMETER
 111112                ! IM - MODEL RUN TYPE: 0,10,20,30 = 2DDI
