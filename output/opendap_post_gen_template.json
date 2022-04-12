@@ -18,9 +18,11 @@
       "custom" : "%CUSTOMDIR%"
    },
    "adcirc" : {
-      "coldStartDate" : "%COLDSTARTDATE%",
-      "runStartTime" : "%RUNSTARTTIME%",
-      "mesh" : "%GRIDNAME%"
+      "mesh" : "%GRIDNAME%",
+      "coldStartDate" : "%COLDSTARTDATE%"
+   },
+   "control" : {
+      "runStartTime" : "%RUNSTARTTIME%"
    },
    "hpc" : {
       "env" : "%HPCENV%",
@@ -32,10 +34,10 @@
       "scenarioNumber" : "%SCENARIONUMBER%",
       "tropicalCyclone" : "%TROPICALCYCLONE%",
       "backgroundMeteorology" : "%BACKGROUNDMET%",
-      "year" : null,
-      "nwpModel" : null,
-      "stormName" : null,
-      "stormNumber" : null,
+      "year" : "%YEAR%",
+      "nwpModel" : "%WINDMODEL%",
+      "stormName" : "%STORMNAME%",
+      "stormNumber" : "%STORMNUMBER%",
       "basin" : "al"
    },
    "monitoring" : {
@@ -52,19 +54,10 @@
       "status" : [ "%STATUSDESTS%" ],
       "custom" : [ "%CUSTOMDESTS%" ]
    },
-   "files" : {
-      "default" : [ "%DEFAULTFILES%" ],
-      "archive" : [ "%ARCHIVEFILES%" ],
-      "status" : [ "%STATUSFILES%" ],
-      "custom" : [ "%CUSTOMFILES%" ]
-   },
    "notification" : {
       "email" : {
          "enable" : "%ENABLEOPENDAPNOTIFY%",
-         "default" : [ "%DEFAULTEMAILS%" ],
-         "archive" : [ "%ARCHIVEEMAILS%" ],
-         "status" : [ "%STATUSEMAILS%" ],
-         "custom" : [ "%CUSTOMEMAILS%" ]
+         "addresses" : [ "%OPENDAPEMAILS%" ]
       }
    },
    "lastmodified" : [

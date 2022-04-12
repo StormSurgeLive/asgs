@@ -13,6 +13,7 @@
    "paths" : {
       "scriptDir" : "/home/jason/Campaigns/Development/asgs",
       "cycleDir" : "/work/user/asgs22222/15",
+      "scenarioDir" : "/work/user/asgs22222/15/nowcast",
       "statusDir" : "/work/user/asgs22222/status",
       "custom" : "%CUSTOMDIR%"
    },
@@ -31,10 +32,10 @@
       "scenarioNumber" : "-1",
       "tropicalCyclone" : "on",
       "backgroundMeteorology" : "off",
-      "year" : null,
-      "nwpModel" : null,
-      "stormName" : null,
-      "stormNumber" : null,
+      "year" : 2005,
+      "nwpModel" : "gahm320",
+      "stormName" : "psuedokat",
+      "stormNumber" : 12,
       "basin" : "al"
    },
    "monitoring" : {
@@ -67,6 +68,6 @@
       }
    },
    "lastmodified" : [
-      { "asgs_main.sh" : "2022-Apr-01-T14:56:47-0400" }
+      { "asgs_main.sh" : "2022-Apr-04-T13:53:31-0400" }
    ]
  }
