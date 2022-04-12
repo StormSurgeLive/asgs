@@ -2,7 +2,7 @@ ASGS %StormName%          ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
 %EnsembleID%              ! 20 CHARACTER ALPANUMERIC RUN IDENTIFICATION
 1 20.0 1 20 100.0         ! NFOVER - NONFATAL ERROR OVERRIDE 
 1                         ! NABOUT - ABREVIATED OUTPUT
--1000                     ! NSCREEN - UNIT 6 
+%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
 %IHOT%                    ! IHOT - HOT START 
 2                         ! ICS - COORDINATE SYSTEM 
 111112                    ! IM - MODEL TYPE  jgf20140502: corrected 111122 
