@@ -2118,11 +2118,27 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
 
 #BOB
-   echo "Debug: hindcast: building fort.15" >> ${SYSLOG} 2>&1
+   logMessage "Debug: hindcast: building fort.15"
+   controlFile="$ADVISDIR/$ENSTORM/fort.15"
+   swanFile="$ADVISDIR/$ENSTORM/fort.26"
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-   if [ ! -s "$ADVISDIR/$ENSTORM/fort.15" ] ; then
-      echo "hindcast: $ADVISORDIR/$ENSTORM/fort.15 file is 0-length.  This is terminal."  >> ${SYSLOG} 2>&1
-      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "hindcast: fort.15 file is 0-length.  This is terminal."
+   controlExitStatus=$?
+   if [[ $controlExitStatus != 0 ]]; then
+      controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
+   fi
+   if [[ ! -e $controlFile || ! -s $controlFile ]]; then
+      controlExitStatus=1
+      controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
+   fi
+   if [[ $WAVES == on ]]; then
+      if [[ ! -e $swanFile || ! -s $swanFile ]]; then
+         controlExitStatus=1
+         controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
+      fi
+   fi
+   if [[ $controlExitStatus -ne 0 ]]; then
+      logMessage "$THIS: $SCENARIO: $controlMsg This is terminal."  >> ${SYSLOG} 2>&1
+      RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "hindcast: fort.15 file is 0-length. This is terminal."
       exit -9
    fi
 #BOB
@@ -2688,14 +2704,29 @@ while [ true ]; do
    logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
 
 #BOB
+   THIS="asgs_main.sh"
    debugMessage "$THIS: $ENSTORM: Building fort.15 file."
+   controlFile="fort.15"
+   swanFile="fort.26"
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-   if [ ! -s "fort.15" ] ; then
-      warn "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned."
-      echo "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." >> jobFailed
-
+   controlExitStatus=$?
+   if [[ $controlExitStatus != 0 ]]; then
+      controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
+   fi
+   if [[ ! -e $controlFile || ! -s $controlFile ]]; then
+      controlExitStatus=1
+      controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
+   fi
+   if [[ $WAVES == on ]]; then
+      if [[ ! -e $swanFile || ! -s $swanFile ]]; then
+         controlExitStatus=1
+         controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
+      fi
+   fi
+   if [[ $controlExitStatus -ne 0 ]]; then
+      warn "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned."
+      echo "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned." >> jobFailed
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
-      THIS="asgs_main.sh"
       CURRENT_EVENT="REND"
       CURRENT_STATE="CMPL"
       RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NC/FC Cycle restarting due to nowcast failure."
@@ -3175,13 +3206,30 @@ while [ true ]; do
 #BOB
       THIS="asgs_main.sh"
       debugMessage "$THIS: $ENSTORM: Building fort.15 file."
+
+      controlFile="fort.15"
+      swanFile="fort.26"
       perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-      if [[ ! -s "fort.15" && -e $STORMDIR/runme ]] ; then
-         warn "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned."
-         echo "$THIS: $ENSTORM: fort.15 file is 0-length. The $ENSTORM run will be abandoned." >> jobFailed
-         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
-         THIS="asgs_main.sh"
+      controlExitStatus=$?
+      if [[ $controlExitStatus != 0 ]]; then
+         controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
       fi
+      if [[ ! -e $controlFile || ! -s $controlFile ]]; then
+         controlExitStatus=1
+         controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
+      fi
+      if [[ $WAVES == on ]]; then
+         if [[ ! -e $swanFile || ! -s $swanFile ]]; then
+            controlExitStatus=1
+            controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
+         fi
+      fi
+      if [[ $controlExitStatus -ne 0 ]]; then
+         warn "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned."
+         echo "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned." >> jobFailed
+         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      fi
+      THIS="asgs_main.sh"
 #BOB
       if [[ -e tide_fac.out ]]; then
          scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
