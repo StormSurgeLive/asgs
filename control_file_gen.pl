@@ -358,7 +358,7 @@ if ( defined $sparseoutput ) {
 }
 $incr = getIncrement($fort7172freq,$dt);
 $fort7172 = "$fort7172specifier $output_start $output_end $incr";
-$incr = getIncrement($fort7172freq,$dt);
+$incr = getIncrement($fort7374freq,$dt);
 $fort7374 = "$fort7374specifier $output_start $output_end $incr";
 
 if ( $nws eq "0" ) {
