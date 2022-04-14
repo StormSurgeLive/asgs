@@ -1,0 +1,118 @@
+I. Introduction ~~~~~~~~~~~~~~~
+
+The ./platforms directory is a modular way to add new platform
+support without modifying any files; but by only adding a directory
+in ./platforms and supporting files.
+
+There is also a mechanism to add new platforms in a site specific
+and "private" way.
+
+Note: the goal is to make it a rare event that an "officially
+supported platform" is added. After reading this section, please
+read the section on maintaining "site specific" platform support
+outside of the main upstream ASGS git repository.
+
+II. Adding an "Official" Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The steps are pretty simple, and there is at least one platform
+supported "officially" at the time of this writing.
+
+Steps:
+
+1. cp -r ./platforms/penguin ./platforms/mynewplatform 2. edit
+./platforms/mynewplatform/init.sh as needed 3. edit ./about.txt as
+needed 4. test
+
+II.a Testing
+~~~~~~~~~~~~
+
+Testing a new platform is done by exercising all the normal aspects
+from building it to starting and working within the ASGS Shell
+Environment.
+
+These testing steps are:
+
+ a. build ASGS
+
+ b. launch the ASGS Shell Environment, which should detect the
+    platform as expected
+
+ c. ensure the command, "guess platform" in the shell reports
+    the current platform as expected
+
+ d. build ADCIRC via the "build adcirc" command
+
+ e. initiate an ASGS run using a known working configuration
+
+Assuming you're on the platform you're adding (recommended), then it
+will be presented as the default option. Platforms added this way
+should do what is expected when running the ASGS Shell Environment
+and running ASGS via asgs_main.sh.
+
+III. Adding Site Specific Platforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some sites that use ASGS utilize platforms that can't or shouldn't be
+distributed as an officially supported platform via ASGS' platform
+scheme described above.
+
+Integrating a site specific set of platforms is straightforward
+and follows the same scheme described above. The only difference
+is that the directory containing the site's ./platforms directory
+must be specified when ./init-asgs.sh is run using the -p option.
+
+Typical steps look like the following:
+
+1. when inside of the ./asgs directory, copy the site specific
+   assets directory (more on the structure of this below)
+
+2. run ./init-asgs.sh with the -p option,
+
+   ./init-asgs.sh -p ./site-specific-assets-dir # YOU provide the dir
+
+3. ensure that the site specific platform is listing as an option of
+   platforms presented by ./init-asgs.sh and that it is the default
+   selection
+
+IV. Site Specific Assets Directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This directory is maintained privately by a site, and can be done
+so in a variety of ways. ASGS only cares that it exists and that
+you let ./init-asgs.sh know about it. It also should move or "go
+away" at any point during use.
+
+The structure of the site specific assets directory reflects that
+of the highest level ./asgs (often called the "script directory"
+and tracked using the SCRIPTDIR environmental variable inside of
+asgsh.
+
+An illustration of this directory structure relative to ./asgs is:
+
+./asgs/
+  ./platforms/
+  ./meshes/
+  ./config/
+  ...
+  ./site-specific-assets-dir/  # this dir can be any name
+    ./asgs-configs/
+      ./site-storm-config-1.sh
+      ./site-storm-config-2.sh
+      ...
+    ./meshes/
+    ./platforms/
+      ./siteplatform1/
+        ./init.sh
+        ./about.txt
+      ./siteplatform2/
+        ./init.sh
+        ./about.txt
+      ... 
+
+V. Conclusion
+~~~~~~~~~~~~~
+
+This documentation isn't meant to be crystal clear for beginners,
+so when in doubt please speak up and ask questions are our various
+collaboration spaces.

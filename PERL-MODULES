@@ -14,7 +14,6 @@ Params::Validate
 Test::More
 Time::Local
 Try::Tiny
-XML::RSS
 Template
 Perl::Tidy
 Weather::NHC::TropicalCyclone
