@@ -16,6 +16,14 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 
+#
+# D O  N O T   M A N U A L L Y  A D D  P L A T F O R M S  H E R E  A N Y M O R E
+# See ./platforms/README
+#
+
+I="(info)"
+W="(!! warning)"
+
 # preflight checkes and warnings
 if [ -n "$_ASGSH_PID" ]; then
   echo
@@ -24,14 +32,38 @@ if [ -n "$_ASGSH_PID" ]; then
   exit 1
 fi
 
-BATCH=$1
+while getopts "bmp:x:" optname; do
+   case $optname in
+      b) BATCH=1
+         ;;
+      m) # invokes minimal asgs-brew.pl command using "--run-steps setup-env"
+         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
+           EXTRA_ASGSBREW_OPTS="--run-steps setup-env"
+         else
+           echo "-m can't be used with -x"
+           exit 1
+         fi
+         ;;
+      p) export ASGS_LOCAL_DIR=${OPTARG}
+         ;;
+      x) # add extra arbitrary options to asgs-brew.pl command
+         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
+           EXTRA_ASGSBREW_OPTS=${OPTARG}
+         else
+           echo "-x can't be used with -m"
+           exit 1
+         fi
+         ;;
+   esac
+done
+
+echo $ASGS_LOCAL_DIR
 
 # can tweak _ASGS_TMP default if TMPDIR is set in the environment
 _ASGS_TMP=${TMPDIR:-/tmp/$USER-asgs}
 
-echo "pod            - POD (Penguin)"
+# DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 echo "hatteras       - Hatteras (RENCI)"    # ht4
-echo "supermike      - Supermike (LSU)"
 echo "queenbee       - Queenbee (LONI)"     # qb2
 echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
 echo "supermic       - SuperMIC (LSU HPC)"  # smic
@@ -41,10 +73,47 @@ echo "frontera       - Frontera (TACC)"     # frontera
 echo "desktop        - desktop"
 echo "desktop-serial - desktop-serial"
 echo "poseidon       - Poseidon"
-echo "penguin        - Penguin"
-echo "rostam         - Rostam"
 echo "docker         - Docker container environment"
 echo "vagrant        - vagrant/virtual box (local workstation)"
+
+# Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
+# See ./platforms/README
+declare -A _PLATFORM_INIT=()
+_PLATFORMS=()
+if [ -d "./platforms" ]; then
+  FOUND_LOCAL=0
+  for platform in $(find ./platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+    _PLATFORMS+=($platform);
+  done
+  for platform in "${_PLATFORMS[@]}"; do
+    if [ -e ./platforms/${platform}/init.sh ]; then
+      about='(repo defined)'
+      _PLATFORM_INIT[$platform]="./platforms/${platform}/init.sh"
+      if [ -e ./platforms/${platform}/about.txt ]; then
+        about=$(cat ./platforms/${platform}/about.txt | sed 's/\n//g')
+      fi
+      printf "% -14s - %s\n" "$platform" "$about"
+    fi
+  done
+  unset _PLATFORMS
+fi
+
+_PLATFORMS=()
+if [[ -n "${ASGS_LOCAL_DIR}" &&  -d "${ASGS_LOCAL_DIR}/platforms" ]]; then
+  FOUND_LOCAL=0
+  for platform in $(find ${ASGS_LOCAL_DIR}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+    _PLATFORMS+=($platform);
+  done
+  for platform in "${_PLATFORMS[@]}"; do
+    if [ -e "${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh" ]; then
+      _PLATFORM_INIT[$platform]="${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh"
+      if [ -e ${ASGS_LOCAL_DIR}/platforms/${platform}/about.txt ]; then
+        about=$(cat ${ASGS_LOCAL_DIR}/platforms/${platform}/about.txt | sed 's/\n//g')
+      fi
+      printf "% -14s - %s\n" "$platform" "(custom) $about"
+    fi
+  done
+fi
 
 default_platform=$(./bin/guess platform)
 if [ -n "$default_platform" ]; then
@@ -60,6 +129,7 @@ if [ -z "$platform" ]; then
   platform=$default_platform
 fi
 
+# DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 # catch WORK and SCRATCH as early as possible
 DEFAULT_COMPILER=intel
 case "$platform" in
@@ -73,14 +143,6 @@ case "$platform" in
     SCRATCH=${SCRATCH:-/scratch}
     DEFAULT_COMPILER=gfortran
     ;; 
-  rostam)
-    DEFAULT_COMPILER=gfortran
-    WORK=${WORK:-/work/$USER}
-    SCRATCH=${SCRATCH:-$WORK}
-    # <-needed for OpenMPI to compile on Rostam + gcc version 10.2.0
-    export FCFLAGS="${FCFLAGS} -fallow-argument-mismatch"
-    export FFLAGS="${FFLAGS} -fallow-argument-mismatch"
-    ;;
   hatteras)
     WORK=${WORK:-$HOME}
     SCRATCH=${SCRATCH:-"/projects/$USER"}
@@ -97,12 +159,19 @@ case "$platform" in
       exit 1
     fi
     ;;
-  *) echo "Unknown defaults for platform '$platform', using "$HOME" as 'WORK' and 'SCRATCH' directories..."
-    WORK=${WORK:-$HOME}
-    SCRATCH=${SCRATCH:-$HOME}
-    DEFAULT_COMPILER=gfortran
+  *) # fall back to new method of getting platform defaults for building
+     if [ -e "${_PLATFORM_INIT[$platform]}" ]; then
+       export PLATFORM_INIT="${_PLATFORM_INIT[$platform]}"
+       source "${_PLATFORM_INIT[$platform]}"
+     else
+      echo "Can't find 'init.sh' for '$platform' or Unknown defaults for platform '$platform', using "$HOME" as 'WORK' and 'SCRATCH' directories..."
+      WORK=${WORK:-$HOME}
+      SCRATCH=${SCRATCH:-$HOME}
+      DEFAULT_COMPILER=gfortran
+    fi
     ;;
 esac
+
 export WORK
 export SCRATCH
 export _ASGS_TMP
@@ -116,10 +185,14 @@ fi
 
 echo
 echo "Platform name       : $platform"
+if [ -n "$PLATFORM_INIT" ]; then
+  echo "Platform Init       : $PLATFORM_INIT"
+fi
 echo "SCRIPTDIR           : $(pwd)"
 echo "WORK                : $WORK"
 echo "SCRATCH             : $SCRATCH"
 echo "ASGS Build directory: $_ASGS_TMP"
+echo "Default Compiler    : $DEFAULT_COMPILER"
 echo
 
 # Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
@@ -130,13 +203,13 @@ if [ -z "$BATCH" ]; then
     exit
   fi
   echo
-  read -p "Which asgs branch from Github should be used ('skip' or '.' to skip)? [master] " repo
+  read -p "If you'd like to checkout a specific branch, specify here. [<enter> if you don't know] " repo
 
   if [ -z "$repo" ]; then
-    repo=master
+    repo=current
   fi
  
-  if [[ "$repo" != "." && ${repo,,} != "skip" ]]; then
+  if [[ "$repo" != "." && ${repo,,} != "current" ]]; then
     git checkout $repo 2> /dev/null
     if [ $? -gt 0 ]; then
      echo
@@ -182,7 +255,7 @@ fi
 if [ -z "$BATCH" ]; then
   if [ -e $HOME/.asgs/$profile ]; then
     echo
-    read -p "(warning) - it appears an '$profile' profile already exists from a previous installation. Is it okay to proceed and overwrite? [y/N] " overwrite
+    read -p "${W} it appears an '$profile' profile already exists from a previous installation. Is it okay to proceed and overwrite? [y/N] " overwrite
     if [[ -z "$overwrite" || "${overwrite^^}" == "N" ]]; then
       echo exiting ...
       exit
@@ -204,7 +277,7 @@ fi
 if [ -z "$BATCH" ]; then
   if [ -d "$installpath/$profile" ]; then
     echo
-    read -p "(warning) - '$installpath/$profile' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit 
+    read -p "${W} '$installpath/$profile' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit 
     if [[ -z "$quit" || "${quit^^}" == Y ]]; then
       echo exiting ...
       exit 
@@ -213,13 +286,13 @@ if [ -z "$BATCH" ]; then
 fi
 
 if [ -e $HOME/bin/asgsh ]; then
-  echo "(warning) - '$HOME/bin/asgsh' has been detected. Use of this path is deprecated and will be removed."
+  echo "${W} '$HOME/bin/asgsh' has been detected. Use of this path is deprecated and will be removed."
 fi
 if [ -e $HOME/bin/update-asgs ]; then
-  echo "(warning) - $HOME/bin/update-asgs' has been detected. Use of this path is deprecated and will be removed."
+  echo "${W} $HOME/bin/update-asgs' has been detected. Use of this path is deprecated and will be removed."
 fi
 
-cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform"
+cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform ${EXTRA_ASGSBREW_OPTS}"
 
 if [ -z "$BATCH" ]; then
   echo

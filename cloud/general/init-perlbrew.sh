@@ -27,7 +27,7 @@ if [ 1 -eq "$(echo $CURRENT_PERL | grep -c perl5)" ]; then
 fi
 
 if [ ! -e "$PERLBREW_ROOT/bin/perlbrew" ]; then
-  curl -sL https://install.perlbrew.pl | bash
+  curl -k -sL https://install.perlbrew.pl | bash
 else
   echo perlbrew seems to be already set up and avaiable via PATH
 fi
@@ -35,10 +35,17 @@ fi
 # source for this session
 source $PERLBREW_ROOT/etc/bashrc > /dev/null 2>&1
 
+# update perbrew source to allow curl insecure https download for
+# platforms with old CA bundles
+
+PB=$(which perlbrew)
+perl -pi -e "s/download => '--silent/download => '-k --silent/g" "$PB"
+
 if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
 
   # --notest is just to increase the speed of the installation
-  perlbrew --verbose --notest install $PERL_VERSION  # -D useshrplib #<- to build libperl.so rather than libperl.a
+  perlbrew --verbose --notest install $PERL_VERSION --mirror http://www.cpan.org
+  # -D useshrplib #<- to build libperl.so rather than libperl.a
 
   if [ $? -ne 0 ]; then
     echo perlbrew failed to install perl $PERL_VERSION

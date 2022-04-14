@@ -712,18 +712,18 @@ else
   # loading support for reading of run.properties file
   if [ -e "$SCRIPTDIR/properties.sh" ]; then
     echo "${I} found properties.sh"
-    . $SCRIPTDIR/properties.sh
+    source $SCRIPTDIR/properties.sh
   else
     echo "${W} could not find $SCRIPTDIR/properties.sh"
   fi
   # initializing ASGS environment and platform, based on $asgs_machine_name
   if [ -e "$SCRIPTDIR/monitoring/logging.sh" ]; then
     echo "${I} found logging.sh"
-    . $SCRIPTDIR/monitoring/logging.sh
+    source $SCRIPTDIR/monitoring/logging.sh
     if [ -e "$SCRIPTDIR/platforms.sh" ]; then
       echo "${I} found platforms.sh"
-      . $SCRIPTDIR/platforms.sh
-      env_dispatch $ASGS_MACHINE_NAME
+      source $SCRIPTDIR/platforms.sh
+      env_dispatch "$ASGS_MACHINE_NAME" "$PLATFORM_INIT"
     else
       echo "${W} could not find $SCRIPTDIR/platforms.sh"
     fi
@@ -844,6 +844,8 @@ fi
 load profile ${profile-default}
 show scratchdir
 show workdir
+show machinename
+show platform_init
 echo
 
 # construct to handle "autorun" options
