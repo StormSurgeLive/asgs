@@ -253,8 +253,6 @@ load() {
           echo "$W SCRIPTDIR is not the same as your PWD, '$(pwd)'"
           echo "$W  ... reseting ... maybe 'clone profile' to avoid this warning in the future ..."
           export SCRIPTDIR=$(pwd)
-          save profile
-          rl
         fi 
         export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
         echo "${I} loaded '$NAME' into current profile"
