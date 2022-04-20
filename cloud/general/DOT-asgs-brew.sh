@@ -247,7 +247,7 @@ load() {
       if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
         export _ASGSH_CURRENT_PROFILE="$NAME"
         _reset_ephemeral_envars
-        source "$ASGS_HOME/.asgs/$NAME"
+       source "$ASGS_HOME/.asgs/$NAME"
         # check SCRIPTDIR
         if [ "$SCRIPTDIR" != $(pwd) ]; then
           echo "$W SCRIPTDIR is not the same as your PWD, '$(pwd)'"
