@@ -45,10 +45,10 @@ _list() {
       cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
       ;;
     profile|profiles)
-      if [ ! -d "$ASGS_HOME/.asgs/" ]; then
+      if [ ! -d "$ASGS_META_DIR" ]; then
         echo "nothing is available to list, use the 'save' command to save this profile"
       else
-        for profile in $(ls -1 "$ASGS_HOME/.asgs/" | sort); do
+        for profile in $(ls -1 "$ASGS_META_DIR/" | sort); do
           printf "% 2d. %s\n" $LISTNUM $profile
           LISTNUM=$(($LISTNUM+1))
         done

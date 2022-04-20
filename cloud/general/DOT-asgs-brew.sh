@@ -244,10 +244,16 @@ load() {
       else
         NAME=${2}
       fi
-      if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+      if [ -e "$ASGS_META_DIR/$NAME" ]; then
         export _ASGSH_CURRENT_PROFILE="$NAME"
         _reset_ephemeral_envars
-        . "$ASGS_HOME/.asgs/$NAME"
+       source "$ASGS_META_DIR/$NAME"
+        # check SCRIPTDIR
+        if [ "$SCRIPTDIR" != $(pwd) ]; then
+          echo "$W SCRIPTDIR is not the same as your PWD, '$(pwd)'"
+          echo "$W  ... reseting ... maybe 'clone profile' to avoid this warning in the future ..."
+          export SCRIPTDIR=$(pwd)
+        fi 
         export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
         echo "${I} loaded '$NAME' into current profile"
         if [ -e "$ASGS_CONFIG" ]; then
@@ -321,11 +327,11 @@ save() {
       NAME=${2:-$_ASGSH_CURRENT_PROFILE}
       DO_RELOAD=0
 
-      if [ ! -d $ASGS_HOME/.asgs ]; then
-        mkdir -p $ASGS_HOME/.asgs
+      if [ ! -d "$ASGS_META_DIR" ]; then
+        mkdir -p "$ASGS_META_DIR"
       fi
 
-      if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
+      if [ -e "$ASGS_META_DIR" ]; then
         IS_UPDATE=1
       fi
     ;;
@@ -335,13 +341,13 @@ save() {
     return
   esac
 
-  # generates saved provile as a basic shell resource file that simply
+  # generates saved profile as a basic shell resource file that simply
   # includes an 'export' line for each variable asgsh cares about; this
   # is defined as part of the shell installation by asgs-brew.pl
   for e in $_ASGS_EXPORTED_VARS; do
-    echo "export ${e}='"${!e}"'"  >> "$ASGS_HOME/.asgs/${NAME}.$$.tmp"
+    echo "export ${e}='"${!e}"'"  >> "$ASGS_META_DIR/${NAME}.$$.tmp"
   done
-  mv "$ASGS_HOME/.asgs/${NAME}.$$.tmp" "$ASGS_HOME/.asgs/${NAME}"
+  mv "$ASGS_META_DIR/${NAME}.$$.tmp" "$ASGS_META_DIR/${NAME}"
 
   # print different message based on whether or not the profile already exists
   if [ -n "$IS_UPDATE" ]; then
@@ -554,11 +560,11 @@ edit() {
     ;;
   profile)
     NAME=${2}
-    if [[ -z "$NAME" || ! -e "$ASGS_HOME/.asgs/$NAME" ]]; then
+    if [[ -z "$NAME" || ! -e "$ASGS_META_DIR/$NAME" ]]; then
       echo "An ASGS profile named '$NAME' doesn't exist"
       return
     fi
-    $EDITOR "$ASGS_HOME/.asgs/$NAME"
+    $EDITOR "$ASGS_META_DIR/$NAME"
     if [ 0 -eq $? ]; then
       read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
       if [[ -z "$reload" || "$reload" = "y" ]]; then
@@ -636,8 +642,8 @@ delete() {
         return
       fi
       NAME=${2}
-      if [ -e "$ASGS_HOME/.asgs/$NAME" ]; then
-        rm -f "$ASGS_HOME/.asgs/$NAME"
+      if [ -e "$ASGS_META_DIR/$NAME" ]; then
+        rm -f "$ASGS_META_DIR/$NAME"
         echo deleted profile \'$NAME\'
       else
         echo "no saved profile named '$NAME' was found"
