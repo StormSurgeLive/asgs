@@ -1069,8 +1069,8 @@ sub get_steps {
                 SWANDIR             => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
                 ADCIRC_PROFILE_NAME => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
             },
-            command => q{bash cloud/general/init-adcirc.sh},                   # Note: parameters input via environmental variables
-            clean   => q{bash cloud/general/init-adcirc.sh clean},
+            command => qq{bash $scriptdir/bin/init-adcirc.sh},                   # Note: parameters input via environmental variables
+            clean   => qq{bash $scriptdir/bin/init-adcirc.sh clean},
             skip_if => sub { ( $opts_ref->{'build-adcirc'} ) ? undef : 1 },    # builds only if --build-adcirc is passed to asgs-brew.pl
         },
     ];
