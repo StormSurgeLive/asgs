@@ -35,19 +35,6 @@
 #SYSLOG=/work/$USER/log/scp-only-test.asgs-2022-Mar-30-T17:52:47-0500.764213.log
 #echo "$1, $2, $3, $4, $5, $6, $7, $8, $9, ${10}, ${11}, ${12}" >> $SCRIPTDIR/scp_files.out
 
-CONFIG=$1
-ADVISDIR=$2
-STORM=$3
-YEAR=$4
-ADVISORY=$5
-HPCENV=$6
-ENSTORM=$7
-CSDATE=$8
-HSTIME=$9
-GRIDFILE=${10}
-OUTPUTDIR=${11}
-SYSLOG=${12}
-
 source $SCRIPTDIR/properties.sh
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh
@@ -74,20 +61,61 @@ pingWait()
   done
 }
 
-# get to right place
-SCENARIODIR=${ADVISDIR}/${ENSTORM}
-
-RUNPROPERTIES=$SCENARIODIR/run.properties
 declare -A properties
-loadProperties $RUNPROPERTIES
+THIS=$(basename $0)
+
+if [[ $# -eq 1 ]]; then
+# if passed what looks like a run.properties file, extract or
+# derive expected values
+  RUNPROPERTIES=$(realpath $1)                                       # verify this is ok
+  SCENARIODIR=$(dirname $RUNPROPERTIES)
+  loadProperties $RUNPROPERTIES
+  CONFIG=${properties["config.file"]}
+  ADVISDIR=${properties["asgs.path.fromdir"]}
+  STORM=${properties["asgs.enstorm"]}
+  YEAR=$(date +%Y)                                                   # verify this is ok 
+  ADVISORY=$(echo $SCENARIODIR | awk -F \/ '{i=NF-1; print $i}')
+  HPCENV=${properties["hpc.hpcenv"]}
+  ENSTORM=${properties["asgs.enstorm"]}
+  CSDATE=${properties["adcirc.time.coldstartdate"]}
+  #HSTIME=${properties[""]}                                           # need to get somehow
+  GRIDFILE=${properties["adcirc.file.input.gridfile"]}
+  OUTPUTDIR=${properties["path.outputdir"]}                          # verify this is correct
+  SYSLOG=${properties["monitoring.logging.file.syslog"]}
+elif [[ $# -eq 12 ]]; then
+# asgs_main.sh calls this with 12 parameters passed in, so the
+# automated way of calling this script expects these parameters
+  CONFIG=$1
+  ADVISDIR=$2
+  STORM=$3
+  YEAR=$4
+  ADVISORY=$5
+  HPCENV=$6
+  ENSTORM=$7
+  CSDATE=$8
+  HSTIME=$9
+  GRIDFILE=${10}
+  OUTPUTDIR=${11}
+  SYSLOG=${12}
+  # get to right place
+  SCENARIODIR=${ADVISDIR}/${ENSTORM}
+  RUNPROPERTIES=$SCENARIODIR/run.properties
+  loadProperties $RUNPROPERTIES
+else
+  echo "(!!! warning) $THIS requires either 1 param (path/to/run.properties),"
+  echo "or the 12 provided by asgs_main.sh"
+  exit $EXIT_ERROR 
+fi
+
 GRIDNAME=${properties["adcirc.gridname"]}
 ASGSADMIN=${properties["notification.email.asgsadmin"]}
 INSTANCENAME=${properties["instancename"]}
 TROPICALCYCLONE=${properties["forcing.tropicalcyclone"]}
 BACKGROUNDMET=${properties["forcing.backgroundmet"]}
+SCENARIO=${properties["scenario"]}
 
 if [ $BACKGROUNDMET == "on" ]; then
-  YEAR=$(date +%Y)
+  YEAR=$(date +%Y)                                                     # need to confirm this is a reasonable thing to do...
 fi
 
 declare -a SERVERS
@@ -106,19 +134,43 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
    exit
 fi
 
+case $SCENARIO in
+"hindcast")
+   SCENARIONUMBER=-2
+   ;;
+"nowcast")
+   SCENARIONUMBER=-1
+   ;;
+*)
+   SCENARIONUMBER=${properties["forecast.scenario.number"]} # this is used in the subject line of the email
+   ;;
+esac
+
+# default primary subject
+subject="ADCIRC POSTED for $runStartTime"
+
+# modify primary subject
+if [[ "$SCENARIO" == "nowcast" ]]; then
+  subject="ADCIRC NOWCAST POSTED for $runStartTime"
+elif [[ "$SCENARIO" == "hindcast" ]]; then
+  subject="ADCIRC HINDCAST POSTED for $runStartTime"
+elif [[ "$SCENARIO" == "asgs.instance.status" ]]; then
+  subject="ADCIRC STATUS POSTED for $runStartTime"
+fi
+
+# decorate subject (append or prepend) - so works with any value of primary
+#  "$subject" as it's determined above
+if [[ $TROPICALCYCLONE == "on" ]]; then
+   subject="${subject} (TC)"
+fi
+subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
+
 for server in ${SERVERS[*]}; do
    if [[ $server = "(" || $server = ")" ]]; then continue; fi
    echo "Sending files to '$server'"
 
    # load TDS server propers into ENV
    writeTDSProperties $server
-   #echo "THREDDSHOST           '$THREDDSHOST'"
-   #echo "OPENDAPBASEDIR        '$OPENDAPBASEDIR'"
-   #echo "OPENDAPHOST           '$OPENDAPHOST'"
-   #echo "OPENDTPORT            '$OPENDAPPORT'"
-   #echo "OPENDAPPROTOCOL       '$OPENDAPPROTOCOL'"
-   #echo "OPENDAPCATALOGPREFIX  '$CATALOGPREFIX'"
-   #echo "OPENDAPDOWNLOADPREFIX '$DOWNLOADPREFIX'"
 
    # e.g., /data/opendap/2022/nam/2022033012/LAv20a/qbc.loni.org/LAv20a_nam_akheir_10kcms/nowcast
    BASEDIR=$OPENDAPBASEDIR/$YEAR
@@ -174,4 +226,24 @@ SSH_MKDIRS
    unset CATALOGPREFIX
    unset DOWNLOADPREFIX
    unset OPENDAPBASEDIR
+
+   # write out message
+   EMAILBODY_FILE=${SCENARIODIR}/opendap_results_notify_${server}.txt
+   echo <<END > $EMAILBODY_FILE
+The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
+
+The instance status file is: $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
+The hook status file is: $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+The log file is: $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
+
+or wget the file with the following commands
+
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
+END
+
+  TO=${properties["notification.email.asgsadmin"]}
+  echo "asgs-sendmail.pl --subject '$subject' --to '$TO' < $EMAILBODY_FILE"
+  $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to $TO < $EMAILBODY_FILE 
 done
