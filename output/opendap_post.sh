@@ -38,6 +38,9 @@ source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
 echo "Finished loading properties."
+if [[ -z "$OPENDAPNOTIFY" || "$OPENDAPNOTIFY" == "null" ]]; then
+  OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
+fi
 CONFIG=${properties['config.file']}
 COLDSTARTDATE=${properties["adcirc.time.coldstartdate"]} # used for the hindcast path
 CYCLEDIR=${properties['path.advisdir']}
