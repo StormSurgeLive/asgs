@@ -592,9 +592,9 @@ END
    #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
    #   cat ${SCENARIODIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
    #else
-   if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
+#   if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
       scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
       # use asgs sendmail if Operator has set it up
       $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
-   fi
+#   fi
 done # end loop over opendap servers
