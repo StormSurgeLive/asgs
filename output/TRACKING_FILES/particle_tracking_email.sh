@@ -37,7 +37,7 @@ $ADVISDIR/MONTAGE
 
 END
 #
-cat $ADVISDIR/post_notify.txt | mail -s "ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY  Initial Particle location ${PARTICLEFILE} on $HOSTNAME" $POST_LIST
+cat $ADVISDIR/post_notify.txt | asgs-sendmail --subject "ASGS Oil Spill results available for $KIND $STORM advisory $ADVISORY  Initial Particle location ${PARTICLEFILE} on $HOSTNAME" --to "$POST_LIST"
 
 
 
