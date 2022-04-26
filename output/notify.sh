@@ -56,7 +56,7 @@ identical to the results produced on ${HOSTNAME}. The other instances
 are running for redundancy purposes.
 
 END
-    cat $STORMDIR/activate.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
+    cat $STORMDIR/activate.txt | asgs-sendmail --subject "ASGS Activated on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG}
 }
 
 new_advisory_email()
@@ -87,7 +87,7 @@ that are running on supercomputers OTHER THAN ${HOSTNAME}.
 The other instances are running for redundancy purposes.  
 
 END
-     cat $STORMDIR/new_advisory.txt | mail  -S "replyto=$ASGSADMIN" -s "advisory detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
+     cat $STORMDIR/new_advisory.txt | asgs-sendmail --subject "advisory detected by ASGS on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG}
 
 }
  

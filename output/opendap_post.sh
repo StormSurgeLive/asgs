@@ -101,7 +101,7 @@ case $SCENARIO in
    SCENARIONUMBER=${properties["forecast.scenario.number"]} # this is used in the subject line of the email
    ;;
 esac
-env_dispatch $HPCENVSHORT # set up JOBENV with perlbrew for asgs-sendmail.pl etc
+env_dispatch $HPCENVSHORT # set up JOBENV with perlbrew for asgs-sendmail etc
 OPENDAPMAILSERVER=${properties["notification.opendap.email.opendapmailserver"]}
 declare -a LINKABLEHOSTS
 declare -a COPYABLEHOSTS
@@ -397,8 +397,8 @@ END
          # send opendap posting notification email early if directed
          if [[ $file == "sendNotification" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-            scenarioMessage "perl $SCRIPTDIR/asgs-sendmail.pl --config ${HOME}/asgs-global.conf --subject '$subject' --to $OPENDAPNOTIFY < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1"
-            $SCRIPTDIR/asgs-sendmail.pl --config ${HOME}/asgs-global.conf --subject "$subject" --to $OPENDAPNOTIFY < ${SCENARIODIR}/opendap_results_notify_${server}.txt >> ${SCENARIOLOG} 2>&1
+            scenarioMessage "asgs-sendmail --config ${HOME}/asgs-global.conf --subject '$subject' --to $OPENDAPNOTIFY < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1"
+            asgs-sendmail --subject "$subject" --to $OPENDAPNOTIFY < ${SCENARIODIR}/opendap_results_notify_${server}.txt >> ${SCENARIOLOG} 2>&1
             opendapEmailSent=yes
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
@@ -494,7 +494,7 @@ END
          # send opendap posting notification email early if directed
          if [[ $file = "sendNotification"  && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
+            asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
             opendapEmailSent=yes
             continue
          fi
@@ -562,8 +562,8 @@ END
          # send opendap posting notification email early if directed
          if [[ $file = "sendNotification" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-            # use asgs sendmail if Operator has set it up
-            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
+            # use asgs-sendmail if Operator has set it up
+            asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
             opendapEmailSent=yes
             continue
          fi
@@ -590,11 +590,11 @@ END
    #
    #if [[ threddsPostStatus != ok ]]; then
    #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
-   #   cat ${SCENARIODIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
+   #   cat ${SCENARIODIR}/opendap_results_notify.txt | asgs-sendmail --subject "$subject" --to "$ASGSADMIN" 2>> ${SYSLOG} 2>&1
    #else
    if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
       scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-      # use asgs sendmail if Operator has set it up
-      $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
+      # use asgs-sendmail if Operator has set it up
+      asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
    fi
 done # end loop over opendap servers

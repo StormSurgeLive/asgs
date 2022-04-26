@@ -47,7 +47,7 @@ variables_init()
    GRIDFILE=fort.14
    GRIDNAME=fort14
    OUTPUTOPTIONS=
-   NSCREEN=-1000
+   NSCREEN=${NSCREEN:-"-1000"}
    ARCHIVEBASE=/dev/null
    ARCHIVEDIR=null
    FORECASTCYCLE="00,06,12,18"
@@ -81,7 +81,7 @@ variables_init()
    fi
    MAILINGLIST=null
    INTENDEDAUDIENCE=${INTENDEDAUDIENCE:-"developers-only"} # "general" | "developers-only" | "professional"
-   QUEUESYS=null
+   QUEUESYS=${QUEUESYS:-null}
    QUEUENAME=${QUEUENAME:-null}
    SERQUEUE=${SERQUEUE:-null}
    ACCOUNT=${ACCOUNT:-desktop}

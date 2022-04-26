@@ -85,7 +85,7 @@ are running for redundancy purposes.
 
 END
     echo "INFO: cera_notify.sh: Sending activation email to the following addresses; $COMMA_SEP_LIST."
-    cat ${STORMDIR}/activate.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG}
+    cat ${STORMDIR}/activate.txt | asgs-sendmail --subject "ASGS Activated on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG}
 ;;
 ################################################################################
 #               N E W  C Y C L E
@@ -111,7 +111,7 @@ The other instances are running for redundancy purposes.
 
 END
      echo "INFO: cera_notify.sh: Sending activation email to the following addresses; $COMMA_SEP_LIST."
-     cat ${STORMDIR}/new_advisory.txt | mail  -S "replyto=$ASGSADMIN" -s "advisory detected by ASGS on $HOSTNAME" $NEW_ADVISORY_LIST 2>> ${SYSLOG}
+     cat ${STORMDIR}/new_advisory.txt | asgs-sendmail --subject "advisory detected by ASGS on $HOSTNAME" --to "$NEW_ADVISORY_LIST" 2>> ${SYSLOG}
 ;;
 ################################################################################
 #              RESULTS 
@@ -167,7 +167,7 @@ fi
 #subject="${subject} $HOSTNAME.$INSTANCENAME $ENMEMNUM"
 #
 echo "INFO: cera_notify.sh: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | asgs-sendmail --subject "$subject" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 ################################################################################
 #               J O B   F A I L E D  
@@ -187,7 +187,7 @@ issue the next advisory.
 END
 #
 echo "INFO: cera_notify.sh: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/jobfailed_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/jobfailed_notify.txt | asgs-sendmail --subject "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 *)
@@ -220,5 +220,5 @@ esac
 #$POSTADVISORYDIR/$ENSTORM/fort.cera.22
 #END
 #
-#cat $ASGSADVISORYDIR/post_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" $POST_LIST
+#cat $ASGSADVISORYDIR/post_notify.txt | asgs-sendmail --subject "ASGS results available for storm $STORM advisory $ADVISORY on $HOSTNAME" --to "$POST_LIST"
 #}
