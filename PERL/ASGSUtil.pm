@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #--------------------------------------------------------------------------
-# Util.pm : Utility subroutines for perl scripts used in ASGS.
+# ASGSUtil.pm : Utility subroutines for perl scripts used in ASGS.
 #--------------------------------------------------------------------------
 # Copyright(C) 2022 Jason Fleming
 #
@@ -28,15 +28,6 @@ use JSON::PP;
 
 package ASGSUtil;
 
-use constant EXIT_SUCCESS => 0;
-use constant EXIT_DIE     => 255;
-
-exit __PACKAGE__->run( \@ARGV // [] ) if not caller;
-
-sub run {
-    print "Running the ASGSUtil perl module as an app is not supported.\n";
-    exit EXIT_DIE;
-}
 #
 # stringify array - this is needed for numbers with
 # leading zeroes because they are not valid JSON
@@ -48,9 +39,9 @@ sub stringify {
    return;
 }
 #
-# write out the JSON file containing additional parameters
-# as added by this script
-sub writeJSON {
+# add timestamp to the JSON to indicate that the
+# calling script has modified it (and when)
+sub timestampJSON {
    # json passed by reference and modified in this subroutine
    my ( $jshash_ref ) = @_;
    my ( $package, $filename, $line ) = caller;
@@ -66,6 +57,18 @@ sub writeJSON {
    if ( defined $forecastcyclesref ) {
       stringify($forecastcyclesref);
    }
+   # add the name of this script
+   $jshash_ref->{"self"} = $calling_script;
+   return;
+}
+#
+# write out the JSON file containing additional parameters
+# as added by this script
+sub writeJSON {
+   # json passed by reference and modified in this subroutine
+   my ( $jshash_ref ) = @_;
+   my ( $package, $filename, $line ) = caller;
+   my $calling_script = File::Basename::basename($filename);
    # add the name of this script
    $jshash_ref->{"self"} = $calling_script;
    # serialize
