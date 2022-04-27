@@ -83,7 +83,7 @@ ASGSUtil::setParameter( $jshash_ref, \$namdatadir,
                         "localDataDir", cwd() );
 ASGSUtil::setParameter( $jshash_ref, \$scriptdir,
                         "scriptDir", dirname(__FILE__) );
-ASGSUtil::writeJSON($jshash_ref);
+#ASGSUtil::writeJSON($jshash_ref);
 
 # the startcycle is a required parameter; if
 # the finishcycle is not given, and this is
@@ -271,7 +271,8 @@ if ( $stage eq "NOWCAST" ) {
       $jshash_ref->{"filesDownloaded"} = \@files_downloaded;
       $jshash_ref->{"filesFromCache"} = \@files_found;
       # write json response to file
-      ASGSUtil::writeJSON($jshash_ref);
+      #ASGSUtil::writeJSON($jshash_ref);
+      ASGSUtil::timestampJSON($jshash_ref);
       # write json response to STDOUT
       print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
    } else {
@@ -411,7 +412,8 @@ if ( $stage eq "FORECAST" ) {
       $jshash_ref->{"get"} = basename($0);
       $jshash_ref->{"filesDownloaded"} = \@files_downloaded;
       $jshash_ref->{"filesFromCache"} = \@files_found;
-      ASGSUtil::writeJSON($jshash_ref);
+      #ASGSUtil::writeJSON($jshash_ref);
+      ASGSUtil::timestampJSON($jshash_ref);
       # write json response to STDOUT
       print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
       exit;

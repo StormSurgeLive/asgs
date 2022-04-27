@@ -151,7 +151,7 @@ if ( $startcycle ne "null" ) {
      ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" files: } . $msg);
      exit 1;
    }
-   
+
    # now sort the NAM files from lowest to highest (it appears that ls() does
    # not automatically do this for us)
    my @sortedEarliestFiles = sort { lc($a) cmp lc($b) } @earliestFiles;
@@ -266,7 +266,8 @@ DIRECTORIES : foreach my $dir (@sortedNamDirs) {
 # add the parameters and the cycle list to the hash
 $jshash_ref->{"status"} = basename($0).".json";
 $jshash_ref->{"cyclelist"} = \@cyclesInRange;
-ASGSUtil::writeJSON($jshash_ref);
+ASGSUtil::timestampJSON($jshash_ref);
+#ASGSUtil::writeJSON($jshash_ref);
 print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 # exit successfully
 1;
