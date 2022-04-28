@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OPT=${1-$ASGS_INSTALL_PATH}
-COMPILER=$2
+COMPILER=${2-gfortran}
 JOBS=${3-1}
 
 if [ "$COMPILER" == "clean" ]; then 
@@ -30,10 +30,10 @@ NASM_VERSION=2.15.05
 NASM_TGZ=nasm-${NASM_VERSION}.tar.gz
 NASM_DIR=nasm-${NASM_VERSION}
 
-FFMPEG_VERSION=snapshot
+FFMPEG_VERSION=4.4
 FFMPEG_TAR=ffmpeg-${FFMPEG_VERSION}.tar
 FFMPEG_BZ2=${FFMPEG_TAR}.bz2
-FFMPEG_DIR=ffmpeg
+FFMPEG_DIR=ffmpeg-${FFMPEG_VERSION}
 
 cd $_ASGS_TMP
 
