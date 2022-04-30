@@ -973,143 +973,7 @@ downloadCycloneData()
 #
 # subroutine that polls an external ftp site for background meteorology data
 # and writes metadata to document the current state
-downloadBackgroundMet()
-{
-   SCENARIODIR=$1
-   RUNDIR=$2
-   SCRIPTDIR=$3
-   BACKSITE=$4
-   BACKDIR=$5
-   ENSTORM=$6
-   CSDATE=$7
-   HSTIME=$8
-   FORECASTLENGTH=$9
-   ALTNAMDIR=${10}
-   FORECASTCYCLE=${11}
-   ARCHIVEBASE=${12}
-   ARCHIVEDIR=${13}
-   STATEFILE=${14}
-   #
-   THIS="asgs_main.sh>downloadBackgroundMet()"
-   CURRENT_STATE="WAIT"
-   RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
-   logMessage "$ENSTORM: $THIS: Downloading meteorological data."
-   cd $RUNDIR 2>> ${SYSLOG}
-   #
-   # if there isn't an archive directory for NAM data inside
-   # the instance directory, make one
-   instanceNamDir=$RUNDIR/nam
-   if [[ ! -d $instanceNamDir ]]; then
-      mkdir -p $instanceNamDir 2>> $SYSLOG
-   fi
-   # if there isn't an archive directory for NAM data in the
-   # ASGS WORK directory, make one
-   platformNamDir=$WORK/nam
-   if [[ ! -d $platformNamDir ]]; then
-      mkdir -p $platformNamDir 2>> $SYSLOG
-   fi
-   # N O W C A S T
-   if [[ $stage == "NOWCAST" ]]; then
-      # determine the cycle time corresponding to the current state of the simulation
-      csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
-      hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
-      lastCycle=$(TZ=UTC date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
-      # create the json file to act as input to the
-      # status checker and nam downloader
-      namTemplateName="get_nam_template.json"
-      # escape forward slashes to prevent sed from getting confused
-      escBACKDIR=${BACKDIR////'\/'}
-      escRUNDIR=${RUNDIR////'\/'}
-      escSCRIPTDIR=${SCRIPTDIR////'\/'}
-      escInstanceNamDir=${instanceNamDir////'\/'}
-      # JSON can't store numbers with leading zeroes, so we use
-      # quoted strings - they are usually used as strings, anyway
-      arrFORECASTCYCLE=${FORECASTCYCLE//,/\",\"}
-      boolApplyRamp=false
-      if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
-         boolApplyRamp=true
-      fi
-      ptFilePath=${SCRIPTDIR}/input/$PTFILE
-      escPtFilePath=${ptFilePath////'\/'}
-      DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
-      filledNamTemplateName="asgs_main.sh_get_nam_status.json"
-      sed \
-         -e "s/%NULLGETNAMTEMPLATEFILE%/$namTemplateName/" \
-         -e "s/%NULLGETNAMTEMPLATEFILLEDFILE%/$filledNamTemplateName/" \
-         -e "s/%NULLBACKSITE%/$BACKSITE/" \
-         -e "s/%NULLBACKDIR%/$escBACKDIR/" \
-         -e "s/%NULLCYCLE%/$lastCycle/" \
-         -e "s/\"%NULLNAMNOWCASTDOWNLOADED%\"/null/" \
-         -e "s/\"%NULLNAMNOWCASTFOUND%\"/null/" \
-         -e "s/\"%NULLNAMFORECASTDOWNLOADED%\"/null/" \
-         -e "s/\"%NULLNAMFORECASTFOUND%\"/null/" \
-         -e "s/\"%NULLNAMSTATUSFILE%\"/null/" \
-         -e "s/\"%NULLNAMSELECTFILE%\"/null/" \
-         -e "s/\"%NULLGETNAMFILE%\"/null/" \
-         -e "s/%NULLLASTUPDATER%/$THIS/" \
-         -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
-          < $SCRIPTDIR/$namTemplateName \
-          > $filledNamTemplateName \
-        2>> $SYSLOG
-      # determine the status of the latest NAM cycle posted by NCEP,
-      # along with the range of cycles posted since the adcirc hotstart time
-      getNamStatusSuccess=1
-      latestCycle=0
-      TRIES=0
-      while [[ $getNamStatusSuccess -ne 0 && $latestCycle -le $lastCycle ]]; do
-         ((TRIES++))
-         debugMessage "According to the statefile ${STATEFILE}, the most recently detected nowcast cycle is $lastCycle." $APPLOGFILE
-         latestCycle=$(get_nam_status.pl   \
-                       < $filledNamTemplateName       \
-                       | latest.pl         \
-                     2>> $SYSLOG)
-         if [[ $latestCycle -le $lastCycle ]]; then
-             RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
-             sleep 60
-         fi
-      done
-      # refine the list of NAM cycles to end the nowcast on the correct cycle
-      # then download the actual nowcast data for the time range of interest
-      thisCycle=$(sed \
-                    "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/"   \
-                  < get_nam_status.pl.json                       \
-                  | select_nam_nowcast.pl                        \
-                  | latest.pl                                    \
-                2>> $SYSLOG)
-      sed \
-         -e "s/%NULLSTAGE%/$stage/"                   \
-         -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
-         -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
-          < select_nam_nowcast.pl.json \
-          | get_nam_data.pl            \
-          > /dev/null                  \
-        2>> $SYSLOG
-      # record the new advisory number to the statefile
-      debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
-      cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
-      sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
-      debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
-      cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
-   else
-      # F O R E C A S T
-      # download forecast data
-      sed \
-         -e "s/%NULLSTAGE%/$stage/"                   \
-         -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
-         -e "s/%NULLNAMDATAPATH%/$escInstanceNamDir/" \
-          < select_nam_nowcast.pl.json                \
-          | get_nam_data.pl                           \
-          > /dev/null                                 \
-        2>> ${SYSLOG}
-      # write the start and end dates of the forecast to the run.properties file
-      # this is deprecated with the intent to get this info
-      # from get_nam_data.pl.json instead
-      if [[ -e $RUNDIR/forecast.properties ]]; then
-         cat $RUNDIR/forecast.properties >> ${SCENARIODIR}/run.properties
-         mv $RUNDIR/forecast.properties ${SCENARIODIR} 2>> ${SYSLOG}
-      fi
-   fi
-}
+source $SCRIPTDIR/downloadBackgroundMet.sh
 #
 # subroutine that downloads river flux data from an external ftp site
 # and constructs a river flux boundary condition file (fort.20) to covert
@@ -2597,7 +2461,7 @@ while [ true ]; do
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
-         mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+         cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
             if [[ -e $ADVISDIR/$file ]]; then
