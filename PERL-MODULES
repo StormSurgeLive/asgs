@@ -23,3 +23,4 @@ JSON::XS
 YAML::Tiny
 DBD::SQLite
 Util::H2O
+Util::H2O::More
