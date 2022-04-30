@@ -340,6 +340,7 @@ warn()
   MSG="[${DATETIME}] WARNING: $1"
   for warnlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
     if [[ -e $warnlogfile ]]; then
+      caller 1 >> $warnlogfile
       echo ${MSG} >> $warnlogfile
     fi
   done
@@ -354,6 +355,7 @@ error()
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
   for errorlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $errorlogfile ]]; then
+      caller 1 >> $errorlogfile
       echo ${MSG} >> $errorlogfile
     fi
   done

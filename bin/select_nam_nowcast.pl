@@ -102,7 +102,8 @@ $jshash_ref->{$ncepcycles} = \@cyclelist;
 ASGSUtil::stringify(\@forecastcycles);
 $jshash_ref->{"configDailyForecastCycles"} = \@forecastcycles;
 $jshash_ref->{"select"} = basename($0).".json";
-ASGSUtil::writeJSON($jshash_ref);
+ASGSUtil::timestampJSON($jshash_ref);
+#ASGSUtil::writeJSON($jshash_ref);
 # leading zeroes are not valid JSON, so store
 # cycle hours (e.g., 00,06,12 etc) as strings
 print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
