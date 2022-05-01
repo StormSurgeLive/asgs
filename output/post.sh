@@ -106,7 +106,7 @@ The wind speed and storm surge predictions for the London Avenue canal
 gate have also been attached to this email.
 END
 #     cat ${SYSLOG} >> $ADVISDIR/email.txt
-#     cat $ADVISDIR/email.txt | mail -s "storm surge advisory $ADVISORY for storm $STORM" $MAILINGLIST 2>> ${SYSLOG}
+#     cat $ADVISDIR/email.txt | asgs-sendmail --subject "storm surge advisory $ADVISORY for storm $STORM" --to "$MAILINGLIST" 2>> ${SYSLOG}
      # send email using do loop ... can't just use the variable itself since
      # the addresses must be separated by commas
 

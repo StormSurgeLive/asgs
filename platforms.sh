@@ -550,7 +550,7 @@ set_hpc() {
 # the init script as the first argument
 init_platform()
 {
-  local INIT=${1}
+  local INIT=${1:-"$PLATFORM_INIT"}
   if [ -z "${INIT}" ]; then
     echo "(warn !!!) platform init script must be specified as the first argument! No platform init.sh known."
     return
@@ -574,7 +574,6 @@ init_platform()
 # used to dispatch environmentally sensitive actions
 env_dispatch() {
  HPCENVSHORT=$1
- PLATFORM_INIT=$2
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  echo "(info)    $THIS: Initializing settings for ${HPCENVSHORT}."
@@ -622,7 +621,7 @@ env_dispatch() {
           init_test
           ;;
   *) # fallback for new method of initializing a platform
-          init_platform "$PLATFORM_INIT"
+          init_platform
           ;;
   esac
 

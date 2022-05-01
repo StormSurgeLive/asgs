@@ -1,39 +1,39 @@
 #!/usr/bin/env bash
 
 # Needed for ./init-asgs.sh, bin/guess
-WORK=${WORK:-$HOME}
-SCRATCH=${SCRATCH:-$HOME}
-DEFAULT_COMPILER=gfortran
-ASGS_TMP=${TMPDIR:-$WORK/asgs-build-tmp}
+export WORK=${WORK:-$HOME}
+export SCRATCH=${SCRATCH:-$HOME}
+export DEFAULT_COMPILER=gfortran
+export ASGS_TMP=${TMPDIR:-$WORK/asgs-build-tmp}
 
 # replacement for set_hpc() function in platforms.sh
-HPCENV=pod.penguincomputing.com
-HPCENVSHORT=peguin
+export HPCENV=pod.penguincomputing.com
+export HPCENVSHORT=peguin
 
 # Needed for ASGS
-QUEUESYS=PBS
-QCHECKCMD=qstat
-ACCOUNT=null
-QSUMMARYCMD=null
-QUOTACHECKCMD=null
-ALLOCCHECKCMD=null
-QUEUENAME=B30
-SERQUEUE=B30
-PPN=28
-SUBMITSTRING=qsub
-QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+export QUEUESYS=PBS
+export QCHECKCMD=qstat
+export ACCOUNT=null
+export QSUMMARYCMD=null
+export QUOTACHECKCMD=null
+export ALLOCCHECKCMD=null
+export QUEUENAME=B30
+export SERQUEUE=B30
+export PPN=28
+export SUBMITSTRING=qsub
+export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+export QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
 if [[ ${RMQMessaging_Enable} == "on" ]]; then
-  RMQMessaging_LocationName="Penguin"
-  RMQMessaging_ClusterName="POD"
-  RMQMessaging_NcoHome="$HOME/local"
+  export   RMQMessaging_LocationName="Penguin"
+  export   RMQMessaging_ClusterName="POD"
+  export   RMQMessaging_NcoHome="$HOME/local"
 fi
-JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-local THIS="platforms.sh>env_dispatch()>init_penguinpod()"
-SSHKEY=~/.ssh/id_rsa.pub
-RESERVATION=null
-ARCHIVE=enstorm_pedir_removal.sh
-ARCHIVEBASE=$SCRATCH
-ARCHIVEDIR=$SCRATCH
-TDS=()
-MAKEJOBS=8
+export JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
+export local THIS="platforms.sh>env_dispatch()>init_penguinpod()"
+export SSHKEY=~/.ssh/id_rsa.pub
+export RESERVATION=null
+export ARCHIVE=enstorm_pedir_removal.sh
+export ARCHIVEBASE=$SCRATCH
+export ARCHIVEDIR=$SCRATCH
+export TDS=()
+export MAKEJOBS=8
