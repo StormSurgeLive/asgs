@@ -44,7 +44,7 @@ while getopts "bmp:x:" optname; do
            exit 1
          fi
          ;;
-      p) export ASGS_LOCAL_DIR=${OPTARG}
+      p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
       x) # add extra arbitrary options to asgs-brew.pl command
          if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
@@ -161,8 +161,8 @@ case "$platform" in
     ;;
   *) # fall back to new method of getting platform defaults for building
      if [ -e "${_PLATFORM_INIT[$platform]}" ]; then
-       export PLATFORM_INIT="${_PLATFORM_INIT[$platform]}"
-       source "${_PLATFORM_INIT[$platform]}"
+       export PLATFORM_INIT=$(readlink -f "${_PLATFORM_INIT[$platform]}")
+       source "$PLATFORM_INIT"
      else
       echo "Can't find 'init.sh' for '$platform' or Unknown defaults for platform '$platform', using "$HOME" as 'WORK' and 'SCRATCH' directories..."
       WORK=${WORK:-$HOME}

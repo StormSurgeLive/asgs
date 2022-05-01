@@ -62,7 +62,7 @@ as soon as the results of this guidance become available.
 
 END
     echo "INFO: NOTIFY_SCRIPT: Sending activation email to the following addresses: $COMMA_SEP_LIST."
-    cat $STORMDIR/activate.txt | mail -S "replyto=$ASGSADMIN" -s "ASGS Activated on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+    cat $STORMDIR/activate.txt | asgs-sendmail --subject "ASGS Activated on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #              N E W  C Y C L E 
@@ -85,7 +85,7 @@ as soon as the resulting storm surge guidance becomes available.
 
 END
     echo "INFO: NOTIFY_SCRIPT: Sending 'new advisory detected' email to the following addresses: $COMMA_SEP_LIST."
-     cat $STORMDIR/new_advisory.txt | mail -S "replyto=$ASGSADMIN" -s "ASGS: $STORMNAME advisory $ADVISOORY detected by ASGS on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+     cat $STORMDIR/new_advisory.txt | asgs-sendmail --subject "ASGS: $STORMNAME advisory $ADVISOORY detected by ASGS on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 
 ;;
 #
@@ -107,7 +107,7 @@ issue the next advisory.
 END
 #
 echo "INFO: NOTIFY_SCRIPT: Sending 'results notification' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/post_notify.txt | mail -S "replyto=$ASGSADMIN" -s "ASGS results available for $STORM advisory $ADVISORY from $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/post_notify.txt | asgs-sendmail --subject "ASGS results available for $STORM advisory $ADVISORY from $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 #
 #               J O B   F A I L E D  
@@ -127,7 +127,7 @@ issue the next advisory.
 END
 #
 echo "INFO: NOTIFY_SCRIPT: Sending 'job failed' email to the following addresses: $COMMA_SEP_LIST."
-cat ${STORMDIR}/jobfailed_notify.txt | mail -S "replyto=$ASGSADMIN" -s "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/jobfailed_notify.txt | asgs-sendmail --subject "ASGS job failure for $STORMNAME advisory $ADVISORY on $HOSTNAME" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 ;;
 *)
 echo "ERROR: NOTIFY_SCRIPT: The notification type was specified as '$PHASE', which is not recognized. Email was not sent."

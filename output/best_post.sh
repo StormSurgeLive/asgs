@@ -127,7 +127,7 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 END
 #
 echo "INFO: ncfs_post.sh: Sending 'results available' email to the following addresses: $COMMA_SEP_LIST." >> $SYSLOG
-cat ${STORMDIR}/cera_results_notify.txt | mail -s "$subject" "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
+cat ${STORMDIR}/cera_results_notify.txt | asgs-sendmail --subject "$subject" --to "$COMMA_SEP_LIST" 2>> ${SYSLOG} 2>&1
 #
 # now hack symbolic links to the next advisory
 nextAdvisory=`expr $ADVISORY + 1`
