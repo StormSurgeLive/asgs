@@ -263,10 +263,10 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-   "NCSC_SAB_v1.20")
+   "NCSC_SAB_v1.23")
       #
-      INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.20
-      GRIDFILE=NCSC_SAB_v1.20.grd
+      INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.23
+      GRIDFILE=NCSC_SAB_v1.23.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=fort.15.template
       # wind at 10m fort.15 template
@@ -275,35 +275,7 @@ case $GRIDNAME in
       ELEVSTATIONS=elev_stat.151
       VELSTATIONS=vel_stat.151
       METSTATIONS=met_stat.151
-      NAFILE=NCSC_SAB_v1.20.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=v6brivers.88
-      RIVERFLUX=v6brivers_fort.20_default
-      HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
-      UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
-      ;;
-   "NCSC_SAB_v1.22")
-      #
-      INPUTDIR=$SCRIPTDIR/input/meshes/NCSC_SAB_v1.22
-      GRIDFILE=NCSC_SAB_v1.22.grd
-      MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=fort.15.template
-      # wind at 10m fort.15 template
-      #CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
-      CONTROLPROPERTIES=fort.15.properties
-      ELEVSTATIONS=elev_stat.151
-      VELSTATIONS=vel_stat.151
-      METSTATIONS=met_stat.151
-      NAFILE=NCSC_SAB_v1.22.13
+      NAFILE=NCSC_SAB_v1.23.13
       NAPROPERTIES=${NAFILE}.properties
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
@@ -347,6 +319,32 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
+      ;;
+   "uriv18")
+      INPUTDIR=$SCRIPTDIR/input/meshes/uriv18/
+      GRIDFILE=hsofs_NE-hires_v18_weir_rivers_depsm2_nopump.grd
+      MESHPROPERTIES=${GRIDFILE}.nc.properties
+      CONTROLTEMPLATE=fort.15.template
+      # wind at 10m fort.15 template
+      #CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=elev_stations.txt
+      VELSTATIONS=vel_stations.txt 
+      METSTATIONS=met_stations.txt
+      NAFILE=hsofs_NE-hires_v18_weir_rivers_depsm2.13
+      NAPROPERTIES=${NAFILE}.properties
+      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
+      UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
    "hsofs_NE-hires_v2_depf2")
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2/
