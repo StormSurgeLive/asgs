@@ -317,8 +317,7 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      #CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
-      CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template.minbf.eq.0_wcap.eq.002
+      CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
       CONTROLPROPERTIES=fort.15.properties
