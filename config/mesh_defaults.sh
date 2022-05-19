@@ -278,6 +278,35 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
+ "TXLA22a")
+      #
+      nodes=1947485
+      elements=3832707
+      INPUTDIR=$SCRIPTDIR/input/meshes/TXLA22a
+      GRIDFILE=TXLA22a.14          # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=TXLA22a_fort.15.template  # fort.15 template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=tx2008r35h_stations_20170618.txt
+      VELSTATIONS=tx2008r35h_stations_20170618.txt
+      METSTATIONS=tx2008r35h_stations_20170618.txt
+      NAFILE=TXLA22a.13
+      NAPROPERTIES=${NAFILE}.properties
+      RIVERINIT=null                           # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=2.0           # adcirc time step size (seconds)
+      SWANDT=1200 # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and n compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time,including partmesh
+      NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="14:00:00" # forecast wall clock time
+      ;;
+      #
    "neflga_v12_geo"|"NEFLGAv12"|"NEFLGAv12b")
       nodes=2968735
       elements=5910443
