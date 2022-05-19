@@ -1,0 +1,588 @@
+-94.985000 29.681667 ! 8770613  ! NOAA_NOS ! Morgans Point 
+-94.793300 29.310000 ! 8771450  ! NOAA_NOS ! Galveston Pier 21 
+-94.789400 29.284900 ! 8771510  ! NOAA_NOS ! Galveston Pleasure Pier
+-97.046667 28.021667 ! 8774770  ! NOAA_NOS ! Rockport 
+-97.216667 27.580000 ! 8775870  ! NOAA_NOS ! Bob Hall Pier Corpus Christi 
+-97.215000 26.061667 ! 8779770  ! NOAA_NOS ! Port Isabel 
+-94.095692 30.133056 ! BEAT2    ! NOAA_RFS ! Neches River at Beaumont
+-93.342778 29.768056 ! CAPL1    ! NOAA_RFS ! Tide Station at Calcasieu Pass 
+-96.965278 28.661944 ! DUPT2    ! NOAA_RFS ! Guadalupe River near Bloomington 
+-93.221667 30.223611 ! LCLL1    ! NOAA_RFS ! Tide Station at Lake Charles 
+-95.976210 28.699167 ! MRCT2    ! NOAA_RFS ! Colorado River at Matagorda
+-93.721111 30.097222 ! ORNT2    ! NOAA_RFS ! Sabine River at Orange 
+-93.869803 29.728333 ! SBPT2    ! NOAA_RFS ! Tide Station near Sabine Pass
+-95.093911 29.875853 ! SHLT2    ! NOAA_RFS ! San Jacinto River near Sheldon
+-97.012778 28.792778 ! VICT2    ! NOAA_RFS ! Guadalupe River at Victoria 
+-93.721554 30.097988 ! 08030540 ! USGS ! Sabine Rv (at Navy Pier) at Orange 
+-95.141320 29.916333 ! 08072000 ! USGS ! Lk Houston nr Sheldon 
+-95.093819 29.876581 ! 08072050 ! USGS ! San Jacinto Rv nr Sheldon
+-94.774366 29.941342 ! 08067100 ! USGS ! Trinity Rv nr Moss Bluff 
+-97.584722 26.235278 ! 08470500 ! USGS ! Arroyo Colorado at FM 106 Rio Hondo 
+-94.91721  29.481310 ! 8771013  ! NOAA_NOS ! Eagle Point
+-95.302500 28.942764 ! 8772447  ! NOAA_NOS ! USCG Freeport
+-93.349043 29.815776 ! 08017118 ! USGS ! Calcasieu River at Cameron 
+-95.291047 29.748886 ! 08074710 ! USGS ! Buffalo Bayou at Turning Basin Houston
+-95.025556 29.554167 ! 08077637 ! USGS ! Clear Lk Second Outflow Channel at Kemah 
+-94.920202 29.447454 ! 08077650 ! USGS ! Moses Lk-Galveston Bay nr Texas City 
+-94.731309 29.812443 ! 08067252 ! USGS ! Trinity Rv at Wallisville 
+-95.380597 28.897700 ! 08117300 ! USGS ! Brazos Rv at GIWW Flood Gates nr Freeport
+-94.963257 29.345790 ! 08077740 ! USGS ! La Marque Levee Pump Sta nr La Marque
+-94.924981 29.358372 ! 08077658 ! USGS ! TX City Pump Sta at Texas City
+-97.471153 26.801500 ! 8777812  ! TCOON ! Rincon del San Jose
+-97.23696  27.634767 ! 8775792  ! TCOON ! Packery Channel
+-97.0730   27.840400 ! 8775237  ! TCOON ! Port Aransas
+-97.318481 27.484700 ! 8776139  ! TCOON ! South Bird Island
+-97.4247   26.559500 ! 8778490  ! TCOON ! Port Mansfield 
+-96.6097   28.640400 ! 8773259  ! TCOON ! Port Lavaca 
+-97.024981 28.114436 ! 8774513  ! TCOON ! Copano Bay
+-97.1671   26.072600 ! 8779748  ! TCOON ! South Padre Island USCG Station 
+-96.3961   28.446200 ! 8773701  ! TCOON ! Port O'Connor
+-97.40491  27.297020 ! 8776604  ! TCOON ! Baffin Bay 
+-93.836700 29.678300 ! 8770822  ! TCOON ! Texas Point Sabine Pass
+-97.282558 26.262230 ! 8779280  ! TCOON ! Realitos Peninsula
+-94.390325 29.595161 ! 8770808  ! TCOON ! High Island
+-95.914075 28.709656 ! 8773146  ! TCOON ! Matagorda City
+-96.796583 28.227050 ! 8774230  ! TCOON ! Aransas Wildlife Refuge
+-94.896493 29.302336 ! 8771486  ! TCOON ! Galveston Railroad Bridge 
+-95.122570 29.075700 ! 8771972  ! TCOON ! San Luis Pass 
+-95.2656   29.724700 ! 8770777  ! TCOON ! Manchester Houston
+-95.079344 29.765000 ! 8770733  ! TCOON ! Lynchburg Landing
+-94.5136   29.515400 ! 8770971  ! TCOON ! Rollover Pass
+-93.931400 29.867500 ! 8770475  ! TCOON ! Port Arthur
+-94.725978 29.357586 ! 8771341  ! TCOON ! Galveston Bay Entrance North Jetty
+-97.485958 27.832750 ! 8775244  ! TCOON ! Nueces Bay 
+-96.712569 28.406194 ! 8773037  ! TCOON ! Seadrift
+-97.2035   27.820800 ! 8775283  ! TCOON ! Port Ingleside  
+-97.3984   27.814300 ! 8775296  ! TCOON ! TX State Aquarium (USS Lexington) 
+-95.616667 28.771667 ! 8772985  ! TCOON ! Sargent 
+-97.484000 27.859500 ! 8775188  ! TCOON ! White Point  
+-97.520800 27.845900 ! 8775222  ! TCOON ! Viola Turning Basin
+-95.2083 29.2119 ! SSS-TX-BRA-001 ! USGS ! Deployable 
+-95.2881 29.0847 ! SSS-TX-BRA-002 ! USGS ! Deployable 
+-95.4486 28.8683 ! SSS-TX-BRA-004 ! USGS ! Deployable 
+-95.5556 28.9494 ! SSS-TX-BRA-005 ! USGS ! Deployable 
+-95.5872 28.8667 ! SSS-TX-BRA-006 ! USGS ! Deployable 
+-95.1314 29.2867 ! SSS-TX-BRA-007 ! USGS ! Deployable 
+-95.3989 29.0356 ! SSS-TX-BRA-008 ! USGS ! Deployable 
+-95.3297 29.0131 ! SSS-TX-BRA-009 ! USGS ! Deployable 
+-95.2842 29.3364 ! SSS-TX-BRA-010 ! USGS ! Deployable 
+-95.3567 29.2967 ! SSS-TX-BRA-011 ! USGS ! Deployable 
+-94.7511 29.3344 ! SSS-TX-GAL-008 ! USGS ! Deployable 
+-94.8778 29.2381 ! SSS-TX-GAL-010 ! USGS ! Deployable 
+-94.9447 29.2208 ! SSS-TX-GAL-011 ! USGS ! Deployable 
+-95.1172 29.0861 ! SSS-TX-GAL-015 ! USGS ! Deployable 
+-94.9053 29.3039 ! SSS-TX-GAL-016 ! USGS ! Deployable 
+-95.04   29.3558 ! SSS-TX-GAL-018 ! USGS ! Deployable 
+-94.9578 29.5064 ! SSS-TX-GAL-019 ! USGS ! Deployable 
+-95.0478 29.4567 ! SSS-TX-GAL-020 ! USGS ! Deployable 
+-95.1039 29.5133 ! SSS-TX-GAL-021 ! USGS ! Deployable 
+-95.0247 29.5517 ! SSS-TX-GAL-022 ! USGS ! Deployable 
+-94.9989 29.6203 ! SSS-TX-HAR-002 ! USGS ! Deployable 
+-95.1283 29.5919 ! SSS-TX-HAR-003 ! USGS ! Deployable 
+-94.9933 29.7131 ! SSS-TX-HAR-004 ! USGS ! Deployable 
+-96.2739 28.7206 ! SSS-TX-MAT-001 ! USGS ! Deployable 
+-96.1503 28.7864 ! SSS-TX-MAT-002 ! USGS ! Deployable 
+-95.9958 28.7875 ! SSS-TX-MAT-003 ! USGS ! Deployable 
+-95.8528 28.8389 ! SSS-TX-MAT-004 ! USGS ! Deployable 
+-95.9781 28.6006 ! SSS-TX-MAT-005 ! USGS ! Deployable 
+-95.9756 28.6831 ! SSS-TX-MAT-006 ! USGS ! Deployable 
+-96.2153 28.6114 ! SSS-TX-MAT-007 ! USGS ! Deployable 
+-95.6269 28.7642 ! SSS-TX-MAT-008 ! USGS ! Deployable 
+-95.6167 28.7706 ! SSS-TX-MAT-009 ! USGS ! Deployable 
+-95.6683 28.8364 ! SSS-TX-MAT-010 ! USGS ! Deployable 
+-96.7117 28.4064 ! SSS-TX-CAL-001 ! USGS ! Deployable 
+-96.4025 28.4444 ! SSS-TX-CAL-002 ! USGS ! Deployable 
+-96.6197 28.6192 ! SSS-TX-CAL-003 ! USGS ! Deployable 
+-96.4117 28.6606 ! SSS-TX-CAL-004 ! USGS ! Deployable 
+-96.3233 28.6414 ! SSS-TX-CAL-005 ! USGS ! Deployable 
+-94.6753 29.6042 ! SSS-TX-CHA-003 ! USGS ! Deployable 
+-94.6869 29.7728 ! SSS-TX-CHA-004 ! USGS ! Deployable 
+-94.6342 29.4514 ! SSS-TX-GAL-001 ! USGS ! Deployable 
+-94.6481 29.4658 ! SSS-TX-GAL-002 ! USGS ! Deployable 
+-94.3903 29.5944 ! SSS-TX-GAL-005 ! USGS ! Deployable 
+-94.1928 29.6844 ! SSS-TX-JEF-001 ! USGS ! Deployable 
+-94.0436 29.675  ! SSS-TX-JEF-002 ! USGS ! Deployable 
+-94.1164 29.7103 ! SSS-TX-JEF-004 ! USGS ! Deployable 
+-94.0983 29.6969 ! SSS-TX-JEF-005 ! USGS ! Deployable 
+-93.86   29.7111 ! SSS-TX-JEF-006 ! USGS ! Deployable 
+-93.9425 29.7739 ! SSS-TX-JEF-007 ! USGS ! Deployable 
+-93.8978 29.7647 ! SSS-TX-JEF-008 ! USGS ! Deployable 
+-94.0884 29.6627 ! SSS-TX-JEF-009 ! USGS ! Deployable 
+-93.6636 29.7503 ! SSS-LA-CAM-001 ! USGS ! Deployable 
+-93.5825 29.7619 ! SSS-LA-CAM-002 ! USGS ! Deployable 
+-93.3489 29.8042 ! SSS-LA-CAM-003 ! USGS ! Deployable 
+-93.115  29.7861 ! SSS-LA-CAM-010 ! USGS ! Deployable 
+-93.0797 29.8706 ! SSS-LA-CAM-011 ! USGS ! Deployable 
+-93.0144 29.7706 ! SSS-LA-CAM-012 ! USGS ! Deployable 
+-92.4269 29.6411 ! SSS-LA-VER-006 ! USGS ! Deployable 
+-92.3417 29.6003 ! SSS-LA-VER-007 ! USGS ! Deployable 
+-89.7406 30.1669 ! ut60 ! USGS ! Rigolets at Hwy 90 near Slidell, LA
+-90.01   29.48305 ! ut61 ! USGS ! Barataria Waterway S of Lafitte, LA    
+-90.1    29.4666 ! ut62 ! USGS ! Little Lake near Bay Dosgris E of Galliano, LA
+-89.9405 29.32472 ! ut63 ! USGS ! Barataria Bay near Grand Terre Island, LA      
+-90.0411 29.3983 ! ut64 ! USGS ! Hackberry Bay NW of Grand Isle, LA     
+-95.9689 28.6844 ! ut65 ! USGS ! Colorado Rv Bypass Channel nr Matagorda, TX    
+-95.3814 28.8978 ! ut66 ! USGS ! Brazos Rv at GIWW Flood Gates nr Freeport, TX  
+-94.9631 29.3456 ! ut67 ! USGS ! La Marque Levee Pump Sta nr La Marque, TX 
+-94.9247 29.3572 ! ut68 ! USGS ! TX City Pump Sta at Texas City, TX
+-94.12   29.4472 ! ut69 ! USGS ! Moses Lk-Galveston Bay nr Texas City, TX       
+-95.0237 29.5497 ! ut70 ! USGS ! Clear Lk Second Outflow Channel at Kemah, TX
+-95.1783 29.5172 ! ut71 ! USGS ! Clear Ck nr Friendswood, TX    
+-95.2907 29.7492 ! ut72 ! USGS ! Buffalo Bayou at Turning Basin, Houston, TX 
+-94.7311 29.8122 ! ut73 ! USGS ! Trinity Rv at Wallisville, TX  
+-93.3488 29.8155 ! ut74 ! USGS ! Calcasieu River at Cameron, LA         
+-90.1814 29.5175 ! ut75 ! USGS ! Little Lake Near Cutoff, LA    
+-89.9506 29.4225 ! ut76 ! USGS ! Barataria Bay N of Grand Isle, LA      
+-89.606  29.5858 ! ut77 ! USGS ! Northeast Bay Gardene near Point-A-LA-Hache, LA
+-89.5636 29.6333 ! ut78 ! USGS ! Black Bay nr Snake Island nr Point-A-LA-Hache, LA
+-97.2154 26.0616 ! ut79 ! TCOON ! Port Isabel, TX 
+-93.9314 29.8675 ! ut80 ! TCOON ! Port Arthur 
+-93.88   29.98   ! ut81 ! TCOON ! Rainbow Bridge
+-93.8705 29.7297 ! ut82 ! TCOON ! Sabine Pass
+-94.9847 29.682  ! ut83 ! TCOON ! Morgans Point
+-95.2656 29.7247 ! ut84 ! TCOON ! Manchester Houston
+-93.8367 29.6783 ! ut85 ! TCOON ! Texas Point 
+-94.5136 29.5154 ! ut86 ! TCOON ! Rollover Pass 
+-94.91721 29.48131 ! ut87 ! TCOON ! Eagle Point
+-94.787 29.3137  ! ut88 ! TCOON ! Galveston Pier 21
+-94.7883 29.285  ! ut89 ! TCOON ! Galveston Pleasure Pier
+-95.3025 28.9423 ! ut90 ! TCOON ! USCG Freeport
+-96.7122 28.4073 ! ut91 ! TCOON ! Seadrift
+-96.6097 28.6404 ! ut92 ! TCOON ! Port Lavaca
+-96.3961 28.4462 ! ut93 ! TCOON ! Port O'Connor
+-97.0242 28.1145 ! ut94 ! TCOON ! Copano Bay
+-97.0478 28.0234 ! ut95 ! TCOON ! Rockport
+-97.484  27.8595 ! ut96 ! TCOON ! White Point
+-97.5208 27.8459 ! ut97 ! TCOON ! Viola Turning Basin
+-97.073  27.8404 ! ut98 ! TCOON ! Port Aransas
+-97.2035 27.8208 ! ut99 ! TCOON ! Ingleside
+-97.3984 27.8143 ! ut100 ! TCOON ! TX State Aquarium       
+-97.23696 27.63457 ! ut101 ! TCOON ! Packery Channel 
+-97.21646 27.58102 ! ut102 ! TCOON ! Bob Hall Pier   
+-97.3181  27.4847  ! ut103 ! TCOON ! South Bird island       
+-97.40491 27.29702 ! ut104 ! TCOON ! Baffin Bay      
+-97.4706  26.8015  ! ut105 ! TCOON ! Rincon del San Jose     
+-97.4247  26.5595  ! ut106 ! TCOON ! Port Mansfield  
+-97.1671  26.0726  ! ut107 ! TCOON ! South Padre Island USCG Station
+-88.075   30.25    ! ut108 ! NOAA ! Dauphin Island Start of NOAA Stations   
+-89.325   30.325   ! ut109 ! NOAA ! Bay Waveland Yacht Club 
+-89.4066  28.9316  ! ut110 ! NOAA ! Pilots Station East SW Pass     
+-91.88    29.7133  ! ut111 ! NOAA ! Cypremont Point 
+-93.2222  30.2237  ! ut112 ! NOAA ! Lk Charles, Calcasieu Rvr
+-93.3431  29.7663  ! ut113 ! NOAA ! Calcasieu Pass, East Jetty
+-97.2166  27.58    ! ut114 ! NOAA ! Corpus Christi, GOM 
+-97.1176  27.6289  ! ut115 ! UND ! R Kennedy
+-96.5503  28.2077  ! ut116 ! UND ! S Kennedy      
+-96.214   28.4347  ! ut117 ! UND ! T Kennedy
+-95.75235 28.6251  ! ut118 ! UND ! U Kennedy
+-95.3151  28.8704  ! ut119 ! UND ! V Kennedy
+-95.0396  29.0714  ! ut120 ! UND ! W Kennedy
+-94.70895 29.2812  ! ut121 ! UND ! X Kennedy
+-94.3884  29.4964  ! ut122 ! UND ! Y Kennedy
+-94.1253  29.5846  ! ut123 ! UND ! Z Kennedy
+-81.121   24.7294  ! ut124 ! NOAA ! Vaca Key
+-81.8259 24.5573   ! ut125 ! NOAA ! Key West        
+-81.8239 26.1434   ! ut126 ! NOAA ! Naples  
+-82.8317 27.9783   ! ut127 ! NOAA ! Clearwater Beach        
+-83.0317 29.135    ! ut128 ! NOAA ! Cedar Key       
+-84.9773 29.7136   ! ut129 ! NOAA ! Apalachicola
+-85.7113 30.0972   ! ut130 ! NOAA ! Panama City
+-88.5054 30.3477   ! ut131 ! NOAA ! Dock E Port of Pascagoula
+-88.563  30.3679   ! ut132 ! NOAA ! Pascagoula NOAA lab
+-89.0817 30.36     ! ut133 ! NOAA ! gulfport Harbor
+-89.6733 29.8681   ! ut134 ! NOAA ! Shell Beach
+-89.9545 29.2676   ! ut135 ! NOAA ! Grand Isle
+-90.1134 30.0272   ! ut136 ! NOAA ! New Canal Station
+-90.1985 29.0848   ! ut137 ! NOAA ! Port Fourchon
+-91.3381 29.4496   ! ut138 ! NOAA ! Lawma Aerada Pass
+-91.88   29.7134   ! ut139 ! NOAA ! Cypremort Point
+-92.30816 29.5341  ! ut140 ! NOAA ! Freshwater Canal Locks
+-93.6402  29.6424  ! TABS-R ! UT ! Current Station
+-94.2365  28.8369  ! TABS-F ! UT ! Current Station
+-94.9183  28.9819  ! TABS-B ! UT ! Current Station
+-94.05    29.67    ! SRST2  ! NDBC ! Current Station
+-94.41    29.25    ! 42035  ! NDBC ! Current Station
+-96.0221  28.3348  ! W    ! UT ! Current Station
+-95.36    27.92    ! 42019  ! NDBC ! Current Station
+-96.8083  27.9328  ! TABS-D ! UT ! Current Station 
+-95.1127  29.7352  ! ut149 ! hanadi ! Deer Park Plant
+-95.1841  29.7447  ! ut150 ! hanadi !  Gulf Sulphur Services
+-95.0298  29.7328  ! ut151 ! hanadi ! Georgia Gulf Chems
+-95.1029  29.8152  ! ut152 ! hanadi ! Greens Bayou Industrial
+-94.8177  29.7547  ! ut153 ! hanadi ! Cedar Bayou Electric
+-95.0706  29.7654  ! ut154 ! hanadi ! Houston Marine Services
+-95.1913  29.7449  ! ut155 ! hanadi ! Greens Port Industrial
+-95.2285  29.7313  ! ut156 ! hanadi ! American Texmark
+-95.1766  29.7608  ! ut157 ! hanadi ! Atofina Chemicals
+-95.1141  29.713   ! ut158 ! hanadi ! Deer Park Facility
+-95.1667  29.7431  ! ut159 ! hanadi ! Pasadena Plant
+-95.0766  29.7686  ! ut160 ! hanadi ! Channel Shipyard Co.
+-95.1660  29.7486  ! ut161 ! hanadi ! Port of Houston Bulk Terminal
+-94.9113  29.3649  ! ut162 ! hanadi ! Texas City Plant
+-95.3032  29.7538  ! ut163 ! hanadi !  ReedHycalag Plant
+-95.09491667 29.74438889 ! ut164 ! hanadi ! VOPAK TERMINAL DEER PARK INC
+-95.09658333 29.74772222 ! ut165 ! hanadi ! VOPAK TERMINAL DEER PARK INC
+-95.09575    29.74855556 ! ut166 ! hanadi ! VOPAK TERMINAL DEER PARK INC
+-95.10547222 29.75022222 ! ut167 ! hanadi ! PRECOAT METALS DIVISION PLANT
+-95.10052778 29.75113889 ! ut168 ! hanadi ! HFOTCO LLC
+-95.09908333 29.75161111 ! ut169 ! hanadi ! OIL STATES INDUSTRIES WWTP
+-95.10686111 29.743      ! ut170 ! hanadi ! CARE TERMINAL WWTP
+-95.10572222 29.73986111 ! ut171 ! hanadi ! ROHM AND HASS TEXAS  INC.
+-95.12241667 29.733      ! ut172 ! hanadi ! DEER PARK CHEMICAL PLANT
+-95.12438889 29.73230556 ! ut173 ! hanadi ! SHELL OIL COMPANY
+-95.12763889 29.73213889 ! ut174 ! hanadi ! SHELL OIL COMPANY
+-95.14097222 29.73419444 ! ut175 ! hanadi ! SHELL OIL COMPANY
+-95.13936111 29.733      ! ut176 ! hanadi ! DEER PARK ENERGY CENTER
+-95.14741667 29.73494444 ! ut177 ! hanadi ! KINDER MORGAN PETCOKE  LP
+-95.16019444 29.74383333 ! ut178 ! hanadi ! CALTEX MILL
+-95.17519444 29.71938889 ! ut179 ! hanadi ! PASADENA TERMINAL
+-95.1545     29.73280556 ! ut180 ! hanadi ! GEORGIA GULF CHEMS/VINYLS WWTP
+-95.16602778 29.74855556 ! ut181 ! hanadi ! PORT OF HOUSTON BULK TERMINAL
+-95.16825    29.74494444 ! ut182 ! hanadi ! ETHYL CORPORTATION
+-95.16669444 29.74311111 ! ut183 ! hanadi ! PASADENA PLANT
+-95.167      29.74241667 ! ut184 ! hanadi ! PASADENA PLANT
+-95.17308333 29.74602778 ! ut185 ! hanadi ! PASADENA PLANT
+-95.17269444 29.74105556 ! ut186 ! hanadi ! PASADENA PLASTICS COMPLEX
+-95.18436111 29.74466667 ! ut187 ! hanadi ! GEREKE CHEMICALS INC.
+-95.18575    29.74466667 ! ut188 ! hanadi ! GEREKE CHEMICALS INC.
+-95.18408333 29.74466667 ! ut189 ! hanadi ! FKP-PASADENA  LLC
+-95.18686111 29.74605556 ! ut190 ! hanadi ! GREENS PORT INDUSTRIAL PARK
+-95.19130556 29.74494444 ! ut191 ! hanadi ! GREENS PORT INDUSTRIAL PARK
+-95.19261111 29.74233333 ! ut192 ! hanadi ! AGRIFOS FERTILIZER  INC. -WWTP
+-95.19844444 29.74030556 ! ut193 ! hanadi ! AGRIFOS FERTILIZER  INC. -WWTP
+-95.23075    29.72327778 ! ut194 ! hanadi ! HOUSTON REFINING  L.P.
+-95.23130556 29.723      ! ut195 ! hanadi ! HOUSTON REFINING  L.P.
+-95.23630556 29.72244444 ! ut196 ! hanadi ! VOPAK TERMINAL GALENA PARK INC
+-95.23908333 29.71661111 ! ut197 ! hanadi ! HOUSTON REFINING  L.P.
+-95.19588889 29.74497222 ! ut198 ! hanadi ! GALENA PARK TERMINAL - WWTP
+-95.24972222 29.72061111 ! ut199 ! hanadi ! VALERO REFINING - TEXAS LP
+-95.25213889 29.72383333 ! ut200 ! hanadi ! VALERO REFINING - TEXAS LP
+-95.25186111 29.72411111 ! ut201 ! hanadi ! VALERO REFINING - TEXAS LP
+-95.26047222 29.72605556 ! ut202 ! hanadi ! VALERO REFINING - TEXAS LP
+-95.25630556 29.72605556 ! ut203 ! hanadi ! VALERO REFINING - TEXAS LP
+-95.26047222 29.72605556 ! ut204 ! hanadi ! VALERO REFINING - TEXAS LP
+-95.26269444 29.72522222 ! ut205 ! hanadi ! SOUTH COAST TERMINALS  L.P.
+-95.26325    29.72438889 ! ut206 ! hanadi ! OXID  L.P.
+-95.26269444 29.72522222 ! ut207 ! hanadi ! OUTH COAST TERMINALS  L.P.
+-95.26491667 29.72438889 ! ut208 ! hanadi ! SOUTH COAST TERMINALS LP -WWTP
+-95.27102778 29.72383333 ! ut209 ! hanadi ! SWS HOLDINGS-BRADY ISLAND  LP
+-95.27158333 29.72411111 ! ut210 ! hanadi ! SWS HOLDINGS-BRADY ISLAND  LP
+-95.27241667 29.72411111 ! ut211 ! hanadi ! SWS HOLDINGS-BRADY ISLAND  LP
+-95.27380556 29.72502778 ! ut212 ! hanadi ! SWS HOLDINGS-BRADY ISLAND  LP
+-95.30325    29.75383333 ! ut213 ! hanadi ! REEDHYCALOG PLANT
+-95.3055     29.75530556 ! ut214 ! hanadi ! PETROLEUM COKE GRINDING - WWTP
+-95.3075     29.75430556 ! ut215 ! hanadi ! PETROLEUM COKE GRINDING - WWTP
+-95.30869444 29.75411111 ! ut216 ! hanadi ! PETROLEUM COKE GRINDING - WWTP
+-95.0015     29.7018 ! ut217 ! bedient ! Houston Ship Channel entrance (d/s of SH146 bridge)
+-95.1370     29.7354 ! ut218 ! bedient ! Houston Ship Channel at the Port of Houston
+-95.0248     29.5493 ! ut219 ! bedient ! Entrance to Clear Lake (u/s SH146 bridge)
+-95.0566     29.5603 ! ut220 ! bedient ! Clear Lake at Taylor Lake entrance
+-95.0802     29.5463 ! ut221 ! bedient ! Clear Lake at Clear Creek entrance
+-94.9146     29.4484 ! ut222 ! bedient ! Texas City levee at Moses Lake entrance
+-94.8814     29.3034 ! ut223 ! bedient ! West Galveston Bay at I-45 bridge
+-94.8552     29.5876 ! ut224 ! bedient ! Central Galveston Bay
+-94.9981 29.7140 ! ut226 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9981 29.7140 ! ut227 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9997 29.7143 ! ut228 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9987 29.7149 ! ut229 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9973 29.7171 ! ut230 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9973 29.7171 ! ut231 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9916 29.7236 ! ut232 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9916 29.7236 ! ut233 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9918 29.7236 ! ut234 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9918 29.7236 ! ut235 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9932 29.7297 ! ut236 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9932 29.7297 ! ut237 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9930 29.7297 ! ut238 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9930 29.7297 ! ut239 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9907 29.7403 ! ut240 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9907 29.7403 ! ut241 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.9906 29.7407 ! ut242 ! Padgett ! WEST MAIN STREET SH 146 NB
+-94.8254 29.2959 ! ut243 ! Padgett ! SP & ATSF RR SEAWOLF PKWY
+-94.8269 29.2973 ! ut244 ! Padgett ! UP RR AND CONN RAMP SH 275 (W OF 51ST)
+-94.8261 29.2981 ! ut245 ! Padgett ! UP RR AND CONN RAMP SH 275 (W OF 51ST)
+-94.8629 29.2853 ! ut246 ! Padgett ! BNSF RR IH 45 NB
+-94.8629 29.2853 ! ut247 ! Padgett ! BNSF RR IH 45 NB
+-94.8629 29.2854 ! ut248 ! Padgett ! BNSF RR IH 45 NB
+-94.8629 29.2854 ! ut249 ! Padgett ! BNSF RR IH 45 NB
+-94.8378 29.2883 ! ut250 ! Padgett ! BNSF RR IH 45 NB
+-94.8378 29.2883 ! ut251 ! Padgett ! BNSF RR IH 45 NB
+-94.8503 29.2884 ! ut252 ! Padgett ! BNSF RR IH 45 NB
+-94.8503 29.2884 ! ut253 ! Padgett ! BNSF RR IH 45 NB
+-94.8379 29.2885 ! ut254 ! Padgett ! BNSF RR IH 45 NB
+-94.8379 29.2885 ! ut255 ! Padgett ! BNSF RR IH 45 NB
+-94.8504 29.2886 ! ut256 ! Padgett ! BNSF RR IH 45 NB
+-94.8504 29.2886 ! ut257 ! Padgett ! BNSF RR IH 45 NB
+-94.8765 29.2913 ! ut258 ! Padgett ! BNSF RR IH 45 NB
+-94.9060 29.3070 ! ut259 ! Padgett ! BNSF RR IH 45 NB
+-94.9058 29.3070 ! ut260 ! Padgett ! BNSF RR IH 45 NB
+-94.9230 29.3225 ! ut261 ! Padgett ! BNSF RR IH 45 NB
+-94.9228 29.3228 ! ut262 ! Padgett ! BNSF RR IH 45 NB
+-94.9145 29.2247 ! ut263 ! Padgett ! MENBELL BYU STEWART RD
+-95.0082 29.6609 ! ut264 ! Padgett ! NO NAME BAYOU PARK AVE
+-94.6705 29.7745 ! ut265 ! Padgett ! LONE STAR CANAL FM 563
+-95.1133 29.8016 ! ut266 ! Padgett ! FRESH WATER BAYOU BEAR BAYOU DR
+-94.6698 29.8282 ! ut267 ! Padgett ! LONE STAR CANAL FM 563
+-95.0298 29.6808 ! ut268 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0308 29.6810 ! ut269 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0300 29.6810 ! ut270 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0300 29.6842 ! ut271 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0300 29.6842 ! ut272 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0298 29.6846 ! ut273 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0303 29.6848 ! ut274 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0307 29.6886 ! ut275 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0308 29.6903 ! ut276 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0308 29.6903 ! ut277 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0234 29.6980 ! ut278 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-95.0203 29.7012 ! ut279 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-94.9914 29.7136 ! ut280 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-94.9915 29.7137 ! ut281 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-94.9676 29.7193 ! ut282 ! Padgett ! GOOSE CREEK SH 146 BUS SB
+-94.7531 29.9492 ! ut283 ! Padgett ! SWINNEY MARSH CR 133
+-94.5003 29.5085 ! ut284 ! Padgett ! ROLLOVER PASS SH 87
+-95.0005 29.5905 ! ut285 ! Padgett ! PINE GULLY TODVILLE RD
+-95.0209 29.6254 ! ut286 ! Padgett ! TAYLOR BAYOU SHADY RIVER RD
+-95.0274 29.6501 ! ut287 ! Padgett ! LITTLE CEDAR BAYOU S EIGHTH ST
+-95.0282 29.6523 ! ut288 ! Padgett ! LITTLE CEDAR BAYOU FAIRMONT PKWY WB
+-95.0081 29.6608 ! ut289 ! Padgett ! NO NAME BAYOU EAST E ST
+-94.9896 29.7229 ! ut290 ! Padgett ! GOOSE CRK WEST MAIN ST
+-94.9891 29.7318 ! ut291 ! Padgett ! GOOSE CRK MARKET ST
+-95.0980 29.7327 ! ut292 ! Padgett ! HCFCD DITCH TIDAL RD
+-94.9838 29.7370 ! ut293 ! Padgett ! GOOSE CRK W TEXAS AVE
+-95.1036 29.7823 ! ut294 ! Padgett ! FRESH WATER BYU MARKET ST
+-95.0566 29.7928 ! ut295 ! Padgett ! LYNCHBURG RES. CANAL CROSBY-LYNCHBURG
+-95.1068 29.7972 ! ut296 ! Padgett ! FRESH WATER BAYOU OAK LANE
+-95.0610 29.8656 ! ut297 ! Padgett ! HCFCD DITCH CROSBY LYNCHBURG
+-95.0909 29.9109 ! ut298 ! Padgett ! GUM GULLY DIAMONDHEAD BLVD
+-95.1669 29.9217 ! ut299 ! Padgett ! HCFCD DITCH SUNLAND GARDENS
+-94.8464 29.2691 ! ut300 ! Padgett ! LAKE MADELINE JONES DR WB
+-94.8465 29.2692 ! ut301 ! Padgett ! LAKE MADELINE JONES DR EB
+-94.8359 29.2845 ! ut302 ! Padgett ! OFFATTS BAYOU SPUR 342 SB
+-94.8357 29.2845 ! ut303 ! Padgett ! OFFATTS BAYOU SPUR 342 SB
+-94.9053 29.3009 ! ut304 ! Padgett ! JONES BAY TIKI DR
+-95.0789 29.5225 ! ut305 ! Padgett ! HL & P DISCHARGE CANAL FM 270
+-95.0894 29.5283 ! ut306 ! Padgett ! HL & P DISCHARGE CANAL FM 270
+-95.0733 29.5309 ! ut307 ! Padgett ! HL&P CANAL DAVIS RD
+-95.0715 29.5311 ! ut308 ! Padgett ! HL & P DISCHARGE CANAL FM 2094
+-95.0961 29.5350 ! ut309 ! Padgett ! CLEAR CREEK FM 270
+-95.0278 29.5406 ! ut310 ! Padgett ! HL & P DISCHARGE CANAL FM 2094
+-95.0280 29.5408 ! ut311 ! Padgett ! HL & P DISCHARGE CANAL FM 2094
+-95.0321 29.5420 ! ut312 ! Padgett ! JARBOE BAYOU CLEAR LAKE RD
+-95.0545 29.5421 ! ut313 ! Padgett ! HL & P DISCHARGE CANAL FM 2094
+-95.0543 29.5424 ! ut314 ! Padgett ! HL & P DISCHARGE CANAL FM 2094
+-95.0288 29.5429 ! ut315 ! Padgett ! CLEAR LAKE SHORE CAN BIRCH RD.
+-95.0278 29.5429 ! ut316 ! Padgett ! CLR.LAKE SHORE CAN BIRCH RD.
+-95.1049 29.5462 ! ut317 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.1050 29.5464 ! ut318 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.0532 29.5489 ! ut319 ! Padgett ! HL&P CANAL SEMINOLE DR.
+-95.0234 29.5516 ! ut320 ! Padgett ! LITTLE CEDAR BAYOU SH 146 NB FR
+-95.0234 29.5516 ! ut321 ! Padgett ! LITTLE CEDAR BAYOU SH 146 NB FR
+-95.0243 29.5538 ! ut322 ! Padgett ! LITTLE CEDAR BAYOU SH 146 NB FR
+-95.0235 29.5540 ! ut323 ! Padgett ! LITTLE CEDAR BAYOU SH 146 NB FR
+-95.0244 29.5547 ! ut324 ! Padgett ! LITTLE CEDAR BAYOU SH 146 NB FR
+-95.0239 29.5547 ! ut325 ! Padgett ! LITTLE CEDAR BAYOU SH 146 NB FR
+-95.0755 29.5574 ! ut326 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.0325 29.5608 ! ut327 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.0717 29.5631 ! ut328 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.0709 29.5637 ! ut329 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.0539 29.5651 ! ut330 ! Padgett ! COW BAYOU NASA RD 1 WB
+-95.0189 29.6458 ! ut331 ! Padgett ! LITTLE CEDAR BAYOU BUS SH 146-D
+-94.9439 29.7019 ! ut332 ! Padgett ! HL&P CANAL TRI-CITY BEACH RD
+-94.6601 29.7305 ! ut333 ! Padgett ! W FK DOUBLE BAYOU FM 2936
+-95.1240 29.7578 ! ut334 ! Padgett ! CARPENTERS BAYOU S SHELDON RD
+-95.0062 29.7630 ! ut335 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0060 29.7630 ! ut336 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0125 29.7698 ! ut337 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0125 29.7698 ! ut338 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0169 29.7737 ! ut339 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0169 29.7737 ! ut340 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0170 29.7737 ! ut341 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0316 29.7830 ! ut342 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0316 29.7830 ! ut343 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0325 29.7831 ! ut344 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0325 29.7831 ! ut345 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0433 29.7873 ! ut346 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0427 29.7876 ! ut347 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0438 29.7878 ! ut348 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-95.0432 29.7881 ! ut349 ! Padgett ! SPRING BAYOU SPUR 330 WB FR
+-94.8486 29.8076 ! ut350 ! Padgett ! HACKBERRY GULLY FM 3180
+-95.1126 29.8585 ! ut351 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.1126 29.8585 ! ut352 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.1127 29.8587 ! ut353 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.1127 29.8587 ! ut354 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.1018 29.8626 ! ut355 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.1019 29.8628 ! ut356 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0938 29.8656 ! ut357 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0939 29.8658 ! ut358 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0904 29.8669 ! ut359 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0904 29.8669 ! ut360 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0905 29.8671 ! ut361 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0905 29.8671 ! ut362 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-94.8286 29.8751 ! ut363 ! Padgett ! OLD RIVER FM 1409
+-95.0683 29.8797 ! ut364 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-94.8172 29.8821 ! ut365 ! Padgett ! OLD RIVER FM 1409
+-95.0630 29.8844 ! ut366 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0630 29.8844 ! ut367 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0632 29.8846 ! ut368 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-95.0632 29.8846 ! ut369 ! Padgett ! CARPENTERS BAYOU US90 WB FR
+-94.9735 29.3581 ! ut370 ! Padgett ! HIGHLAND BAYOU FM 519
+-94.9571 29.3582 ! ut371 ! Padgett ! HIGHLAND BAYOU FM 519
+-94.9324 29.4853 ! ut372 ! Padgett ! FACTORY BAYOU FM 517
+-94.9533 29.4881 ! ut373 ! Padgett ! FACTORY BAYOU FM 517
+-95.0781 29.5207 ! ut374 ! Padgett ! DRAINAGE DITCH FM 518
+-94.9535 29.7157 ! ut375 ! Padgett ! PINE GULLY TRI-CITY BEACH RD
+-95.1176 29.7806 ! ut376 ! Padgett ! HUNTING BAYOU IH10
+-95.1067 29.7850 ! ut377 ! Padgett ! HUNTING BAYOU IH10
+-95.1067 29.7850 ! ut378 ! Padgett ! HUNTING BAYOU IH10
+-95.1050 29.7852 ! ut379 ! Padgett ! HUNTING BAYOU IH10
+-95.1052 29.7855 ! ut380 ! Padgett ! HUNTING BAYOU IH10
+-95.1053 29.7859 ! ut381 ! Padgett ! HUNTING BAYOU IH10
+-95.1037 29.7861 ! ut382 ! Padgett ! HUNTING BAYOU IH10
+-95.1037 29.7861 ! ut383 ! Padgett ! HUNTING BAYOU IH10
+-95.0501 29.7902 ! ut384 ! Padgett ! HUNTING BAYOU IH10
+-95.0501 29.7902 ! ut385 ! Padgett ! HUNTING BAYOU IH10
+-95.0896 29.7905 ! ut386 ! Padgett ! HUNTING BAYOU IH10
+-95.0896 29.7905 ! ut387 ! Padgett ! HUNTING BAYOU IH10
+-95.0574 29.7908 ! ut388 ! Padgett ! HUNTING BAYOU IH10
+-95.0574 29.7908 ! ut389 ! Padgett ! HUNTING BAYOU IH10
+-95.0575 29.7908 ! ut390 ! Padgett ! HUNTING BAYOU IH10
+-95.0575 29.7908 ! ut391 ! Padgett ! HUNTING BAYOU IH10
+-95.0495 29.7910 ! ut392 ! Padgett ! HUNTING BAYOU IH10
+-95.0495 29.7910 ! ut393 ! Padgett ! HUNTING BAYOU IH10
+-95.0839 29.7911 ! ut394 ! Padgett ! HUNTING BAYOU IH10
+-95.0600 29.7918 ! ut395 ! Padgett ! HUNTING BAYOU IH10
+-95.0797 29.7923 ! ut396 ! Padgett ! HUNTING BAYOU IH10
+-95.0797 29.7923 ! ut397 ! Padgett ! HUNTING BAYOU IH10
+-95.0632 29.7936 ! ut398 ! Padgett ! HUNTING BAYOU IH10
+-95.0740 29.7944 ! ut399 ! Padgett ! HUNTING BAYOU IH10
+-95.0579 29.8342 ! ut400 ! Padgett ! BLUFF GULLY BURWELL RD
+-94.9312 29.3291 ! ut401 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9312 29.3291 ! ut402 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9341 29.3306 ! ut403 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9341 29.3306 ! ut404 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9333 29.3308 ! ut405 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9333 29.3308 ! ut406 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9495 29.3433 ! ut407 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9494 29.3434 ! ut408 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9572 29.3478 ! ut409 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9634 29.3506 ! ut410 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9675 29.3524 ! ut411 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-94.9731 29.3549 ! ut412 ! Padgett ! DICKINSON BAYOU IH 45 NB
+-95.0805 29.7621 ! ut413 ! Padgett ! BUFFALO BAYOU CROSBY LYNCHBURG
+-94.7095 29.9499 ! ut414 ! Padgett ! SHILOH CREEK FM 563
+-94.7409 29.9854 ! ut415 ! Padgett ! SHILOH CREEK FM 563
+-94.6833 29.7734 ! ut416 ! Padgett ! LONE STAR CANAL S MAIN ST
+-94.6741 29.7736 ! ut417 ! Padgett ! LONE STAR CANAL N TEXAS AVE
+-94.7424 29.9693 ! ut418 ! Padgett ! DEVERS CANAL CR 133N
+-94.8257 29.3069 ! ut419 ! Padgett ! PELICAN ISLAND CHAN SEAWOLF PKWY
+-94.8737 29.2670 ! ut420 ! Padgett ! SYDNOR BAYOU TRAVEL AIR RD
+-94.7732 29.3267 ! ut421 ! Padgett ! GALVESTON BAY SH87 FERRY S SLP 1
+-94.7731 29.3271 ! ut422 ! Padgett ! GALVESTON BAY SH87 FERRY S SLP 1
+-94.7730 29.3274 ! ut423 ! Padgett ! GALVESTON BAY SH87 FERRY S SLP 1
+-94.7730 29.3275 ! ut424 ! Padgett ! GALVESTON BAY SH87 FERRY N SLP 2
+-94.7788 29.3624 ! ut425 ! Padgett ! GALVESTON BAY SH87 FERRY N SLP 2
+-94.7787 29.3626 ! ut426 ! Padgett ! GALVESTON BAY SH87 FERRY N SLP 2
+-94.7496 29.3343 ! ut427 ! Padgett ! CLOUD BAYOU BODDEKER RD.
+-95.0106 29.5728 ! ut428 ! Padgett ! HESTER GULLY TODVILLE RD
+-95.0219 29.6199 ! ut429 ! Padgett ! TAYLOR BAYOU SHOREACRES BLVD EB
+-95.0218 29.6200 ! ut430 ! Padgett ! TAYLOR BAYOU SHOREACRES BLVD WB
+-95.0097 29.6628 ! ut431 ! Padgett ! HCFCD DITCH EAST E ST
+-95.0541 29.8072 ! ut432 ! Padgett ! SPRING GULLY JONES RD
+-95.0535 29.8113 ! ut433 ! Padgett ! SPRING GULLY BATTLE BELL RD
+-95.0487 29.8177 ! ut434 ! Padgett ! SPRING GULLY PRAIRIE AVE
+-95.0600 29.8683 ! ut435 ! Padgett ! SJRA CANAL RUEBEN WHITE
+-95.0609 29.8715 ! ut436 ! Padgett ! SJRA CANAL MELVILLE DR
+-95.0608 29.8715 ! ut437 ! Padgett ! SJRA CANAL ST CHARLES DR
+-95.0611 29.8743 ! ut438 ! Padgett ! SJRA CANAL BARRETT RD
+-94.7685 29.3723 ! ut439 ! Padgett ! HORSESHOE LAKE LP 108
+-95.0602 29.5369 ! ut440 ! Padgett ! HL & P CANAL S SHORE BLVD EB
+-95.0601 29.5370 ! ut441 ! Padgett ! HL & P CANAL S SHORE BLVD WB
+-94.6731 29.7523 ! ut442 ! Padgett ! ANAHUAC DITCH FM 563
+-94.7611 29.3656 ! ut443 ! Padgett ! DRAINAGE DITCH 7TH ST. (BOLIVAR)
+-94.8919 29.4220 ! ut444 ! Padgett ! LAGOON BAY ST
+-94.6712 29.7497 ! ut445 ! Padgett ! ANAHUAC DITCH POSKEY RD
+-94.6799 29.7736 ! ut446 ! Padgett ! LONE STAR CANAL N BAY ST
+-95.0847 29.7901 ! ut447 ! Padgett ! SAN JAC RI REL MARKET ST
+-95.0745 29.7930 ! ut448 ! Padgett ! SAN JAC RI REL MARKET ST
+-94.7250 29.8067 ! ut449 ! Padgett ! TRINITY RIVER PROJECT ROAD
+-94.8003 29.8307 ! ut450 ! Padgett ! OLD/LOST RIVER & FM 565 IH 10
+-94.500212      29.508466       ! ut451 ! bedient ! from Nick
+-94.7715        29.527463       ! ut452 ! bedient ! from Nick
+-94.698372      29.6533         ! ut453 ! bedient ! from Nick
+-94.388351      29.594357       ! ut454 ! bedient ! from Nick
+-95.121002      29.082576       ! ut455 ! bedient ! from Nick
+-95.143089      29.190713       ! ut456 ! bedient ! from Nick
+-94.796906      29.359436       ! ut457 ! bedient ! from Nick
+-94.802513      29.464291       ! ut458 ! bedient ! from Nick
+-94.653397      29.548073       ! ut459 ! bedient ! from Nick
+-94.556093      29.574846       ! ut460 ! bedient ! from Nick
+-95.03334       29.218463       ! ut461 ! bedient ! from Nick
+-94.945221      29.196527       ! ut462 ! bedient ! from Nick
+-94.841537      29.255851       ! ut463 ! bedient ! from Nick
+-94.887543      29.418068       ! ut464 ! bedient ! from Nick
+-94.862938      29.369191       ! ut465 ! bedient ! from Nick
+-94.724121      29.378585       ! ut466 ! bedient ! from Nick
+-94.617691      29.456938       ! ut467 ! bedient ! from Nick
+-94.172287      29.631129       ! ut468 ! bedient ! from Nick
+-95.012562      29.153709       ! ut469 ! bedient ! from Nick
+-94.9823        29.60182        ! ut470 ! bedient ! from Nick
+-94.93176       29.673459       ! ut471 ! bedient ! from Nick
+-94.928663      29.679265       ! ut472 ! bedient ! from Nick
+-94.929256      29.639737       ! ut473 ! bedient ! from Toni
+-94.827757      29.543754       ! ut474 ! bedient ! from Toni
+-95.090929      29.13651        ! ut475 ! bedient ! from Toni
+-94.72187       29.443621       ! ut476 ! bedient ! from Toni
+-94.910353      29.496539       ! ut477 ! bedient ! from Toni
+-95.004861      29.579763       ! ut478 ! bedient ! from Toni
+-94.9578        29.5064         ! ut479 ! bedient ! from Toni
+-95.00266973660 29.70024702970  ! ut480 ! Toni ! Tonis_42_points
+-95.07572906210 29.76141481200  ! ut481 ! Toni ! Tonis_42_points
+-94.32574400000 29.57209400000  ! ut482 ! Toni ! Tonis_42_points
+-93.97997299090 29.68296055240  ! ut483 ! Toni ! Tonis_42_points
+-95.26188622670 28.97021313820  ! ut484 ! Toni ! Tonis_42_points
+-94.66702464930 29.23570665110  ! ut485 ! Toni ! Tonis_42_points
+-94.74133325610 29.32419949240  ! ut486 ! Toni ! Tonis_42_points
+-94.73096139280 29.36477379990  ! ut487 ! Toni ! Tonis_42_points
+-94.78424542600 29.47204734640  ! ut488 ! Toni ! Tonis_42_points
+-94.83867143810 29.58134813760  ! ut489 ! Toni ! Tonis_42_points
+-94.88090569450 29.66639728030  ! ut490 ! Toni ! Tonis_42_points
+-95.01155134560 29.62769864080  ! ut491 ! Toni ! Tonis_42_points
+-95.02606343580 29.62723153750  ! ut492 ! Toni ! Tonis_42_points
+-95.02173994750 29.62006450260  ! ut493 ! Toni ! Tonis_42_points
+-95.13700000000 29.73540000000  ! ut494 ! Toni ! Tonis_42_points
+-95.02480000000 29.54930000000  ! ut495 ! Toni ! Tonis_42_points
+-95.05660000000 29.56030000000  ! ut496 ! Toni ! Tonis_42_points
+-95.08020000000 29.54630000000  ! ut497 ! Toni ! Tonis_42_points
+-94.88140000000 29.30340000000  ! ut498 ! Toni ! Tonis_42_points
+-94.74630000000 29.75590000000  ! ut499 ! Toni ! Tonis_42_points
+-94.50021200000 29.50846600000  ! ut500 ! Toni ! Tonis_42_points
+-94.77150000000 29.52746300000  ! ut501 ! Toni ! Tonis_42_points
+-94.69837200000 29.65330000000  ! ut502 ! Toni ! Tonis_42_points
+-95.12100200000 29.08257600000  ! ut503 ! Toni ! Tonis_42_points
+-95.14308900000 29.19071300000  ! ut504 ! Toni ! Tonis_42_points
+-94.79690600000 29.35943600000  ! ut505 ! Toni ! Tonis_42_points
+-94.65339700000 29.54807300000  ! ut506 ! Toni ! Tonis_42_points
+-94.55609300000 29.57484600000  ! ut507 ! Toni ! Tonis_42_points
+-95.03334000000 29.21846300000  ! ut508 ! Toni ! Tonis_42_points
+-94.84153700000 29.25585100000  ! ut509 ! Toni ! Tonis_42_points
+-94.88754300000 29.41806800000  ! ut510 ! Toni ! Tonis_42_points
+-94.86293800000 29.36919100000  ! ut511 ! Toni ! Tonis_42_points
+-94.61769100000 29.45693800000  ! ut512 ! Toni ! Tonis_42_points
+-94.17228700000 29.63112900000  ! ut513 ! Toni ! Tonis_42_points
+-94.98981463830 29.16982854740  ! ut514 ! Toni ! Tonis_42_points
+-94.98230000000 29.60182000000  ! ut515 ! Toni ! Tonis_42_points
+-94.92925600000 29.63973700000  ! ut516 ! Toni ! Tonis_42_points
+-95.09092900000 29.13651000000  ! ut517 ! Toni ! Tonis_42_points
+-94.72187000000 29.44362100000  ! ut518 ! Toni ! Tonis_42_points
+-94.91035300000 29.49653900000  ! ut519 ! Toni ! Tonis_42_points
+-93.83313820470 29.67886594080  ! ut520 ! Toni ! Tonis_42_points
+-94.98693856490 29.51547250090  ! ut521 ! Toni ! Tonis_42_points
+-94.983706      29.681249       ! ut522 ! UT ! Barbers Cut Terminal, Shore
+-94.990116      29.683345       ! ut523 ! UT ! Barbers Cut Terminal, Channel
+-94.907933      29.655811       ! ut524 ! UT ! Trinity Point
+-94.861068      29.702819       ! ut525 ! UT ! North East Side of Trinity Point
+-94.916258      29.77001        ! ut526 ! UT ! Cedar Bayou South of 146
+-95.028799      29.665271       ! ut527 ! UT ! 146 and W. Main St.
+-95.011434      29.64985        ! ut528 ! UT ! West Side of Galveston Bay
+-95.031288      29.603937       ! ut529 ! UT ! 146 and Port St.
+-94.990401      29.671812       ! ut530 ! UT ! South of B in La Porte
