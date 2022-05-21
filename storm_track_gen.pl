@@ -757,9 +757,10 @@ sub interpolateUncertaintyRadius($) {
     #my @nhc_radii = (9.5, 30, 49, 66, 84, 115, 165, 237); #2016
     #my @nhc_radii = (9.5, 29, 45, 63, 78, 107, 159, 211); #2017
     #my @nhc_radii =  (9.5, 26, 43, 56, 74, 103, 151, 198); #2018
-    #my @nhc_radii = (9.5, 16, 26, 41, 55,  69,  86, 103, 151, 196);  # 2020
+    #my @nhc_radii = (9.5, 16, 26, 41, 55,  69,  86, 103, 151, 196); # 2020
+    #my @nhc_radii = (9.5, 16, 27, 40, 55,  69,  86, 102, 148, 200); # 2021
     my @nhc_tau =   (  0,  3, 12, 24, 36,  48,  60,  72,  96, 120);
-    my @nhc_radii = (9.5, 16, 27, 40, 55,  69,  86, 102, 148, 200);  # 2021
+    my @nhc_radii = (9.5, 16, 26, 39, 52,  67,  84, 100, 142, 200); # 2022
 
     if ( $tau<$nhc_tau[0] ) {
 	stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].");
