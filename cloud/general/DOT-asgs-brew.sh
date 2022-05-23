@@ -650,8 +650,15 @@ delete() {
       fi
       ;;
     statefile)
+     if [[ -z "${STATEFILE}" ]]; then
+       echo STATEFILE is not defined.
+       return
+     elif [[ ! -e "${STATEFILE}" ]]; then
+       echo "STATEFILE, '${STATEFILE}', does not exist."
+       return
+     fi
      read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
-     if [ 'y' == "${DELETE_STATEFILE}" ]; then
+     if [[ 'y' == "${DELETE_STATEFILE}" ]]; then
        rm -rvf "${STATEFILE}"
        export STATEFILE=
      else
