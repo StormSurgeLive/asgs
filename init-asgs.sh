@@ -88,7 +88,7 @@ if [ -d "./platforms" ]; then
   for platform in "${_PLATFORMS[@]}"; do
     if [ -e ./platforms/${platform}/init.sh ]; then
       about='(repo defined)'
-      _PLATFORM_INIT[$platform]="./platforms/${platform}/init.sh"
+      _PLATFORM_INIT[$platform]=$(readlink -f "./platforms/${platform}/init.sh")
       if [ -e ./platforms/${platform}/about.txt ]; then
         about=$(cat ./platforms/${platform}/about.txt | sed 's/\n//g')
       fi
