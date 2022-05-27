@@ -88,7 +88,7 @@ if [[ $SCENARIO = namforecast || $SCENARIO = nhcConsensus ]]; then
    # make new symbolic links
    for file in $SCENARIODIR/fort.*.nc $SCENARIODIR/swan*.nc $SCENARIODIR/max*.nc $SCENARIODIR/min*.nc $SCENARIODIR/run.properties $SCENARIODIR/fort.14 $SCENARIODIR/fort.15 $SCENARIODIR/fort.13 $SCENARIODIR/fort.22 $SCENARIODIR/fort.26 $SCENARIODIR/fort.221 $SCENARIODIR/fort.222 $ADVISDIR/al*.fst $ADVISDIR/bal*.dat $SCENARIODIR/*.zip $SCENARIODIR/*.kmz ; do 
       if [ -e $file ]; then
-         ln -s $file . 2>> ${SYSLOG}
+         cp $file . 2>> ${SYSLOG}
       else
          logMessage "$SCENARIO: $THIS: The directory does not have ${file}."
       fi
