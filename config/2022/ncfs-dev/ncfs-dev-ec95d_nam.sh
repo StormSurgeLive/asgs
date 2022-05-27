@@ -27,8 +27,8 @@
 
 # Fundamental
 
-INSTANCENAME=ec95d-nam-bob-da-nowcast      # "name" of this ASGS process
-SCRATCHDIR=/projects/ncfs-dev/${INSTANCENAME}
+INSTANCENAME=ec95d-nam-bob2      # "name" of this ASGS process
+SCRATCHDIR=/scratch/bblanton/${INSTANCENAME}
 RMQMessaging_Transmit=on
 QSCRIPTTEMPLATE=$SCRIPTDIR/config/2022/ncfs-dev/qscript.template.renci
 
@@ -39,14 +39,14 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2022010100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2022040100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=10.0   # length of initial hindcast, from cold (days)
+   HINDCASTLENGTH=32.0   # length of initial hindcast, from cold (days)
 BACKGROUNDMET=on         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
@@ -74,7 +74,7 @@ QUEUENAME="lowpri"
 
 INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 
-FINISH_NOWCAST_SCENARIO=( output/opendap_post_nowcast.sh output/run_adda.sh )
+FINISH_NOWCAST_SCENARIO=( output/opendap_post_nowcast.sh ) # output/run_adda.sh )
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
 POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
