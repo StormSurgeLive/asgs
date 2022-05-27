@@ -13,9 +13,9 @@ def main(argv):
     elif os.path.isdir(fname):
         fname=fname + "/fort.61.nc"
     else:
-        print "%s not found\n" %fname
-        print "Syntax: FortCheck.py <looks for fort.61.nc locally.>"
-        print "Syntax: FortCheck.py directory_name <will look for fort.61.nc in directory_name.>"
+        print("%s not found\n" %fname)
+        print("Syntax: FortCheck.py <looks for fort.61.nc locally.>")
+        print("Syntax: FortCheck.py directory_name <will look for fort.61.nc in directory_name.>")
         sys.exit()
     
     ds=Dataset(fname,"r")
@@ -35,7 +35,7 @@ def main(argv):
         rt=rnday-t1
         pct=100*(tnow-t1)/rt
     
-    print "%.2f" % (pct)
+    print("%.2f" % (pct))
 
 if __name__ == "__main__":
     	main(sys.argv[1:])
