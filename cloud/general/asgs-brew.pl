@@ -453,6 +453,7 @@ fi
 # denotes we're in an active asgsh session
 export _ASGSH_PID=\$\$
 export profile=$asgs_default_profile
+export HDF5_USE_FILE_LOCKING=FALSE
 
 # denotes which environmental variables are saved with a profile - includes variables that
 # are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
@@ -519,7 +520,7 @@ sub _get_env_summary {
 
         # filter stuff in local %ENV here that we don't want
         # dumped into the profiles
-        next GETENV if grep { m/^$envar$/ } (qw/SCRIPTDIR/);
+        next GETENV if grep { m/^$envar$/ } (qw/SCRIPTDIR HDF5_USE_FILE_LOCKING/);
         $summary .= sprintf( qq{export %s=%s\n}, $envar, $ENV{$envar} // q{} );
 
         # save to generate list of exported variables added to the locally
@@ -717,9 +718,10 @@ sub get_steps {
                 LDFLAGS  => { value => qq{-L$asgs_install_path/lib},     how => q{append}, separator => q{ } },
 
                 # the following HDF5* vars are needed in the environment for any netCDF4 python modules
-                HDF5_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },
-                HDF5_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },
-                HDF5_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },
+                HDF5_DIR              => { value => qq{$asgs_install_path},         how => q{replace} },
+                HDF5_LIBDIR           => { value => qq{$asgs_install_path/lib},     how => q{replace} },
+                HDF5_INCDIR           => { value => qq{$asgs_install_path/include}, how => q{replace} },
+                HDF5_USE_FILE_LOCKING => { value => q{FALSE}, how => q{replace} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
