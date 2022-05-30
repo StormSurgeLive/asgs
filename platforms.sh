@@ -396,6 +396,11 @@ init_test()
 #
 # Writes properties related to the combination of the HPC platform, the Operator,
 # and the THREDDS data server the results are to be posted to.
+
+#                                                                #
+# D O  N O T  A D D  N E W  T H R E D D S  S E R V E R S H E R E #
+#          please us the ./thredds-servers directory             #
+#                                                                #
 writeTDSProperties()
 {
    local THIS="platforms.sh>writeTDSProperties()"
@@ -458,17 +463,25 @@ writeTDSProperties()
       ;;
    "tacc_tds2")
       THREDDSHOST=chg-1.oden.tacc.utexas.edu # WWW hostname for emailed links
-      OPENDAPHOST=tacc_tds2                 # alias in $HOME/.ssh/config
-      OPENDAPPORT=":80"                     # ':80' can be an empty string, but for clarity it's here
+      OPENDAPHOST=tacc_tds2                  # alias in $HOME/.ssh/config
+      OPENDAPPORT=":80"                      # ':80' can be an empty string, but for clarity it's here
       OPENDAPPROTOCOL="http"
       DOWNLOADPREFIX=/asgs
       CATALOGPREFIX=/asgs
-      OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
+      OPENDAPBASEDIR=/hurricane
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
-   *)
-      echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
+   *) # if not found, look in ./thredds-servers where we add new servers now
+      local SERVERDEF="${SCRIPTDIR}/ssh-servers/${SERVER}.sh"
+      echo $SERVERDEF
+      if [ -e "$SERVERDEF" ]; then
+        echo "$THIS: Found THREDDS Data Server $SERVER in $SCRIPTDIR/$SERVER.sh"
+	source "$SERVERDEF"
+      else
+        echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
+      fi
+      ;;
    esac
    # now write properties
    echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> $RUNPROPERTIES

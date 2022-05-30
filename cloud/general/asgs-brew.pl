@@ -377,7 +377,7 @@ sub _get_asgsh {
       $export_asgs_local_dir = sprintf qq{export ASGS_LOCAL_DIR="%s"}, $ENV{ASGS_LOCAL_DIR};
     }
     my $export_asgs_platform_init = q{};
-    if ( defined $ENV{ASGS_LOCAL_DIR} ) {
+    if ( defined $ENV{PLATFORM_INIT} ) {
       $export_asgs_platform_init = sprintf qq{export PLATFORM_INIT="%s"}, $ENV{PLATFORM_INIT};
     }
 

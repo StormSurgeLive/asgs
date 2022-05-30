@@ -1,0 +1,21 @@
+To add an entry, copy an existing file using the
+short name that is to be used by the ASGS config
+script, then edit the file so that parameters are
+correct.
+
+Example,
+
+cp ./tacc_tds.sh ./my_new_tds.sh
+vim ./my_new_tds.sh
+
+NOTE: this directory is for "officially" supported
+THREDDS servers. ASGS currently doesn't yet suport
+local THREDDS server, but this can be changed when
+someone actually needs to use it.
+
+Another thing to note is that these "THREDDS" servers
+are treated simply as remote machines and files are
+sent over ssh/scp; but the vestigial names that
+indicated "OPENDAP" remain. General remote servers
+can be added here, too.
+
