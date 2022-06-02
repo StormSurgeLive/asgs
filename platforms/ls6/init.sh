@@ -12,7 +12,6 @@ export QUOTACHECKCMD=null
 export ALLOCCHECKCMD=null
 export QSCRIPTTEMPLATE="${SCRIPTDIR}/qscript.template"
 export QSCRIPTGEN=qscript.pl
-
 export DEFAULT_COMPILER=intel
 export GROUP="G-803086"
 export WORK=${WORK:-$HOME}
