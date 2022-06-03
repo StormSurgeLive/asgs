@@ -22,7 +22,7 @@ subgrid_barrier
 1                ! NRAMP
 9.810000         ! G
 -3               ! TAU0
-2.0              ! DTDP
+%DT%              ! DTDP
 0                ! STATIM
 0                ! REFTIM
 %WTIMINC%              ! WTMINC
