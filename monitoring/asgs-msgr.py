@@ -60,7 +60,6 @@ def JsonifyMessage(Uid,
 
 def queue_message(message):
 
-    # Need to get this stuff from yaml file
     credentials = pika.PlainCredentials(queue_user, queue_passwd)
     parameters = pika.ConnectionParameters(queue_address, queue_port, '/', credentials, socket_timeout=2)
     connection = pika.BlockingConnection(parameters)
@@ -91,14 +90,14 @@ def main(argv):
 
     try:
         opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:k:u",
-                        ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
-                         "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
-                         "EventType=", "Process=", "PctComplete=", "State=", "RunParams=",
-                         "InstanceName=", "Transmit=", "SubPctComplete="])
+                    ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
+                     "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
+                     "EventType=", "Process=", "PctComplete=", "State=", "RunParams=",
+                     "InstanceName=", "Transmit=", "SubPctComplete="])
     except getopt.GetoptError as err:
-       print('\nCommand line option error: ' + str(err))
-       usage()
-       sys.exit(2)
+        print('\nCommand line option error: ' + str(err))
+        usage()
+        sys.exit(2)
 
     for opt, arg in opts:
         if opt in ("-h", "--Help"):
@@ -168,4 +167,4 @@ def main(argv):
         print('Message not transmitted.\n')
 
 if __name__ == "__main__":
-        main(sys.argv[1:])
+    main(sys.argv[1:])
