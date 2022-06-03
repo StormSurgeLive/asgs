@@ -190,7 +190,6 @@ RMQMessage()
       appMessage "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." $APPLOGFILE
   else
      printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS} "${MSG}" 
-
      # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
      ${RMQMessaging_Script} \
          --Uid "$$"                                    \

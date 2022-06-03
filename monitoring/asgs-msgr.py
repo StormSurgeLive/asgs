@@ -5,6 +5,12 @@ import getopt
 import pika
 import json
 
+queue_name='asgs_queue'
+queue_user='asgs'
+queue_passwd='ZippityD0Da'
+queue_address='asgs-monitor.renci.org'
+queue_port=5672
+
 def usage():
     print('\nUsage:\n')
     print('asgs-msgr.py -h -u <Uid> -l <LocationName> -c <ClusterName>  -d <UTCDateTime> -s <StormName> -n <StormNumber> -a <AdvisoryNumber> -m <Message> -y <EventType> -p <Process> -t <PctComplete> -b <SubPctComplete> -r <State> -q <RunParams> -i <InstanceName> -k <Transmit> ')
@@ -54,13 +60,13 @@ def JsonifyMessage(Uid,
 
 def queue_message(message):
 
-########## NEED TO GET THIS STUFF FROM YAML FILE #########################
-    credentials = pika.PlainCredentials('asgs', 'ZippityD0Da')
-    parameters = pika.ConnectionParameters('asgs-monitor.renci.org', 5672, '/', credentials, socket_timeout=2)
+    # Need to get this stuff from yaml file
+    credentials = pika.PlainCredentials(queue_user, queue_passwd)
+    parameters = pika.ConnectionParameters(queue_address, queue_port, '/', credentials, socket_timeout=2)
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
-    channel.queue_declare(queue="asgs_queue")
-    channel.basic_publish(exchange='',routing_key='asgs_queue',body=message)
+    channel.queue_declare(queue=queue_name)
+    channel.basic_publish(exchange='',routing_key=queue_name,body=message)
     connection.close()
 
 def main(argv):
@@ -131,9 +137,9 @@ def main(argv):
         elif opt in ("-r", "--State"):
             State = arg
 
-        if (Message == 'none'):
-            # return without sending 
-            sys.exit()
+    if (Message == 'none'):
+        # return without sending 
+        sys.exit()
 
     msg = JsonifyMessage(
             Uid,
@@ -151,10 +157,13 @@ def main(argv):
             State,
             RunParams,
             InstanceName
-            )
+    )
 
     if (Transmit == 'on'):
         queue_message(msg)
+        with open('msg.json', "w") as outfile:  
+            json.dump(msg, outfile) 
+        
     else:
         print('Message not transmitted.\n')
 
