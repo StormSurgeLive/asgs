@@ -852,6 +852,12 @@ else
   goto scriptdir >/dev/null 2>&1
 fi
 
+# source command completions
+echo "${I} Loading command completion definitions" 
+for C in $(ls $SCRIPTDIR/etc/bash-completions); do
+  source $SCRIPTDIR/etc/bash-completions/$C 
+done
+
 # when started, ASGS Shell loads the 'default' profile,
 # this can be made variable at some point
 load profile ${profile-default}
