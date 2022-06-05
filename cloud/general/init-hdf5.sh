@@ -1,8 +1,12 @@
 #!/bin/bash
 
-OPT=${1-$HOME/opt}
-COMPILER=${2-intel}
-JOBS=${3-1}
+OPT=${1:-$ASGS_INSTALL_PATH}
+COMPILER=${2:-intel}
+JOBS=${3:-1}
+HDF5_VERSION=${4:-1.12.2}
+
+# may need to make this available in asgs generally
+HDF5_USE_FILE_LOCKING=FALSE
 
 _TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
 _ASGS_TMP=${_ASGS_TMP:-$_TMPDIR}
@@ -15,7 +19,7 @@ if [ $2 == "clean" ]; then
   rm -fv libhd5* libhdf5*
   cd $OPT/include
   rm -fv H5* h5* hd5* HD5* hdf* typesizes.mod
-  rm -rvf $_ASGS_TMP/hdf5-1.8.12*
+  rm -rvf $_ASGS_TMP/hdf5-${HDF5_VFERSION}*
   cd $OPT/share
   rm -rvf hdf5_examples
   exit
@@ -38,15 +42,15 @@ mkdir -p $_ASGS_TMP 2> /dev/null
 chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
-if [ ! -e hdf5-1.8.12.tar.gz ]; then
-  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-1.8.12.tar.gz
+if [ ! -e hdf5-${HDF5_VERSION}.tar.gz ]; then
+  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-${HDF5_VERSION}.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null
 
 if [ ! -e $OPT/bin/h5diff ]; then
-  tar zxvf hdf5-1.8.12.tar.gz
-  cd hdf5-1.8.12
+  tar zxvf hdf5-${HDF5_VERSION}.tar.gz
+  cd hdf5-${HDF5_VERSION}
   make clean
   ./configure --prefix $OPT --enable-fortran
   make -j $JOBS install
