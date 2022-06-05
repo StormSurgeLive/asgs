@@ -1,0 +1,28 @@
+diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
+index 7976779..f24f7ea 100644
+--- a/work/cmplrflags.mk
++++ b/work/cmplrflags.mk
+@@ -274,6 +274,7 @@ ifeq ($(compiler),intel)
+         CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xSSE4.2
+         FLIBS   := $(INCDIRS) -xSSE4.2
+      endif
++  endif
+   ifeq ($(MACHINENAME),supermic) 
+      FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
+      CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
+@@ -304,6 +305,15 @@ ifeq ($(compiler),intel)
+         FLIBS   := $(INCDIRS) -xCORE-AVX512 
+      endif
+   endif
++  ifeq ($(MACHINENAME),ls6)
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX
++     FLIBS   := $(INCDIRS)
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX
++        FLIBS   := $(INCDIRS)
++     endif
+   endif
+   #
+   #@jasonfleming Added to fix bus error on hatteras@renci
