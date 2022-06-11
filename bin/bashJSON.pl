@@ -23,13 +23,17 @@ use strict;
 use warnings;
 use Getopt::Long;
 use JSON::PP;
+use Scalar::Util qw( reftype );
 use ASGSUtil;
 #
-my @keys;                   # array for keys to values to read
+my @keys;               # array for keys to values to read
 my $keys_ref = \@keys;
-my $key;                    # single key for which value should be returned
-my $mapscalar = "null";     # key/value pairs to write
-my $file_content;           # entire file as slurped
+my $key;                # single key for which value(s) should be returned
+my $first;              # only return the first value of a JSON array
+my $last;               # only return the last value of a JSON array
+my %mapscalars;         # key/value pairs to write
+my %maparrays;         # key/value pairs to write
+my $file_content;       # entire file as slurped
 #
 my @values;  # to be returned
 my $jshash_ref;
@@ -37,7 +41,10 @@ my $jshash_ref;
 GetOptions(
            "keys=s{1,}" => \$keys_ref,
            "key=s" => \$key,
-           "mapscalar=s" => \$mapscalar,
+           "first" => \$first,
+           "last" => \$last,
+           "mapscalar=s" => \%mapscalars,
+           "maparray=s" => \%maparrays
           );
 #
 #   r e a d   t h e   d a t a
@@ -56,15 +63,43 @@ if ( @keys ) {
             push(@values,"null");
         }
     }
-    print join(" ",@values);
+    print join(' ',@values);
     exit;
 }
 if ( defined $key ) {
     if ( exists($jshash_ref->{$key}) ) {
-        print $jshash_ref->{$key};
-    } else {
-        print "null";
+        if ( reftype($jshash_ref->{$key}) eq 'ARRAY' ) {
+            my $listref = $jshash_ref->{$key};
+            if ( defined $first ) {
+                print $listref->[0];
+            } elsif ( defined $last ) {
+                print $listref->[-1];
+            } else {
+                print join(' ',@$listref);
+            }
+        } else {
+            print $jshash_ref->{$key};
+        }
     }
+    exit;
+}
+#
+#   w r i t e   t h e   d a t a
+#
+if ( %mapscalars ) {
+    foreach my $k (keys(%mapscalars)) {
+        $jshash_ref->{$k} = $mapscalars{$k};
+    }
+}
+if ( %maparrays ) {
+    foreach my $k (keys(%maparrays)) {
+        my @arr = split(" ",$maparrays{$k});
+        $jshash_ref->{$k} = \@arr;
+    }
+}
+if ( %mapscalars || %maparrays ) {
+    ASGSUtil::timestampJSON($jshash_ref);
+    print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
     exit;
 }
 1;
