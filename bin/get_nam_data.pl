@@ -217,7 +217,7 @@ if ( $stage eq "NOWCAST" ) {
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         if ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         if ( `$scriptdir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
             ASGSUtil::stderrMessage(
                       "INFO",
                       "'$f' has already been downloaded to '$localDir'.");
@@ -246,7 +246,7 @@ if ( $stage eq "NOWCAST" ) {
          #ASGSUtil::stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         if ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         if ( `$scriptdir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
             $dl++;
             push(@files_downloaded,"$localDir/$f");
          } else {
@@ -337,7 +337,7 @@ if ( $stage eq "FORECAST" ) {
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         if ( `$scriptdir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         if ( `$scriptdir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
             ASGSUtil::stderrMessage(
                       "INFO",
                       "'$f' has already been downloaded to '$localDir'.");

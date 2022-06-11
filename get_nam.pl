@@ -68,7 +68,7 @@ my $hstime;   # hotstart time, i.e., time since ADCIRC cold start (in seconds)
 my @altnamdirs; # alternate directories to look in for NAM data
 our $archivedruns; # path to previously conducted and archived files
 our @forecastcycle; # nam cycles to run a forecast (not just nowcast)
-my $scriptDir;  # directory where the wgrib2 executable is found
+my $scriptDir;  # directory where the wgrib2 executable is found (within $scriptDir/bin)
 #
 my $date;     # date (UTC) corresponding to current ADCIRC time
 my $hour;     # hour (UTC) corresponding to current ADCIRC time
@@ -492,7 +492,7 @@ while ($datetime_needed <= $cycletime) {
                   $localDir = $cycletime."/nowcast/erl.".substr($date_needed,2);
                   # perform a smoke test on the file we found to check that it is
                   # not corrupted (not a definitive test but better than nothing)
-                  unless ( `$scriptDir/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+                  unless ( `$scriptDir/bin/wgrib2 $alt_location -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
                      stderrMessage("INFO","The file '$alt_location' appears to be corrupted and will not be used.");
                      next;
                   }
@@ -711,7 +711,7 @@ sub getForecastData() {
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         unless ( `$scriptDir/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         unless ( `$scriptDir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
             stderrMessage("INFO","The file '$localDir/$f' appears to be corrupted and will not be used.");
          } else {
             stderrMessage("INFO","'$f' has already been downloaded to '$localDir'.");

@@ -1,0 +1,22 @@
+{
+   "version" : "0.1",
+   "category" : "forcing",
+   "forcing" : "meteorology",
+   "meteorology" : "gfs",
+   "template" : "%NULLGETGFSTEMPLATEFILE%",
+   "filled" : "%NULLGETGFSTEMPLATEFILLEDFILE%",
+   "status" : "%NULLGFSSTATUSFILE%",
+   "select" : "%NULLGFSSELECTFILE%",
+   "get" : "%NULLGETGFSFILE%",
+   "siteHost" : "%NULLBACKSITE%",
+   "stage" : "%NULLSTAGE%",
+   "filesDownloaded" : [
+      "%NULLGFSNOWCASTDOWNLOADED%"
+   ],
+   "filesFromCache" : [
+      "%NULLGFSNOWCASTFOUND%"
+   ],
+   "lastupdated" : [
+      { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }
+   ]
+}

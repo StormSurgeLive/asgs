@@ -459,7 +459,7 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( ls6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
    "tacc_tds2")
       THREDDSHOST=chg-1.oden.tacc.utexas.edu # WWW hostname for emailed links
@@ -545,6 +545,10 @@ set_hpc() {
       HPCENV=soldier.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi
+   if [ 1 -eq $(hostname --fqdn | grep -c kitt) ]; then
+      HPCENV=kitt.seahorsecoastal.com
+      HPCENVSHORT=desktop
+   fi
    if [[ "${ASGS_MACHINE_NAME}" = "docker" ]]; then
       HPCENV=docker.local
       HPCENVSHORT=docker
@@ -554,6 +558,10 @@ set_hpc() {
       plat=$($SCRIPTDIR/bin/guess platform)
       HPCENVSHORT=$plat
       HPCENV=$plat
+   fi
+   if [[ $HPCENVSHORT == "null" ]]; then
+      echo "$THIS: FATAL: Could not determine what platform the ASGS is running on."
+      exit 1
    fi
    echo "$THIS: The value of HPCENV is ${HPCENV}."
    echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."

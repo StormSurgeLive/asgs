@@ -56,6 +56,29 @@ VELOCITYMULTIPLIER=1.0
 forecastSelection="latest"            # "latest" or "strict"
 forecastDownload="only-to-run"        # "only-to-run" or "all"
 #
+#  Meteorological Forcing : Global Forecast System (GFS) Model
+#
+GFSBACKSITE="ftp.ncep.noaa.gov"          # NAM forecast data from NCEP
+GFSBACKDIR="/pub/data/nccf/com/gfs/v16.2" # contains the nam.yyyymmdd files
+# GFS subset
+gfsDomain['leftlon']='-110'
+gfsDomain['rightlon']='-45'
+gfsDomain['toplat']='50'
+gfsDomain['bottomlat']='0'
+GFSFORECASTLENGTH=120                     # hours of GFS forecast to run
+#
+# lat0, lon0 = degrees of lat/lon for 1st grid point
+# nlon = number of longitudes
+# nlat = number of latitudes
+# dlon = grid cell size in degrees of longitude
+# dlat = grid cell size in degrees of latitude
+gfsLatLonGrid['lon0']='260'
+gfsLatLonGrid['nlon']='240'
+gfsLatLonGrid['dlon']='0.25'
+gfsLatLonGrid['lat0']='5'
+gfsLatLonGrid['nlat']='240'
+gfsLatLonGrid['dlat']='0.25'
+#
 # External data sources : River Flux
 #
 RIVERSITE="ftp.nssl.noaa.gov"
