@@ -636,7 +636,7 @@ postScenarioStatus() {
     # output/opendap_post.sh from the run.properties file
     echo "post.opendap.files : ( scenario.status.json )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     echo "notification.opendap.email.enable : no" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
-    $SCRIPTDIR/output/opendap_post.sh $scenarioStatusDir/run.properties
+    $SCRIPTDIR/output/$OPENDAPPOST $scenarioStatusDir/run.properties
 }
 #
 #  send message when shutting down on INT and clear all processes

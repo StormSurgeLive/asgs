@@ -23,9 +23,11 @@
 #--------------------------------------------------------------------------
 #
 # specify compiler=gfortran on the make command line
+
 ifeq ($(compiler),gfortran)
-   FC := gfortran
-   CC := gcc
+   export FC := gfortran
+   export CC := gcc
+   export COMP_SYS := gnu_linux
    FFLAGS := -ffree-line-length-none -ffixed-line-length-none
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
@@ -34,18 +36,19 @@ endif
 #
 # specify compiler=intel on the make command line
 ifeq ($(compiler),intel)
-   FC := ifort
-   CC := icc
+   export FC := ifort
+   export CC := icc
+   export COMP_SYS := intel_linux
    FFLAGS := -132
    ifeq ($(DEBUG),full)
-      FFLAGS := -g -O0 -fpp -traceback -debug -check all 
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
 #
-INCLUDES := 
+INCLUDES :=
 #
-OBJ := 
-MODS := 
+OBJ :=
+MODS :=
 #
 # targets
 all : tide_fac.x awip_lambert_interp.x lambertInterpRamp.x wgrib2
@@ -66,12 +69,12 @@ awip_lambert_interp.x : input/awip_lambert_interp.F
 #
 lambertInterpRamp.x : input/lambertInterpRamp.f
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o lambertInterpRamp.x input/lambertInterpRamp.f $(LDFLAGS)
-#
-wgrib2 : wgrib2.tgz.v1.9.7a cleano
-	tar xvzf wgrib2.tgz.v1.9.7a
-	cp wgrib2.makefile ./grib2/makefile 
+
+# Ref: https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/compile_questions.html
+wgrib2 : wgrib2-3.1.1.tgz cleano
+	tar xvzf wgrib2-3.1.1.tgz
 	$(MAKE) -C grib2
-	cp grib2/wgrib2/wgrib2 .
-#
-wgrib2.tgz.v1.9.7a :
-	curl -sO --insecure https://www.ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v1.9.7a 
+	cp grib2/wgrib2/wgrib2 ./bin
+
+wgrib2-3.1.1.tgz :
+	curl -sO  https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/wgrib2-3.1.1.tgz

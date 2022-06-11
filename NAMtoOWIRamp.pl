@@ -539,11 +539,11 @@ sub getGrib2 {
     # inventory in the first file ... this assumes that glob returns
     # the files in ascending order.
     if ( $namFormat eq "grb" ) {
-        `$scriptDir/wgrib -v $grib2Files[0] | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
+        `$scriptDir/bin/wgrib -v $grib2Files[0] | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
         $$startTime_ref = $1;
     }
     if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
-        `$scriptDir/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
+        `$scriptDir/bin/wgrib2 $grib2Files[0] -match PRMSL` =~ m/d=(\d+)/;
         $$startTime_ref = $1;
     }
     ASGSUtil::appMessage(
@@ -576,11 +576,11 @@ sub getGrib2 {
             $cycleHour = $1;
         }
         if ( $namFormat eq "grb2" ) {
-            `$scriptDir/wgrib2 -v $file | grep PRMSL` =~ m/:d=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL/;
+            `$scriptDir/bin/wgrib2 -v $file | grep PRMSL` =~ m/:d=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL/;
             $cycleHour = $4;
         }
         if ( $namFormat eq "grb" ) {
-            `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
+            `$scriptDir/bin/wgrib -v $file | grep PRMSL` =~ m/:D=(\d\d\d\d)(\d\d)(\d\d)(\d\d):PRMSL:/;
             $cycleHour = $4;
         }
         ASGSUtil::appMessage(
@@ -598,13 +598,13 @@ sub getGrib2 {
             my $temp = "";
             if ( ($namFormat eq "grib2") || ($namFormat eq "grb2") ) {
                 my $com = "";
-                $com  = "$scriptDir/wgrib2 $file -match PRMSL";
+                $com  = "$scriptDir/bin/wgrib2 $file -match PRMSL";
                 $temp = `$com`;
                 $temp =~ m/d=(\d+)/;
                 $$endTime_ref = $1;
             }
             if ( $namFormat eq "grb" ) {
-                `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
+                `$scriptDir/bin/wgrib -v $file | grep PRMSL` =~ m/:D=(\d+):PRMSL:/;
                 $$endTime_ref = $1;
             }
 
@@ -678,20 +678,20 @@ sub getGrib2 {
             # found in the grib2 file ... PRMSL comes first in the grib2
             # file, so it would be first in the array ... need it to be last
             die "$file not found.\n" if ( !-f $file );
-            my $com = "$scriptDir/wgrib2 $file -match \"UGRD:10\" -inv /dev/null -text -";
+            my $com = "$scriptDir/bin/wgrib2 $file -match \"UGRD:10\" -inv /dev/null -text -";
             @rawU = `$com`;
             die "rawU is empty, com=$com\n" unless (@rawU);
-            $com  = "$scriptDir/wgrib2 $file -match \"VGRD:10\" -inv /dev/null -text -";
+            $com  = "$scriptDir/bin/wgrib2 $file -match \"VGRD:10\" -inv /dev/null -text -";
             @rawV = `$com`;
             die "rawV is empty, com=$com\n" unless (@rawV);
-            $com  = "$scriptDir/wgrib2 $file -match \"PRMSL\" -inv /dev/null -text -";
+            $com  = "$scriptDir/bin/wgrib2 $file -match \"PRMSL\" -inv /dev/null -text -";
             @rawP = `$com`;
             die "rawP is empty, com=$com\n" unless (@rawP);
         }
         if ( $namFormat eq "grb" ) {
             #
             # get record number for wind velocity (u) at 10m
-            `$scriptDir/wgrib -v $file | grep "UGRD:10 m above gnd"` =~ m/^(\d+):/;
+            `$scriptDir/bin/wgrib -v $file | grep "UGRD:10 m above gnd"` =~ m/^(\d+):/;
             my $record_number = $1;
 
             # now decode the data for that record number to an external file
@@ -701,7 +701,7 @@ sub getGrib2 {
             @rawU = `cat ugrd.txt`;
             #
             # get record number for wind velocity (v) at 10m
-            `$scriptDir/wgrib -v $file | grep "VGRD:10 m above gnd"` =~ m/^(\d+):/;
+            `$scriptDir/bin/wgrib -v $file | grep "VGRD:10 m above gnd"` =~ m/^(\d+):/;
             $record_number = $1;
 
             # now decode the data for that record number to an external file
@@ -711,7 +711,7 @@ sub getGrib2 {
             @rawV = `cat vgrd.txt`;
             #
             # get record number for sea level barometric pressure
-            `$scriptDir/wgrib -v $file | grep PRMSL` =~ m/^(\d+):/;
+            `$scriptDir/bin/wgrib -v $file | grep PRMSL` =~ m/^(\d+):/;
             $record_number = $1;
 
             # now decode the data for that record number to an external file

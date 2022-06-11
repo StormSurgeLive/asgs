@@ -979,6 +979,11 @@ downloadCycloneData()
 # and writes metadata to document the current state
 source $SCRIPTDIR/downloadBackgroundMet.sh
 #
+# subroutine that polls an external ftp site for GFS data,
+# subsets and downloads grib2 files with curl, and reprojects
+# to latlon grid with wgrib2
+source $SCRIPTDIR/downloadGFS.sh
+#
 # subroutine that downloads river flux data from an external ftp site
 # and constructs a river flux boundary condition file (fort.20) to covert
 # the full time period of the run
@@ -1707,7 +1712,7 @@ fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
    checkFileExistence $SCRIPTDIR "NAM output reprojection with spatial extrapolation ramp executable (from lambert to geographic)" lambertInterpRamp.x
-   checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
+   checkFileExistence $SCRIPTDIR/bin "GRIB2 manipulation and extraction executable" wgrib2
 fi
 
 if [[ $WAVES = on ]]; then
@@ -2201,8 +2206,11 @@ while [ true ]; do
    fi
    if [[ $BACKGROUNDMET != off ]]; then
       case $BACKGROUNDMET in
-         on|NAM)
+         "on"|"NAM")
             writeNAMProperties $RUNDIR
+            ;;
+         "GFS")
+            writeGFSProperties $RUNDIR
             ;;
          *) # other values are allowed but don't have properties that need to be written in advance
             ;;
@@ -2351,7 +2359,7 @@ while [ true ]; do
    fi
    # BACKGROUND METEOROLOGY
    case $BACKGROUNDMET in
-      "on"|"NAM"|"OWI")
+      "on"|"NAM"|"OWI"|"GFS")
          if [[ $WAVES == "on" ]]; then
             NWS=-312
          else
@@ -2481,6 +2489,38 @@ while [ true ]; do
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
+      "GFS")
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
+         CURRENT_STATE="WAIT"
+         #
+         executeHookScripts "NOWCAST_POLLING"
+         #
+         # Detect latest GFS data, subset, download, reproject, reformat
+         # to Oceanweather WIN/PRE format, and make symbolic links
+         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         THIS="asgs_main.sh"
+         #
+         LASTADVISORYNUM=$ADVISORY
+         logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
+         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
+         #
+         executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
+
+         writeScenarioProperties $SCENARIODIR
+         cd $SCENARIODIR 2>> $SYSLOG
+
+         RMQ_AdvisoryNumber="$ADVISORY"
+         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START $ENSTORM cycle $RMQ_AdvisoryNumber."
+         logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
+         #
+         executeHookScripts "BUILD_NOWCAST_SCENARIO"
+         #
+         STORMDIR=$NOWCASTDIR
+         CONTROLOPTIONS="--advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         ;;
+
       "OWI")
          # this is a hack to enable running pre-existing OWI files for hindcast
          #
@@ -2805,8 +2845,12 @@ while [ true ]; do
       fi
       if [[ $BACKGROUNDMET != off ]]; then
          case $BACKGROUNDMET in
-            on|NAM)
+            "on"|"NAM")
                writeNAMProperties $RUNDIR
+               echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
+	       ;;
+            "GFS")
+               writeGFSProperties $RUNDIR
                echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
                ;;
             *) # other values are allowed but don't have properties that need to be written in advance
@@ -2988,13 +3032,13 @@ while [ true ]; do
       fi
       CURRENT_STATE="WAIT"
       # BACKGROUND METEOROLOGY ONLY
-      if [[ $BACKGROUNDMET = on ]]; then
+      if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" || $BACKGROUNDMET == "GFS" ]]; then
          NWS=-12
-         if [[ $WAVES = on ]]; then
+         if [[ $WAVES == "on" ]]; then
             NWS=-312
          fi
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
-         # determine whether a NAM forecast was specified for this cycle
+         # determine whether a forecast was specified for this cycle
          forecastCyclesArray=( ${FORECASTCYCLE//,/ } )
          cycleHour=${ADVISORY:8:2}
          logMessage "$ENSTORM: $THIS: The specified FORECASTCYCLE includes '$FORECASTCYCLE' and this cycleHour is '$cycleHour'."
@@ -3018,44 +3062,51 @@ while [ true ]; do
          # download and convert met files to OWI format
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Downloading background meteorology for $ENSTORM."
          logMessage "$ENSTORM: $THIS: Downloading background meteorology."
-         logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
-         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" ]]; then
+            logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
+            downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         else
+            # GFS
+            downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         fi
          THIS="asgs_main.sh"
          cd $SCENARIODIR 2>> ${SYSLOG}
-         RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Converting NAM data to OWI format."
-         boolApplyRamp=false
-         if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
-            boolApplyRamp=true
-         fi
-         ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
-         escPtFilePath=${ptFilePath////'\/'}
-         escSCENARIODIR=${SCENARIODIR////'\/'}
-         mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
-         sed \
-            -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
-            -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
-            -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
-            -e "s/%NULLNAMRAWFORMAT%/grib2/" \
-            -e "s/\"%NULLVELMULT%\"/$VELOCITYMULTIPLIER/" \
-            -e "s/\"%NULLPRESSMULT%\"/0.01/" \
-            -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
-            -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
-             < get_nam_data.pl.json \
-             | $SCRIPTDIR/NAMtoOWIRamp.pl \
-             > /dev/null
-           2>> $SYSLOG
-         preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
-         winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
-         # copy log data to scenario.log
-         for file in lambert_diag.out reproject.log ; do
-            if [[ -e $ADVISDIR/$file ]]; then
-               scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
-               cat $ADVISDIR/$file >> $SCENARIOLOG 2>> $SYSLOG
+         if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" ]]; then
+            RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Converting NAM data to OWI format."
+            boolApplyRamp=false
+            if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
+               boolApplyRamp=true
             fi
-         done
-         # create links to the OWI files
-         ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
-         ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+            ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
+            escPtFilePath=${ptFilePath////'\/'}
+            escSCENARIODIR=${SCENARIODIR////'\/'}
+            mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+            sed \
+               -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
+               -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
+               -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
+               -e "s/%NULLNAMRAWFORMAT%/grib2/" \
+               -e "s/\"%NULLVELMULT%\"/$VELOCITYMULTIPLIER/" \
+               -e "s/\"%NULLPRESSMULT%\"/0.01/" \
+               -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
+               -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
+               < get_nam_data.pl.json \
+               | $SCRIPTDIR/NAMtoOWIRamp.pl \
+               > /dev/null
+            2>> $SYSLOG
+            preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+            winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+            # copy log data to scenario.log
+            for file in lambert_diag.out reproject.log ; do
+               if [[ -e $ADVISDIR/$file ]]; then
+                  scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
+                  cat $ADVISDIR/$file >> $SCENARIOLOG 2>> $SYSLOG
+               fi
+            done
+            # create links to the OWI files
+            ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
+            ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+         fi
          CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       # if there is no forcing from an external data source, set control options
