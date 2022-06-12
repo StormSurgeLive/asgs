@@ -3,23 +3,13 @@
    "category" : "forcing",
    "forcing" : "meteorology",
    "meteorology" : "gfs",
-   "scriptDir" : "%NULLSCRIPTDIR%",
-   "localDataDir" : "%NULLGFSDATAPATH%",
    "template" : "%NULLGETGFSTEMPLATEFILE%",
    "filled" : "%NULLGETGFSTEMPLATEFILLEDFILE%",
    "status" : "%NULLGFSSTATUSFILE%",
    "select" : "%NULLGFSSELECTFILE%",
    "get" : "%NULLGETGFSFILE%",
    "siteHost" : "%NULLBACKSITE%",
-   "siteDir" : "%NULLBACKDIR%",
-   "configDailyForecastCycles" : [
-      "%NULLFORECASTCYCLE%"
-   ],
    "stage" : "%NULLSTAGE%",
-   "cyclelist" : [
-      %NULLCYCLE%
-   ],
-   "winPreDataDir" : "%NULLGFSWINPREDATAPATH%",
    "filesDownloaded" : [
       "%NULLGFSNOWCASTDOWNLOADED%"
    ],

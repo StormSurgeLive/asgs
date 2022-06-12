@@ -18,7 +18,6 @@ SCENARIODIR=$RUNDIR/$SCENARIO
 if [[ ! -d $SCENARIODIR ]]; then
     mkdir -p $SCENARIODIR
 fi
-escSCENARIODIR=${SCENARIODIR////'\/'}
 # GFS subset
 declare -A gfsDomain
 gfsDomain['leftlon']='-110'
@@ -41,12 +40,6 @@ gfsLatLonGrid['dlon']="0.25"
 gfsLatLonGrid['lat0']="5"
 gfsLatLonGrid['nlat']="240"
 gfsLatLonGrid['dlat']="0.25"
-# keep sed from getting confused by escaping slashes
-escBACKDIR=${BACKDIR////'\/'}
-escRUNDIR=${RUNDIR////'\/'}
-escSCRIPTDIR=${SCRIPTDIR////'\/'}
-escInstanceGfsDir=${instanceGfsDir////'\/'}
-arrFORECASTCYCLE=${FORECASTCYCLE//,/\",\"}
 # make a directory to hold the raw data
 instanceGfsDir=$RUNDIR/gfs
 if [[ ! -d $instanceGfsDir ]]; then
@@ -60,12 +53,8 @@ sed \
     -e "s/%NULLGETGFSTEMPLATEFILE%/$gfsTemplateName/" \
     -e "s/%NULLGETGFSTEMPLATEFILLEDFILE%/$filledGfsTemplateName/" \
     -e "s/%NULLBACKSITE%/$BACKSITE/" \
-    -e "s/%NULLBACKDIR%/$escBACKDIR/" \
     -e "s/%NULLCYCLE%/$lastCycle/" \
-    -e "s/%NULLFORECASTCYCLE%/$arrFORECASTCYCLE/" \
     -e "s/%NULLSTAGE%/$stage/"                   \
-    -e "s/%NULLSCRIPTDIR%/$escSCRIPTDIR/"        \
-    -e "s/%NULLGFSDATAPATH%/$escInstanceGfsDir/" \
     -e "s/\"%NULLGFSNOWCASTDOWNLOADED%\"/null/" \
     -e "s/\"%NULLGFSNOWCASTFOUND%\"/null/" \
     -e "s/\"%NULLGFSFORECASTDOWNLOADED%\"/null/" \
@@ -73,14 +62,22 @@ sed \
     -e "s/\"%NULLGFSSTATUSFILE%\"/null/" \
     -e "s/\"%NULLGFSSELECTFILE%\"/null/" \
     -e "s/\"%NULLGETGFSFILE%\"/null/" \
-    -e "s/%NULLGFSWINPREDATAPATH%/$escSCENARIODIR/" \
     -e "s/%NULLLASTUPDATER%/$THIS/" \
     -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
      < $SCRIPTDIR/$gfsTemplateName \
-     > $filledGfsTemplateName
+     > "part_$filledGfsTemplateName"
 if [[ $? != 0 ]]; then
     echo "$THIS: Failed to fill in GFS data request template with sed."
 fi
+# add directories and arrays that would confuse sed
+bashJSON.pl \
+    --mapscalar siteDir="$BACKDIR" \
+    --mapscalar scriptDir="$SCRIPTDIR" \
+    --mapscalar localDataDir="$instanceGfsDir" \
+    --maparray configDailyForecastCycles="$( ( echo ${FORECASTCYCLE//,/' '} ) )" \
+    --maparray cyclelist="$( ( echo $lastCycle ) )" \
+     < "part_$filledGfsTemplateName" \
+     > $filledGfsTemplateName
 #
 baseURL="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl"
 levels="&lev_10_m_above_ground=on&lev_mean_sea_level=on"
