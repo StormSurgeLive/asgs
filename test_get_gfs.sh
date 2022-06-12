@@ -175,13 +175,12 @@ echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > fort.22
 #
 # find the end time for use in the main file header
 endDateTime=$(wgrib2 ${gfsFileList[-1]} -match "PRMSL" | cut -d : -f 3 | cut -d = -f 2)
-mainHeader="Oceanweather WIN/PRE Format                            $startDateTime     $endDateTime"
 #
 # write the headers to the win/pre files
 preFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.221
 winFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.222
-echo $mainHeader > $preFileName # fort.221
-echo $mainHeader > $winFileName # fort.222
+printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $preFileName # fort.221
+printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $winFileName # fort.222
 #
 # extract the data from the grib2 files as ascii, reformat
 # into eight columns, and append the dataset to the corresponding file
@@ -207,7 +206,7 @@ done
 # write metadata to JSON
 bashJSON.pl \
     --mapscalar get="$THIS" \
-    --mapscalar winPreHeader="$mainHeader" \
+    --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)" \
     --mapscalar winPreVelocityFile="$winFileName" \
     --mapscalar winPrePressureFile="$preFileName" \
     --mapscalar winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} )) \
@@ -222,7 +221,8 @@ bashJSON.pl \
 #
 # put files in scenario directory
 mv $winFileName $preFileName fort.22 $SCENARIODIR
-cp get_gfs_status.pl.* ${THIS}.json $SCENARIODIR
+cp ${THIS}.json "${winFileName%.*}.json"
+cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR
 #
 #   f o r e c a s t
 #
@@ -284,16 +284,19 @@ done
 echo "$THIS: Regridding GFS grib2 files to latlon."
 unset gfsFileList
 declare -a gfsFileList
-for h in $(seq 1 120) ; do
+for h in $(seq 0 120) ; do
     hhh=$(printf "%03d" $h)
     origFile="$instanceGfsDir/$yyyymmdd/gfs.t${cyc}z.pgrb2.0p25.f${hhh}"
     latLonFile=${origFile}.latlon
-    wgrib2 $origFile          \
-        -inv /dev/null        \
-        -set_grib_type same   \
-        -new_grid_winds earth \
-        -new_grid latlon $lonSpec $latSpec \
-        $latLonFile
+    if [[ ! -s $latLonFile ]]; then
+        echo "$THIS: Already have GFS grib2 file '$latLonFile' regridded to latlon."
+        wgrib2 $origFile          \
+            -inv /dev/null        \
+            -set_grib_type same   \
+            -new_grid_winds earth \
+            -new_grid latlon $lonSpec $latSpec \
+            $latLonFile
+    fi
     # add to the list of files that will have their contents
     # extracted for conversion to OceanWeather WIN/PRE ASCII format
     gfsFileList+=( $latLonFile )
@@ -323,22 +326,26 @@ if [[ ${incr[1]} == "hour" ]]; then
 else
     echo "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
 fi
-mainHeader="Oceanweather WIN/PRE Format                            $startDateTime     $endDateTime"
 #
 # write the headers to the win/pre files
 preFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.221
 winFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.222
-echo $mainHeader > $preFileName # fort.221
-echo $mainHeader > $winFileName # fort.222
+printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $preFileName # fort.221
+printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $winFileName # fort.222
 #
 # extract the data from the grib2 files as ascii, reformat
 # into eight columns, and append the dataset to the corresponding file
 echo "$THIS: Writing ASCII WIN/PRE files."
 unset winPreTimes
 for file in ${gfsFileList[@]}; do
-    date=$(wgrib2 $file -match 'PRMSL' | cut -d : -f 3 | cut -d = -f 2)
-    headerLine=$(printf "iLat=%4siLong=%4sDX=%6sDY=%6sSWLat=%8sSWLon=%8sDT=%8s00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)
-    winPreTimes+=( $date"00" )
+    incr=( $(wgrib2 $file -match "PRMSL" | cut -d : -f 6) )
+    duration=${incr[0]}  # assumes this is in hours
+    if [[ ${incr[0]} == "anl" ]]; then
+        duration="0"
+    fi
+    snapDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
+    headerLine=$(printf "iLat=%4siLong=%4sDX=%6sDY=%6sSWLat=%8sSWLon=%8sDT=%8s00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)
+    winPreTimes+=( $snapDateTime )
     echo $headerLine >> $preFileName
     echo $headerLine >> $winFileName
     # convert barometric pressure from Pa to millibar in the process
@@ -355,7 +362,7 @@ done
 # write metadata to JSON
 bashJSON.pl \
     --mapscalar get="$THIS" \
-    --mapscalar winPreHeader="$mainHeader" \
+    --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)" \
     --mapscalar winPreVelocityFile="$winFileName" \
     --mapscalar winPrePressureFile="$preFileName" \
     --mapscalar winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} )) \
@@ -370,4 +377,5 @@ bashJSON.pl \
 #
 # put files in scenario directory
 mv $winFileName $preFileName fort.22 $SCENARIODIR
-cp get_gfs_status.pl.* ${THIS}.json $SCENARIODIR
+cp ${THIS}.json "${winFileName%.*}.json"
+cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR
