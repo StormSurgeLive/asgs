@@ -61,7 +61,6 @@ forecastDownload="only-to-run"        # "only-to-run" or "all"
 GFSBACKSITE="ftp.ncep.noaa.gov"          # NAM forecast data from NCEP
 GFSBACKDIR="/pub/data/nccf/com/gfs/v16.2" # contains the nam.yyyymmdd files
 # GFS subset
-declare -A gfsDomain
 gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
@@ -72,13 +71,12 @@ gfsDomain['bottomlat']='0'
 # nlat = number of latitudes
 # dlon = grid cell size in degrees of longitude
 # dlat = grid cell size in degrees of latitude
-declare -A gfsLatLonGrid
-gfsLatLonGrid['lon0']="260"
-gfsLatLonGrid['nlon']="240"
-gfsLatLonGrid['dlon']="0.25"
-gfsLatLonGrid['lat0']="5"
-gfsLatLonGrid['nlat']="240"
-gfsLatLonGrid['dlat']="0.25"
+gfsLatLonGrid['lon0']='260'
+gfsLatLonGrid['nlon']='240'
+gfsLatLonGrid['dlon']='0.25'
+gfsLatLonGrid['lat0']='5'
+gfsLatLonGrid['nlat']='240'
+gfsLatLonGrid['dlat']='0.25'
 #
 # External data sources : River Flux
 #

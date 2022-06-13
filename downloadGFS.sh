@@ -75,9 +75,9 @@ downloadGFS()
     # N O W C A S T
     if [[ $stage == "NOWCAST" ]]; then
         # determine the cycle time corresponding to the current state of the simulation
-        csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
+        csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
-        lastCycle=$(TZ=UTC date -d -u "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
+        lastCycle=$(TZ=UTC date -u -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H" 2>>$SYSLOG)
         DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
         sed \
             -e "s/%NULLGETGFSTEMPLATEFILE%/$gfsTemplateName/" \
@@ -98,7 +98,7 @@ downloadGFS()
             > "part_$filledGfsTemplateName"
            2>> $SYSLOG
         if [[ $? != 0 ]]; then
-            echo "$THIS: Failed to fill in GFS data request template with sed."
+            fatal "$THIS: Failed to fill in GFS data request template with sed."
         fi
         # add directories and arrays that would confuse sed
         bashJSON.pl \
@@ -145,10 +145,11 @@ downloadGFS()
         fi
         # then download the actual nowcast data for the time range of interest
         gfsCycleList=( $(bashJSON.pl --key cyclelist < select_gfs_nowcast.pl.json 2>> $SYSLOG) )
+        thisCycle=${gfsCycleList[-1]}
         #
         # subset and download with curl
         unset downloaded have
-        echo "$THIS: Subsetting and downloading GFS grib2 files."
+        logMessage "$THIS: Subsetting and downloading GFS grib2 files."
         for cycle in ${gfsCycleList[@]} ; do
             cyc=${cycle:8:2}
             hhh="000" # FIXME: this only applies to a nowcast
@@ -156,7 +157,6 @@ downloadGFS()
             yyyymmdd=${cycle:0:8}
             remotePath="%2Fgfs.${yyyymmdd}%2F${cyc}%2Fatmos"
             finalURL=$baseURL"?file="$file$levels$vars$domain"&dir="$remotePath
-            #echo $finalURL
             if [[ ! -e $instanceGfsDir/$yyyymmdd ]]; then
                 mkdir -p $instanceGfsDir/$yyyymmdd
             fi
@@ -169,9 +169,10 @@ downloadGFS()
                 have+=( $instanceGfsDir/$yyyymmdd/$file )
             fi
         done
+
         #
         # now regrid to lat lon coordinates with wgrib2
-        echo "$THIS: Regridding GFS grib2 files to latlon."
+        logMessage "$THIS: Regridding GFS grib2 files to latlon."
         unset gfsFileList
         declare -a gfsFileList
         for cycle in ${gfsCycleList[@]} ; do
@@ -224,11 +225,11 @@ downloadGFS()
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        echo "$THIS: Writing ASCII WIN/PRE files."
+        logMessage "$THIS: Writing ASCII WIN/PRE files."
         unset winPreTimes
         for file in ${gfsFileList[@]}; do
             date=$(wgrib2 $file -match 'PRMSL' 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
-            headerLine=$(printf "iLat=%4siLong=%4sDX=%6sDY=%6sSWLat=%8sSWLon=%8sDT=%8s00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)
+            headerLine=$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)
             winPreTimes+=( $date"00" )
             echo $headerLine >> $preFileName
             echo $headerLine >> $winFileName
@@ -259,30 +260,37 @@ downloadGFS()
             < select_gfs_nowcast.pl.json \
             > ${THIS}.json
             2>> $SYSLOG
+        ADVISDIR=$RUNDIR/$thisCycle
+        CYCLEDIR=$ADVISDIR
+        CYCLELOG=$CYCLEDIR/cycle.log
+        NOWCASTDIR=$ADVISDIR/$ENSTORM
+        SCENARIODIR=$CYCLEDIR/$SCENARIO
+        SCENARIOLOG=$SCENARIODIR/scenario.log
+        mkdir -p $SCENARIODIR 2>> $SYSLOG
         #
         # put files in scenario directory
-        mv $winFileName $preFileName fort.22 $SCENARIODIR 2>> $SYSLOG
+        mv $winFileName $preFileName fort.22 run.properties $SCENARIODIR 2>> $SYSLOG
         cp ${THIS}.json "${winFileName%.*}.json" 2>> $SYSLOG
         cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR 2>> $SYSLOG
-        cd $SCENARIODIR 2>> $SYSLOG
-        # create links to the OWI WIN/PRE files with names that  ADCIRC expects
-        ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
-        ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
-        cd ..
         #
         # record the new advisory number to the statefile
-        thisCycle=$(<"latestCycle")
         debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
         cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
         sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
         debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
         cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+
+        cd $SCENARIODIR 2>> $SYSLOG
+        # create links to the OWI WIN/PRE files with names that  ADCIRC expects
+        ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
+        ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
+        cd $RUNDIR
     else
         #
         # F O R E C A S T
         #
         # download forecast data
-        echo "$THIS: INFO: Downloading files for scenario '$SCENARIO'."
+        logMessage "$THIS: INFO: Downloading files for scenario '$SCENARIO'."
         if [[ ! -d $SCENARIODIR ]]; then
             mkdir -p $SCENARIODIR
         fi
@@ -297,7 +305,7 @@ downloadGFS()
         unset downloaded have
         cyc=${gfsForecastCycle:8:2}
         yyyymmdd=${gfsForecastCycle:0:8}
-        echo "$THIS: Subsetting and downloading GFS grib2 files."
+        logMessage "$THIS: Subsetting and downloading GFS grib2 files."
         for h in $(seq 0 120) ; do
             hhh=$(printf "%03d" $h)
             file="gfs.t${cyc}z.pgrb2.0p25.f$hhh"
@@ -315,26 +323,26 @@ downloadGFS()
                 numRetries=1
                 maxRetries=10
                 while [[ $success -eq 0 && $numRetries -lt $maxRetries ]]; do
-                    echo "$THIS: INFO: Downloading '$file'."
+                    logMessage "$THIS: INFO: Downloading '$file'."
                     curl -s "$finalURL" > $localFile 2>> $SYSLOG
                     if [[ $? -eq 0 && -s $localFile ]]; then
                         success=1
                         downloaded+=( $localFile )
                         break
                     else
-                        echo "$THIS: WARNING: Failed to download '$finalURL'."
+                        warn "$THIS: WARNING: Failed to download '$finalURL'."
                         numRetries=$(( $numRetries + 1 ))
                         sleep 60
                     fi
                 done
             else
-                echo "$THIS: INFO: Already have '$file'."
+                logMessage "$THIS: INFO: Already have '$file'."
                 have+=( $localFile )
             fi
         done
         #
         # now regrid to lat lon coordinates with wgrib2
-        echo "$THIS: Regridding GFS grib2 files to latlon."
+        logMessage "$THIS: Regridding GFS grib2 files to latlon."
         unset gfsFileList
         declare -a gfsFileList
         for h in $(seq 0 120) ; do
@@ -342,7 +350,6 @@ downloadGFS()
             origFile="$instanceGfsDir/$yyyymmdd/gfs.t${cyc}z.pgrb2.0p25.f${hhh}"
             latLonFile=${origFile}.latlon
             if [[ ! -s $latLonFile ]]; then
-                echo "$THIS: Already have GFS grib2 file '$latLonFile' regridded to latlon."
                 wgrib2 $origFile          \
                     -inv /dev/null        \
                     -set_grib_type same   \
@@ -367,7 +374,7 @@ downloadGFS()
         if [[ ${incr[1]} == "hour" ]]; then
             wtiminc=$(( $wtiminc * 3600 ))
         else
-            echo "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
+            fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
         fi
         # write to a temp/pseudo fort.22 file
         echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > fort.22
@@ -378,7 +385,7 @@ downloadGFS()
         if [[ ${incr[1]} == "hour" ]]; then
             endDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
         else
-            echo "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
+            fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
         fi
         #
         # write the headers to the win/pre files
@@ -389,7 +396,7 @@ downloadGFS()
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        echo "$THIS: Writing ASCII WIN/PRE files."
+        logMessage "$THIS: Writing ASCII WIN/PRE files."
         unset winPreTimes
         for file in ${gfsFileList[@]}; do
             incr=( $(wgrib2 $file -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
@@ -398,7 +405,8 @@ downloadGFS()
                 duration="0"
             fi
             snapDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
-            headerLine=$(printf "iLat=%4siLong=%4sDX=%6sDY=%6sSWLat=%8sSWLon=%8sDT=%8s00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)
+            headerLine=$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)
+            #headerLine=$(printf "iLat=%4siLong=%4sDX=%6sDY=%6sSWLat=%8sSWLon=%8sDT=%8s00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)
             winPreTimes+=( $snapDateTime )
             echo $headerLine >> $preFileName
             echo $headerLine >> $winFileName

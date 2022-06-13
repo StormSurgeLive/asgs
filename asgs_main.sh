@@ -2500,16 +2500,10 @@ while [ true ]; do
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
          executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
-         ADVISDIR=$RUNDIR/${ADVISORY}
-         CYCLEDIR=$ADVISDIR
-         CYCLELOG=$CYCLEDIR/cycle.log
-         NOWCASTDIR=$ADVISDIR/$ENSTORM
-         SCENARIODIR=$CYCLEDIR/$SCENARIO
-         SCENARIOLOG=$SCENARIODIR/scenario.log
-         mkdir -p $SCENARIODIR 2>> $SYSLOG
-         mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
+
          writeScenarioProperties $SCENARIODIR
-         cd $SCENARIODIR 2>> ${SYSLOG}
+         cd $SCENARIODIR 2>> $SYSLOG
+
          RMQ_AdvisoryNumber="$ADVISORY"
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "$START $ENSTORM cycle $RMQ_AdvisoryNumber."
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
@@ -3033,7 +3027,7 @@ while [ true ]; do
             NWS=-312
          fi
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
-         # determine whether a NAM forecast was specified for this cycle
+         # determine whether a forecast was specified for this cycle
          forecastCyclesArray=( ${FORECASTCYCLE//,/ } )
          cycleHour=${ADVISORY:8:2}
          logMessage "$ENSTORM: $THIS: The specified FORECASTCYCLE includes '$FORECASTCYCLE' and this cycleHour is '$cycleHour'."
