@@ -162,14 +162,63 @@ downloadGFS()
             fi
             # don't download again if the files are already in place
             # (may want to turn off this conditional for end-to-end testing)
-            if [[ ! -f $instanceGfsDir/$yyyymmdd/$file ]]; then
-                curl -s "$finalURL" > $instanceGfsDir/$yyyymmdd/$file 2>> $SYSLOG
-                downloaded+=( $instanceGfsDir/$yyyymmdd/$file )
-            else
-                have+=( $instanceGfsDir/$yyyymmdd/$file )
-            fi
+            subsetSuccess=0
+            localFile=$instanceGfsDir/$yyyymmdd/$file
+            while [[ $subsetSuccess -eq 0 ]]; do
+                how="download"
+                if [[ ! -s $localFile ]]; then
+                    curl -s "$finalURL" > $localFile 2>> $SYSLOG
+                    if [[ $? != 0 ]]; then
+                        cmd="curl -s "$finalURL" > $localFile 2>> $SYSLOG"
+                        warn "Subsetting GFS with curl failed when using the following command: '$cmd'."
+                        if [[ -e $localFile ]]; then
+                            mv $localFile ${localFile}.curlerr
+                        fi
+                    fi
+                else
+                    how="have"
+                fi
+                # perform quality checks
+                if [[ -s $localFile ]]; then
+                    localFileType="$(file $localFile 2>> $SYSLOG)"
+                    localFileSize=$(stat -c "%s" $localFile 2>> $SYSLOG)
+                    localFileLines=$(wgrib2 $localFile -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG | wc -l)
+                    if [[ ! $localFileType =~ "(GRIB) version 2" ]]; then
+                        warn "Subsetting GFS with curl failed to produce a local grib2 file when using the following command: '$cmd'."
+                        if [[ "$localFileType" =~ "HTML document" ]]; then
+                            warn "The file '$localFile' is html instead of grib2."
+                            mv $localFile ${localFile}.html 2>> $SYSLOG
+                        else
+                            warn "The file type of '$localFile' is unrecognized: '$localFileType'."
+                            mv $localFile ${localFile}.unrecognized 2>> $SYSLOG
+                        fi
+                    # make sure the downloaded file is at least 1MB (these files
+                    # seem to be about 2-3MB)
+                    elif [[ $localFileSize -lt 1000000 ]]; then
+                        warn "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
+                        mv $localFile ${localFile|}.toosmall 2>> $SYSLOG
+                    # smoke test
+                    elif [[ $localFileLines -eq 0 ]]; then
+                        warn "The file '$localFile' does not seem to have barometric pressure data."
+                        mv $localFile ${localFile|}.nodata 2>> $SYSLOG
+                    fi
+                else
+                    warn "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
+                fi
+                # if the file is still there, it passed its quality checks
+                if [[ -s $localFile ]]; then
+                    subsetSuccess=1
+                    if [[ $how == "download" ]]; then
+                        downloaded+=( $localFile )
+                    else
+                        have+=( $localFile )
+                    fi
+                else
+                    warn "GFS subsetting with curl failed. Sleeping 60 seconds before retry."
+                    sleep 60
+                fi
+            done
         done
-
         #
         # now regrid to lat lon coordinates with wgrib2
         logMessage "$THIS: Regridding GFS grib2 files to latlon."
@@ -183,19 +232,21 @@ downloadGFS()
             latLonFile=${origFile}.latlon
             lonSpec="${gfsLatLonGrid['lon0']}:${gfsLatLonGrid['nlon']}:${gfsLatLonGrid['dlon']}"
             latSpec="${gfsLatLonGrid['lat0']}:${gfsLatLonGrid['nlat']}:${gfsLatLonGrid['dlat']}"
-            wgrib2 $origFile          \
-                -inv /dev/null        \
-                -set_grib_type same   \
-                -new_grid_winds earth \
-                -new_grid latlon $lonSpec $latSpec \
-                $latLonFile 2>> $SYSLOG
+            if [[ ! -s $latLonFile ]]; then
+                wgrib2 $origFile          \
+                    -inv /dev/null        \
+                    -set_grib_type same   \
+                    -new_grid_winds earth \
+                    -new_grid latlon $lonSpec $latSpec \
+                    $latLonFile 2>> $SYSLOG
+            fi
             # add to the list of files that will have their contents
             # extracted for conversion to OceanWeather WIN/PRE ASCII format
             gfsFileList+=( $latLonFile )
         done
         #
         # form win/pre file header line
-        SWLat=$(printf "%3.4f" ${gfsLatLonGrid['lon0']})
+        SWLat=$(printf "%3.4f" ${gfsLatLonGrid['lat0']})
         # wgrib2 regridding longitudes have a range of 0 to 360
         # but win/pre format expects -180 to 180
         SWLon=$(printf "%3.4f" $(echo ${gfsLatLonGrid['lon0']} - 360.0 | bc -q))
@@ -203,13 +254,13 @@ downloadGFS()
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
         date=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
-        sdate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s')
+        sdate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
         startDateTime=$date
         #
         # determine the wtiminc (time increment between files in seconds,
         # needed for the ADCIRC fort.15 file)
         date=$(wgrib2 ${gfsFileList[1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
-        ndate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s')
+        ndate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
         wtiminc=$(( (ndate - sdate) ))
         # write to a temp/pseudo fort.22 file
         echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > fort.22
@@ -229,10 +280,10 @@ downloadGFS()
         unset winPreTimes
         for file in ${gfsFileList[@]}; do
             date=$(wgrib2 $file -match 'PRMSL' 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
-            headerLine=$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)
+            headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)"
             winPreTimes+=( $date"00" )
-            echo $headerLine >> $preFileName
-            echo $headerLine >> $winFileName
+            echo "$headerLine" >> $preFileName
+            echo "$headerLine" >> $winFileName
             # convert barometric pressure from Pa to millibar in the process
             wgrib2 $file -match 'PRMSL' -inv /dev/null -text - 2>>$SYSLOG \
                 | awk 'NR!=1 { printf("%10s",(sprintf("%4.4f",$1/100.0))); if ((NR-1)%8 == 0) print ""; }' \
@@ -383,7 +434,7 @@ downloadGFS()
         incr=( $(wgrib2 ${gfsFileList[-1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
         duration=${incr[0]}
         if [[ ${incr[1]} == "hour" ]]; then
-            endDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
+            endDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' 2>>$SYSLOG)
         else
             fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
         fi
@@ -405,11 +456,10 @@ downloadGFS()
                 duration="0"
             fi
             snapDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
-            headerLine=$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $date)
-            #headerLine=$(printf "iLat=%4siLong=%4sDX=%6sDY=%6sSWLat=%8sSWLon=%8sDT=%8s00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)
+            headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)"
             winPreTimes+=( $snapDateTime )
-            echo $headerLine >> $preFileName
-            echo $headerLine >> $winFileName
+            echo "$headerLine" >> $preFileName
+            echo "$headerLine" >> $winFileName
             # convert barometric pressure from Pa to millibar in the process
             wgrib2 $file -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG \
                 | awk 'NR!=1 { printf("%10s",(sprintf("%4.4f",$1/100.0))); if ((NR-1)%8 == 0) print ""; }' \
