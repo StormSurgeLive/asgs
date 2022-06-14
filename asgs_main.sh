@@ -2108,6 +2108,14 @@ CYCLELOG=null
 SCENARIOLOG=null
 #
 executeHookScripts "FINISH_SPINUP_STAGE"
+
+# Use for hindcast activities to end ASGS after the hindcast has been run
+if [[ "${HINDCASTONCE_AND_EXIT}" == "y" || "${HINDCASTONCE_AND_EXIT}" == "yes" ]]; then
+   logMessage "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
+   echo "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
+   exit 0 
+fi
+
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 #
