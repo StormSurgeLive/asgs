@@ -1947,7 +1947,9 @@ if [[ $START = coldstart ]]; then
    HSTIME=0
    # We assume that the hindcast is only used to spin up tides or
    # initialize rivers ... therefore no met forcing.
-   NWS=0
+
+   NWS=300 #<--- this needs to be determined  using a case statement, but HOW??
+
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
    HINDCASTLENGTH=${HINDCASTLENGTH:-30.0} # needed or --endtime swallows "--nws" in control_file_gen.pl options
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Coldstarting."
@@ -1968,14 +1970,18 @@ if [[ $START = coldstart ]]; then
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
 
-   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    if [[ $NOFORCING = true ]]; then
       CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
    else
-      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0"
+      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH"
+   fi
+
+   if [[ $WAVES = on ]]; then #<-- do we need to also check for HINDCASTONCE_AND_EXIT? or something else?
+      CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE}"
    fi
 
    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "Constructing control file."
@@ -1985,7 +1991,9 @@ if [[ $START = coldstart ]]; then
    logMessage "Debug: hindcast: building fort.15"
    controlFile="$ADVISDIR/$ENSTORM/fort.15"
    swanFile="$ADVISDIR/$ENSTORM/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+   controlFileCmd="$SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS 2>&1 | tee -a ${SYSLOG}"
+   controlFileOut=$($controlFileCmd)
+
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -1998,6 +2006,9 @@ if [[ $START = coldstart ]]; then
       if [[ ! -e $swanFile || ! -s $swanFile ]]; then
          controlExitStatus=1
          controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
+         echo $controlFileOut
+         echo $controlFileCmd
+         echo $controlMsg
       fi
    fi
    if [[ $controlExitStatus -ne 0 ]]; then

@@ -916,8 +916,7 @@ sub hindcastParameters {
     $RNDAY = $endtime; #FIX: this should be a date, not days
     $addHours = $RNDAY*24.0;  # used to calculate number of datasets in files
     $NHSINC = int(($RNDAY*86400.0)/$dt);
-    ($ey,$em,$ed,$eh,$emin,$es) =
-       Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
+    ($ey,$em,$ed,$eh,$emin,$es) = Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$endtime,0,0,0);
     $nws = 0;
     $ensembleid = "$endtime day hindcast run";
     $wtiminc = "NO LINE HERE";
@@ -957,8 +956,7 @@ sub customParameters {
       $nmin = 0;
       $ns = 0;
    }
-   ($ey,$em,$ed,$eh,$emin,$es) =
-      Date::Calc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);
+   ($ey,$em,$ed,$eh,$emin,$es) = Date::Calc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);
     $wtiminc = "NO LINE HERE";
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart
