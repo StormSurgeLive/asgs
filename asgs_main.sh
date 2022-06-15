@@ -1994,12 +1994,6 @@ if [[ $START = coldstart ]]; then
       controlExitStatus=1
       controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
    fi
-   if [[ $WAVES == on ]]; then
-      if [[ ! -e $swanFile || ! -s $swanFile ]]; then
-         controlExitStatus=1
-         controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
-      fi
-   fi
    if [[ $controlExitStatus -ne 0 ]]; then
       logMessage "$THIS: $SCENARIO: $controlMsg This is terminal."  >> ${SYSLOG} 2>&1
       RMQMessage "EXIT" "$CURRENT_EVENT" "$THIS" "FAIL" "hindcast: fort.15 file is 0-length. This is terminal."
@@ -2113,7 +2107,7 @@ executeHookScripts "FINISH_SPINUP_STAGE"
 if [[ "${HINDCASTONCE_AND_EXIT}" == "y" || "${HINDCASTONCE_AND_EXIT}" == "yes" ]]; then
    logMessage "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
    echo "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
-   exit 0 
+   exit 0
 fi
 
 #
