@@ -1,0 +1,62 @@
+diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
+index edb616b..bec0be5 100644
+--- a/work/cmplrflags.mk
++++ b/work/cmplrflags.mk
+@@ -310,6 +310,20 @@ ifeq ($(compiler),intel)
+         FLIBS   := $(INCDIRS)
+      endif
+   endif
++  #wwlwpd: NOTE: Mike III at LSU-HPC recommends 'mpiifort', Intel's MPI implementation wrapper
++  #wwlwpd: instead of the traditional "mpif90"; but the flags are the same we still redefine
++  #wwlwpd: "PFC" below
++  ifeq ($(MACHINENAME),mike)
++     PFC     :=  mpiifort
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
++     FLIBS   := $(INCDIRS) -xAVX
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
++        FLIBS   := $(INCDIRS) -xAVX
++     endif
++  endif
+   #
+   #@jasonfleming Added to fix bus error on hatteras@renci
+   ifeq ($(HEAP_ARRAYS),fix)
+@@ -330,21 +344,21 @@ ifeq ($(compiler),intel)
+   MSGLIBS       :=
+   ifeq ($(NETCDF),enable)
+      ifeq ($(MACHINENAME),hatteras)
+-        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
+      # jgf20150417 queenbee requires that the analyst load the netcdf and
+      # netcdf_fortran modules prior to compiling or executing ADCIRC
+      ifeq ($(MACHINENAME),queenbee)
+-        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff lnetcdf
+      endif
+      ifeq ($(MACHINENAME),queenbeeC)
+-        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
+      ifeq ($(MACHINENAME),supermic)
+-        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
+      ifeq ($(MACHINENAME),rostam)
+-        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
+      ifeq ($(MACHINENAME),stampede)
+         FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+@@ -364,6 +378,9 @@ ifeq ($(compiler),intel)
+      ifeq ($(MACHINENAME),ls6)
+         FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
++     ifeq ($(MACHINENAME),mike)
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
++     endif
+      # jgf20150817: Adding support for spirit.afrl.hpc.mil;
+      # load the following modules: netcdf-fortran/intel/4.4.2
+      # and hdf5/intel/1.8.12 and hdf5-mpi/intel/sgimpt/1.8.12

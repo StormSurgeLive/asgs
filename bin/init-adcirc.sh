@@ -135,9 +135,9 @@ if [ "$INTERACTIVE" == "yes" ]; then
   echo
   # determine what to name the ADCIRC profile
   if [ -n "$PATCHSET_NAME" ]; then
-    __ADCIRC_PROFILE_NAME=${PATCHSET_NAME}-${ADCIRC_COMPILER}
+    __ADCIRC_PROFILE_NAME=${PATCHSET_NAME}-${ADCIRC_COMPILER}-${ASGS_MACHINE_NAME}
   else
-    __ADCIRC_PROFILE_NAME=${ADCIRC_GIT_BRANCH}-${ADCIRC_COMPILER}
+    __ADCIRC_PROFILE_NAME=${ADCIRC_GIT_BRANCH}-${ADCIRC_COMPILER}-${ASGS_MACHINE_NAME}
   fi
   read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
   if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
