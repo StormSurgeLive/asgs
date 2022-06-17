@@ -2202,8 +2202,11 @@ while [ true ]; do
    fi
    if [[ $BACKGROUNDMET != off ]]; then
       case $BACKGROUNDMET in
-         on|NAM)
+         "on"|"NAM")
             writeNAMProperties $RUNDIR
+            ;;
+         "GFS")
+            writeGFSProperties $RUNDIR
             ;;
          *) # other values are allowed but don't have properties that need to be written in advance
             ;;
@@ -2511,7 +2514,7 @@ while [ true ]; do
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
 
       "OWI")
@@ -2838,8 +2841,11 @@ while [ true ]; do
       fi
       if [[ $BACKGROUNDMET != off ]]; then
          case $BACKGROUNDMET in
-            on|NAM)
+            "on"|"NAM")
                writeNAMProperties $RUNDIR
+               echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
+            "GFS")
+               writeGFSProperties $RUNDIR
                echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
                ;;
             *) # other values are allowed but don't have properties that need to be written in advance

@@ -595,7 +595,6 @@ if ( $waves eq "on" ) {
 # set components
 my $model = "PADCIRC";
 my $model_type = "SADC";
-my $wind_model = "vortex-nws$nws";
 my $run_type = "Forecast";
 my $cycle_hour = sprintf("%02d",$nh);
 my $currentdate = substr($ny,2,2) . sprintf("%02d%02d",$nm,$nd); # start time
@@ -608,11 +607,7 @@ if ( $waves eq "on" ) {
    $model_type = "SPDS";
    $model = "PADCSWAN";
 }
-if ( $nws == 0 ) {
-   $wind_model = "none";
-}
 if ( abs($nws) == 12 || abs($nws) == 312 ) {
-   $wind_model = "WNAMAW12-NCP";
    $cycle_hour = sprintf("%02d",$oh);
    $currentdate = substr($oy,2,2) . sprintf("%02d%02d",$om,$od); # start time
    $date1 = sprintf("%4d%02d%02dT%02d%02d",$oy,$om,$od,$oh,$omin);
@@ -622,9 +617,6 @@ if ( $enstorm eq "nowcast" ) {
 } elsif ( $enstorm eq "hindcast" ) {
    $run_type = "Hindcast";
 }
-# last time step of model output contained in the file
-my $rp_fname = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "_run.properties";
-my $prodid = $model_type . $gridname . "-UNC_" . $wind_model . "_" . $date1 . "_" . $date2 . "_" . $date3 . "_" . $cycle_hour . "<field>_Z.nc.gz";
 stderrMessage("INFO","Opening run.properties file for writing.");
 unless (open(RUNPROPS,">>$stormDir/run.properties")) {
    stderrMessage("ERROR","Failed to open the $stormDir/run.properties file for appending: $!.");
@@ -661,14 +653,12 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
 printf RUNPROPS "advisory : $advisorynum\n";
-printf RUNPROPS "prodID : $prodid\n";
 if (defined $hstime) {
    printf RUNPROPS "InitialHotStartTime : $hstime\n";
 }
 printf RUNPROPS "RunStartTime : $runstarttime\n";
 printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";
-printf RUNPROPS "WindModel : $wind_model\n";
 printf RUNPROPS "Model : $model\n";
 # write the names of the output files to the run.properties file
 stderrMessage("INFO","Writing file names and formats to run.properties file.");

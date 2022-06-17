@@ -149,6 +149,9 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+   if [[ $NWS -eq 0 ]]; then
+      echo "WindModel : none" >> $STORMDIR/run.properties
+   fi
 }
 #
 # write properties that depend on the scenario but are not known
@@ -196,7 +199,30 @@ writeNAMProperties()
    echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
    echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
    echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
+   echo "WindModel : WNAMAW12-NCP" >> $STORMDIR/run.properties
 }
+#
+# write properties to the run.properties file for GFS
+writeGFSProperties()
+{
+   STORMDIR=$1
+   local THIS="asgs_main->writeGFSProperties()"
+   logMessage "$THIS: Writing properties for meterorological forcing with the GFS model to $1/run.properties."
+   echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
+   echo "forcing.stormname : NA" >> $STORMDIR/run.properties
+   echo "forcing.nwp.model : GFS" >> $STORMDIR/run.properties
+
+   echo "forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
+   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties
+   echo "forcing.gfs.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
+   echo "forcing.gfs.backsite : $GFSBACKSITE" >> $STORMDIR/run.properties
+   echo "forcing.gfs.backdir : $GFSBACKDIR" >> $STORMDIR/run.properties
+   echo "forcing.gfs.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
+   # legacy from 2014stable, depcrecated
+   echo "config.forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
+   echo "WindModel : GFS" >> $STORMDIR/run.properties
+}
+
 #
 # write properties to the run.properties file that are associated with
 # tropical cyclone forcing configuration.
@@ -226,6 +252,7 @@ writeTropicalCycloneProperties()
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR/run.properties
    echo "stormnumber : $STORM" >> $STORMDIR/run.properties
+   echo "WindModel : vortex-nws$NWS" >> $STORMDIR/run.properties
 }
 #
 # write properties to the run.properties file that are associated with
