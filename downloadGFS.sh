@@ -196,11 +196,11 @@ downloadGFS()
                     # seem to be about 2-3MB)
                     elif [[ $localFileSize -lt 1000000 ]]; then
                         warn "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
-                        mv $localFile ${localFile|}.toosmall 2>> $SYSLOG
+                        mv $localFile ${localFile}.toosmall 2>> $SYSLOG
                     # smoke test
                     elif [[ $localFileLines -eq 0 ]]; then
                         warn "The file '$localFile' does not seem to have barometric pressure data."
-                        mv $localFile ${localFile|}.nodata 2>> $SYSLOG
+                        mv $localFile ${localFile}.nodata 2>> $SYSLOG
                     fi
                 else
                     warn "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
@@ -410,11 +410,11 @@ downloadGFS()
                     # seem to be about 2-3MB)
                     elif [[ $localFileSize -lt 1000000 ]]; then
                         warn "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
-                        mv $localFile ${localFile|}.toosmall 2>> $SYSLOG
+                        mv $localFile ${localFile}.toosmall 2>> $SYSLOG
                     # smoke test
                     elif [[ $localFileLines -eq 0 ]]; then
                         warn "The file '$localFile' does not seem to have barometric pressure data."
-                        mv $localFile ${localFile|}.nodata 2>> $SYSLOG
+                        mv $localFile ${localFile}.nodata 2>> $SYSLOG
                     fi
                 else
                     warn "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."

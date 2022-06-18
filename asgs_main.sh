@@ -2844,6 +2844,7 @@ while [ true ]; do
             "on"|"NAM")
                writeNAMProperties $RUNDIR
                echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
+	       ;;
             "GFS")
                writeGFSProperties $RUNDIR
                echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
