@@ -459,7 +459,7 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( ls6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
    "tacc_tds2")
       THREDDSHOST=chg-1.oden.tacc.utexas.edu # WWW hostname for emailed links

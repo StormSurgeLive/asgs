@@ -65,6 +65,7 @@ gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
 gfsDomain['bottomlat']='0'
+GFSFORECASTLENGTH=120                     # hours of GFS forecast to run
 #
 # lat0, lon0 = degrees of lat/lon for 1st grid point
 # nlon = number of longitudes

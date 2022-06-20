@@ -1,6 +1,6 @@
 #!/bin/bash
 #------------------------------------------------------------------------
-# opendap_post.sh : Makes results available to thredds data server.
+# opendap_post2.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
 # Copyright(C) 2015--2019 Jason Fleming
 #
@@ -107,18 +107,8 @@ enableStatusNotify=${properties["notification.opendap.email.enable"]}
 if [[ -z $enableStatusNotify || $enableStatusNotify = "" ]]; then
    enableStatusNotify="no"
 fi
-# get the scenario number from Operator config
-case $SCENARIO in
-"hindcast")
-   SCENARIONUMBER=-2
-   ;;
-"nowcast")
-   SCENARIONUMBER=-1
-   ;;
-*)
-   SCENARIONUMBER=${properties["forecast.scenario.number"]} # this is used in the subject line of the email
-   ;;
-esac
+# get the scenario number
+SCENARIONUMBER=${properties["scenario.number"]} # this is used in the subject line of the email
 env_dispatch $HPCENVSHORT # set up JOBENV with perlbrew for asgs-sendmail etc
 OPENDAPMAILSERVER=${properties["notification.opendap.email.opendapmailserver"]}
 declare -a LINKABLEHOSTS
@@ -143,7 +133,7 @@ for server in ${SERVERS[*]}; do
       sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
    fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
-   _THIS="output/opendap_post.sh-->$server"
+   _THIS="output/opendap_post2.sh-->$server"
    loadProperties $RUNPROPERTIES # reload to pick up properties written by writeTDSProperties
    LINKABLEHOSTS=${properties["post.opendap.${server}.linkablehosts"]}
    COPYABLEHOSTS=${properties["post.opendap.${server}.copyablehosts"]}

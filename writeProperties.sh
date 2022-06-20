@@ -163,8 +163,14 @@ writeScenarioProperties()
    logMessage "$THIS: Writing properties associated with this scenario to $1/run.properties."
    echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
    echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "scenario.number : $si" >> $STORMDIR/run.properties
    echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties
    echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR/run.properties
+   # this is used in forming the path where the results will be
+   # posted to a remote server
+   if [[ $BACKGROUNDMET != "off" ]]; then
+      echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties
+   fi
    # FIXME: the following are legacy properties from 2014stable
    # and should not be carried forward
    echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
@@ -217,7 +223,7 @@ writeGFSProperties()
    echo "forcing.gfs.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
    echo "forcing.gfs.backsite : $GFSBACKSITE" >> $STORMDIR/run.properties
    echo "forcing.gfs.backdir : $GFSBACKDIR" >> $STORMDIR/run.properties
-   echo "forcing.gfs.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
+   echo "forcing.gfs.forecastlength : $GFSFORECASTLENGTH" >> $STORMDIR/run.properties
    # legacy from 2014stable, depcrecated
    echo "config.forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
    echo "WindModel : GFS" >> $STORMDIR/run.properties
