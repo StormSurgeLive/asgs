@@ -1708,7 +1708,7 @@ fi
 if [[ $BACKGROUNDMET = on ]]; then
    checkFileExistence $SCRIPTDIR "NAM output reprojection executable (from lambert to geographic)" awip_lambert_interp.x
    checkFileExistence $SCRIPTDIR "NAM output reprojection with spatial extrapolation ramp executable (from lambert to geographic)" lambertInterpRamp.x
-   checkFileExistence $SCRIPTDIR "GRIB2 manipulation and extraction executable" wgrib2
+   checkFileExistence $SCRIPTDIR/bin "GRIB2 manipulation and extraction executable" wgrib2
 fi
 
 if [[ $WAVES = on ]]; then
