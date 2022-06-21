@@ -675,6 +675,10 @@ delete() {
 move() {
   case "${1}" in
     statefile)
+     if [[ -z "${STATEFILE}" || ! -e "${STATEFILE}" ]]; then
+       echo "${W} '${STATEFILE}' is not set or doesn't exist."
+       return
+     fi
      read -p "This will the move state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " MOVE_STATEFILE
      if [ 'y' == "${MOVE_STATEFILE}" ]; then
        _epoch=$(date +%s)
