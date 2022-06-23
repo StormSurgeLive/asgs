@@ -5,7 +5,7 @@
 # concatenate fort.61.nc files at various time spans to
 # facilitate validation
 #----------------------------------------------------------------
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2021--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -52,24 +52,25 @@
 #   ncrcat (part of nco)
 #   ncks   (part of nco?)
 #----------------------------------------------------------------
+# Sample commands to build up the file list JSON:
+# path="/mnt/nas-storage/Operations/fortytwo.cct.lsu.edu/2022/nam/202204????/HSOFS/qbc.loni.org/HSOFS_nam_akheir/nowcast"
+# fileList=$(printf "\"%s\",\n" $(ls -d $path | sort))
+# printf "{ \"fort.61.nc\" : [ ${fileList::-1} ] }" | json_pp > fileList.json
+#----------------------------------------------------------------
 use strict;
 use warnings;
-#use Date::Calc;
 use Getopt::Long;
+use JSON::PP;
+use Cwd;
+use ASGSUtil;
 #
-sub stderrMessage($$);
-#
-my $root_data_dir = ".";     # directory containing subdirectories with data of interest
-my $datafile = "fort.61.nc"; # file containing data at each station
-my $cold_start_date = "null";  # yyyymmddhh24 when the simulation was coldstarted; used to compute calendar dates/times
-my $target_end_sec = "null"; # the end of the target data file in seconds
-my $target_date = "null";    # yyyymmddhh24 DIRECTORY to count back from
-my @datafiles_in_period;     # datafiles that fall between the target date and the longest time period
+my $root_data_dir;             # directory containing subdirectories with data of interest
+my $datafile = "fort.61.nc";   # file containing data at each station
+my $target_end_sec = "null";   # the end of the target data file in seconds
+my $target_date = "null";      # yyyymmddhh24 UTC to count back from
 my $csy; my $csm; my $csd; my $csh; # cold start date components
-my @time_periods = qw( 0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0 );
-my @time_period_prefixes = qw( 6_hours 12_hours 1_day 2_days 4_days 8_days 16_days 32_days );
-my @files_of_interest;       # list of files to concatenate
-my $insitu=0;                # files are still on local hpc (rather than posted to opendap)
+my @time_periods = qw( 1 2 4 7 14 21 30 ); # days back from the target date
+my $jshash_ref;                # list of files to be processed
 #
 GetOptions(
            "root-data-dir=s" => \$root_data_dir,
@@ -77,123 +78,127 @@ GetOptions(
            "target-date=s" => \$target_date
           );
 #
-# find the paths to the files ... the find command does not seem to return them
-# in ascending order so they are sorted ... only want the nowcast or
-# hindcast scenarios for use in validation
-my @files = `find $root_data_dir -name $datafile -print | grep -E 'nowcast|hindcast' | sort`;
-foreach my $f (@files) {
-   &stderrMessage("DEBUG","$f");
+# slurp the JSON request contents into a scalar variable
+my $file_content = do { local $/; <> };
+my $jshash_ref = JSON::PP->new->decode($file_content);
+# grab the list of paths out of the hash
+my $pathlistref = $jshash_ref->{$datafile};
+my @pathList = @$pathlistref;
+if ( ! defined $pathList[0] ) {
+   ASGSUtil::stderrMessage("ERROR","The JSON did not contain any paths to '$datafile' files.");
+   die;
+} elsif ( $root_data_dir ) {
+   #
+   # find the paths to the files ... the find command does not seem to return them
+   # in ascending order so they are sorted ... only want the nowcast or
+   # hindcast scenarios for use in validation
+   my @pathList = `find $root_data_dir -name $datafile -print | grep -E 'nowcast|hindcast' | sort`;
+   foreach my $p (@pathList) {
+      ASGSUtil::stderrMessage("DEBUG","$p");
+   }
+}  else {
+   ASGSUtil::stderrMessage("ERROR","The --root-data-dir command line option was not provided.");
+   die;
 }
 #
 # check to see if the initialize/hindcast scenario is present; if so,
 # sort will make it the "latest" scenario but we want it to be earliest
-my @path_parts = split("/",$files[-1]);
-foreach my $p (@path_parts) {
-   #stderrMessage("DEBUG","$p");
-}
-#stderrMessage("DEBUG","path_parts[-2] is $path_parts[-2]");
+my @path_parts = split("/",$pathList[-1]);
 if ( $path_parts[-2] eq "hindcast" ) {
-   my $hindcast_scenario = pop(@files);
-   unshift(@files,$hindcast_scenario);
+   my $hindcast_scenario = pop(@pathList);
+   unshift(@pathList,$hindcast_scenario);
 }
 # get rid of directories that have been moved out of the way, like 2021072206.old
-my @filtered_directories;
-foreach my $fullpath (@files) {
+my @filtered_paths;
+foreach my $fullpath (@pathList) {
    @path_parts = split("/",$fullpath);
-   my $dir = $path_parts[-3];  
+   my $dir = $path_parts[-3];
    if ( $dir ne "initialize" && ( int($dir) ne $dir ) ) {
-      &stderrMessage("INFO","Skipping the directory $dir.");   
+      ASGSUtil::stderrMessage("INFO","Skipping the directory $dir.");
    } else {
-      push(@filtered_directories,$fullpath);
+      push(@filtered_paths,$fullpath);
    }
 }
 #
 # now reverse the order so it is reverse chronological
-my @reverse_files = reverse(@filtered_directories);
-foreach my $f (@reverse_files) {
-   &stderrMessage("DEBUG","$f");
+my @reverse_paths = reverse(@filtered_paths);
+my @runStartTimes;
+my @runEndTimes;
+my @coldStarDates;
+foreach my $p (@reverse_paths) {
+   ASGSUtil::stderrMessage("DEBUG","$f");
+   # grab run start times and run end times from the metadata
+   my %runProp;
+   ASGSUtil::readProperties(\%runProp, "$p/run.properties");
+   push(@runStartTimes,$runProp{'RunStartTime'});
+   push(@runEndTimes,$runProp{'RunEndTime'});
+   push(@coldStartDates,$runProp{'adcirc.time.coldstartdate'});
 }
 #
 # find the final or target date if it was not given
 if ( $target_date eq "null" ) {
-   my $target_path = $reverse_files[0];
-   &stderrMessage("DEBUG","target_path is $target_path");
-   # remove the part of the path that precedes the target directory
-   my $sub_target_path = substr($target_path,length($root_data_dir));
-   &stderrMessage("DEBUG","sub_target_path is $sub_target_path");
-   my @target_path_parts = split("/", $sub_target_path) ;
-   $target_date = $target_path_parts[1];
+   $target_date = $runEndTimes[0];
 }
-&stderrMessage("DEBUG","target_date is $target_date");
-&stderrMessage("DEBUG","int(target_date) is ".int($target_date));
+ASGSUtil::stderrMessage("DEBUG","target_date is $target_date");
+ASGSUtil::stderrMessage("DEBUG","int(target_date) is ".int($target_date));
+$target_date =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+my $ty = $1;
+my $tm = $2;
+my $td = $3;
+my $th = $4;
+my $tmin = 0;
+my $tsec = 0;
 #
-# go through the list of files and build up the
-# concatenated file
-my @files_in_period;
-my $datePathLocation = 3; # true if the files were posted to opendap server
-if ( $insitu ) {
-   $datePathLocation = 0; # true if the files are still on the hpc
+# determine the yyyymmddHH24 date corresponding to the start of each of the
+# time periods of interest
+my @periodStarts;
+foreach my $d (@time_periods) {
+   my ($sy,$sm,$sd,$sh,$smin,$ss) =
+      Date::Calc::Add_Delta_DHMS($ty,$tm,$td,$th,$tmin,$tsec,-1*$d,0,0,0);
+   push(@periodStarts,sprintf("%04d%02d%02d%02d",$sy,$sm,$sd,$sh);
 }
-foreach my $f (@reverse_files) {
-    my $sub_target_path = substr($f,length($root_data_dir));
-    stderrMessage("DEBUG","sub_target_path $sub_target_path");
-    my @target_path_parts = split("/", $sub_target_path) ;
-    foreach my $p (@target_path_parts) {
-        #stderrMessage("DEBUG","$p");
-     }
-    # if the sub_target_path starts with / then the
-    # first element of @target_path_parts will be empty
-    if ( $target_path_parts[0] eq "" ) {
-        shift(@target_path_parts);
-    }
-    # skip files in the list that are later than the target date
-    stderrMessage("DEBUG","target_path_parts[$datePathLocation] > target_date ... $target_path_parts[$datePathLocation] > $target_date");
-    &stderrMessage("DEBUG","int(target_path_parts[$datePathLocation]) is ".int($target_path_parts[$datePathLocation]));
-    if ( $target_path_parts[$datePathLocation] > $target_date ) {
-        next;
-    }
-    # add this file to the list of files of interest (this list is in chronological order)
-    chomp($f);
-    unshift(@files_of_interest,$f);
-    #
-    # determine the final time in seconds in the target data file
-    # if this has not been done already
-    if ( $target_end_sec eq "null" ) {
-        # use netcdf kitchen sink utility to get the final time in seconds
-        # also grab the coldstartdate while we're at it
-        my @timelines = `ncks -v time -d time,-1 $f`;
-        foreach my $tl (@timelines) {
-            if ( $tl =~ /time:base_date = "(\d\d\d\d)-(\d\d)-(\d\d) (\d\d)\:(\d\d)\:(\d\d)"/ ) {
-                $cold_start_date = $1 . $2 . $3 . $4;
-                $csy = $1 ; $csm = $2 ; $csd = $3 ; $csh = $4;
-                # FIXME: we're assuming all files have the same cold start date
-                print "cold start date is $cold_start_date\n";
-            }
-            if ( $tl =~ /time = (\d+)/ ) {
-                $target_end_sec = $1;
-                print "target_end_sec is $target_end_sec\n";
-            }
-        }
-    }
-    #
-    # determine time in seconds at the start of the file of interest
-    my $this_file_start_sec;
-    my @timelines = `ncks -v time -d time,1 $f`;
-    foreach my $tl (@timelines) {
-        if ( $tl =~ /time = (\d+)/ ) {
-            $this_file_start_sec = $1;
-            print "this_file_start_sec is $this_file_start_sec\n";
-            last;
-       }
-    }
-    # get the start of the current time period of interest in seconds
-    my $this_period_start_sec = $target_end_sec - ($time_periods[0] * 86400.0);
-    # check to see if this data file starts before the period of interest,
-    # and if so, concatenate the list of files we have so far
-    # for this time period and write it out
-    # FIXME: this will probably result in concatenating too much data,
-    # at least sometimes
-    if ( $this_file_start_sec < $this_period_start_sec ) {
+my $dataSetCount = 0; # counting data sets
+my $pathCount = 0;    # counting paths
+my $startDataSet = 0; # starting data set in the cat command
+my $endDataSet = 0;   # last data set in the cat command
+ #
+foreach my $p (@reverse_paths) {
+   # add this file to the list of files of interest (this list is in chronological order)
+   unshift(@paths_of_interest,$p);
+   $pathCount++;
+   # see if the end time of this file is after the target date, and if so,
+   # don't include the datasets after the target date
+   if ( $runEndTimes[0] > $target_date ) {
+      # grab the yyymmmddhh24 of each of the datasets in the file
+      # use netcdf kitchen sink utility to get the final times in seconds
+      # {
+      #   "dimensions": {
+      #     "time": 72
+      #   },
+      #   "variables": {
+      #     "time": {
+      #       "shape": ["time"],
+      #       "type": "double",
+      #       "attributes": {
+      #         "long_name": "model time",
+      #         "standard_name": "time",
+      #         "units": "seconds since 2021-12-15 00:00:00",
+      #         "base_date": "2021-12-15 00:00:00"
+      #       },
+      #       "data": [11405100, 11405400, 11405700, 11406000, 11406300, 11406600, 11406900, 11407200, 11407500, 11407800, 11408100, 11408400, 11408700, 11409000, 11409300, 11409600, 11409900, 11410200, 11410500, 11410800, 11411100, 11411400, 11411700, 11412000, 11412300, 11412600, 11412900, 11413200, 11413500, 11413800, 11414100, 11414400, 11414700, 11415000, 11415300, 11415600, 11415900, 11416200, 11416500, 11416800, 11417100, 11417400, 11417700, 11418000, 11418300, 11418600, 11418900, 11419200, 11419500, 11419800, 11420100, 11420400, 11420700, 11421000, 11421300, 11421600, 11421900, 11422200, 11422500, 11422800, 11423100, 11423400, 11423700, 11424000, 11424300, 11424600, 11424900, 11425200, 11425500, 11425800, 11426100, 11426400]
+      #     }
+      #   }
+      # }
+
+      my $timeJSON = `ncks --json -v time "$p/$datafile"`;
+      my $jsTime_ref = JSON::PP->new->decode($timeJSON);
+      # grab the list of paths out of the hash
+      my $pathlistref = $jshash_ref->{$datafile};
+      my @pathList = @$pathlistref;
+
+
+   }
+    if ( $runStartTimes[0] $this_file_start_sec < $this_period_start_sec ) {
         my $period_file_list = join(" ",@files_of_interest);
         #stderrMessage("DEBUG","period_file_list $period_file_list");
         my $period_file_name = $time_period_prefixes[0] . "_fort.61.nc";
@@ -209,17 +214,4 @@ foreach my $f (@reverse_files) {
     if ( @time_periods == 0 ) {
         last;
     }
-}
-#
-#-----------------------------------------------------------------
-#       F U N C T I O N    S T D E R R  M E S S A G E
-#-----------------------------------------------------------------
-sub stderrMessage ($$) {
-   my $level = shift;
-   my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $theTime = "[$year-".sprintf("%3s",$months[$month])."-".sprintf("%02d",$dayOfMonth)."-T".sprintf("%02d",$hour).":".sprintf("%02d",$minute).":".sprintf("%02d",$second)."]";
-   printf STDERR "$theTime $level: nco_ncrcat.pl: $message\n";
 }

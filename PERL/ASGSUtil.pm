@@ -103,6 +103,26 @@ sub setParameter {
    }
    return;
 }
+
+# create a hash of properties from run.properties
+sub readProperties {
+   my ( $runProp_ref, $fileName ) = @_;
+   # open properties file
+   unless ( open(my $rp,"<","$fileName") ) {
+      stderrMessage("ERROR","Failed to open '$fileName': $!.");
+      return;
+   }
+   while (<$rp>) {
+      my @fields = split ':',$_, 2 ;
+      # strip leading and trailing spaces and tabs
+      $fields[0] =~ s/^\s|\s+$//g ;
+      $fields[1] =~ s/^\s|\s+$//g ;
+      $runProp_ref->{$fields[0]} = $fields[1];
+   }
+   close($rp);
+   return;
+}
+
 #
 # write a log message to stderr
 sub stderrMessage {
