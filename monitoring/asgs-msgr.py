@@ -5,11 +5,21 @@ import getopt
 import pika
 import json
 
-queue_name='asgs_queue'
-queue_user='asgs'
-queue_passwd='ZippityD0Da'
-queue_address='asgs-monitor.renci.org'
-queue_port=5672
+destinations={}
+destinations['renci-prod']={
+ 'queue_name': 'asgs_queue',
+ 'queue_user': 'asgs',
+ 'queue_passwd': 'ZippityD0Da',
+ 'queue_address': 'asgs-monitor.renci.org',
+ 'queue_port': 5672
+}
+destinations['renci-dev']={
+ 'queue_name': 'asgs_queue',
+ 'queue_user': 'asgsuser',
+ 'queue_passwd': '6f925b19f7',
+ 'queue_address': 'asgs-rabbitmq-queue-dev.apps.renci.org',
+ 'queue_port': 5672
+}
 
 def usage():
     print('\nUsage:\n')
@@ -58,15 +68,21 @@ def JsonifyMessage(Uid,
 
     return json.dumps(msg_obj)
 
-def queue_message(message):
-
-    credentials = pika.PlainCredentials(queue_user, queue_passwd)
-    parameters = pika.ConnectionParameters(queue_address, queue_port, '/', credentials, socket_timeout=2)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name)
-    channel.basic_publish(exchange='',routing_key=queue_name,body=message)
-    connection.close()
+def transmit_message(message):
+    """
+    """
+    for destination,queue_params in destinations.items():
+        print(f'Sending message to {destination}')
+        credentials = pika.PlainCredentials(queue_params['queue_user'], 
+                                            queue_params['queue_passwd'])
+        parameters = pika.ConnectionParameters(queue_params['queue_address'], 
+                                               queue_params['queue_port'], 
+                                               '/', credentials, socket_timeout=2)
+        connection = pika.BlockingConnection(parameters)
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_params['queue_name'])
+        channel.basic_publish(exchange='',routing_key=queue_params['queue_name'],body=message)
+        connection.close()
 
 def main(argv):
 
@@ -159,7 +175,7 @@ def main(argv):
     )
 
     if (Transmit == 'on'):
-        queue_message(msg)
+        transmit_message(msg)
         with open('msg.json', "w") as outfile:  
             json.dump(msg, outfile) 
         

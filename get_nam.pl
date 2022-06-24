@@ -342,7 +342,7 @@ TODAYSFILES : foreach my $file (@sortedFiles) {
       }
    }
 }
-stderrMessage("DEBUG","The cyclehour is '$cyclehour'.");
+
 unless (defined $cyclehour ) {
    stderrMessage("WARNING","Could not download the list of NAM files from NCEP.");
    exit;
@@ -355,6 +355,7 @@ stderrMessage("DEBUG","The cycletime is '$cycletime'.");
 # time, i.e., we need fresh new files that we have not run with yet
 if ( $cycletime <= ($date.$hour) ) {
    &appMessage("DEBUG","No new files on NAM ftp site.");
+   stderrMessage("DEBUG","No new files on NAM ftp site.");
    printf STDOUT $dl;
    exit;
 }

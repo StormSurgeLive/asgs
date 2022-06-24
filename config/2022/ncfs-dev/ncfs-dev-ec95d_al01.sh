@@ -27,11 +27,13 @@
 
 # Fundamental
 
-INSTANCENAME=ec95d-nam-bob3      # "name" of this ASGS process
-SCRATCHDIR=/scratch/bblanton/${INSTANCENAME}
+INSTANCENAME=ec95d-al01-bob2.ht1      # "name" of this ASGS process
+SCRATCHDIR=/projects/storm_surge/asgs_testing/${INSTANCENAME}
 RMQMessaging_Transmit=on
 QSCRIPTTEMPLATE=$SCRIPTDIR/config/2022/ncfs-dev/qscript.template.renci.ht1
-TDS=( renci_tds renci_tds-k8 )
+ADCIRCDIR=/home/bblanton/ADCIRC/v53release.ht1/work
+SWANDIR=/home/bblanton/ADCIRC/v53release.ht1/swan
+RESERVATION=test
 
 # Input files and templates
 
@@ -40,19 +42,19 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2022061000  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2022050100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 
 # Physical forcing (defaults set in config/forcing_defaults.sh)
 
 TIDEFAC=on               # tide factor recalc
-   HINDCASTLENGTH=12.0   # length of initial hindcast, from cold (days)
-BACKGROUNDMET=on         # NAM download/forcing
+   HINDCASTLENGTH=31.0   # length of initial hindcast, from cold (days)
+BACKGROUNDMET=off         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=off      # tropical cyclone forcing
-   STORM=-1              # storm number, e.g. 05=ernesto in 2006
-   YEAR=2021             # year of the storm
+   STORM=1              # storm number, e.g. 05=ernesto in 2006
+   YEAR=2022             # year of the storm
 WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
 VARFLUX=off              # variable river flux forcing
@@ -75,10 +77,9 @@ QUEUENAME="lowpri"
 
 INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 
-FINISH_NOWCAST_SCENARIO=( output/opendap_post_nowcast.sh output/opendap_post_nowcast_k8.sh ) # output/run_adda.sh )
+FINISH_NOWCAST_SCENARIO=( output/opendap_post_nowcast.sh ) # output/run_adda.sh )
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_k8.sh transmit_rps.sh )
-#POSTPROCESS=( createOPeNDAPFileList.sh opendap_post_k8.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
@@ -88,7 +89,7 @@ NOTIFY_SCRIPT=ncfs_nam_notify.sh
 # Scenario package
 
 #PERCENT=default
-SCENARIOPACKAGESIZE=1
+SCENARIOPACKAGESIZE=0
 case $si in
    -2) 
        ENSTORM=hindcast

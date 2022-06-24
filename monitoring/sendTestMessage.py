@@ -5,11 +5,21 @@ import getopt
 import pika
 import json
 
-queue_name='asgs_queue'
-queue_user='asgs'
-queue_passwd='ZippityD0Da'
-queue_address='asgs-monitor.renci.org'
-queue_port=5672
+destinations={}
+destinations['renci-prod']={
+ 'queue_name': 'asgs_test',
+ 'queue_user': 'asgs',
+ 'queue_passwd': 'ZippityD0Da',
+ 'queue_address': 'asgs-monitor.renci.org',
+ 'queue_port': 5672
+}
+destinations['renci-dev']={
+ 'queue_name': 'asgs_test',
+ 'queue_user': 'asgsuser',
+ 'queue_passwd': '6f925b19f7',
+ 'queue_address': 'asgs-rabbitmq-queue-dev.apps.renci.org',
+ 'queue_port': 5672
+}
 
 def usage():
     s = """
@@ -48,22 +58,26 @@ def JsonifyMessage(Uid,
 
 def transmit_message(message):
 
-    # Need to get this stuff from yaml file
-    credentials = pika.PlainCredentials(queue_user, queue_passwd)
-    parameters = pika.ConnectionParameters(queue_address, queue_port, '/', credentials, socket_timeout=2)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name)
-    channel.basic_publish(exchange='',routing_key=queue_name,body=message)
-    connection.close()
+    for destination,queue_params in destinations.items():
+        print(f'Sending message to {destination}')
+        credentials = pika.PlainCredentials(queue_params['queue_user'], 
+                                            queue_params['queue_passwd'])
+        parameters = pika.ConnectionParameters(queue_params['queue_address'], 
+                                               queue_params['queue_port'], 
+                                               '/', credentials, socket_timeout=2)
+        connection = pika.BlockingConnection(parameters)
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_params['queue_name'])
+        channel.basic_publish(exchange='',routing_key=queue_params['queue_name'],body=message)
+        connection.close()
 
 def main(argv):
 
     tmpDateTime  = datetime.datetime.utcnow()
     UTCDateTime  = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
-    LocationName = 'Penguin'
-    ClusterName  = 'POD'
-    Message      = 'testFromPod'
+    LocationName = 'RENCI'
+    ClusterName  = 'Hatteras'
+    Message      = 'testHatteras'
     Uid          = -999
     InstanceName = 'fakeInstanceName'
     Transmit     = 'off'
@@ -73,16 +87,16 @@ def main(argv):
                     ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
                      "Message=","InstanceName=","Transmit="])
     except getopt.GetoptError as err:
-       print('\nCommand line option error: ' + str(err))
-       usage()
-       sys.exit(2)
+        print('\nCommand line option error: ' + str(err))
+        usage()
+        sys.exit(2)
 
     for opt, arg in opts:
         if opt in ("-h", "--Help"):
             usage()
             sys.exit(2)
         elif opt in ("-k", "--Transmit"):
-                Transmit = arg
+            Transmit = arg
         elif opt in ("-i", "--InstanceName"):
             InstanceName = arg
         elif opt in ("-u", "--Uid"):

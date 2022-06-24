@@ -105,6 +105,11 @@ for server in ${SERVERS[*]}; do
    if [[ $server = "(" || $server = ")" ]]; then
       continue
    fi
+   # skip any k8 server
+   if [[ "$server" =~ "k8" ]]
+      echo "Skipping $server in $THIS"
+      continue
+   fi
    allMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to opendap server ${server}."
    # pick up config of the thredds data server where the files are to be posted
    scenarioMessage "Setting opendap server parameters with writeTDSProperties ${server}."
@@ -112,7 +117,7 @@ for server in ${SERVERS[*]}; do
    # opendap service  (from platforms.sh)
    writeTDSProperties $server
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
-   _THIS="output/opendap_post.sh-->$server"
+   _THIS="$THIS-->$server"
    loadProperties $RUNPROPERTIES # reload to pick up properties written by writeTDSProperties
    LINKABLEHOSTS=${properties["post.opendap.${server}.linkablehosts"]}
    COPYABLEHOSTS=${properties["post.opendap.${server}.copyablehosts"]}

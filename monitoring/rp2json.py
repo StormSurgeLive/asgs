@@ -5,6 +5,23 @@ import pika
 import datetime
 import json
 
+queue_name='asgs_props'
+destinations={}
+destinations['renci-prod']={
+ 'queue_name': queue_name,
+ 'queue_user': 'asgs',
+ 'queue_passwd': 'ZippityD0Da',
+ 'queue_address': 'asgs-monitor.renci.org',
+ 'queue_port': 5672
+}
+destinations['renci-dev']={
+ 'queue_name': queue_name,
+ 'queue_user': 'asgsuser',
+ 'queue_passwd': '6f925b19f7',
+ 'queue_address': 'asgs-rabbitmq-queue-dev.apps.renci.org',
+ 'queue_port': 5672
+}
+
 def ReadRPToDict(input_filename, uid, instance_name, physical_location):
     """
     """
@@ -25,16 +42,21 @@ def DictToJson(in_dict):
     """
     return json.dumps(in_dict, indent = 4)   
 
-def queue_message(message):
+def transmit_message(message):
     """
     """
-    credentials = pika.PlainCredentials('asgs', 'ZippityD0Da')
-    parameters = pika.ConnectionParameters('asgs-monitor.renci.org', 5672, '/', credentials, socket_timeout=2)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    channel.queue_declare(queue='asgs_props')
-    channel.basic_publish(exchange='',routing_key='asgs_props',body=message)
-    connection.close()
+    for destination,queue_params in destinations.items():
+        print(f'Sending run.properties message to {destination}')
+        credentials = pika.PlainCredentials(queue_params['queue_user'], 
+                                            queue_params['queue_passwd'])
+        parameters = pika.ConnectionParameters(queue_params['queue_address'], 
+                                               queue_params['queue_port'], 
+                                               '/', credentials, socket_timeout=2)
+        connection = pika.BlockingConnection(parameters)
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_params['queue_name'])
+        channel.basic_publish(exchange='',routing_key=queue_params['queue_name'],body=message)
+        connection.close()
 
 def main(args):
     """
@@ -58,7 +80,7 @@ def main(args):
             json.dump(rp_dict, outfile) 
 
     if args.Transmit: 
-        queue_message(rp_json)
+        transmit_message(rp_json)
 
     if args.Print: 
         print(rp_json)
