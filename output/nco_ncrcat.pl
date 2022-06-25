@@ -62,6 +62,7 @@ use warnings;
 use Getopt::Long;
 use JSON::PP;
 use Cwd;
+use Util::H2O;
 use ASGSUtil;
 #
 my $root_data_dir;             # directory containing subdirectories with data of interest
@@ -71,34 +72,36 @@ my $target_date = "null";      # yyyymmddhh24 UTC to count back from
 my $csy; my $csm; my $csd; my $csh; # cold start date components
 my @time_periods = qw( 1 2 4 7 14 21 30 ); # days back from the target date
 my $jshash_ref;                # list of files to be processed
+my @paths_of_interest;
+my @files_of_interest;
+my @time_period_prefixes;
+
 #
 GetOptions(
            "root-data-dir=s" => \$root_data_dir,
-           "in-situ" => \$insitu,
            "target-date=s" => \$target_date
           );
 #
 # slurp the JSON request contents into a scalar variable
 my $file_content = do { local $/; <> };
-my $jshash_ref = JSON::PP->new->decode($file_content);
+$jshash_ref = JSON::PP->new->decode($file_content);
 # grab the list of paths out of the hash
 my $pathlistref = $jshash_ref->{$datafile};
 my @pathList = @$pathlistref;
-if ( ! defined $pathList[0] ) {
-   ASGSUtil::stderrMessage("ERROR","The JSON did not contain any paths to '$datafile' files.");
-   die;
-} elsif ( $root_data_dir ) {
-   #
-   # find the paths to the files ... the find command does not seem to return them
-   # in ascending order so they are sorted ... only want the nowcast or
-   # hindcast scenarios for use in validation
-   my @pathList = `find $root_data_dir -name $datafile -print | grep -E 'nowcast|hindcast' | sort`;
-   foreach my $p (@pathList) {
-      ASGSUtil::stderrMessage("DEBUG","$p");
+if ( ! @pathList ) {
+   ASGSUtil::stderrMessage("WARNING","The JSON did not contain any paths to '$datafile' files.");
+   if ( $root_data_dir ) {
+      # find the paths to the files ... the find command does not seem to return them
+      # in ascending order so they are sorted ... only want the nowcast or
+      # hindcast scenarios for use in validation
+      my @pathList = `find $root_data_dir -name $datafile -print | grep -E 'nowcast|hindcast' | sort`;
+      foreach my $p (@pathList) {
+         ASGSUtil::stderrMessage("DEBUG","$p");
+      }
+   } else {
+      ASGSUtil::stderrMessage("ERROR","The --root-data-dir command line option was not provided.");
+      die;
    }
-}  else {
-   ASGSUtil::stderrMessage("ERROR","The --root-data-dir command line option was not provided.");
-   die;
 }
 #
 # check to see if the initialize/hindcast scenario is present; if so,
@@ -110,23 +113,24 @@ if ( $path_parts[-2] eq "hindcast" ) {
 }
 # get rid of directories that have been moved out of the way, like 2021072206.old
 my @filtered_paths;
-foreach my $fullpath (@pathList) {
+PATHS: foreach my $fullpath (@pathList) {
    @path_parts = split("/",$fullpath);
-   my $dir = $path_parts[-3];
-   if ( $dir ne "initialize" && ( int($dir) ne $dir ) ) {
-      ASGSUtil::stderrMessage("INFO","Skipping the directory $dir.");
-   } else {
-      push(@filtered_paths,$fullpath);
+   PARTS: foreach my $p (@path_parts) {
+      if ( $p =~ /\.old/ ) {
+         ASGSUtil::stderrMessage("INFO","Skipping the directory '$p'.");
+         last PARTS;
+      }
    }
+   push(@filtered_paths,$fullpath);
 }
 #
 # now reverse the order so it is reverse chronological
 my @reverse_paths = reverse(@filtered_paths);
 my @runStartTimes;
 my @runEndTimes;
-my @coldStarDates;
+my @coldStartDates;
 foreach my $p (@reverse_paths) {
-   ASGSUtil::stderrMessage("DEBUG","$f");
+   #ASGSUtil::stderrMessage("DEBUG","$p");
    # grab run start times and run end times from the metadata
    my %runProp;
    ASGSUtil::readProperties(\%runProp, "$p/run.properties");
@@ -155,12 +159,13 @@ my @periodStarts;
 foreach my $d (@time_periods) {
    my ($sy,$sm,$sd,$sh,$smin,$ss) =
       Date::Calc::Add_Delta_DHMS($ty,$tm,$td,$th,$tmin,$tsec,-1*$d,0,0,0);
-   push(@periodStarts,sprintf("%04d%02d%02d%02d",$sy,$sm,$sd,$sh);
+   push(@periodStarts,sprintf("%04d%02d%02d%02d",$sy,$sm,$sd,$sh));
 }
 my $dataSetCount = 0; # counting data sets
 my $pathCount = 0;    # counting paths
 my $startDataSet = 0; # starting data set in the cat command
 my $endDataSet = 0;   # last data set in the cat command
+my @times;
  #
 foreach my $p (@reverse_paths) {
    # add this file to the list of files of interest (this list is in chronological order)
@@ -168,7 +173,7 @@ foreach my $p (@reverse_paths) {
    $pathCount++;
    # see if the end time of this file is after the target date, and if so,
    # don't include the datasets after the target date
-   if ( $runEndTimes[0] > $target_date ) {
+#   if ( $runEndTimes[0] > $target_date ) {
       # grab the yyymmmddhh24 of each of the datasets in the file
       # use netcdf kitchen sink utility to get the final times in seconds
       # {
@@ -189,29 +194,55 @@ foreach my $p (@reverse_paths) {
       #     }
       #   }
       # }
-
       my $timeJSON = `ncks --json -v time "$p/$datafile"`;
-      my $jsTime_ref = JSON::PP->new->decode($timeJSON);
+      my $jsTime_hash = h2o -recurse, JSON::PP->new->decode($timeJSON);
+      my @times = @{$jsTime_hash->variables->time->data};
+      foreach my $t (@times) {
+         print "$t ";
+      }
+
+      #my $jsTime_hash = h2o -recurse, JSON::PP->new->decode($timeJSON);
+      #my $data_ref = $jsTime_hash->variables->time->data;
+      #my @times = @$data_ref;
+      #foreach my $t (@times) {
+      #   print "$t ";
+      #}
+
+      #my $jsTime_ref = JSON::PP->new->decode($timeJSON);
+      #my $jsTime_hash = h2o -recurse, $jsTime_ref;
+      #my $data_ref = $jsTime_hash->variables->time->data;
+      #my @times = @$data_ref;
+      #foreach my $t (@times) {
+      #   print "$t ";
+      #}
+
+      #my $data_ref = @$time_ref{data};
       # grab the list of paths out of the hash
-      my $pathlistref = $jshash_ref->{$datafile};
-      my @pathList = @$pathlistref;
+      #my $vars_ref = %$jsTime_ref{variables};
+      #print keys %$vars_ref;
+      #my $time_ref = %$vars_ref{time};
+      #print keys %$time_ref;
 
+      #@times = @$data_ref;
+      #foreach my $t (@times) {
+      #   print "$t ";
+      #}
 
-   }
-    if ( $runStartTimes[0] $this_file_start_sec < $this_period_start_sec ) {
-        my $period_file_list = join(" ",@files_of_interest);
-        #stderrMessage("DEBUG","period_file_list $period_file_list");
-        my $period_file_name = $time_period_prefixes[0] . "_fort.61.nc";
-        # -O will overwrite an existing file
-        # -D 0 will set the debug level to 0 and hopefully suppress spurious warnings
-        system("ncrcat -O -D 0 $period_file_list $period_file_name");
-        #stderrMessage("DEBUG","system(ncrcat $period_file_list $period_file_name)");
-        # go to the next period
-        shift(@time_periods);
-        shift(@time_period_prefixes);
-    }
-    # end when we run out of time periods to write values for
-    if ( @time_periods == 0 ) {
-        last;
-    }
+ #  }
+   #  if ( $runStartTimes[0] < $times[99] ) {
+   #      my $period_file_list = join(" ",@files_of_interest);
+   #      #stderrMessage("DEBUG","period_file_list $period_file_list");
+   #      my $period_file_name = $time_period_prefixes[0] . "_fort.61.nc";
+   #      # -O will overwrite an existing file
+   #      # -D 0 will set the debug level to 0 and hopefully suppress spurious warnings
+   #      system("ncrcat -O -D 0 $period_file_list $period_file_name");
+   #      #stderrMessage("DEBUG","system(ncrcat $period_file_list $period_file_name)");
+   #      # go to the next period
+   #      shift(@time_periods);
+   #      shift(@time_period_prefixes);
+   #  }
+   #  # end when we run out of time periods to write values for
+   #  if ( @time_periods == 0 ) {
+   #      last;
+   #  }
 }

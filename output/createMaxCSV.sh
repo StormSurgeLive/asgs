@@ -24,16 +24,34 @@
 # ($SCRIPTDIR, $PATH, etc)
 #-----------------------------------------------------------------------
 #
+sigint() {
+   trap - SIGTERM && kill -- -$$
+   exit 0
+}
+sigterm() {
+   trap - SIGTERM && kill -- -$$
+   exit 0
+}
+sigexit() {
+   trap - SIGTERM && kill -- -$$
+   exit 0
+}
+trap 'sigint' INT
+trap 'sigterm' TERM
+trap 'sigexit' EXIT
+#
+#
 THIS=$(basename -- $0)
+numProcesses=${1:-1}
 # Count command line arguments; use them if provided or use
 # run.properties if not.
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
 context="auto"  # run by ASGS in production when a scenario completes
-if [[ $# -eq 1 ]]; then
+if [[ $# -gt 1 ]]; then
    context="manual" # run by the Operator (or other process), not the ASGS
-   RUNPROPERTIES=$1
+   RUNPROPERTIES=$2
    SYSLOG=createMaxCSV.log
    CYCLELOG=$SYSLOG
    SCENARIOLOG=$SYSLOG
@@ -41,7 +59,6 @@ else
    SYSLOG=${properties['monitoring.logging.file.syslog']}
    CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
    SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
-
 fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
@@ -100,13 +117,13 @@ summaryFiles+=( swan_HS_max.63.nc )    # peak significant wave height
 summaryFiles+=( swan_TPS_max.63.nc )   # peak wave period
 summaryFiles+=( swan_DIR_max.63.nc )   # wave direction at time of peak significant wave height
 #
-
+timeSeriesFiles+=( fort.63 )           # full domain time varying water surface elevation
 #
 # create the metadata header
 echo '#' $(ncdump -h maxele.63.nc | grep agrid | sed -e 's/\t\t//' -e 's/://' -e 's/;//' -e 's/=/:/' 2>>$SCENARIOLOG) > header.csv
 echo '#' $(ncdump -h maxele.63.nc | grep rundes | sed -e 's/\t\t//' -e 's/://' -e 's/;//' -e 's/=/:/' | cut -d ! -f 1 2>>$SCENARIOLOG) '"' >> header.csv
 echo '#' $(ncdump -h maxele.63.nc | grep runid | sed -e 's/\t\t//' -e 's/://' -e 's/;//' -e 's/=/:/' | cut -d ! -f 1 2>>$SCENARIOLOG) '"' >> header.csv
-# mesh bathy/topo
+# mesh bathy/topo : FIXME : get bathytopo directly from the netcdf file
 if [[ ! -f $GRIDFILE && ! -f $INPUTDIR/$GRIDFILE && ! -f "fort.14" ]]; then
    echo "ERROR: Mesh file '$GRIDFILE' specified in run.properties file was not found in $INPUTDIR or '.'; nor was 'fort.14'." | tee $SCENARIOLOG
    exit 1
@@ -121,7 +138,7 @@ if [[ ! -f $GRIDFILE ]]; then
 fi
 awk 'NR==2 { np=$2 } NR>2 && NR<=np+2 { print $2","$3","$4 }' $fort14 > xyd.txt 2>> $SCENARIOLOG
 #
-# create metadata for column definitions and column units and
+# create metadata for summary column definitions and column units and
 # convert the netcdf files to ascii and then extract just the data values
 # from the resulting ascii files
 columnDefinitions="# longitude,latitude,depth,maxele"
@@ -161,6 +178,63 @@ paste -d "," xyd.txt maxele.txt $windFile $waveFile > max_data.csv
 echo $columnDefinitions >> header.csv
 echo $columnUnits >> header.csv
 cat header.csv max_data.csv > $csvFileName 2>> $SYSLOG
-gzip $csvFileName 2>> $SYSLOG
+gzip -f $csvFileName 2>> $SYSLOG &
 echo "Maximum Values Point CSV File Name : ${csvFileName}.gz" >> run.properties
 echo "Maximum Values Point CSV File Format : gzipped ascii csv" >> run.properties
+#
+# create metadata for time series column definitions and column units and
+# convert the netcdf files to ascii and then extract just the data values
+# from the resulting ascii files
+if [[ -s fort.63.nc ]]; then
+   columnDefinitions="# longitude,latitude,depth,timeVaryingWaterSurfaceElevation"
+   columnUnits="# degrees east,degrees north,m below datum,m above datum"
+   base_date=$(ncdump -h fort.63.nc | grep base_date | cut -d = -f 2 | tr -d '";')
+   csEpochSeconds=$(TZ=UTC date -u -d "$base_date" "+%s" 2>>$SYSLOG)
+   dataSetSecondsList=( $(ncks --json -v 'time' fort.63.nc | grep data | tr -d '"data:[,]') )
+   netcdf2adcirc.x --split --datafile fort.63.nc 2>> $SCENARIOLOG &
+   splitPid=$!
+   numDataSets=$(ncdump -h fort.63.nc | grep currently | grep -Eo [0-9]+)
+   echo '#' $(ncdump -h fort.63.nc | grep agrid | tr -d ':;\t\t' | sed -e 's/=/:/' 2>>$SCENARIOLOG) > staticHeader.csv
+   echo '#' $(ncdump -h fort.63.nc | grep rundes | tr -d ':;\t\t' | sed -e 's/=/:/' | cut -d ! -f 1 2>>$SCENARIOLOG) >> staticHeader.csv
+   echo '#' $(ncdump -h fort.63.nc | grep runid | tr -d ':;\t\t' \
+      | sed '/nowcast/!s/run/forward model guidance/'            \
+      | sed -e 's/=/:/' -e 's/nowcast/model retrospective/'      \
+      | cut -d ! -f 1 2>>$SCENARIOLOG) '"' >> staticHeader.csv
+   if [[ $numProcesses == "auto" ]]; then
+      numProcesses=$numDataSets
+      echo "Setting numProcesses to '$numProcesses'."
+   fi
+   c=1
+   while [[ $c -lt $numDataSets ]] ; do
+      for file in $(ls ??????_fort.63); do
+         count=${file:0:6}
+         splitCsvFileName=${csvFileName%.*}_$count.csv
+         if [[ ! -f $splitCsvFileName.xz && ! -f $file.lock ]]; then
+            if [[ $(( $(date '+%s') - $(stat -c %Y $file) )) -gt 10 && $(ls *.lock 2> /dev/null | wc -l) -lt $numProcesses ]]; then
+               echo $(date +'%Y-%h-%d-T%H:%M:%S%z') > $file.lock 2>> $SYSLOG
+               echo $count
+               c=$(( c + 1 ))
+               (
+                  cp staticHeader.csv $splitCsvFileName 2>> $SYSLOG
+                  d=$(( 10#$count - 1 ))
+                  dataSetSeconds=${dataSetSecondsList[$d]}
+                  dataSetEpochSeconds=$(( $csEpochSeconds + $dataSetSeconds ))
+                  dataSetDateTime="$(TZ=UTC date -u -d "1970-01-01 UTC $dataSetEpochSeconds seconds" +"%Y-%m-%d %H:%M:%S %Z")"
+                  echo "# date : \"$dataSetDateTime\"" >> $splitCsvFileName
+                  echo "# dataSetCount : \"$(( 10#$count )) of $numDataSets\"" >> $splitCsvFileName
+                  echo $columnDefinitions >> $splitCsvFileName
+                  echo $columnUnits >> $splitCsvFileName
+                  # place all columns in one file with a comma as the delimiter
+                  awk 'NR>3 { print $2 }' $file | paste -d "," xyd.txt - >> $splitCsvFileName
+                  xz -f $splitCsvFileName 2>> $SYSLOG
+                  echo rm $file.lock
+                  rm $file $file.lock 2>> $SYSLOG
+               ) &
+            fi
+         fi
+      done
+      sleep 10 # sleep before going to look for more files
+   done
+fi
+echo "Waiting for background jobs to finish ..."
+wait
