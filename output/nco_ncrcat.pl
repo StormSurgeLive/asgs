@@ -22,30 +22,8 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-# This script needs a "now" date in yyyymmddhh24 format and expects
-# to find directories and files arranged in the following way for
-# files posted to an opendap server:
-# $root_data_dir/year/metmodel/yyyymmddhh24/mesh/hpc/asgs_instance/scenario/file
-# and this way for files that are still in-situ in the directories
-# of an asgs instance on the hpc machine:
-# $root_data_dir/yyyymmddhh24/scenario/file
-# For example:
-#./2021/nam/2021012918/hsofs/hatteras.renci.org/hsofs-nam-bob-2021/nowcast/fort.61.nc
-# or
-# /work/jgflemin/asgs45806/2021042400/nowcast/fort.61.nc
-# Then the script concatenates the output files over different time
-# periods as follows (in days):
-# 0.25 0.5 1.0 2.0 4.0 8.0 16.0 32.0
-# with "now" date given as the final date in the file.
-#----------------------------------------------------------------
-# Assumptions :
-#   1. all files have the same cold start date (so the time in
-#      seconds is all that is needed)
-#   2. if the target date is not given, the script uses the latest
-#      target date available
-#   3. the sort used in the find command assumes that the only
-#      difference in the paths is in the dates ; if there are
-#      other differences (e.g., hpcenv) the sort command will fail
+# This script accepts a "now" date in yyyymmddhh24 format as
+# well as a json file with file list to process.
 #----------------------------------------------------------------
 # Dependencies :
 #   ncdump (installed with main netcdf library)
@@ -201,32 +179,6 @@ foreach my $p (@reverse_paths) {
          print "$t ";
       }
 
-      #my $jsTime_hash = h2o -recurse, JSON::PP->new->decode($timeJSON);
-      #my $data_ref = $jsTime_hash->variables->time->data;
-      #my @times = @$data_ref;
-      #foreach my $t (@times) {
-      #   print "$t ";
-      #}
-
-      #my $jsTime_ref = JSON::PP->new->decode($timeJSON);
-      #my $jsTime_hash = h2o -recurse, $jsTime_ref;
-      #my $data_ref = $jsTime_hash->variables->time->data;
-      #my @times = @$data_ref;
-      #foreach my $t (@times) {
-      #   print "$t ";
-      #}
-
-      #my $data_ref = @$time_ref{data};
-      # grab the list of paths out of the hash
-      #my $vars_ref = %$jsTime_ref{variables};
-      #print keys %$vars_ref;
-      #my $time_ref = %$vars_ref{time};
-      #print keys %$time_ref;
-
-      #@times = @$data_ref;
-      #foreach my $t (@times) {
-      #   print "$t ";
-      #}
 
  #  }
    #  if ( $runStartTimes[0] < $times[99] ) {
