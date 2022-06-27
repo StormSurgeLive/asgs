@@ -34,6 +34,14 @@
 # rm -f tmp ; for d in ${nowcastDirs[@]} ; do echo $d/fort.61.nc >> tmp ; done ; cat tmp | sort -r > filelist.txt
 # stationRetrospective.sh < filelist.txt
 # -----------------------------------------------------------------------
+# cat ../../../../Operations/autodownloader_config_april_nowcast.inventory | grep hsofs-nam-bob-2021 | grep fort.61.nc | sort -r > shortpath_filelist.txt
+# awk '{ print "/mnt/nas-storage/Operations/"$0 }' shortpath_filelist.txt > filelist.txt
+# stationRetrospective.sh < filelist.txt
+# -----------------------------------------------------------------------
+# cat ../../../Operations/autodownloader_config_april_nowcast.inventory | grep NCSC | grep fort.61.nc | sort -r > shortpath_filelist.txt
+# awk '{ print "/mnt/nas-storage/Operations/"$0 }' shortpath_filelist.txt > filelist.txt
+# stationRetrospective.sh < filelist.txt
+# -----------------------------------------------------------------------
 THIS=$(basename -- $0)
 timePeriods=( 1 2 4 7 14 21 30 ) # days back from the last available date
 timePeriodCount=0
@@ -46,7 +54,7 @@ for p in ${timePeriods[@]}; do
 done
 while read fname
 do
-    echo "$fname"
+    #echo "$fname"
     fileList+=( $fname )
     catList=( $fname ${catList[@]} )
     base_date=$(ncdump -h $fname | grep base_date | cut -d = -f 2 | tr -d '";')
@@ -58,7 +66,7 @@ do
     for d in ${dataSetSecondsList[@]}; do
         dataSetEpochSecondsList+=( $(( $csEpochSeconds + $d )) )
     done
-    echo ${dataSetEpochSecondsList[-1]}
+    #echo ${dataSetEpochSecondsList[-1]}
     if [[ ${#fileList[@]} -eq 1 ]]; then
         targetEpochSeconds=${dataSetEpochSecondsList[-1]}
         echo "targetEpochSeconds $targetEpochSeconds"
