@@ -551,10 +551,13 @@ set_hpc() {
    fi
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
+      echo "Guessing platform."
       plat=$($SCRIPTDIR/bin/guess platform)
-      if [[ ! -z $plat ]]; 
+      if [[ ! -z $plat ]]; then
          HPCENVSHORT=$plat
-         HPCENV=$plat
+	 # I see the PLATFORM_INIT variable defined in init-asgs.sh .... is it supposed
+	 # to be stored somewhere for use at run time?
+	 PLATFORM_INIT=${SCRIPTDIR}/platforms/$HPCENVSHORT/init.sh #FIXME: what if this was in ASGS_LOCAL_DIR ?
       else 
 	 echo "FATAL ERROR: Could not determine the HPC environment using '$SCRIPTDIR/bin/guess'"
 	 exit 1
