@@ -552,8 +552,13 @@ set_hpc() {
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
       plat=$($SCRIPTDIR/bin/guess platform)
-      HPCENVSHORT=$plat
-      HPCENV=$plat
+      if [[ ! -z $plat ]]; 
+         HPCENVSHORT=$plat
+         HPCENV=$plat
+      else 
+	 echo "FATAL ERROR: Could not determine the HPC environment using '$SCRIPTDIR/bin/guess'"
+	 exit 1
+      fi
    fi
    echo "$THIS: The value of HPCENV is ${HPCENV}."
    echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."

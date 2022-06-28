@@ -3,7 +3,7 @@
 # used inside and outside of the asgsh environment
 #
 # D O  N O T   M A N U A L L Y  A D D  P L A T F O R M S  H E R E  A N Y M O R E
-# See ./platforms/README
+# See $SCRIPTDIR/platforms/README
 #
 
 export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR:-.}
@@ -42,12 +42,12 @@ _guess_platform()
   # IF NOT FOUND ABOVE ... dive into platforms defined in ./platforms/
   _PLATFORMS=()
   if [ $default_platform == unknown ]; then
-    if [ -d .//platforms ]; then
-      for platform in $(find ./platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+    if [ -d ${SCRIPTDIR}/platforms ]; then
+      for platform in $(find ${SCRIPTDIR}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
         _PLATFORMS+=($platform);
       done
       for platform in "${_PLATFORMS[@]}"; do
-        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ./platforms/${platform}/init.sh ]]; then
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ${SCRIPTDIR}/platforms/${platform}/init.sh ]]; then
             default_platform=$platform
             break
         fi
