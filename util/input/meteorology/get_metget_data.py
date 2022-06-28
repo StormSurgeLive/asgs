@@ -2,17 +2,17 @@
 #
 # This file is part of Floodwater.
 # Copyright (c) 2022 The Water Institute of the Gulf.
-# 
-# This program is free software: you can redistribute it and/or modify  
-# it under the terms of the GNU General Public License as published by  
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, version 3.
 #
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License 
+# You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #
@@ -383,6 +383,8 @@ def main():
             request_data["strict"] = True
         if args.dryrun:
             request_data["dry_run"] = True
+            with open("metget.debug", "a") as f:
+                f.write(str(request_data))
 
         data_id, status_code = make_metget_request(endpoint, apikey, request_data)
         if not args.dryrun and status_code == 200:
