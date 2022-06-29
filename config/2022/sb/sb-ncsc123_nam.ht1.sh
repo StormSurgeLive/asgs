@@ -44,7 +44,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 
 # Initial state (overridden by STATEFILE after ASGS gets going)
 
-COLDSTARTDATE=2022050600  #  2020080100  # calendar year month day hour YYYYMMDDHH24
+COLDSTARTDATE=2022051000  #  2020080100  # calendar year month day hour YYYYMMDDHH24
 HOTORCOLD=coldstart       # "hotstart" or "coldstart"
 LASTSUBDIR=null
 

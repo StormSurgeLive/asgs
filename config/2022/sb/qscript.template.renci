@@ -18,9 +18,11 @@
 #SBATCH --ntasks=%totalcpu%
 #SBATCH --nodes=%nnodes%
 #SBATCH --mem-per-cpu=1G
+#SBATCH --prefer=cascade
 ##SBATCH --exclude=compute-7-[0-31]
 ##SBATCH --partition=%queuename%
 #SBATCH --partition=ncfs
+##SBATCH --partition=batch
 #SBATCH --reservation=%reservation%
 #SBATCH --constraint=%constraint%
 #SBATCH --account=%account%
