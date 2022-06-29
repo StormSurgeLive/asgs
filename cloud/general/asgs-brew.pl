@@ -646,7 +646,7 @@ sub get_steps {
             key         => q{setup-env},
             name        => q{Initializes common environmental variables needed for subsequent steps in asgs-brew.pl.},
             description => q{Updates current environment with variables needed for subsequent steps. It only affects the environment within the asgs-brew.pl environment.},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             command     => sub { 1 },
             clean       => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -683,7 +683,7 @@ sub get_steps {
             key         => q{openmpi},
             name        => q{Step for OpenMPI 1.8.1 for gfortran},
             description => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
-            pwd         => q{./cloud/general},
+            pwd         => qq{$scriptdir/cloud/general},
             command     => qq{bash init-openmpi.sh $asgs_install_path $asgs_compiler $makejobs},
             clean       => qq{bash init-openmpi.sh $asgs_install_path clean},
 
@@ -708,7 +708,7 @@ sub get_steps {
             key         => q{hdf5},
             name        => q{Step for HDF5 libraries and utilities},
             description => q{Downloads and builds the version of HDF5 that has been tested to work on all platforms for ASGS.},
-            pwd         => q{./cloud/general},
+            pwd         => qq{$scriptdir/cloud/general},
             command     => qq{bash init-hdf5.sh $asgs_install_path $asgs_compiler $makejobs},
             clean       => qq{bash init-hdf5.sh $asgs_install_path clean},
 
@@ -743,7 +743,7 @@ sub get_steps {
             key         => q{netcdf4},
             name        => q{Step for NetCDF4 libraries and utilities},
             description => q{Downloads and builds the versions of NetCDF and NetCFD-Fortran that have been tested to work on all platforms for ASGS.},
-            pwd         => q{./cloud/general},
+            pwd         => qq{$scriptdir/cloud/general},
             command     => qq{bash init-netcdf4.sh $asgs_install_path $asgs_compiler $makejobs},
             clean       => qq{bash init-netcdf4.sh $asgs_install_path clean},
 
@@ -781,20 +781,20 @@ sub get_steps {
             key         => q{wgrib2},
             name        => q{Step for wgrib2},
             description => q{Downloads and builds wgrib2 on all platforms for ASGS. Note: gfortran is required, so any compiler option passed is overridden.},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
 
             # -j > 1 breaks this makefile
             command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=gfortran},
             clean               => q{make clean},
-            skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./wgrib2}; },
+            skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./bin/wgrib2}; },
             precondition_check  => sub { 1 },
-            postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./wgrib2}; },
+            postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./bin/wgrib2}; },
         },
         {
             key                 => q{cpra-postproc},
             name                => q{Step for in output/cpra_postproc},
             description         => q{Runs the makefile and builds associated utilities in the output/cpra_postproc directory},
-            pwd                 => q{./output/cpra_postproc},
+            pwd                 => qq{$scriptdir/output/cpra_postproc},
             command             => qq{make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./FigureGen}; },
@@ -805,7 +805,7 @@ sub get_steps {
             key         => q{output},
             name        => q{Step for in output/},
             description => q{Runs the makefile and builds associated utilities in the output/ directory.},
-            pwd         => q{./output},
+            pwd         => qq{$scriptdir/output},
 
             # -j > 1 breaks this makefile
             command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
@@ -818,7 +818,7 @@ sub get_steps {
             key                 => q{util},
             name                => q{Step for in util/},
             description         => q{Runs the makefile and builds all associated utilities in the util/ directory.},
-            pwd                 => q{./util},
+            pwd                 => qq{$scriptdir/util},
             command             => qq{make -j $makejobs NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./makeMax.x}; },
@@ -829,7 +829,7 @@ sub get_steps {
             key                 => q{input-mesh},
             name                => q{Step for in util/input/mesh},
             description         => q{Runs the makefile and builds all associated util/input/mesh in the input-mesh/ directory.},
-            pwd                 => qq{./util/input/mesh},
+            pwd                 => qq{$scriptdir/util/input/mesh},
             command             => qq{make -j $makejobs NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./boundaryFinder.x}; },
@@ -840,7 +840,7 @@ sub get_steps {
             key         => q{input-nodalattr},
             name        => q{Step for in util/input/nodalattr},
             description => q{Runs the makefile and builds associated utilities in the util/input/nodalattr directory.},
-            pwd         => q{./util/input/nodalattr},
+            pwd         => qq{$scriptdir/util/input/nodalattr},
 
             # -j > 1 breaks this makefile
             command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
@@ -853,7 +853,7 @@ sub get_steps {
             key         => q{perl},
             name        => q{Step for perlbrew and perl for ASGS using perlbrew},
             description => q{Install local Perl version used for ASGS.},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             command     => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5},
             clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
 
@@ -882,7 +882,7 @@ sub get_steps {
             key                 => q{perl-modules},
             name                => q{Step for installing, adding, and updating required Perl modules},
             description         => q{Install Perl modules used for ASGS.},
-            pwd                 => q{./},
+            pwd                 => qq{$scriptdir},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
             precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.34.0/bin/perl} ) ? 1 : 0 },
@@ -899,7 +899,7 @@ sub get_steps {
             key         => q{image-magick},
             name        => q{Step for ImageMagick},
             description => q{Install local ImageMagick tools and Perl module Image::Magick.},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
 
             # Note, gcc is used to compile ImageMagick
             command => qq{bash ./cloud/general/init-image-magick.sh $asgs_install_path},
@@ -944,7 +944,7 @@ sub get_steps {
             key         => q{python3},
             name        => q{step for installing python 3 and required modules},
             description => q{install python 3 locally and install required modules},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             export_env  => {
 
                 # putting this in $home/python310/asgs/build reflects what perlbrew's default
@@ -971,7 +971,7 @@ sub get_steps {
             key         => q{ffmpeg},
             name        => q{Step for installing ffmpeg},
             description => q{Install ffmpeg and required libraries (nasm)},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             command     => qq{bash ./cloud/general/init-ffmpeg.sh $asgs_install_path gfortran 4},
             clean       => qq{bash ./cloud/general/init-ffmpeg.sh $asgs_install_path clean},
             skip_if     => sub {
@@ -996,7 +996,7 @@ sub get_steps {
             key         => q{gnuplot},
             name        => q{Step for installing gnuplot},
             description => q{Install gnuplot (commandline only)},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             command     => qq{bash ./cloud/general/init-gnuplot-noX11.sh $asgs_install_path gfortran 4},
             clean       => qq{bash ./cloud/general/init-gnuplot-noX11.sh $asgs_install_path clean},
             skip_if     => sub {
@@ -1021,7 +1021,7 @@ sub get_steps {
             key         => q{units},
             name        => q{Step for installing units},
             description => q{Install GNU Units utility},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             command     => qq{bash ./cloud/general/init-gnu-units.sh $asgs_install_path gfortran 4},
             clean       => qq{bash ./cloud/general/init-gnu-units.sh $asgs_install_path clean},
             skip_if     => sub {
@@ -1046,7 +1046,7 @@ sub get_steps {
             key         => q{nco},
             name        => q{Step for installing the NCO Toolkit},
             description => q{Install The netCDF Operators (NCO) Toolkit},
-            pwd         => q{./},
+            pwd         => qq{$scriptdir},
             command     => qq{bash ./cloud/general/init-nco.sh $asgs_install_path gfortran 4},
             clean       => qq{bash ./cloud/general/init-nco.sh $asgs_install_path clean},
             skip_if     => sub {
@@ -1071,7 +1071,7 @@ sub get_steps {
             key         => q{adcirc},
             name        => q{Build ADCIRC and SWAN},
             description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
-            pwd         => qq{./},
+            pwd         => qq{$scriptdir},
 
             # expose ENV on if --build-adcirc is passed as an option
             export_ENV => {
