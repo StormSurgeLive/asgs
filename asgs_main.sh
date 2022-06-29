@@ -53,6 +53,10 @@ readConfig()
    source ${SCRIPTDIR}/config/forcing_defaults.sh
    # pick up config parameters, set by the Operator, that differ from the defaults
    source ${CONFIG}
+   # ensure single digit STORM numbers issued by NHC are zero-padded
+   if [ -n "${STORM}" ]; then
+     STORM=$(printf "%02d" "$STORM")
+   fi
    # maintain backward compatibility with old config files
    if [[ $ENSEMBLESIZE != "null" ]]; then
        SCENARIOPACKAGESIZE=$ENSEMBLESIZE
