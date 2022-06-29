@@ -1,6 +1,6 @@
 #!/bin/bash
 #------------------------------------------------------------------------
-# opendap_post.sh : Makes nowcast results available to thredds data server.
+# opendap_post_nowcast.sh : Makes nowcast results available to thredds data server.
 #------------------------------------------------------------------------
 # Copyright(C) 2015--2019 Jason Fleming
 #
@@ -21,7 +21,6 @@
 #------------------------------------------------------------------------
 #
 THIS=$(basename -- $0)
-#
 
 # check to see if we are in a nowcast directory. If not, check for 
 # ../nowcast.  If not, exit
@@ -72,7 +71,7 @@ if [[ ${#SERVERS[@]} -eq 0 ]]; then
 fi
 declare -a FILES
 #fileList=${properties["post.opendap.files"]} # array of files to post to opendap
-FILES=( `ls $CONFIG run.properties endrisinginun.63.nc everdried.63.nc fort.61.nc fort.15 fort.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxele.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SCENARIOLOG` )
+FILES=( `ls $CONFIG run.properties endrisinginun.63.nc everdried.63.nc fort.61.nc fort.15 fort.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxele.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_HS.63.nc swan_HS_max.63.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SCENARIOLOG` )
 
 if [[ ${#FILES[@]} -eq 0 ]]; then
    warn "cycle $CYCLE: $SCENARIO: $THIS: No files to post to opendap servers in run.properties."
@@ -106,6 +105,12 @@ for server in ${SERVERS[*]}; do
    if [[ $server = "(" || $server = ")" ]]; then 
       continue
    fi
+   # skip any k8 server
+   if [[ "$server" =~ "k8" ]]; then
+      echo "Skipping $server in $THIS"
+      continue
+   fi
+
    allMessage "cycle $CYCLE: $SCENARIO: $_THIS: Posting to opendap server ${server}."
    # pick up config of the thredds data server where the files are to be posted
    scenarioMessage "Setting opendap server parameters with writeTDSProperties ${server}."

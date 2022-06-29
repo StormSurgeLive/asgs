@@ -33,7 +33,7 @@ fi
 # full path to the run.properties file
 echo "Loading properties."
 # get loadProperties function
-#SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 echo "opendap_post -->> SCRIPTDIR=$SCRIPTDIR"
 source $SCRIPTDIR/properties.sh
 SFTP_SCRIPT='sftp.xfer.coms'
@@ -145,13 +145,15 @@ for server in ${SERVERS[*]}; do
       continue
    fi
 
-   #allMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to opendap server ${server}."
-   echo "cycle $CYCLE: $SCENARIO: $THIS: Posting to opendap server ${server}."
+   allMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to opendap server ${server}."
+
    # pick up config of the thredds data server where the files are to be posted
-   echo "Setting opendap server parameters with writeTDSProperties ${server}."
+   scenarioMessage "Setting opendap server parameters with writeTDSProperties ${server}."
+
    # write platform-dependent properties related to posting to thredds server for
    # opendap service  (from platforms.sh)
    writeTDSProperties $server
+
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post.sh-->$server"
    echo $_THIS
@@ -189,25 +191,29 @@ for server in ${SERVERS[*]}; do
       STORMNAMEPATH=$YEAR/initialize
    fi
    OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
-   #BOB echo "post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" >> run.properties 2>> $SYSLOG
-   echo "opendap_post -->> post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" 
+   echo "post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" >> run.properties 2>> $SYSLOG
+   echo "BOB: opendap_post -->> post.opendap.${server}.opendapsuffix : $OPENDAPSUFFIX" 
 
-   #
    # Create full path to results for server file sytem.
    # OPENDAPBASEDIR is specified in platforms.sh.
    OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
-   #BOB echo "post.opendap.${server}.opendapdir : $OPENDAPDIR" >> run.properties 2>> $SYSLOG
+   echo "post.opendap.${server}.opendapdir : $OPENDAPDIR" >> run.properties 2>> $SYSLOG
+
    # create the opendap download url for the run.properties file
    downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+   DOWNLOADPREFIX=${properties["post.opendap.${server}.downloadprefix"]}
+   echo "post.opendap.${server}.downloadurl : $downloadURL" >> run.properties
+
    # add downloadurl or downloadurl_backup property to run.properties file
    if [[ ! `grep downloadurl run.properties` =~ downloadurl ]]; then
-      #BOB echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
-      echo "opendap_post -->> downloadurl : $downloadURL" 
+      echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
+      echo "BOB: opendap_post -->> downloadurl : $downloadURL" 
    else
       backupNum=`grep downloadurl run.properties | wc -l`
-      #BOB echo "downloadurl_backup$backupNum : $downloadURL" >> run.properties 2>> ${SYSLOG}
-      echo "opendap_post -->> downloadurl_backup$backupNum : $downloadURL" 
+      echo "downloadurl_backup$backupNum : $downloadURL" >> run.properties 2>> ${SYSLOG}
+      echo "BOB: opendap_post -->> downloadurl_backup$backupNum : $downloadURL" 
    fi
+
    #-----------------------------------------------------------------------
 
    echo "opendap_post -->> downloadurl : $downloadURL" 
@@ -218,7 +224,7 @@ for server in ${SERVERS[*]}; do
    # there is a failure, the Operator is notified rather than downstream
    # data consumers.
    threddsPostStatus=ok
-   echo "post.opendap.${server}.opendappostmethod : $OPENDAPPOSTMETHOD" # >> run.properties 2>> $SYSLOG
+   echo "post.opendap.${server}.opendappostmethod : $OPENDAPPOSTMETHOD" >> run.properties 2>> $SYSLOG
    #
    #-------------------------------------------------------------------
    #     C R E A T E    N O T I F I C A T I O N   E M A I L
@@ -273,28 +279,15 @@ END
    #-------------------------------------------------------------------
    echo "$SCENARIO: $_THIS: Posting to $OPENDAPHOST using the '$OPENDAPPOSTMETHOD' method."
 
-   # scenarioMessage "$SCENARIO: $_THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
-   echo "$SCENARIO: $_THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
+   scenarioMessage "$SCENARIO: $_THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
+   echo "BOB: $SCENARIO: $_THIS: Transferring files to $OPENDAPDIR on $OPENDAPHOST."
 
    retry=0
    mkdirRetryLimit=10 # FIXME: hardcoded for now
-#   mk_recursive_dir_list $STORMNAMEPATH/$OPENDAPSUFFIX > $SFTP_SCRIPT
-#   sftp -b $SFTP_SCRIPT $OPENDAPHOST
-#   if [[ $? == 0 ]]; then
-#      echo "Dir $STORMNAMEPATH/$OPENDAPSUFFIX generated on  $OPENDAPHOST."
-#   else
-#      echo "Failed to make $STORMNAMEPATH/$OPENDAPSUFFIX on $OPENDAPHOST. Might already exist."
-#   fi 
-#   scp run.properties ${OPENDAPHOST}:$STORMNAMEPATH/$OPENDAPSUFFIX
-
    while [[ $retry -lt $mkdirRetryLimit ]]; do
-      #ssh $OPENDAPHOST "mkdir -p $OPENDAPDIR" # >> $SCENARIOLOG 2>&1
-      #sh ~/messaging/test_for_dir.sh "$STORMNAMEPATH/$OPENDAPSUFFIX" $OPENDAPHOST
       mk_recursive_dir "$STORMNAMEPATH/$OPENDAPSUFFIX" $OPENDAPHOST
-
       if [[ $? != 0 ]]; then
-         #warn "$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
-         echo "$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
+         warn "$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
          threddsPostStatus=fail
       else
          scenarioMessage "$SCENARIO: $_THIS: Successfully created the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
@@ -310,6 +303,7 @@ END
       fileIndex=`expr $fileIndex + 1` # 2>> $SCENARIOLOG
    done
 
+#echo "BOB:1 threddsPostStatus=$threddsPostStatus"
    # add code to create write permissions on directories so that other
    # Operators can post results to the same directories
    #OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
@@ -379,27 +373,30 @@ END
       #   continue
       #fi
       #chmod +r $file # 2>> $SCENARIOLOG
-      #scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-      echo "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:$STORMNAMEPATH/$OPENDAPSUFFIX" 
+      echo "BOB: $SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+      scenarioMessage "$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
       retry=0
+#echo "BOB:2 threddsPostStatus=$threddsPostStatus"
       while [[ $retry -lt $timeoutRetryLimit ]]; do
-         scp $file ${OPENDAPHOST}:$STORMNAMEPATH/$OPENDAPSUFFIX # ${OPENDAPDIR} # >> $SCENARIOLOG 2>&1
+         if [ ! -e "$file" ] ; then
+            echo "BOB: $SCENARIO: $_THIS: File $file DNE."
+            warn "$SCENARIO: $_THIS: File $file DNE."
+            break 
+         fi
+         scp $file ${OPENDAPHOST}:$STORMNAMEPATH/$OPENDAPSUFFIX >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
-            #warn "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-            echo "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+            echo "BOB: $SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
+            warn "$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          else
-            # scenarioMessage "$SCENARIO: $_THIS: Successfully transferred the file."
-            echo "$SCENARIO: $_THIS: Successfully transferred the file."
+            scenarioMessage "$SCENARIO: $_THIS: Successfully transferred the file."
             break
          fi
          retry=`expr $retry + 1`
          if [[ $retry -lt $timeoutRetryLimit ]]; then
-            # scenarioMessage "$SCENARIO: $_THIS: Trying again."
-            echo "$SCENARIO: $_THIS: Trying again."
+            scenarioMessage "$SCENARIO: $_THIS: Trying again."
          else
-            # scenarioMessage "$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
-            echo "$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            scenarioMessage "$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
          fi
       done
       # give the file read permissions on the remote filesystem
@@ -430,17 +427,19 @@ END
    # jgf20160322: FIXME: post to opendap even if there was an error so we can
    # see what the error is
    #
-   #if [[ threddsPostStatus != ok ]]; then
-   #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
-   #   cat ${SCENARIODIR}/opendap_results_notify.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
-   #else
-   # if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
-   #    scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
-   #    # use asgs sendmail if Operator has set it up
-   #    if [[ $OPENDAPMAILSERVER = "aws" ]]; then
-   #       $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
-   #    else
-   #       cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
-   #    fi
-   # fi
+#echo "BOB:3 threddsPostStatus=$threddsPostStatus"
+   if [[ $threddsPostStatus != ok ]]; then
+      error "$_THIS: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
+      cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $ASGSADMIN 2>> ${SYSLOG} 2>&1
+   else
+      if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
+         scenarioMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
+         # use asgs sendmail if Operator has set it up
+         if [[ $OPENDAPMAILSERVER = "aws" ]]; then
+            $SCRIPTDIR/asgs-sendmail.pl --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1
+         else
+            cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | mail  -S "replyto=$ASGSADMIN" -s "$subject" $OPENDAPNOTIFY 2>> ${SYSLOG} 2>&1
+         fi
+      fi
+    fi
 done # end loop over opendap servers

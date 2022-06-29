@@ -106,7 +106,7 @@ for server in ${SERVERS[*]}; do
       continue
    fi
    # skip any k8 server
-   if [[ "$server" =~ "k8" ]]
+   if [[ "$server" =~ "k8" ]]; then
       echo "Skipping $server in $THIS"
       continue
    fi
@@ -160,6 +160,7 @@ for server in ${SERVERS[*]}; do
    echo "post.opendap.${server}.opendapdir : $OPENDAPDIR" >> run.properties 2>> $SYSLOG
    # create the opendap download url for the run.properties file
    downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
+   echo "post.opendap.${server}.downloadurl : $downloadURL" >> run.properties
    # add downloadurl or downloadurl_backup property to run.properties file
    if [[ ! `grep downloadurl run.properties` =~ downloadurl ]]; then
       echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}

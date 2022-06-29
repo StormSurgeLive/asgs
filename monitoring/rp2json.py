@@ -5,7 +5,7 @@ import pika
 import datetime
 import json
 
-queue_name='asgs_props'
+queue_name='asgs_prod'
 destinations={}
 destinations['renci-prod']={
  'queue_name': queue_name,

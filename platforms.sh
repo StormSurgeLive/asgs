@@ -570,8 +570,10 @@ writeTDSProperties()
       # http://tds.renci.org:80/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
       # http://tds.renci.org:80/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
       THREDDSHOST=apsviz-sftp-dev-conn.apps.renci.org 
+      THREDDSDOWNLOADHOST=apsviz-thredds-dev.apps.renci.org
       OPENDAPHOST=renci_tds-k8     # alias in $HOME/.ssh/config
       OPENDAPPORT=":2022"
+      OPENDAPDOWNLOADPORT=""
       OPENDAPPROTOCOL="http"
       OPENDAPBASEDIR=/thredds-data
       #echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
@@ -635,8 +637,13 @@ writeTDSProperties()
    # now write properties
    echo "post.opendap.${SERVER}.opendaphost : $OPENDAPHOST" >> run.properties
    echo "post.opendap.${SERVER}.threddshost : $THREDDSHOST" >> run.properties
-   echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
-   echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   if [ "x$THREDDSDOWNLOADHOST" == "x" ] ; then
+      echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+      echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   else
+      echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSDOWNLOADHOST$OPENDAPDOWNLOADPORT/thredds/fileServer$DOWNLOADPREFIX" >> run.properties
+      echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSDOWNLOADHOST$OPENDAPDOWNLOADPORT/thredds/catalog$CATALOGPREFIX" >> run.properties
+   fi 
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> run.properties
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is
    # set up and ready to use
