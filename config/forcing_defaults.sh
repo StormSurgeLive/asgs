@@ -55,6 +55,33 @@ ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 VELOCITYMULTIPLIER=1.0
 forecastSelection="latest"            # "latest" or "strict"
 forecastDownload="only-to-run"        # "only-to-run" or "all"
+
+#
+#  Meteorological Forcing : MetGet
+#
+metGetURL=https://api.metget.zachcobell.com
+#
+#  Meteorological Forcing : (COAMPS-TC) Model
+#
+# GFS subset
+coampstcDomain['leftlon']='-110'
+coampstcDomain['rightlon']='-45'
+coampstcDomain['toplat']='50'
+coampstcDomain['bottomlat']='0'
+coamstcForecastLength=120   # hours of COAMPS-TC forecast to run
+#
+# lat0, lon0 = degrees of lat/lon for 1st grid point
+# nlon = number of longitudes
+# nlat = number of latitudes
+# dlon = grid cell size in degrees of longitude
+# dlat = grid cell size in degrees of latitude
+gfsLatLonGrid['lon0']='260'
+gfsLatLonGrid['nlon']='240'
+gfsLatLonGrid['dlon']='0.25'
+gfsLatLonGrid['lat0']='5'
+gfsLatLonGrid['nlat']='240'
+gfsLatLonGrid['dlat']='0.25'
+
 #
 #  Meteorological Forcing : Global Forecast System (GFS) Model
 #

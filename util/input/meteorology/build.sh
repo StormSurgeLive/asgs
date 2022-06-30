@@ -5,5 +5,3 @@ curl  -v  \
    -H "x-api-key: $METGET_API_KEY" \
     $URL | json_pp > stuff.json
 
-   # \
-   #< metget_build_coamps-tc.json
