@@ -1528,7 +1528,6 @@ STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
 
 variables_init           # initialize variables
-HPCENVSHORT="null"       # in case this is leftover in the env
 initFileStatusMonitoring # initialize variables
 #
 # create directories with default permissions of "775" and
@@ -1555,10 +1554,7 @@ done
 #
 # determine hpc environment via function from platforms.sh
 echo "Setting platform."
-if [[ $HPCENVSHORT = "null" ]]; then
-  echo "set_hpc"
-   set_hpc
-fi
+set_hpc
 echo "(info) HPCENV is '$HPCENV'"
 echo "(info) HPCENVSHORT is '$HPCENVSHORT'"
 #
