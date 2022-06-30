@@ -784,7 +784,7 @@ sub get_steps {
             pwd         => qq{$scriptdir},
 
             # -j > 1 breaks this makefile
-            command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=gfortran},
+            command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
             clean               => q{make clean},
             skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./bin/wgrib2}; },
             precondition_check  => sub { 1 },
