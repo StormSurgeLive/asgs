@@ -49,10 +49,17 @@ verify_perl() {
   echo +
   echo ++ Verifying Perl Environment:
   pushd $SCRIPTDIR > /dev/null 2>&1
+  # need to be careful not to test the perl scripts that come
+  # along with the perl source that comes with perlbrew
   perl $SCRIPTDIR/cloud/general/t/verify-perl-modules.t
   perl $SCRIPTDIR/cloud/general/t/verify-image-magick.t
-  for file in $(find . -name "*.pl"); do
+  for file in $(find ${SCRIPTDIR} -maxdepth 1 -name '*.pl'); do
     perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
+  done
+  for DIR in "PERL bin"; do
+    for file in $(find ${SCRIPTDIR}/$DIR -name "*.pl"); do
+      perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
+    done
   done
 }
 
@@ -64,7 +71,7 @@ verify_python3() {
   rm -f ./*.nc # post clean up
   popd > /dev/null 2>&1
   # clean up all python cache dirs
-  find . -name __pycache__ | xargs -n1 rm -rfv
+  find . -name __pycache__ | xargs -n1 rm -rf
 }
 
 verify_regressions() {
