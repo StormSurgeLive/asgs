@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------
 # opendap_post2.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015--2019 Jason Fleming
+# Copyright(C) 2015--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -130,7 +130,7 @@ for server in ${SERVERS[*]}; do
       cat run.properties >> $RUNPROPERTIES
       rm run.properties # so we don't keep appending to it
       $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
    fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post2.sh-->$server"
@@ -292,7 +292,7 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 END
       $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
@@ -390,7 +390,9 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-chmod a+wx "$partialPath"
+if [[ $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
+   chmod a+wx "$partialPath"
+fi
 SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
@@ -511,7 +513,7 @@ SSHCMD
               unset MSG
             else
               opendapEmailSent=yes
-            fi 
+            fi
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
          fi
@@ -696,7 +698,7 @@ SSHCMD
               unset MSG
             else
               opendapEmailSent=yes
-            fi 
+            fi
             continue
          fi
          chmod +r "$file" 2>> $SYSLOG
@@ -789,7 +791,7 @@ SSHCMD
               unset MSG
             else
               opendapEmailSent=yes
-            fi 
+            fi
             continue
          fi
          chmod +r $file 2>> $SYSLOG
@@ -848,6 +850,6 @@ SSHCMD
           warn "$MSG"
         fi
         unset MSG
-      fi 
+      fi
    fi
 done # end loop over opendap servers
