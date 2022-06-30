@@ -56,10 +56,10 @@ all : tide_fac.x awip_lambert_interp.x lambertInterpRamp.x wgrib2
 clean : cleano cleanx
 #
 cleanx:
-	rm -f *.x tides/*.x ./wgrib2 input/*.x
+	rm -rf *.x tides/*.x bin/wgrib2 input/*.x ./grib2
 #
 cleano :
-	rm -f *.o *.mod tides/*.o tides/*.mod wgrib2 input/*.o input/*.mod
+	rm -rf *.o *.mod tides/*.o tides/*.mod bin/wgrib2 input/*.o input/*.mod
 #
 tide_fac.x : tides/tide_fac.f
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o tides/tide_fac.x tides/tide_fac.f $(OBJ) $(LDFLAGS)
