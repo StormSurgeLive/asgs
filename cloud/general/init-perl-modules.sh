@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # unconditionally attempts to install the Perl modules that are required
 
-PERLBREW_ROOT=${1-$HOME/perl5/perlbrew}
+PERLBREW_ROOT=${1:-"${ASGS_HOME}/perl5/perlbrew"}
 source $PERLBREW_ROOT/etc/bashrc
 
 # Note: not available via asgs-brew.pl at this time
@@ -26,7 +26,7 @@ fi
 
 echo Installing Perl modules required for ASGS
 
-# ensure CPAN over SSL
+# ensure CPAN over non-SSL
 MIRROR="http://www.cpan.org/"
 
 # install tempermental modules first

@@ -470,11 +470,11 @@ define() {
         return
       fi
       export ASGS_CONFIG=${ABS_PATH}
-      echo "${I} ASGS_CONFIG is defined as '${ASGS_CONFIG}'"
+      echo "${I} ASGS_CONFIG is now defined as '${ASGS_CONFIG}'"
       ;;
     editor)
       export EDITOR=${2}
-      echo "${I} EDITOR is defined as '${EDITOR}'"
+      echo "${I} EDITOR is now defined as '${EDITOR}'"
       ;;
     scriptdir)
       export SCRIPTDIR=${2}
@@ -493,7 +493,7 @@ define() {
       ;;
   esac
   if [ 1 -eq "$_DEFINE_OK" ]; then
-    export PS1="asgs (${_ASGSH_CURRENT_PROFILE}*)> "
+    save profile
   fi
 }
 
@@ -559,14 +559,15 @@ edit() {
     $EDITOR $ASGS_PLATFORMS
     ;;
   profile)
-    NAME=${2}
+    NAME=${2:-"$_ASGSH_CURRENT_PROFILE"}
     if [[ -z "$NAME" || ! -e "$ASGS_META_DIR/$NAME" ]]; then
       echo "An ASGS profile named '$NAME' doesn't exist"
       return
     fi
     $EDITOR "$ASGS_META_DIR/$NAME"
-    if [ 0 -eq $? ]; then
-      read -p "reload edited profile '$_ASGSH_CURRENT_PROFILE'? [y]" reload
+    # offer to reload if profile edited/inspected is also the current profile
+    if [[ 0 -eq $? && "$NAME" == "$_ASGSH_CURRENT_PROFILE" ]]; then
+	    read -p "reload current profile (if modified)'$_ASGSH_CURRENT_PROFILE'? [y]" reload
       if [[ -z "$reload" || "$reload" = "y" ]]; then
         rl
       else
@@ -779,6 +780,12 @@ build() {
     jq)
       init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
       ;;
+    pdl)
+      init-perl-data-language.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    perl-dev)
+      init-perldev-env.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
     replaycli)
       init-replaycli.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
       ;;
@@ -786,6 +793,8 @@ build() {
       echo 'Supported "build" options:'
       echo '  adcirc    - ADCIRC build wizard supporting different versions and patchsets'
       echo '  jq        - "a lightweight and flexible command-line JSON processor"'
+      echo '  pdl       - installs the latest version of the Perl Data Language (PDL)'
+      echo '  perl-dev  - installs tools useful for Perl development (e.g., Dist::Zilla)'
       echo '  replaycli - a client for StormReplay.com, an ASGS related service'
       ;;
   esac
