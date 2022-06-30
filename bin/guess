@@ -40,14 +40,15 @@ _guess_platform()
   fi
 
   # IF NOT FOUND ABOVE ... dive into platforms defined in ./platforms/
-  _PLATFORMS=()
+  local _PLATFORMS=()
+  local _BASE=${SCRIPTDIR:-.} # needs to operate outside of asgsh, for ./init-asgs.sh
   if [ $default_platform == unknown ]; then
-    if [ -d .//platforms ]; then
-      for platform in $(find ./platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+    if [ -d ${_BASE}/platforms ]; then
+      for platform in $(find ${_BASE}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
         _PLATFORMS+=($platform);
       done
       for platform in "${_PLATFORMS[@]}"; do
-        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ./platforms/${platform}/init.sh ]]; then
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ${_BASE}/platforms/${platform}/init.sh ]]; then
             default_platform=$platform
             break
         fi
