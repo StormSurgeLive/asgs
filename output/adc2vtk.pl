@@ -512,11 +512,11 @@ for (my $i=0; $i<$nbou; $i++) {
       $fluxBoundaryNodeElevs[$j] = "null";
       # no-flux (land and island) boundaries only have the node number
       if ( $ibtype == 0 || $ibtype == 10 || $ibtype == 20 || $ibtype == 1 || $ibtype == 11 || $ibtype == 21 ) {
-         $fluxBoundaryNodeElevs[$j] = -$z[$nbvv[$j]-1];
+         $fluxBoundaryNodeElevs[$j] = -1.0*$z[$nbvv[$j]-1];
       }
       # river boundaries only have the node number
       if ( $ibtype == 2 || $ibtype == 12 || $ibtype == 22 || $ibtype == 52 ) {
-         $fluxBoundaryNodeElevs[$j] = -$z[$nbvv[$j]-1];
+         $fluxBoundaryNodeElevs[$j] = -1.0*$z[$nbvv[$j]-1];
       }
       # external overflow boundaries have the node number and height
       if ( $ibtype == 3 || $ibtype == 13 || $ibtype == 23 ) {
@@ -602,7 +602,7 @@ for (my $i=0; $i<$nbou; $i++) {
       # if the boundary node elevation is above the datum (negative)
       # then make the top of the boundary 1.0m above the boundary node elev
       if ( $z[$nbvv[$j]-1] < 0.0 ) {
-         $topZ[$j] = -$z[$nbvv[$j]-1] + 1.0;
+         $topZ[$j] = -1.0*$z[$nbvv[$j]-1] + 1.0;
       }
       # if this is a levee boundary, the top of the boundary
       # geometry is the same as the specified levee height
@@ -610,9 +610,12 @@ for (my $i=0; $i<$nbou; $i++) {
          $topZ[$j] = $fluxBoundaryNodeElevs[$j];
       }
    }
+   my $zrev;
    # write the base front face boundary vertices (i.e., boundary node elevation)
    for (my $j=0; $j<$nvell; $j++) {
-      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] -$z[$nbvv[$j]-1] ";
+      $zrev = -1.0 * $z[$nbvv[$j]-1];
+      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $zrev ";
+#      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] -$z[$nbvv[$j]-1] ";
    }
    printf  XDMFFLUXBOUNDARY "\n";
    # write the top frount face boundary vertices
@@ -627,7 +630,8 @@ for (my $i=0; $i<$nbou; $i++) {
       }
       printf  XDMFFLUXBOUNDARY "\n";
       for (my $j=0; $j<$nvell; $j++) {
-         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] -$z[$ibconn[$j]-1] ";
+         $zrev = -1.0 * $z[$ibconn[$j]-1];
+         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $zrev";
       }
       printf  XDMFFLUXBOUNDARY "\n";
    }
