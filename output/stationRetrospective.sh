@@ -42,6 +42,8 @@
 # awk '{ print "/mnt/nas-storage/Operations/"$0 }' shortpath_filelist.txt > filelist.txt
 # stationRetrospective.sh < filelist.txt
 # -----------------------------------------------------------------------
+# export RETROSPECTIVE_TARGET_DATE=2022050100  # set end date for the retrospective
+# -----------------------------------------------------------------------
 THIS=$(basename -- $0)
 timePeriods=( 1 2 4 7 14 21 30 ) # days back from the last available date
 timePeriodCount=0
@@ -67,18 +69,22 @@ do
         dataSetEpochSecondsList+=( $(( $csEpochSeconds + $d )) )
     done
     #echo ${dataSetEpochSecondsList[-1]}
-    if [[ ${#fileList[@]} -eq 1 ]]; then
+    if [[ ${#fileList[@]} -eq 1 && -z $RETROSPECTIVE_TARGET_DATE ]]; then
         targetEpochSeconds=${dataSetEpochSecondsList[-1]}
         echo "targetEpochSeconds $targetEpochSeconds"
     fi
+    if [[ ! -z $RETROSPECTIVE_TARGET_DATE ]]; then
+        r=$RETROSPECTIVE_TARGET_DATE # for readability of next line
+        targetEpochSeconds=$(TZ=UTC date -u -d "${r:0:4}-${r:4:2}-${r:6:2} ${r:8:2}:00:00" "+%s")
+    fi
+    echo "#!/bin/bash" > $targetEpochSeconds.sh
     for i in $(seq 1 $numDataSets); do
         period=$(( $targetEpochSeconds - ${dataSetEpochSecondsList[-$i]} ))
         #echo $period
         if [[ $period -ge ${timePeriodsSeconds[$timePeriodCount]} ]]; then
             retroFileName=$(printf "%02d_day.fort.61.nc" ${timePeriods[$timePeriodCount]})
-            echo
-            echo "ncrcat -O -d time,$(( $numDataSets - $i )),$dataSetCount ${catList[@]} $retroFileName"
-            ncrcat -O -d time,$(( $dataSetCount - $i )),$numDataSets ${catList[@]} $retroFileName
+            #echo "ncrcat -O -d time,$(( $numDataSets - $i )),$dataSetCount ${catList[@]} $retroFileName"
+            ncrcat -O -d time,$(( $numDataSets - $i )),$dataSetCount ${catList[@]} $retroFileName
             if [[ $timePeriodCount -lt $(( ${#timePeriods[@]} - 1 )) ]]; then
                 timePeriodCount=$(( $timePeriodCount + 1 ))
             else

@@ -47,6 +47,7 @@ real(8) :: snapr ! time (s)
 integer :: lineNum
 integer :: i
 integer :: f     ! file counter
+integer :: k     ! dataset counter
 meshonly = .false.
 split = .false.
 call initLogging(availableUnitNumber(),'netcdf2adcirc.f90')
@@ -132,17 +133,22 @@ do f = 1,numAsciiFiles
    ! loop over netcdf datasets
    lineNum = 1
    do i=1,snapsPerFile
+      if ( split.eqv..false.) then
+         k = i
+      else
+         k = f
+      endif
       !
       ! READ ONE COMPLETE DATASET FROM NETCDF
       !
       fn%dataFileFormat = NETCDFG
-      call readOneDataset(fn, m, i, lineNum, snapr, snapi)
+      call readOneDataset(fn, m, k, lineNum, snapr, snapi)
       !fn%
       !
       ! WRITE ONE COMPLETE DATASET TO ASCII
       !
       fn%dataFileFormat = ASCIIG
-      call writeOneDataset(fn, m, i, lineNum, snapr, snapi)
+      call writeOneDataset(fn, m, k, lineNum, snapr, snapi)
       if ( split.eqv..false. ) then
          write(6,advance='no',fmt='(i6)') i
       endif
