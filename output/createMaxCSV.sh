@@ -191,15 +191,32 @@ if [[ -s fort.63.nc ]]; then
    base_date=$(ncdump -h fort.63.nc | grep base_date | cut -d = -f 2 | tr -d '";')
    csEpochSeconds=$(TZ=UTC date -u -d "$base_date" "+%s" 2>>$SYSLOG)
    dataSetSecondsList=( $(ncks --json -v 'time' fort.63.nc | grep data | tr -d '"data:[,]') )
-   netcdf2adcirc.x --split --datafile fort.63.nc 2>> $SCENARIOLOG &
+   netcdf2adcirc.x --split --datafile fort.63.nc 2>> $SCENARIOLOG
    splitPid=$!
    numDataSets=$(ncdump -h fort.63.nc | grep currently | grep -Eo [0-9]+)
-   echo '#' $(ncdump -h fort.63.nc | grep agrid | tr -d ':;\t\t' | sed -e 's/=/:/' 2>>$SCENARIOLOG) > staticHeader.csv
-   echo '#' $(ncdump -h fort.63.nc | grep rundes | tr -d ':;\t\t' | sed -e 's/=/:/' | cut -d ! -f 1 2>>$SCENARIOLOG) >> staticHeader.csv
-   echo '#' $(ncdump -h fort.63.nc | grep runid | tr -d ':;\t\t' \
-      | sed '/nowcast/!s/run/forward model guidance/'            \
-      | sed -e 's/=/:/' -e 's/nowcast/model retrospective/'      \
-      | cut -d ! -f 1 2>>$SCENARIOLOG) '"' >> staticHeader.csv
+   wetonlyCsvFileName="${STORMNAMELC}adv${CYCLE}${GRIDNAME}${SCENARIO}wetonly.csv"
+   for file in $(ls ??????_fort.63); do
+      count=${file:0:6}
+      awk 'NR>3 && $2<-99998 { print "0" } NR>3 && $2>-99998 { print "1" }' $file | resultScope.x --meshfile LA_v20a-WithUpperAtch_chk.grd --datafile $file --datafiletype fort.63 --datafileformat ascii --resultfileformat ascii --resultshape wetonly
+      nnodes=$(awk 'NR==2 { print $2 }' "LA_v20a-WithUpperAtch_chk.grd_wetonly-sub.14")
+      nele=$(awk 'NR==2 { print $1 }' "LA_v20a-WithUpperAtch_chk.grd_wetonly-sub.14")
+      awk -v n=$nnodes -v e=$nele 'NR>=(n+3) && NR<(n+3+e) { print $3","$4","$5 }' LA_v20a-WithUpperAtch_chk.grd_wetonly-sub.14 > tin_connectivity_1_$file.csv
+      (xz -f tin_connectivity_1_$file.csv &)
+      awk -v n=$nnodes -v e=$nele 'NR>=(n+3) && NR<(n+3+e) { print $3-1","$4-1","$5-1 }' LA_v20a-WithUpperAtch_chk.grd_wetonly-sub.14 > tin_connectivity_0_$file.csv
+      (xz -f tin_connectivity_0_$file.csv &)
+      awk 'NR==2 { np=$2 } NR>2 && NR<=np+2 { print $2","$3","$4 }' LA_v20a-WithUpperAtch_chk.grd_wetonly-sub.14 > xyd.txt 2>> $SCENARIOLOG
+      splitCsvFileName=${wetonlyCsvFileName%.*}_$count.csv
+      echo $columnDefinitions >> $splitCsvFileName
+      awk 'NR>3 { print $2 }' "sub-wetonly_$file" | paste -d "," xyd.txt - >> $splitCsvFileName
+      (xz -f $splitCsvFileName &)
+   done
+   exit
+   #echo '#' $(ncdump -h fort.63.nc | grep agrid | tr -d ':;\t\t' | sed -e 's/=/:/' 2>>$SCENARIOLOG) > staticHeader.csv
+   #echo '#' $(ncdump -h fort.63.nc | grep rundes | tr -d ':;\t\t' | sed -e 's/=/:/' | cut -d ! -f 1 2>>$SCENARIOLOG) >> staticHeader.csv
+   #echo '#' $(ncdump -h fort.63.nc | grep runid | tr -d ':;\t\t' \
+   #   | sed '/nowcast/!s/run/forward model guidance/'            \
+   #   | sed -e 's/=/:/' -e 's/nowcast/model retrospective/'      \
+   #   | cut -d ! -f 1 2>>$SCENARIOLOG) '"' >> staticHeader.csv
    if [[ $numProcesses == "auto" ]]; then
       numProcesses=$numDataSets
       echo "Setting numProcesses to '$numProcesses'."
@@ -220,10 +237,10 @@ if [[ -s fort.63.nc ]]; then
                   dataSetSeconds=${dataSetSecondsList[$d]}
                   dataSetEpochSeconds=$(( $csEpochSeconds + $dataSetSeconds ))
                   dataSetDateTime="$(TZ=UTC date -u -d "1970-01-01 UTC $dataSetEpochSeconds seconds" +"%Y-%m-%d %H:%M:%S %Z")"
-                  echo "# date : \"$dataSetDateTime\"" >> $splitCsvFileName
-                  echo "# dataSetCount : \"$(( 10#$count )) of $numDataSets\"" >> $splitCsvFileName
+                  #echo "# date : \"$dataSetDateTime\"" >> $splitCsvFileName
+                  #echo "# dataSetCount : \"$(( 10#$count )) of $numDataSets\"" >> $splitCsvFileName
                   echo $columnDefinitions >> $splitCsvFileName
-                  echo $columnUnits >> $splitCsvFileName
+                  #echo $columnUnits >> $splitCsvFileName
                   # place all columns in one file with a comma as the delimiter
                   awk 'NR>3 { print $2 }' $file | paste -d "," xyd.txt - >> $splitCsvFileName
                   xz -f $splitCsvFileName 2>> $SYSLOG

@@ -460,7 +460,7 @@ printf VTKFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
 printf VTKFLUXBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
 printf VTKFLUXBOUNDARY "   <PolyData>\n";
 #
-# write out the flux-specified boundary tables as geometry
+# write out the flux-specified boundary tables as XDMF 3DSMESH geometry
 # to show boundary height
 my $xdmfFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.xmf";
 unless (open(XDMFFLUXBOUNDARY,">$xdmfFluxBoundaryGeometryFileName")) {
@@ -476,6 +476,8 @@ printf XDMFFLUXBOUNDARY "   <Domain Name=\"$agrid\">\n";
 printf XDMFFLUXBOUNDARY "      <Grid CollectionType=\"Spatial\" GridType=\"Collection\" Name=\"Levees\">\n";
 # not needed #printf XDMFFLUXBOUNDARY "          <Geometry Type=\"None\"/>\n";
 # not needed #printf XDMFFLUXBOUNDARY "             <Topology Dimensions=\"0\" Type=\"NoTopology\"/>\n";
+#
+
 #
 # now start reading the boundary table from the mesh (fort.14) file
 $line = <MESH>;
@@ -640,6 +642,59 @@ for (my $i=0; $i<$nbou; $i++) {
    printf XDMFFLUXBOUNDARY "                <Topology Dimensions=\"$numXYZValsPerNode $nvell 1\" Type=\"3DSMesh\"/>\n";
 
    printf XDMFFLUXBOUNDARY "             </Grid>\n";
+   #
+   #  F L U X   B O U N D A R Y   A S   2 D M   M E S H   G E O M E T R Y
+   #
+   # write out the flux-specified boundary tables as 2DM mesh geometry
+   # to show boundary height, ref: https://www.xmswiki.com/wiki/SMS:2D_Mesh_Files_*.2dm
+   # for reading into QGIS, ref:
+   # https://docs.qgis.org/3.16/en/docs/user_manual/working_with_mesh/mesh_properties.html
+   # https://github.com/lutraconsulting/MDAL
+   my $boundaryNumber = sprintf(%04d,$i);
+   my $twodmFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry_$boundaryNumber.2dm";
+   unless (open(TWODMFLUXBOUNDARY,">$twodmFluxBoundaryGeometryFileName")) {
+      stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.");
+      die;
+   }
+   # write header for boundary geometry file
+   printf TWODMFLUXBOUNDARY "MESH2D\n";
+   # write the node table for this flux boundary
+   for (my $j=0; $j<$nvell; $j++) {
+      # conpute the z value of the top of the boundary geometry
+      $topZ[$j] = 1.0;  # arbitrary default
+      # if the boundary node elevation is above the datum (negative)
+      # then make the top of the boundary 1.0m above the boundary node elev
+      if ( $z[$nbvv[$j]-1] < 0.0 ) {
+         $topZ[$j] = -$z[$nbvv[$j]-1] + 1.0;
+      }
+      # if this is a levee boundary, the top of the boundary
+      # geometry is the same as the specified levee height
+      if ( $numPointsPerBoundaryNode == 2 ) {
+         $topZ[$j] = $fluxBoundaryNodeElevs[$j];
+      }
+   }
+   # write the base front face boundary vertices (i.e., boundary node elevation)
+   for (my $j=0; $j<$nvell; $j++) {
+      printf TWODMFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] -$z[$nbvv[$j]-1] ";
+   }
+   printf  TWODMFLUXBOUNDARY "\n";
+   # write the top frount face boundary vertices
+   for (my $j=0; $j<$nvell; $j++) {
+      printf TWODMFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j] ";
+   }
+   printf  TWODMFLUXBOUNDARY "\n";
+   # if this is a levee boundary, write the back side geometry
+   if ( $numPointsPerBoundaryNode == 2 ) {
+      for (my $j=0; $j<$nvell; $j++) {
+         printf TWODMFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j] ";
+      }
+      printf  TWODMFLUXBOUNDARY "\n";
+      for (my $j=0; $j<$nvell; $j++) {
+         printf TWODMFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] -$z[$ibconn[$j]-1] ";
+      }
+      printf  TWODMFLUXBOUNDARY "\n";
+   }
+   close(TWODMFLUXBOUNDARY);
 }
 close(MESH);
 # finish echo boundary table
