@@ -158,14 +158,15 @@ for server in ${SERVERS[*]}; do
    # OPENDAPBASEDIR is specified in platforms.sh.
    OPENDAPDIR=$OPENDAPBASEDIR/$STORMNAMEPATH/$OPENDAPSUFFIX
    echo "post.opendap.${server}.opendapdir : $OPENDAPDIR" >> run.properties 2>> $SYSLOG
+
    # create the opendap download url for the run.properties file
    downloadURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX
    echo "post.opendap.${server}.downloadurl : $downloadURL" >> run.properties
    # add downloadurl or downloadurl_backup property to run.properties file
-   if [[ ! `grep downloadurl run.properties` =~ downloadurl ]]; then
+   if [[ ! `grep ^downloadurl run.properties` =~ downloadurl ]]; then
       echo "downloadurl : $downloadURL" >> run.properties 2>> ${SYSLOG}
    else
-      backupNum=`grep downloadurl run.properties | wc -l`
+      backupNum=`grep ^downloadurl run.properties | wc -l`
       echo "downloadurl_backup$backupNum : $downloadURL" >> run.properties 2>> ${SYSLOG}
    fi
    #-----------------------------------------------------------------------
