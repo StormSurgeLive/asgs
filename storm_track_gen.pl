@@ -240,18 +240,18 @@ if ( $match == 0 && $percent ne "null" ) {
 #
 # open ATCF input files
 my $forecastATCF = "$dir/al$storm$year.fst";
-unless (open(FCST,"<$forecastATCF")) {
+unless (open(FCST, "<", $forecastATCF)) {
    stderrMessage("ERROR","Failed to open forecast ATCF file $forecastATCF for ensemble member '$name': $!.");
    die;
 }
 my $hindcastATCF = "$dir/bal$storm$year.dat";
-unless (open(HCST,"<$hindcastATCF")) {
+unless (open(HCST, "<", $hindcastATCF)) {
    stderrMessage("ERROR","Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.");
    die;
 }
 #
 # create the fort.22 output file, which is the wind input file for ADCIRC
-unless (open(MEMBER,">fort.22")) {
+unless (open(MEMBER, ">", "./fort.22")) {
    stderrMessage("ERROR","Failed to open file for ensemble member '$name' fort.22 output file: $!.");
    die;
 }
@@ -290,13 +290,13 @@ my $tsflag="0";  # set to 1 when the storm reaches tropical storm force
 # P R O C E S S I N G   H I N D C A S T   F I L E
 #---------------------------------------------------------------------
 while(<HCST>) {
-    my @fields = split(',',$_);
+    my @fields = split / *, */, $_;
     my $line = $_;
     # check to see if this is a complete line (meaning that all the fields
     # up to and including the storm name are there)
     my $line_length = length($line);
     #jgfdebug printf STDERR "length of line $. is $line_length\n";
-    my $isotach_kts = substr($line,63,3);
+    my $isotach_kts = $fields[11]; #substr($line,63,3);
     if ( $line_length >= 112 ) { # this is a complete line
        # the first isotach is 34, but can be 0 in the source data in some cases
        if ( $isotach_kts == 34 || $isotach_kts == 0 ) {
@@ -342,9 +342,9 @@ while(<HCST>) {
     #
     # record the last hindcast values, these may be used in the
     # fill-in of later values
-    $lasthindcastpressure=substr($line,53,4);
-    $lasthindcastwindspeed=substr($line,48,3);
-    $lasthindcastrmax=substr($line,109,3);
+    $lasthindcastpressure=$fields[9];  #substr($line,53,4);
+    $lasthindcastwindspeed=$fields[8]; #substr($line,48,3);
+    $lasthindcastrmax=$fields[19];     #substr($line,109,3);
     #
     # set the tsflag if the storm has achieved TS-force winds
     if ( $lasthindcastwindspeed > 39.0 ) {
@@ -352,8 +352,8 @@ while(<HCST>) {
     }
     #
     # want to save the nowcast storm position
-    $old_lat=substr($line,34,4)/10.0;
-    $old_lon=substr($line,41,4)/10.0;
+    $old_lat=$fields[6]; #substr($line,34,4)/10.0;
+    $old_lon=$fields[7]; #substr($line,41,4)/10.0;
     #
     # grab the wind radii in the four quadrants
     #$rad[0]=substr($line,74,3);
