@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2021 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2021 Brett Estrade
+# Copyright(C) 2006--2022 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2022 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -54,7 +54,7 @@ readConfig()
    # pick up config parameters, set by the Operator, that differ from the defaults
    source ${CONFIG}
    # ensure single digit STORM numbers issued by NHC are zero-padded
-   if [ -n "${STORM}" ]; then
+   if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then 
      STORM=$(printf "%02d" "$STORM")
    fi
    # maintain backward compatibility with old config files
