@@ -42,6 +42,10 @@
 # awk '{ print "/mnt/nas-storage/Operations/"$0 }' shortpath_filelist.txt > filelist.txt
 # stationRetrospective.sh < filelist.txt
 # -----------------------------------------------------------------------
+# cat /mnt/nas-storage/Operations/autodownloader_config_april_nowcast.inventory | grep hsofs-nam-bob-2021 | grep fort.72.nc | sort -r > fort.72.shortpath_filelist.txt
+# awk '{ print "/mnt/nas-storage/Operations/"$0 }' fort.72.shortpath_filelist.txt > fort.72.filelist.txt
+# stationRetrospective.sh < fort.72.filelist.txt
+# -----------------------------------------------------------------------
 # export RETROSPECTIVE_TARGET_DATE=2022050100  # set end date for the retrospective
 # -----------------------------------------------------------------------
 THIS=$(basename -- $0)
@@ -57,6 +61,7 @@ done
 while read fname
 do
     #echo "$fname"
+    fn=$(basename $fname)
     fileList+=( $fname )
     catList=( $fname ${catList[@]} )
     base_date=$(ncdump -h $fname | grep base_date | cut -d = -f 2 | tr -d '";')
@@ -82,7 +87,7 @@ do
         period=$(( $targetEpochSeconds - ${dataSetEpochSecondsList[-$i]} ))
         #echo $period
         if [[ $period -ge ${timePeriodsSeconds[$timePeriodCount]} ]]; then
-            retroFileName=$(printf "%02d_day.fort.61.nc" ${timePeriods[$timePeriodCount]})
+            retroFileName=$(printf "%02d_day.%s" ${timePeriods[$timePeriodCount]} $fn)
             #echo "ncrcat -O -d time,$(( $numDataSets - $i )),$dataSetCount ${catList[@]} $retroFileName"
             ncrcat -O -d time,$(( $numDataSets - $i )),$dataSetCount ${catList[@]} $retroFileName
             if [[ $timePeriodCount -lt $(( ${#timePeriods[@]} - 1 )) ]]; then
