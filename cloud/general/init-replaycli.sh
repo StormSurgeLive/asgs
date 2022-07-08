@@ -17,7 +17,7 @@ if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
 fi
 
 if [ -x ${OPT}/bin/replaycli ]; then
-  printf "(warn) 'replaycli' was found in $OPT/bin/replaycli; to reinstall run,\n\n\tbuild replaycli reinstall\n\n"
+  printf "(warn) 'replaycli' was found in $OPT/bin/replaycli; to reinstall run,\n\n\tbuild replaycli rebuild\n\n"
   exit
 fi
 
