@@ -147,12 +147,8 @@ if [ "$INTERACTIVE" == "yes" ]; then
   fi
   echo
 
-  # determine where to look for source directory or checkout git repo for the build
-  if [ -e "$WORK" ]; then
-    __ADCIRCBASE=${WORK}/adcirc-cg-${ADCIRC_PROFILE_NAME}
-  else
-    __ADCIRCBASE=${ASGS_HOME}/adcirc-cg-${ADCIRC_PROFILE_NAME}
-  fi
+  # default location of the build is going to be within ASGS_INSTALL_PATH
+  __ADCIRCBASE=${ASGS_INSTALL_PATH}/models/adcircs/adcirc-cg-${ADCIRC_PROFILE_NAME}
   read -p "In what directory would you like to build ADCIRC? [${__ADCIRCBASE}] " _ADCIRCBASE
   if [ -n "${_ADCIRCBASE}" ]; then
     ADCIRCBASE=$_ADCIRCBASE
