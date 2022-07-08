@@ -311,7 +311,7 @@ sub _install_asgs_shell {
     my $scriptdir         = $opts_ref->{scriptdir};
     my $profile           = $opts_ref->{'asgs-profile'};
     my ( $env_summary, $exported_list ) = $self->_get_env_summary($opts_ref);
-    my $asgs_meta_dir = $ENV{ASGS_META_DIR};
+    my $asgs_meta_dir     = $ENV{ASGS_META_DIR};
 
     # create the registry for ASGS profiles if it doesn't
     # already exist
@@ -337,12 +337,22 @@ sub _install_asgs_shell {
 
     # prints to STDOUT after asgs-brew.pl successfully completes
     print qq{
-▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-█ ▄▄▀█████ ▄▄▄ █████ ▄▄ █████ ▄▄▄ ███
-█ ▀▀ █▀▀██▄▄▄▀▀█▀▀██ █▀▀█▀▀██▄▄▄▀▀█▀▀
-█ ██ █▄▄██ ▀▀▀ █▄▄██ ▀▀▄█▄▄██ ▀▀▀ █▄▄
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-   The ASGS shell has been updated!
+
+        oo__          _      _          __oo
+            """--,,,_(_)_--_(_)_,,,--"""
+                    _>_[____]_<_
+            ___--""" (_)\\__/(_) """--___    
+        oo""                            ""oo
+
+o    o             8          o              8 88 88 
+8    8             8          8              8 88 88 
+8    8 .oPYo. .oPYo8 .oPYo.  o8P .oPYo. .oPYo8 88 88 
+8    8 8    8 8    8 .oooo8   8  8oooo8 8    8 88 88 
+8    8 8    8 8    8 8    8   8  8.     8    8 `' `' 
+`YooP' 8YooP' `YooP' `YooP8   8  `Yooo' `YooP' 88 88 
+:.....:8 ....::.....::.....:::..::.....::.....:......
+:::::::8 ::::::The ASGS Shell Environment has been!::
+:::::::..::::::::::::::::::::::::::::::::::::::::::::
 
 Quick Start:
 
@@ -442,11 +452,14 @@ done
 
 if [ -n "\$_asgsh_splash" ]; then 
 clear
-echo "▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄"
-echo "█ ▄▄▀█████ ▄▄▄ █████ ▄▄ █████ ▄▄▄ ███"
-echo "█ ▀▀ █▀▀██▄▄▄▀▀█▀▀██ █▀▀█▀▀██▄▄▄▀▀█▀▀"
-echo "█ ██ █▄▄██ ▀▀▀ █▄▄██ ▀▀▄█▄▄██ ▀▀▀ █▄▄"
-echo "▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀"
+echo '       d8888      .d8888b.       .d8888b.       .d8888b.     '
+echo '      d88888     d88P  Y88b     d88P  Y88b     d88P  Y88b    '
+echo '     d88P888     Y88b.          888    888     Y88b.         '
+echo '    d88P 888      "Y888b.       888             "Y888b.      '
+echo '   d88P  888         "Y88b.     888  88888         "Y88b.    '
+echo '  d88P   888           "888     888    888           "888    '
+echo ' d8888888888 d8b Y88b  d88P d8b Y88b  d88P d8b Y88b  d88P d8b'
+echo 'd88P     888 Y8P  "Y8888P"  Y8P  "Y8888P88 Y8P  "Y8888P"  Y8P'
 echo
 fi
 
@@ -666,8 +679,8 @@ sub get_steps {
                 LD_INCLUDE_PATH    => { value => qq{$asgs_install_path/include},         how => q{prepend} },              # for use by compilers
                 SCRIPTDIR          => { value => qq{$scriptdir},                         how => q{replace} },              # base ASGS dir, used by asgs_main.sh
                 PERL5LIB           => { value => qq{$scriptdir/PERL},                    how => q{append} },               # place for distributed Perl libraries
-                ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta},            how => q{replace} },              # where to track ASGS profiles (always)
-                ASGS_META_DIR      => { value => qq{$asgs_home/.asgs},                   how => q{replace} },              # where to track ADCIRC installs build information (always)
+                ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta},            how => q{replace} },              # where to track ADCIRC builds (always)
+                ASGS_META_DIR      => { value => qq{$asgs_home/profiles},                how => q{replace} },              # where to track ASGS profiles (always)
                 ASGS_BREW_FLAGS    => { value => qq{'$brewflags'},                       how => q{replace} },              # make brew flags available for later use
                 ASGS_HOME          => { value => qq{$asgs_home},                         how => q{replace} },              # used in preference of $HOME in most cases
                 ASGS_TMPDIR        => { value => qq{$asgs_tmpdir},                       how => q{replace} },              # used in preference of $TMPDIR in most cases

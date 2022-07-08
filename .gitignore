@@ -25,9 +25,15 @@ grib2
 *.swo
 *.o
 output/cpra_postproc/FigureGen
-wgrib2.tgz.v1.9.7a
+wgrib2*
 from.run.properties
 errmsg
 update-asgs
 asgsh
 asgs-configs
+opt/
+tmp/
+profiles/
+.adcirc-meta/
+*.nc
+git/
