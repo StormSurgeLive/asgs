@@ -282,6 +282,16 @@ _reset_ephemeral_envars() {
   export ASGS_CONFIG=
 }
 
+# used to unset variables stored in statefile when
+# the statefile is not found or is moved or deleted
+_unset_statevars() {
+  export STATEFILE=
+  export RUNDIR=
+  export LASTSUBDIR=
+  export SYSLOG=
+  export ADVISORY=
+}
+
 _parse_config() {
   if [ ! -e "${1}" ]; then
     echo "${W} config file is defined, but the file '${1}' does not exist!"
@@ -301,6 +311,7 @@ _load_state_file() {
   else
     echo "${W} state file '${1}' does not exist."
     echo "${I} no indication of first run yet?"
+    _unset_statevars
   fi
 
   if [ -d "$RUNDIR" ]; then
@@ -572,9 +583,11 @@ edit() {
   statefile)
     if [ -z "$STATEFILE" ]; then
       echo "STATEFILE is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
+      _unset_statevars
       return
     elif [ ! -e "$STATEFILE" ]; then
-      echo "STATEFILE file, '$STATEFULE' doesn't exist"
+      echo "STATEFILE file, '$STATEFILE' doesn't exist"
+      _unset_statevars
       return
     fi
     $EDITOR "$STATEFILE"
@@ -647,15 +660,18 @@ delete() {
     statefile)
      if [[ -z "${STATEFILE}" ]]; then
        echo STATEFILE is not defined.
+       _unset_statevars
        return
      elif [[ ! -e "${STATEFILE}" ]]; then
        echo "STATEFILE, '${STATEFILE}', does not exist."
+       _unset_statevars
        return
      fi
      read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
      if [[ 'y' == "${DELETE_STATEFILE}" ]]; then
        rm -rvf "${STATEFILE}"
        export STATEFILE=
+       _unset_statevars
      else
        echo "Purge of state file cancelled."
      fi
@@ -672,12 +688,14 @@ move() {
     statefile)
      if [[ -z "${STATEFILE}" || ! -e "${STATEFILE}" ]]; then
        echo "${W} '${STATEFILE}' is not set or doesn't exist."
+       _unset_statevars
        return
      fi
      read -p "This will the move state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " MOVE_STATEFILE
      if [ 'y' == "${MOVE_STATEFILE}" ]; then
        _epoch=$(date +%s)
        mv -vf "${STATEFILE}" "${STATEFILE}.$$.${_epoch}"
+       _unset_statevars
      else
        echo "move of state file cancelled."
      fi
@@ -695,10 +713,11 @@ purge() {
   fi
   case "${1}" in
     rundir)
-     read -p "This will delete the current run director, \"${RUNDIR}\". Type 'y' to proceed. [N] " DELETE_RUNDIR
+     read -p "This will delete the current run directory, \"${RUNDIR}\". Type 'y' to proceed. [N] " DELETE_RUNDIR
      if [ 'y' == "${DELETE_RUNDIR}" ]; then
        rm -rvf "${RUNDIR}"
        export RUNDIR=
+       _unset_statevars
      else
        echo "Purge of rundir cancelled."
      fi
@@ -707,6 +726,7 @@ purge() {
      read -p "This will delete EVERYTHING in the SCRATCH directory, \"${SCRATCH}\". Type 'y' to proceed. [N]? " DELETE_SCRATCH
      if [ 'y' == "${DELETE_SCRATCH}" ]; then
        rm -rvf ${SCRATCH}/*
+       _unset_statevars
      else
        echo "Purge of scratch directory cancelled."
      fi
