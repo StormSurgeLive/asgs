@@ -248,12 +248,6 @@ load() {
         export _ASGSH_CURRENT_PROFILE="$NAME"
         _reset_ephemeral_envars
        source "$ASGS_META_DIR/$NAME"
-        # check SCRIPTDIR
-        if [ "$SCRIPTDIR" != $(pwd) ]; then
-          echo "$W SCRIPTDIR is not the same as your PWD, '$(pwd)'"
-          echo "$W  ... reseting ... maybe 'clone profile' to avoid this warning in the future ..."
-          export SCRIPTDIR=$(pwd)
-        fi 
         export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
         echo "${I} loaded '$NAME' into current profile"
         if [ -e "$ASGS_CONFIG" ]; then
@@ -866,9 +860,9 @@ else
 fi
 
 # source command completions
-echo "${I} Loading command completion definitions" 
+echo "${I} Loading command completion definitions"
 for C in $(ls $SCRIPTDIR/etc/bash-completions); do
-  source $SCRIPTDIR/etc/bash-completions/$C 
+  source $SCRIPTDIR/etc/bash-completions/$C
 done
 
 # when started, ASGS Shell loads the 'default' profile,
