@@ -28,129 +28,121 @@ writeProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with ASGS configuration to $1/run.properties."
    # this is the first set of properties that will be written; if there is
    # a stray file from a previous (interrupted) asgs execution, this function
    # should overwrite whatever may have been there
    #
    # basic asgs configuration
-   echo "config.file : $CONFIG" > $STORMDIR/run.properties  # <--<< OVERWRITE
-   echo "instancename : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "operator : $operator" >> $STORMDIR/run.properties
-   echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR/run.properties
-   echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR/run.properties
-   echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR/run.properties
-   echo "path.inputdir : $INPUTDIR" >> $STORMDIR/run.properties
-   echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR/run.properties
-   echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR/run.properties
-   echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR/run.properties
-   echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR/run.properties
-   echo "forcing.varflux : $VARFLUX" >> $STORMDIR/run.properties
-   echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR/run.properties
-   echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR/run.properties
-   echo "coupling.waves : $WAVES" >> $STORMDIR/run.properties
+   echo "config.file : $CONFIG" > $STORMDIR_RUN_PROPERTIES  # <--<< OVERWRITE
+   echo "instancename : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
+   echo "operator : $operator" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.adcircdir : $ADCIRCDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.inputdir : $INPUTDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.varflux : $VARFLUX" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $STORMDIR_RUN_PROPERTIES
+   echo "coupling.waves : $WAVES" >> $STORMDIR_RUN_PROPERTIES
    # static hpc environment properties
-   echo "hpc.hpcenv : $HPCENV" >> $STORMDIR/run.properties
-   echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR/run.properties
-   echo "hpc.queuesys : $QUEUESYS" >> $STORMDIR/run.properties
-   echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR/run.properties
-   echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR/run.properties
-   echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR/run.properties
-   echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR/run.properties
-   echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR/run.properties
-   echo "hpc.job.default.account : $ACCOUNT" >> $STORMDIR/run.properties
-   echo "hpc.job.default.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.job.default.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
+   echo "hpc.hpcenv : $HPCENV" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.hpcenvshort : $HPCENVSHORT" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.queuesys : $QUEUESYS" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.joblauncher : $JOBLAUNCHER" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.submitstring : $SUBMITSTRING" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.executable.qscriptgen : $QSCRIPTGEN" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.jobs.ncpucapacity : $NCPUCAPACITY" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.walltimeformat : $WALLTIMEFORMAT" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.default.account : $ACCOUNT" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.default.queuename : $QUEUENAME" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.default.serqueue : $SERQUEUE" >> $STORMDIR_RUN_PROPERTIES
    # static input files, templates, and property files
-   echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR/run.properties
-   echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR/run.properties
-   echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR/run.properties
-   echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR/run.properties
-   echo "adcirc.file.properties.naproperties : $NAPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR/run.properties
-   echo "adcirc.file.properties.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR/run.properties
-   echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR/run.properties
-   echo "adcirc.file.velstations : $VELSTATIONS" >> $STORMDIR/run.properties
-   echo "adcirc.file.metstations : $METSTATIONS" >> $STORMDIR/run.properties
+   echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.properties.naproperties : $NAPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.properties.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.velstations : $VELSTATIONS" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.metstations : $METSTATIONS" >> $STORMDIR_RUN_PROPERTIES
    # other adcirc specific
-   echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR/run.properties
-   echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR/run.properties
-   echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $STORMDIR/run.properties
-   echo "file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR/run.properties
-   echo "file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR/run.properties
-   echo "adcirc.minmax : $MINMAX" >> $STORMDIR/run.properties
+   echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $STORMDIR_RUN_PROPERTIES
+   echo "file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR_RUN_PROPERTIES
+   echo "file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.minmax : $MINMAX" >> $STORMDIR_RUN_PROPERTIES
    # notification
-   echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR/run.properties
-   echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR/run.properties
-   echo "notification.email.activate_list : \"$ACTIVATE_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.email.new_advisory_list : \"$NEW_ADVISORY_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR/run.properties
-   echo "notification.hpc.email.notifyuser : deprecated - do not use - will be removed in the future" >> $STORMDIR/run.properties
-   echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR/run.properties
-   echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR/run.properties
+   echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.email.activate_list : \"$ACTIVATE_LIST\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.email.new_advisory_list : \"$NEW_ADVISORY_LIST\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.email.post_init_list : \"$POST_INIT_LIST\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.email.job_failed_list : \"$JOB_FAILED_LIST\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.hpc.email.notifyuser : deprecated - do not use - will be removed in the future" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR_RUN_PROPERTIES
    # monitoring (includes logging)
-   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR/run.properties
+   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR_RUN_PROPERTIES
    # only record other RMQ parameters if it's actually "on"
    if [ "$RMQMessaging_Enable" == "on" ]
    then
-     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR/run.properties
-     echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR/run.properties
+     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR_RUN_PROPERTIES
+     echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR_RUN_PROPERTIES
+     echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR_RUN_PROPERTIES
+     echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR_RUN_PROPERTIES
+     echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR_RUN_PROPERTIES
+     echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR_RUN_PROPERTIES
    fi
-   echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR/run.properties
+   echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR_RUN_PROPERTIES
    # post processing
-   echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
-   echo "post.executable.initpost : $INITPOST" >> $STORMDIR/run.properties
-   POSTPROCESSSTRING="( "
-   for script in ${POSTPROCESS[*]}; do
-      POSTPROCESSSTRING="$POSTPROCESSSTRING $script"
-   done
-   POSTPROCESSSTRING="$POSTPROCESSSTRING )"
-   echo "post.executable.postprocess : $POSTPROCESSSTRING" >> $STORMDIR/run.properties
-   echo "post.opendap.target : $TARGET" >> $STORMDIR/run.properties
-   THREDDS="( "
-   for thredds_data_server in ${TDS[*]}; do
-      THREDDS="$THREDDS $thredds_data_server"
-   done
-   THREDDS="$THREDDS )"
-   echo "post.opendap.tds : $THREDDS" >> $STORMDIR/run.properties
-   echo "post.file.sshkey : $SSHKEY" >> $STORMDIR/run.properties
+   echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.executable.initpost : $INITPOST" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.executable.postprocess : ( ${POSTPROCESS[@]} )" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.opendap.additionalFiles : ( ${postAdditionalFiles[@]} )" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.opendap.tds : ( ${TDS[@]} )" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.opendap.target : $TARGET" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.file.sshkey : $SSHKEY" >> $STORMDIR_RUN_PROPERTIES
    # archiving
-   echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR/run.properties
-   echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR/run.properties
-   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR/run.properties
+   echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR_RUN_PROPERTIES
+   echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR_RUN_PROPERTIES
+   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR_RUN_PROPERTIES
    # forecast scenario package size
-   echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
+   echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $STORMDIR_RUN_PROPERTIES
    # runtime
-   echo "path.rundir : $RUNDIR" >> $STORMDIR/run.properties
+   echo "path.rundir : $RUNDIR" >> $STORMDIR_RUN_PROPERTIES
    # each scenario
-   echo "path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
-   echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "scenario : $ENSTORM" >> $STORMDIR/run.properties
+   echo "path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "scenario : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
    # FIXME: the following are legacy properties from 2014stable
    # and should not be carried forward
-   echo "forecast.ensemblesize : $SCENARIOPACKAGESIZE" >> $STORMDIR/run.properties
-   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR/run.properties
-   echo "asgs.enstorm : $ENSTORM" >> $STORMDIR/run.properties
-   echo "enstorm : $ENSTORM" >> $STORMDIR/run.properties
+   echo "forecast.ensemblesize : $SCENARIOPACKAGESIZE" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.enstorm : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "enstorm : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
    #
    ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
-   echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR/run.properties
+   echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR_RUN_PROPERTIES
    #
    # properties for backward compatibility
-   echo "hostname : $HPCENV" >> $STORMDIR/run.properties
-   echo "instance : $INSTANCENAME" >> $STORMDIR/run.properties
-   echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
-   echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR/run.properties
+   echo "hostname : $HPCENV" >> $STORMDIR_RUN_PROPERTIES
+   echo "instance : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
+   echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR_RUN_PROPERTIES
    if [[ $NWS -eq 0 ]]; then
-      echo "WindModel : none" >> $STORMDIR/run.properties
+      echo "WindModel : none" >> $STORMDIR_RUN_PROPERTIES
    fi
 }
 #
@@ -160,23 +152,24 @@ writeScenarioProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeScenarioProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with this scenario to $1/run.properties."
-   echo "path.cycledir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "path.scenariodir : $STORMDIR" >> $STORMDIR/run.properties
-   echo "scenario.number : $si" >> $STORMDIR/run.properties
-   echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR/run.properties
-   echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR/run.properties
+   echo "path.cycledir : $ADVISDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.scenariodir : $STORMDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "scenario.number : $si" >> $STORMDIR_RUN_PROPERTIES
+   echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR_RUN_PROPERTIES
+   echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR_RUN_PROPERTIES
    # this is used in forming the path where the results will be
    # posted to a remote server
    if [[ $BACKGROUNDMET != "off" ]]; then
-      echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR/run.properties
+      echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR_RUN_PROPERTIES
    fi
    # FIXME: the following are legacy properties from 2014stable
    # and should not be carried forward
-   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
-   echo "path.advisdir : $ADVISDIR" >> $STORMDIR/run.properties
-   echo "path.stormdir : $STORMDIR" >> $STORMDIR/run.properties
+   echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.advisdir : $ADVISDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.stormdir : $STORMDIR" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file that are associated with
@@ -185,27 +178,28 @@ writeNAMProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeNAMProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with meterorological forcing with the NAM model to $1/run.properties."
-   echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
-   echo "forcing.stormname : NA" >> $STORMDIR/run.properties
-   echo "forcing.nwp.model : nam" >> $STORMDIR/run.properties
+   echo "forcing.metclass : synoptic" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nwp.model : nam" >> $STORMDIR_RUN_PROPERTIES
 
-   echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties
-   echo "forcing.nam.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
-   echo "forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties
-   echo "forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties
-   echo "forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
-   echo "forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
-   echo "forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
+   echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nam.forecast.download : $forecastDownload" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nam.backsite : $BACKSITE" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nam.backdir : $BACKDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR_RUN_PROPERTIES
    # legacy from 2014stable, depcrecated
-   echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR/run.properties
-   echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR/run.properties
-   echo "WindModel : WNAMAW12-NCP" >> $STORMDIR/run.properties
+   echo "config.forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "config.forcing.nam.backsite : $BACKSITE" >> $STORMDIR_RUN_PROPERTIES
+   echo "config.forcing.nam.backdir : $BACKDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
+   echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR_RUN_PROPERTIES
+   echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "WindModel : WNAMAW12-NCP" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file for GFS
@@ -213,20 +207,21 @@ writeGFSProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeGFSProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties for meterorological forcing with the GFS model to $1/run.properties."
-   echo "forcing.metclass : synoptic" >> $STORMDIR/run.properties
-   echo "forcing.stormname : NA" >> $STORMDIR/run.properties
-   echo "forcing.nwp.model : GFS" >> $STORMDIR/run.properties
+   echo "forcing.metclass : synoptic" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nwp.model : GFS" >> $STORMDIR_RUN_PROPERTIES
 
-   echo "forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR/run.properties
-   echo "forcing.gfs.forecast.download : $forecastDownload" >> $STORMDIR/run.properties
-   echo "forcing.gfs.backsite : $GFSBACKSITE" >> $STORMDIR/run.properties
-   echo "forcing.gfs.backdir : $GFSBACKDIR" >> $STORMDIR/run.properties
-   echo "forcing.gfs.forecastlength : $GFSFORECASTLENGTH" >> $STORMDIR/run.properties
+   echo "forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.gfs.forecast.download : $forecastDownload" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.gfs.backsite : $GFSBACKSITE" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.gfs.backdir : $GFSBACKDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.gfs.forecastlength : $GFSFORECASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    # legacy from 2014stable, depcrecated
-   echo "config.forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR/run.properties
-   echo "WindModel : GFS" >> $STORMDIR/run.properties
+   echo "config.forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "WindModel : GFS" >> $STORMDIR_RUN_PROPERTIES
 }
 
 #
@@ -236,29 +231,30 @@ writeTropicalCycloneProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeTropicalCycloneProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with meterorological forcing configuration with a parametric vortex model to $1/run.properties."
-   echo "forcing.metclass : tropical" >> $STORMDIR/run.properties
-   echo "forcing.stormname : $STORM" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR/run.properties
-   echo "forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR/run.properties
+   echo "forcing.metclass : tropical" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.stormname : $STORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.vortexmodel : $VORTEXMODEL" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.stormnumber : $STORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.year : $YEAR" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.pseudostorm : $PSEUDOSTORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.forecast.trigger : $TRIGGER" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.forecast.rsssite : $RSSSITE" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR_RUN_PROPERTIES
    # each scenario
    if [[ $RMAX != default ]]; then
-      echo "forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR/run.properties
+      echo "forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR_RUN_PROPERTIES
    fi
    if [[ $PERCENT != default ]]; then
-      echo "forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR/run.properties
+      echo "forcing.tropicalcyclone.enstorm.variation.percent : $PERCENT" >> $STORMDIR_RUN_PROPERTIES
    fi
    # legacy properties
-   echo "storm : $STORM" >> $STORMDIR/run.properties
-   echo "stormnumber : $STORM" >> $STORMDIR/run.properties
-   echo "WindModel : vortex-nws$NWS" >> $STORMDIR/run.properties
+   echo "storm : $STORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "stormnumber : $STORM" >> $STORMDIR_RUN_PROPERTIES
+   echo "WindModel : vortex-nws$NWS" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file that are associated with
@@ -267,10 +263,11 @@ writeTropicalCycloneForecastProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeTropicalCycloneForecastProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with a particular forecast using a parametric vortex model to $1/run.properties."
     # write the start and end dates of the forecast to the run.properties file
     if [[ -e $RUNDIR/forecast.properties ]]; then
-      cat $RUNDIR/forecast.properties >> ${STORMDIR}/run.properties
+      cat $RUNDIR/forecast.properties >> $STORMDIR_RUN_PROPERTIES
     fi
 }
 #
@@ -280,13 +277,14 @@ writeWaveCouplingProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeWaveCouplingProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with wave coupling to $1/run.properties."
-   echo "path.swandir : $SWANDIR" >> $STORMDIR/run.properties
-   echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR/run.properties
-   echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR/run.properties
-   echo "swan.swandt : $SWANDT" >> $STORMDIR/run.properties
-   echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR/run.properties
-   echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR/run.properties
+   echo "path.swandir : $SWANDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR_RUN_PROPERTIES
+   echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR_RUN_PROPERTIES
+   echo "swan.swandt : $SWANDT" >> $STORMDIR_RUN_PROPERTIES
+   echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
+   echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file that are associated with
@@ -295,41 +293,42 @@ writeJobResourceRequestProperties()
 {
    STORMDIR=$1
    local THIS="asgs_main->writeJobResourceRequestProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with compute job to $1/run.properties."
 
    # adjusts $QUEUENAME, if criteria is met; otherwise returns current value as the default;
    CPUREQUEST=$(($NCPU + $NUMWRITERS))
    QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
 
-   echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR/run.properties
-   echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.queuename : $QUEUENAME" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.${JOBTYPE}.serqueue : $SERQUEUE" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR_RUN_PROPERTIES
    if [[ $NCPU -gt 1 ]]; then
-      echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR/run.properties
-      echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR/run.properties
+      echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR_RUN_PROPERTIES
+      echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR_RUN_PROPERTIES
    fi
-   echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR/run.properties
-   echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR/run.properties
+   echo "hpc.job.limit.hindcastwalltime : $HINDCASTWALLTIME" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR_RUN_PROPERTIES
+   echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR_RUN_PROPERTIES
 
    # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
    # $PPN is not adjusted so the original value is preserved; yet the "corrected" value
-   # is written to $STORMDIR/run.properties, which is where ./qscript.pl gets the value
+   # is written to $STORMDIR_RUN_PROPERTIES, which is where ./qscript.pl gets the value
    # for "$ppn"
    _PPN=$(HPC_PPN_Hint "parallel" "$SERQUEUE" "$HPCENV" "$QOS" "$PPN")
-   echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR/run.properties
+   echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR_RUN_PROPERTIES
    unset _PPN
 
    if [[ $QUEUESYS = SLURM ]]; then
       # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
       _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
-      echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR_RUN_PROPERTIES
       unset _RESERVATION
-      echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
-      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
+      echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR_RUN_PROPERTIES
+      echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR_RUN_PROPERTIES
    fi
 
    # legacy properties
