@@ -386,44 +386,46 @@ SSHCMD
              allMessage "$MSG" >> "$SYSLOG"
             fi
             unset MSG
-            ssh $OPENDAPHOST bash <<SSHCMD >> $SYSLOG 2>&1
+            remotePathOwner=$(ssh $OPENDAPHOST "stat -c %u \"$partialPath\"")
+            remoteUser=$(ssh $OPENDAPHOST "id -u $USER")
+            if [[ $remoteUser -eq $remotePathOwner ]]; then
+               ssh $OPENDAPHOST bash <<SSHCMD >> $SYSLOG 2>&1
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-if [[ $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
-   chmod a+wx "$partialPath"
-fi
+chmod a+wx "$partialPath"
 SSHCMD
-            if [[ $? != 0 ]]; then
-               MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
-               if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
+               if [[ $? != 0 ]]; then
+                  MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+                  if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+                  else
+                  allMessage "$MSG" >> "$SYSLOG"
+                  fi
+                  unset MSG
+                  threddsPostStatus=fail
                else
-                 allMessage "$MSG" >> "$SYSLOG"
+                  MSG="$SCENARIO: $_THIS: Successfully changed permissions to a+wx on '$partialPath'."
+                  if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+                  else
+                  allMessage "$MSG" >> "$SYSLOG"
+                  fi
+                  unset MSG
+                  break
                fi
-               unset MSG
-               threddsPostStatus=fail
-            else
-               MSG="$SCENARIO: $_THIS: Successfully changed permissions to a+wx on '$partialPath'."
-               if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
+               retry=`expr $retry + 1`
+               if [[ $retry -lt $timeoutRetryLimit ]]; then
+                  allMessage "$SCENARIO: $_THIS: Trying again."
                else
-                 allMessage "$MSG" >> "$SYSLOG"
+                  MSG="$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
+                  if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+                  else
+                  allMessage "$MSG" >> "$SYSLOG"
+                  fi
+                  unset MSG
                fi
-               unset MSG
-               break
-            fi
-            retry=`expr $retry + 1`
-            if [[ $retry -lt $timeoutRetryLimit ]]; then
-               allMessage "$SCENARIO: $_THIS: Trying again."
-            else
-               MSG="$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
-               if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
-               else
-                 allMessage "$MSG" >> "$SYSLOG"
-               fi
-               unset MSG
             fi
          done
          # cut off the end of the partial path and keep going until we get down
@@ -584,9 +586,7 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-if [[ $(stat -c %u "$OPENDAPDIR/$fname") -eq $(id -u $USER) ]]; then
-   chmod +r "$OPENDAPDIR/$fname"
-fi
+chmod +r "$OPENDAPDIR/$fname"
 SSHCMD
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
