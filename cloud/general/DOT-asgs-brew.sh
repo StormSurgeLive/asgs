@@ -285,11 +285,11 @@ _reset_ephemeral_envars() {
 # used to unset variables stored in statefile when
 # the statefile is not found or is moved or deleted
 _unset_statevars() {
-  export STATEFILE=
-  export RUNDIR=
-  export LASTSUBDIR=
-  export SYSLOG=
-  export ADVISORY=
+  unset STATEFILE
+  unset RUNDIR
+  unset LASTSUBDIR
+  unset SYSLOG
+  unset ADVISORY
 }
 
 _parse_config() {
@@ -670,8 +670,7 @@ delete() {
      read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
      if [[ 'y' == "${DELETE_STATEFILE}" ]]; then
        rm -rvf "${STATEFILE}"
-       export STATEFILE=
-       _unset_statevars
+       _unset_statevars # also unsets STATEFILE
      else
        echo "Purge of state file cancelled."
      fi
@@ -716,8 +715,7 @@ purge() {
      read -p "This will delete the current run directory, \"${RUNDIR}\". Type 'y' to proceed. [N] " DELETE_RUNDIR
      if [ 'y' == "${DELETE_RUNDIR}" ]; then
        rm -rvf "${RUNDIR}"
-       export RUNDIR=
-       _unset_statevars
+       _unset_statevars # unsets RUNDIR
      else
        echo "Purge of rundir cancelled."
      fi
@@ -726,7 +724,6 @@ purge() {
      read -p "This will delete EVERYTHING in the SCRATCH directory, \"${SCRATCH}\". Type 'y' to proceed. [N]? " DELETE_SCRATCH
      if [ 'y' == "${DELETE_SCRATCH}" ]; then
        rm -rvf ${SCRATCH}/*
-       _unset_statevars
      else
        echo "Purge of scratch directory cancelled."
      fi
