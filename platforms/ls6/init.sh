@@ -29,5 +29,5 @@ export UMASK=006
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
 export ARCHIVEDIR=2020
-export TDS=(tacc_tds2)
+export TDS=(tacc_tds3)
 export MAKEJOBS=8
