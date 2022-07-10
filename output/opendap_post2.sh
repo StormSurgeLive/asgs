@@ -126,11 +126,13 @@ for server in ${SERVERS[*]}; do
    # write platform-dependent properties related to posting to thredds server for
    # opendap service  (from platforms.sh)
    writeTDSProperties $server $RUNPROPERTIES  # this writes to a local run.properties file
-   if [[ $SCENARIO == "asgs.instance.status" ]]; then
-      cat run.properties >> $RUNPROPERTIES
-      rm run.properties # so we don't keep appending to it
+   if [[ $SCENARIO == "asgs.instance.status" && -s $RUNPROPERTIES ]]; then
+      cat run.properties >> $RUNPROPERTIES 2>> $SYSLOG
+      rm run.properties 2>> $SYSLOG # so we don't keep appending to it
       $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
+      if [[ -s "asgs.instance.status.json" ]]; then
+         sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
+      fi
    fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post2.sh-->$server"
@@ -272,7 +274,7 @@ for server in ${SERVERS[*]}; do
    fi
    subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
-   if [[ "$SCENARIO" == "asgs.instance.status" ]]; then
+   if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
       subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
       echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
@@ -484,7 +486,7 @@ SSHCMD
       fileIndex=1 # skip the opening "("
       while [[ $fileIndex -lt `expr ${#FILES[@]} - 1` ]] ; do  # skip the closing "("
          file="${FILES[$fileIndex]}"
-         if [[ $file = '(' || $file = ')' ]]; then
+         if [[ $file = '(' || $file = ')' || ! -s $file ]]; then
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
          fi
@@ -779,7 +781,7 @@ SSHCMD
          ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
       fi
       for file in ${FILES[*]}; do
-         if [[ "$file" = "(" || $file = ")" ]]; then
+         if [[ "$file" = "(" || $file = ")" || ! -s $file ]]; then
             continue
          fi
          # send opendap posting notification email early if directed
