@@ -426,6 +426,8 @@ SSHCMD
                   fi
                   unset MSG
                fi
+            else
+               break
             fi
          done
          # cut off the end of the partial path and keep going until we get down
