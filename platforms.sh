@@ -227,7 +227,7 @@ init_frontera()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used?
-  TDS=( tacc_tds2 )
+  TDS=( tacc_tds3 )
   MAKEJOBS=8
 }
 #
@@ -264,7 +264,7 @@ init_stampede2()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
-  TDS=( tacc_tds2 )
+  TDS=( tacc_tds3 )
   MAKEJOBS=8
 }
 #
@@ -304,7 +304,7 @@ init_lonestar5()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
-  TDS=(tacc_tds2)
+  TDS=(tacc_tds3)
   MAKEJOBS=8
 }
 
