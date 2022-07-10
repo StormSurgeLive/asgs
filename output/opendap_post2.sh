@@ -390,7 +390,9 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-chmod a+wx "$partialPath"
+if [[ $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
+   chmod a+wx "$partialPath"
+fi
 SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
@@ -582,7 +584,9 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-chmod +r "$OPENDAPDIR/$fname"
+if [[ $(stat -c %u "$OPENDAPDIR/$fname") -eq $(id -u $USER) ]]; then
+   chmod +r "$OPENDAPDIR/$fname"
+fi
 SSHCMD
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
@@ -650,7 +654,7 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-if [ -d "$partialPath" ]; then
+if [[ -d "$partialPath" && $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
   chmod a+wx $partialPath
 fi
 SSHCMD
