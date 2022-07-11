@@ -59,9 +59,9 @@ done
 
 echo $ASGS_LOCAL_DIR
 
-# can tweak _ASGS_TMP default if TMPDIR is set in the environment
+# can tweak ASGS_TMPDIR default if TMPDIR is set in the environment
 ASGS_HOME=${ASGS_HOME:-$(pwd)}
-_ASGS_TMP=${TMPDIR:-$ASGS_HOME/tmp}
+ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 echo "hatteras       - Hatteras (RENCI)"    # ht4
@@ -138,16 +138,15 @@ case "$platform" in
     WORK=${WORK:-$ASGS_HOME}
     SCRATCH=${SCRATCH:-$ASGS_HOME}
     DEFAULT_COMPILER=gfortran
-    ;; 
+    ;;
   docker)
     WORK=${WORK:-/work}
     SCRATCH=${SCRATCH:-/scratch}
     DEFAULT_COMPILER=gfortran
-    ;; 
+    ;;
   hatteras)
     WORK=${WORK:-$ASGS_HOME}
     SCRATCH=${SCRATCH:-"/projects/$USER"}
-    _ASGS_TMP=${TMPDIR:-$WORK/asgs-build-tmp}
     ;;
   queenbee|queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
@@ -175,7 +174,7 @@ esac
 
 export WORK
 export SCRATCH
-export _ASGS_TMP
+export ASGS_TMPDIR
 
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
@@ -196,7 +195,7 @@ echo "SCRIPTDIR           : $(pwd)"
 echo "ASGS HOME           : $ASGS_HOME"
 echo "WORK                : $WORK"
 echo "SCRATCH             : $SCRATCH"
-echo "ASGS Build directory: $_ASGS_TMP"
+echo "ASGS Build directory: $ASGS_TMPDIR"
 echo "Default Compiler    : $DEFAULT_COMPILER"
 echo
 
@@ -213,7 +212,7 @@ if [ -z "$BATCH" ]; then
   if [ -z "$repo" ]; then
     repo=current
   fi
- 
+
   if [[ "$repo" != "." && ${repo,,} != "current" ]]; then
     git checkout $repo 2> /dev/null
     if [ $? -gt 0 ]; then
@@ -227,7 +226,7 @@ if [ -z "$BATCH" ]; then
     fi
   else
     echo
-    echo "skipping 'git checkout', branch untouched ..." 
+    echo "skipping 'git checkout', branch untouched ..."
   fi
 fi
 
@@ -281,10 +280,10 @@ fi
 if [ -z "$BATCH" ]; then
   if [ -d "$installpath/$profile" ]; then
     echo
-    read -p "${W} '$installpath/$profile' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit 
+    read -p "${W} '$installpath/$profile' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit
     if [[ -z "$quit" || "${quit^^}" == Y ]]; then
       echo exiting ...
-      exit 
+      exit
     fi
   fi
 fi
@@ -312,7 +311,7 @@ rm -v $HOME/bin/update-asgs 2> /dev/null
 # command that results from the use of this guide installation
 if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   scriptdir=$(pwd)
-  # 
+  #
   base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME}"
   full_command=$scriptdir/$base_cmd
   echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
@@ -343,12 +342,12 @@ if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   echo "echo"                                             >> ./update-asgs
   echo "read -p \"proceed? [y] \" run"                    >> ./update-asgs
   echo "if [[ -z "\$run" || \$run = \"y\" ]]; then"       >> ./update-asgs
-  echo "  cd $scriptdir"                                  >> ./update-asgs 
+  echo "  cd $scriptdir"                                  >> ./update-asgs
   echo "  $full_command \$@"                              >> ./update-asgs
   echo "else"                                             >> ./update-asgs
   echo "  echo"                                           >> ./update-asgs
   echo "  echo exiting ..."                               >> ./update-asgs
-  echo "fi"                                               >> ./update-asgs  
+  echo "fi"                                               >> ./update-asgs
   chmod 700 ./update-asgs
   # run command
   $cmd
