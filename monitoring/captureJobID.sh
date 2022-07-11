@@ -28,7 +28,7 @@ HPCENVSHORT=$1
 # the queue script was submitted, and the file "jobID" has
 # been used to capture stdout.
 case $HPCENVSHORT in
-"stampede2"|"frontera")
+"stampede2"|"frontera"|"ls6")
    # lots of info here that we don't need, but has
    # been appended to the scenario.log file
    mv jobID jobID.tmp
@@ -36,7 +36,7 @@ case $HPCENVSHORT in
    rm jobID.tmp
    ;;
 "queenbeeC")
-   # SLURM returns information similar to the following when a 
+   # SLURM returns information similar to the following when a
    # job is submitted:
    #
    # asgs (LAv20a_nam_jgf_10kcms)> sbatch prep15.slurm
