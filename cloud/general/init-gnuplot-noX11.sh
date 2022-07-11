@@ -4,7 +4,7 @@ OPT=${1-$ASGS_INSTALL_PATH}
 COMPILER=$2
 JOBS=${3-1}
 
-if [ "$COMPILER" == "clean" ]; then 
+if [ "$COMPILER" == "clean" ]; then
   echo cleaning gnuplot
   cd $OPT/bin
   rm -rvf gnuplot
@@ -13,14 +13,15 @@ if [ "$COMPILER" == "clean" ]; then
   cd $OPT/share/man/man1
   rm -rvf gnuplot.1
   cd $OPT/share/man/man3
-  cd $_ASGS_TMP
+  cd $ASGS_TMPDIR
+  rm -rfv gnuplot*
   exit
 fi
 
 GNUP_VERSION=5.4.1
 GNUP_DIR=gnuplot-${GNUP_VERSION}
 GNUP_TGZ=${GNUP_DIR}.tar.gz
-cd $_ASGS_TMP
+cd $ASGS_TMPDIR
 
 if [ ! -e ${GNUP_TGZ} ]; then
   wget --no-check-certificate https://pilotfiber.dl.sourceforge.net/project/gnuplot/gnuplot/${GNUP_VERSION}/${GNUP_TGZ}
@@ -38,6 +39,6 @@ make install
 # no errors, so clean up
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
-  cd $_ASGS_TMP
-  rm -rfv gnuplot* 
+  cd $ASGS_TMPDIR
+  rm -rfv gnuplot*
 fi

@@ -4,7 +4,7 @@ OPT=${1-$ASGS_INSTALL_PATH}
 COMPILER=${2-gfortran}
 JOBS=${3-1}
 
-if [ "$COMPILER" == "clean" ]; then 
+if [ "$COMPILER" == "clean" ]; then
   echo cleaning NASM and ffmpeg libraries and utilities
   cd $OPT/bin
   rm -rfv ffmpeg ffprobe nasm ndisasm
@@ -21,7 +21,7 @@ if [ "$COMPILER" == "clean" ]; then
     ffmpeg-formats.1 ffmpeg-filters.1 ffmpeg-devices.1 ffmpeg-codecs.1 ffmpeg-bitstream-filters.1 ffmpeg-all.1 ffmpeg.1
   cd $OPT/share/man/man3
   rm -rfv libswscale.3 libswresample.3 libavutil.3 libavformat.3 libavfilter.3 libavdevice.3 libavcodec.3
-  cd $_ASGS_TMP
+  cd $ASGS_TMPDIR
   rm -rfv nasm* ffmpeg*
   exit
 fi
@@ -35,22 +35,22 @@ FFMPEG_TAR=ffmpeg-${FFMPEG_VERSION}.tar
 FFMPEG_BZ2=${FFMPEG_TAR}.bz2
 FFMPEG_DIR=ffmpeg-${FFMPEG_VERSION}
 
-cd $_ASGS_TMP
+cd $ASGS_TMPDIR
 
-# requires NASM 
+# requires NASM
 if [ ! -e ${NASM_TGZ} ]; then
   wget --no-check-certificate https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/${NASM_TGZ}
 fi
 
 rm -rf $NASM_DIR 2> /dev/null
 tar zxvf $NASM_TGZ
-cd $NASM_DIR 
+cd $NASM_DIR
 ./configure --prefix=$OPT
 make
 make install
 
 # now fetch and build/install ffmpeg
-cd $_ASGS_TMP
+cd $ASGS_TMPDIR
 
 if [ ! -e ${FFMPEG_BZ2} ]; then
   wget --no-check-certificate https://ffmpeg.org/releases/${FFMPEG_BZ2}
@@ -69,6 +69,6 @@ make install
 # no errors, so clean up
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
-  cd $_ASGS_TMP
+  cd $ASGS_TMPDIR
   rm -rfv nasm* ffmpeg*
 fi

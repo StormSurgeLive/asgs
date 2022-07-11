@@ -9,7 +9,7 @@ HDF5_VERSION=${4:-1.12.2}
 HDF5_USE_FILE_LOCKING=FALSE
 
 _TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
-_ASGS_TMP=${_ASGS_TMP:-$_TMPDIR}
+_ASGS_TMP=${ASGS_TMPDIR:-$_TMPDIR}
 
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
@@ -22,6 +22,8 @@ if [ $2 == "clean" ]; then
   rm -rvf $_ASGS_TMP/hdf5-${HDF5_VFERSION}*
   cd $OPT/share
   rm -rvf hdf5_examples
+  cd $_ASGS_TMP
+  rm -rvf hdf5-${HDF5_VERSION}.tar.gz hdf5-${HDF5_VERSION}
   exit
 fi
 
@@ -60,4 +62,9 @@ fi
 if [ ! -e $OPT/bin/h5diff ]; then
   echo something went wrong with HD5
   exit 1
+else
+  # no errors, so clean up
+  echo cleaning build scripts and downloads
+  cd $_ASGS_TMP
+  rm -rvf hdf5-${HDF5_VERSION}.tar.gz hdf5-${HDF5_VERSION}
 fi

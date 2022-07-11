@@ -9,9 +9,9 @@ NETCDF4_F_VERSION=${5:-"4.5.4"};
 HDF5_USE_FILE_LOCKING=FALSE
 
 _TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
-_ASGS_TMP=${_ASGS_TMP:-$_TMPDIR}
+_ASGS_TMP=${ASGS_TMPDIR:-$_TMPDIR}
 
-if [ $2 == "clean" ]; then 
+if [ $2 == "clean" ]; then
   echo Cleaning NetCDF libraries and utilities
   cd $OPT/bin
   rm -fv nc-config ncdump ncgen3 nccopy ncgen nf-config
@@ -30,12 +30,12 @@ if [ $2 == "clean" ]; then
   exit
 fi
 
-if [ $COMPILER == "intel" ]; then 
+if [ $COMPILER == "intel" ]; then
   export CC=icc
   export FC=ifort
   export CXX=icpc
 fi
-if [ $COMPILER == "gfortran" ]; then 
+if [ $COMPILER == "gfortran" ]; then
   export CC=gcc
   export FC=gfortran
   export CXX=g++
@@ -67,6 +67,8 @@ fi
 if [ ! -e $OPT/bin/nc-config ]; then
   echo something went wrong with NETCDF
   exit 1
+else
+  rm -rvf $_ASGS_TMP/netcdf-${NETCDF4_C_VERSION}*
 fi
 
 if [  ! -e $OPT/bin/nf-config ] && [ -z "$($OPT/bin/nf-config --all  | grep '\-\-has\-f90   \-> yes')" ]; then
@@ -81,4 +83,6 @@ fi
 if [  ! -e $OPT/bin/nf-config ] && [ -z "$($OPT/bin/nf-config --all  | grep '\-\-has\-f90   \-> yes')" ]; then
   echo something went wrong with NETCDF Fortran support
   exit 1
+else
+  rm -rvf $_ASGS_TMP/netcdf-fortran-${NETCDF_F_VERSION}*
 fi

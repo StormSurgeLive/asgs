@@ -5,7 +5,7 @@ JOBS=${2-$ASGS_MAKEJOBS}
 
 IMAGEMAGICK_VERSION="7.1.0-22"
 
-if [ "$2" == "clean" ]; then 
+if [ "$2" == "clean" ]; then
   echo Cleaning Image Magick libraries and utilities
   cd $OPT/bin
   rm -rfv animate composite convert identify magick MagickCore-config MagickWand-config
@@ -20,35 +20,37 @@ if [ "$2" == "clean" ]; then
   cd $OPT/etc
   rm -rfv "ImageMagick-7"
   cd $OPT/share
-  rm -rfv "share/doc/ImageMagick-7" 
+  rm -rfv "share/doc/ImageMagick-7"
   cd $OPT/share/man/man1
   rm -rfv animate.1 compare.1 composite.1 conjure.1 convert.1 display.1 identify.1 ImageMagick.1
   rm -rfv import.1 magick.1 Magick++-config.1 MagickCore-config.1 magick-script.1 MagickWand-config.1 mogrify.1
   rm -rfv montage.1 stream.1
+  cd $ASGS_TMPDIR
+  rm -rfv ${IMAGEMAGICK_VERSION}.tar.gz ImageMagick-$IMAGEMAGICK_VERSION
   exit
 fi
 
-mkdir -p $_ASGS_TMP 2> /dev/null
-chmod 700 $_ASGS_TMP
+mkdir -p $ASGS_TMPDIR 2> /dev/null
+chmod 700 $ASGS_TMPDIR
 
 if [ ! -d $OPT ]; then
   mkdir -p $OPT
 else
   if [ -e $OPT/bin/convert ]; then
     echo Looks like Image Magick has been built
-    exit 0  
+    exit 0
   fi
 fi
-cd $_ASGS_TMP
+cd $ASGS_TMPDIR
 
-if [ ! -e ${IMAGEMAGICK_VERSION}.tar.gz ]; then 
+if [ ! -e ${IMAGEMAGICK_VERSION}.tar.gz ]; then
   wget --no-check-certificate https://github.com/ImageMagick/ImageMagick/archive/${IMAGEMAGICK_VERSION}.tar.gz
 else
-  echo Found $_ASGS_TMP/${IMAGEMAGICK_VERSION}.tar.gz
+  echo Found $ASGS_TMPDIR/${IMAGEMAGICK_VERSION}.tar.gz
   rm -rf ./ImageMagic-${IMAGEMAGICK_VERSION} >/dev/null 2>&1
 fi
 tar -xvf $IMAGEMAGICK_VERSION.tar.gz
-cd ImageMagick-$IMAGEMAGICK_VERSION 
+cd ImageMagick-$IMAGEMAGICK_VERSION
 
 export CC=gcc
 export MAGICK_HOME=$ASGS_INSTALL_PATH
@@ -58,3 +60,10 @@ export MAGICK_HOME=$ASGS_INSTALL_PATH
 
 make
 make install
+
+# no errors, so clean up
+if [ "$?" == 0 ]; then
+  echo cleaning build scripts and downloads
+  cd $ASGS_TMPDIR
+  rm -rfv ${IMAGEMAGICK_VERSION}.tar.gz ImageMagick-$IMAGEMAGICK_VERSION
+fi
