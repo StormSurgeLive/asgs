@@ -126,11 +126,13 @@ for server in ${SERVERS[*]}; do
    # write platform-dependent properties related to posting to thredds server for
    # opendap service  (from platforms.sh)
    writeTDSProperties $server $RUNPROPERTIES  # this writes to a local run.properties file
-   if [[ $SCENARIO == "asgs.instance.status" ]]; then
-      cat run.properties >> $RUNPROPERTIES
-      rm run.properties # so we don't keep appending to it
+   if [[ $SCENARIO == "asgs.instance.status" && -s $RUNPROPERTIES ]]; then
+      cat run.properties >> $RUNPROPERTIES 2>> $SYSLOG
+      rm run.properties 2>> $SYSLOG # so we don't keep appending to it
       $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
+      if [[ -s "asgs.instance.status.json" ]]; then
+         sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
+      fi
    fi
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post2.sh-->$server"
@@ -272,7 +274,7 @@ for server in ${SERVERS[*]}; do
    fi
    subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
-   if [[ "$SCENARIO" == "asgs.instance.status" ]]; then
+   if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
       subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
       echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
@@ -292,7 +294,7 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 END
       $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG 
+      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
@@ -386,42 +388,48 @@ SSHCMD
              allMessage "$MSG" >> "$SYSLOG"
             fi
             unset MSG
-            ssh $OPENDAPHOST bash <<SSHCMD >> $SYSLOG 2>&1
+            remotePathOwner=$(ssh $OPENDAPHOST "stat -c %u \"$partialPath\"")
+            remoteUser=$(ssh $OPENDAPHOST "id -u $USER")
+            if [[ $remoteUser -eq $remotePathOwner ]]; then
+               ssh $OPENDAPHOST bash <<SSHCMD >> $SYSLOG 2>&1
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
 chmod a+wx "$partialPath"
 SSHCMD
-            if [[ $? != 0 ]]; then
-               MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
-               if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
+               if [[ $? != 0 ]]; then
+                  MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
+                  if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+                  else
+                  allMessage "$MSG" >> "$SYSLOG"
+                  fi
+                  unset MSG
+                  threddsPostStatus=fail
                else
-                 allMessage "$MSG" >> "$SYSLOG"
+                  MSG="$SCENARIO: $_THIS: Successfully changed permissions to a+wx on '$partialPath'."
+                  if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+                  else
+                  allMessage "$MSG" >> "$SYSLOG"
+                  fi
+                  unset MSG
+                  break
                fi
-               unset MSG
-               threddsPostStatus=fail
+               retry=`expr $retry + 1`
+               if [[ $retry -lt $timeoutRetryLimit ]]; then
+                  allMessage "$SCENARIO: $_THIS: Trying again."
+               else
+                  MSG="$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
+                  if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+                  else
+                  allMessage "$MSG" >> "$SYSLOG"
+                  fi
+                  unset MSG
+               fi
             else
-               MSG="$SCENARIO: $_THIS: Successfully changed permissions to a+wx on '$partialPath'."
-               if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
-               else
-                 allMessage "$MSG" >> "$SYSLOG"
-               fi
-               unset MSG
                break
-            fi
-            retry=`expr $retry + 1`
-            if [[ $retry -lt $timeoutRetryLimit ]]; then
-               allMessage "$SCENARIO: $_THIS: Trying again."
-            else
-               MSG="$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
-               if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
-               else
-                 allMessage "$MSG" >> "$SYSLOG"
-               fi
-               unset MSG
             fi
          done
          # cut off the end of the partial path and keep going until we get down
@@ -444,7 +452,9 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-ln -s "$OPENDAPBASEDIR/$STORMNAMEPATH" "$OPENDAPBASEDIR/$ALTSTORMNAMEPATH"
+if [[ -e "$OPENDAPBASEDIR/$STORMNAMEPATH" && ! -e "$OPENDAPBASEDIR/$ALTSTORMNAMEPATH" ]]; then
+   ln -s "$OPENDAPBASEDIR/$STORMNAMEPATH" "$OPENDAPBASEDIR/$ALTSTORMNAMEPATH"
+fi
 SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to create symbolic link for the storm name."
@@ -476,7 +486,7 @@ SSHCMD
       fileIndex=1 # skip the opening "("
       while [[ $fileIndex -lt `expr ${#FILES[@]} - 1` ]] ; do  # skip the closing "("
          file="${FILES[$fileIndex]}"
-         if [[ $file = '(' || $file = ')' ]]; then
+         if [[ $file = '(' || $file = ')' || ! -s $file ]]; then
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
          fi
@@ -511,7 +521,7 @@ SSHCMD
               unset MSG
             else
               opendapEmailSent=yes
-            fi 
+            fi
             fileIndex=`expr $fileIndex + 1` 2>> $SCENARIOLOG
             continue
          fi
@@ -648,7 +658,7 @@ SSHCMD
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
-if [ -d "$partialPath" ]; then
+if [[ -d "$partialPath" && $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
   chmod a+wx $partialPath
 fi
 SSHCMD
@@ -696,7 +706,7 @@ SSHCMD
               unset MSG
             else
               opendapEmailSent=yes
-            fi 
+            fi
             continue
          fi
          chmod +r "$file" 2>> $SYSLOG
@@ -738,7 +748,9 @@ SSHCMD
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
-            chmod a+wx $partialPath 2>> $SYSLOG
+            if [[ $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
+               chmod a+wx $partialPath 2>> $SYSLOG
+            fi
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory ${partialPath}."
                if [ "$MANUAL" == 1 ]; then
@@ -765,11 +777,11 @@ SSHCMD
       done
       #
       # create link with storm name instead of storm number
-      if [[ $TROPICALCYCLONE != off ]]; then
+      if [[ $TROPICALCYCLONE != off && -e "$OPENDAPBASEDIR/$STORMNAMEPATH" && ! -e "$OPENDAPBASEDIR/$ALTSTORMNAMEPATH" ]]; then
          ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
       fi
       for file in ${FILES[*]}; do
-         if [[ "$file" = "(" || $file = ")" ]]; then
+         if [[ "$file" = "(" || $file = ")" || ! -s $file ]]; then
             continue
          fi
          # send opendap posting notification email early if directed
@@ -789,7 +801,7 @@ SSHCMD
               unset MSG
             else
               opendapEmailSent=yes
-            fi 
+            fi
             continue
          fi
          chmod +r $file 2>> $SYSLOG
@@ -848,6 +860,6 @@ SSHCMD
           warn "$MSG"
         fi
         unset MSG
-      fi 
+      fi
    fi
 done # end loop over opendap servers
