@@ -492,16 +492,20 @@ writeASGSInstanceStatus()
 postStatus() {
     local THIS="asgs_main->monitoring/logging.sh->postStatus()"
     statfile="$statusDir/asgs.instance.status.properties"
-    logMessage "$THIS: Posting status associated with ASGS configuration and hooks in $statfile to opendap."
-    # redact username from log file and rename with .txt extension so
-    # we can review it directly in a web browser
-    local logfile=$(basename -- $SYSLOG)
-    textlog="${logfile%.*}.txt"
-    sed "s/$USER/\$USER/g" $SYSLOG > $statusDir/$textlog
-    # NB: OPENDAPPOST is defined in platforms.sh; also full path to
-    # $OPENDAPPOST is needed because of the way it's currently used in
-    # the list of $POSTPROCESS scripts defined in the ASGS config being used
-    $SCRIPTDIR/output/$OPENDAPPOST $statfile
+    if [[ -s $statfile ]]; then
+        logMessage "$THIS: Posting status associated with ASGS configuration and hooks in '$statfile' to opendap."
+        # redact username from log file and rename with .txt extension so
+        # we can review it directly in a web browser
+        local logfile=$(basename -- $SYSLOG)
+        textlog="${logfile%.*}.txt"
+        sed "s/$USER/\$USER/g" $SYSLOG > $statusDir/$textlog
+        # NB: OPENDAPPOST is defined in platforms.sh; also full path to
+        # $OPENDAPPOST is needed because of the way it's currently used in
+        # the list of $POSTPROCESS scripts defined in the ASGS config being used
+        $SCRIPTDIR/output/$OPENDAPPOST $statfile
+    else
+        logMessage "$THIS: Status file '$statfile' does not exist."
+    fi
 }
 
 initFileStatusMonitoring() {
