@@ -227,7 +227,7 @@ init_frontera()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020 # is this used?
-  TDS=( tacc_tds )
+  TDS=( tacc_tds3 )
   MAKEJOBS=8
 }
 #
@@ -264,7 +264,7 @@ init_stampede2()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
-  TDS=( tacc_tds )
+  TDS=( tacc_tds3 )
   MAKEJOBS=8
 }
 #
@@ -304,7 +304,7 @@ init_lonestar5()
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
   ARCHIVEDIR=2020
-  TDS=(tacc_tds)
+  TDS=(tacc_tds3)
   MAKEJOBS=8
 }
 
@@ -470,7 +470,7 @@ writeTDSProperties()
       CATALOGPREFIX=/asgs
       OPENDAPBASEDIR=/hurricane
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( lonestar6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
+      echo "post.opendap.${SERVER}.copyablehosts : ( ls6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
    *) # if not found, look in ./thredds-servers where we add new servers now
       local SERVERDEF="${SCRIPTDIR}/ssh-servers/${SERVER}.sh"
