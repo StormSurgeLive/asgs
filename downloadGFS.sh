@@ -164,12 +164,12 @@ downloadGFS()
             # (may want to turn off this conditional for end-to-end testing)
             subsetSuccess=0
             localFile=$instanceGfsDir/$yyyymmdd/$file
+            cmd="curl -s "$finalURL" > $localFile 2>> $SYSLOG" # used in error messages
             while [[ $subsetSuccess -eq 0 ]]; do
                 how="download"
                 if [[ ! -s $localFile ]]; then
                     curl -s "$finalURL" > $localFile 2>> $SYSLOG
                     if [[ $? != 0 ]]; then
-                        cmd="curl -s "$finalURL" > $localFile 2>> $SYSLOG"
                         warn "Subsetting GFS with curl failed when using the following command: '$cmd'."
                         if [[ -e $localFile ]]; then
                             mv $localFile ${localFile}.curlerr
@@ -183,7 +183,7 @@ downloadGFS()
                     localFileType="$(file $localFile 2>> $SYSLOG)"
                     localFileSize=$(stat -c "%s" $localFile 2>> $SYSLOG)
                     localFileLines=$(wgrib2 $localFile -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG | wc -l)
-                    if [[ ! $localFileType =~ "(GRIB) version 2" ]]; then
+                    if [[ ! $localFileType =~ "(GRIB) version 2" && ! $localFileType =~ "data" ]]; then
                         warn "Subsetting GFS with curl failed to produce a local grib2 file when using the following command: '$cmd'."
                         if [[ "$localFileType" =~ "HTML document" ]]; then
                             warn "The file '$localFile' is html instead of grib2."
