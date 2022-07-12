@@ -101,11 +101,5 @@ else
    ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
 fi
 FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
-#
-FILESSTRING="("
-for string in ${FILES[*]}; do
-   FILESSTRING="$FILESSTRING $string"
-done
-FILESSTRING="$FILESSTRING )"
-echo "post.opendap.files : $FILESSTRING" >> run.properties
+echo "post.opendap.files : ( ${FILES[@]} )" >> run.properties
 
