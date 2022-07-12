@@ -158,6 +158,10 @@ case $GRIDNAME in
       ;;
    "LAERDCv5j")
       #
+      # This is the successor to the LAv20a mesh (Louisiana) for 2022. 
+      # v5j is the version number (they elected not to use the year in 
+      # the version number unfortunately). Not sure why ERDC is in 
+      # the file name, that's how we received it.
       nodes=3085851
       elements=6050219
       INPUTDIR=$SCRIPTDIR/input/meshes/LAERDC
