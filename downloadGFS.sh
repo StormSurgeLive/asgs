@@ -42,7 +42,7 @@ downloadGFS()
     #
     THIS="asgs_main.sh>downloadGFS.sh"
     CURRENT_STATE="WAIT"
-    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
+    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading GFS meteorological data for $ENSTORM."
     logMessage "$ENSTORM: $THIS: Downloading GFS meteorological data."
     cd $RUNDIR 2>> ${SYSLOG}
     #
