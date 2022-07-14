@@ -99,6 +99,7 @@ my $jitter;
 my @adcircfiles;    # fulldomain adcirc output file names, comma separated
                     # with no spaces
 my @trackfiles;     # storm track files (fort.22)
+my $excludeNonLeveeFluxBoundaries; # if only levee geometry should be generated
 #
 GetOptions(
            "jitter" => \$jitter,
@@ -110,6 +111,7 @@ GetOptions(
            "scale=s" => \$scale,
            "getNodeIndices" => \$getNodeIndices,
            "getElementIndices" => \$getElementIndices,
+           "excludeNonLeveeFluxBoundaries" => \$excludeNonLeveeFluxBoundaries,
            "trackfiles=s" => \@trackfiles,
            "adcircfiles=s" => \@adcircfiles
          );
@@ -478,6 +480,19 @@ printf XDMFFLUXBOUNDARY "      <Grid CollectionType=\"Spatial\" GridType=\"Colle
 # not needed #printf XDMFFLUXBOUNDARY "          <Geometry Type=\"None\"/>\n";
 # not needed #printf XDMFFLUXBOUNDARY "             <Topology Dimensions=\"0\" Type=\"NoTopology\"/>\n";
 #
+# write out the flux-specified node tables as 2DM mesh geometry
+my $twodmFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nd";
+unless (open(TWODMNODEFLUXBOUNDARY,">$twodmFluxBoundaryGeometryNodeFileName")) {
+   stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryNodeFileName for writing: $!.");
+   die;
+}
+# write out the flux-specified node tables as 2DM mesh geometry
+my $twodmFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.e4q";
+unless (open(TWODMELEMENTFLUXBOUNDARY,">$twodmFluxBoundaryGeometryElementFileName")) {
+   stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryElementFileName for writing: $!.");
+   die;
+}
+my $fullDomainElementID = 1;
 #
 # write out the flux-specified boundary tables as ADCIRC fort.14 mesh geometry
 # to show boundary height ; start with a node table file and an element
@@ -518,6 +533,12 @@ for (my $i=0; $i<$nbou; $i++) {
    # levee boundaries have two points across the top
    if ( $ibtype == 4 || $ibtype == 14 || $ibtype == 24 || $ibtype == 5 || $ibtype == 15 || $ibtype == 25 ) {
       $numPointsPerBoundaryNode = 2;
+   }  elsif ( defined $excludeNonLeveeFluxBoundaries ) {
+      # this is a non levee flux boundary -- skip its nodes
+      for (my $j=0; $j<$nvell; $j++) {
+         $line = <MESH>;
+      }
+      next;
    }
    $numPoints = $nvell * $numPointsPerBoundaryNode;
    my @fluxBoundaryNodeElevs;
@@ -690,11 +711,13 @@ for (my $i=0; $i<$nbou; $i++) {
       $zrev = -1.0 * $z[$nbvv[$j]-1];
       # write the base front face boundary vertex (i.e., boundary node elevation)
       printf TWODMFLUXBOUNDARY "ND $nodeID $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $zrev\n";
+      printf TWODMNODEFLUXBOUNDARY "ND $adcNodeID $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $zrev\n";
       printf ADCNODFLUXBOUNDARY "$adcNodeID $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $zrev\n";
       $nodeID++;
       $adcNodeID++;
       # write the top front face boundary vertex
       printf TWODMFLUXBOUNDARY "ND $nodeID  $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j]\n";
+      printf TWODMNODEFLUXBOUNDARY "ND $adcNodeID $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j]\n";
       printf ADCNODFLUXBOUNDARY "$adcNodeID  $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j]\n";
       $nodeID++;
       $adcNodeID++;
@@ -702,18 +725,20 @@ for (my $i=0; $i<$nbou; $i++) {
       # add those to the node table
       if ( $numPointsPerBoundaryNode == 2 ) {
          printf TWODMFLUXBOUNDARY "ND $nodeID $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j]\n";
+         printf TWODMNODEFLUXBOUNDARY "ND $adcNodeID $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j]\n";
          printf ADCNODFLUXBOUNDARY "$adcNodeID $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j]\n";
          $nodeID++;
          $adcNodeID++;
          $zrev = -1.0 * $z[$ibconn[$j]-1];
          printf TWODMFLUXBOUNDARY "ND $nodeID $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $zrev\n";
+         printf TWODMNODEFLUXBOUNDARY "ND $adcNodeID $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $zrev\n";
          printf ADCNODFLUXBOUNDARY "$adcNodeID $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $zrev\n";
          $nodeID++;
          $adcNodeID++;
       }
       $j++;
    }
-
+   #
    # write the element table for this flux boundary
    #                                         6__7
    #      1: 1 2 4 3     2: 1 2 6 5          |\  \
@@ -721,6 +746,7 @@ for (my $i=0; $i<$nbou; $i++) {
    #                        3 4 8 7         5 \ 2--3
    my $n=1; #                           front  \|  | back
    my $elementID=1;  #                          1  4
+   my $n_full = $adcStartNodeID; # last one that was actually used (unless this is the first boundary being written)
    while ( $elementID<$numFluxBoundaryGeometryElements ) {
       if ( $numPointsPerBoundaryNode == 1 ) {
          my $a = $n;
@@ -728,7 +754,13 @@ for (my $i=0; $i<$nbou; $i++) {
          my $c = $b+2;
          my $d = $b+1;
          printf TWODMFLUXBOUNDARY "E4Q $elementID $a $b $c $d 1\n";
+         $a = $n_full;
+         $b = $n_full+1;
+         $c = $b+2;
+         $d = $b+1;
+         printf TWODMELEMENTFLUXBOUNDARY "E4Q $fullDomainElementID $a $b $c $d 1\n";
          $elementID++;
+         $fullDomainElementID++;
       }
       if ( $numPointsPerBoundaryNode == 2 ) {
          for (my $e=0; $e<3; $e++) {
@@ -737,10 +769,17 @@ for (my $i=0; $i<$nbou; $i++) {
             my $c = $b+4;
             my $d = $b+3;
             printf TWODMFLUXBOUNDARY "E4Q $elementID $a $b $c $d 1\n";
+            $a = $n_full+$e;
+            $b = $n_full+$e+1;
+            $c = $b+4;
+            $d = $b+3;
+            printf TWODMELEMENTFLUXBOUNDARY "E4Q $fullDomainElementID $a $b $c $d 1\n";
             $elementID++;
+            $fullDomainElementID++;
          }
       }
       $n = $n + 2*$numPointsPerBoundaryNode;
+      $n_full = $n_full + 2*$numPointsPerBoundaryNode;
    }
    close(TWODMFLUXBOUNDARY);
 
@@ -750,10 +789,7 @@ for (my $i=0; $i<$nbou; $i++) {
    #
    # already wrote the node table for this flux boundary in the 2dm section above
    # write the element table for this flux boundary
-   my $n = $adcStartNodeID - 1; # last one that was actually used (unless this is the first boundary being written)
-   if ( $n == 0 ) {
-      $n = 1;
-   }
+   my $n = $adcStartNodeID; # last one that was actually used (unless this is the first boundary being written)
    my $elementID=1;
    while ( $elementID<(2*$numFluxBoundaryGeometryElements) ) {
       if ( $numPointsPerBoundaryNode == 1 ) {
@@ -784,7 +820,6 @@ for (my $i=0; $i<$nbou; $i++) {
       }
       $n = $n + 2*$numPointsPerBoundaryNode;
    }
-   exit;
 }
 close(MESH);
 # finish echo boundary table
@@ -832,6 +867,33 @@ printf ADCFLUXBOUNDARY "0 ! number of flux-specified boundary nodes\n";
 close(ADCFLUXBOUNDARY);
 close(ADCNODFLUXBOUNDARY);
 close(ADCELEFLUXBOUNDARY);
+# fulldomain 2dm file of flux boundaries
+close(TWODMNODEFLUXBOUNDARY); # close for writing, open for reading
+my $twodmFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.2dm";
+unless (open(TWODMFLUXBOUNDARY,">$twodmFluxBoundaryGeometryFileName")) {
+   stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.");
+   die;
+}
+printf TWODMFLUXBOUNDARY "MESH2D\n";
+printf TWODMFLUXBOUNDARY "NUM_MATERIALS_PER_ELEM 1\n";
+my $adcFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nd";
+unless (open(TWODMNODEFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryNodeFileName")) {
+   stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryNodeFileName' for reading: $!.");
+   die;
+}
+my $file_content = do { local $/; <TWODMNODEFLUXBOUNDARY> };
+print TWODMFLUXBOUNDARY $file_content;
+close(TWODMNODEFLUXBOUNDARY);
+close(TWODMELEMENTFLUXBOUNDARY); # close for writing, open for reading
+my $adcFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.e4q";
+unless (open(TWODMELEMENTFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryElementFileName")) {
+   stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryElementFileName' for reading: $!.");
+   die;
+}
+my $file_content = do { local $/; <TWODMELEMENTFLUXBOUNDARY> };
+print TWODMFLUXBOUNDARY $file_content;
+close(TWODMELEMENTFLUXBOUNDARY);
+close(TWODMFLUXBOUNDARY);
 #
 # write data from adcirc file(s)
 foreach my $file (@adcircfiles) {

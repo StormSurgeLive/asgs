@@ -48,6 +48,8 @@
 # -----------------------------------------------------------------------
 # export RETROSPECTIVE_TARGET_DATE=2022050100  # set end date for the retrospective
 # -----------------------------------------------------------------------
+#cat autodownloader_config_june_nowcast.inventory | awk 'BEGIN { FS="/" } { print $5 }' | sort | uniq -c -d
+# -----------------------------------------------------------------------
 THIS=$(basename -- $0)
 timePeriods=( 1 2 4 7 14 21 30 ) # days back from the last available date
 timePeriodCount=0
