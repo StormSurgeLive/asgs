@@ -109,7 +109,14 @@ _FILES=( "${FILES_Standard[@]}" "${FILES_Additional[@]}" ) # NOTE: duplicates ar
 
 # now filter out any files that do not exist
 FILES=()
+sendNotification=
 for _file in ${_FILES[*]}; do
+  # check for 'sendNotification' tracer before `readlink -f` which requires a real file
+  if [[ $_file == "sendNotification" ]]; then
+    sendNotification=$_file
+    FILES+=($_file)
+    continue
+  fi
   # readlink will resolve $_file to a full path
   _file=$(readlink -f $_file)
   if [[ -e $_file ]]; then
@@ -120,6 +127,15 @@ for _file in ${_FILES[*]}; do
     warn $MSG
   fi
 done
+
+# warn if sendNotification is not found
+# otherwise add as last item in array so it
+# send when done with all files ...
+if [[ -z $sendNotification ]]; then
+    MSG="cycle $CYCLE: $SCENARIO: $THIS: 'sendNotification' tracer not found in file list."
+    echo $MSG
+    warn $MSG
+fi
 
 # assert there are files to upload
 if [[ ${#_FILES[@]} -eq 0 ]]; then
