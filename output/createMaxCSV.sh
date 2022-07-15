@@ -93,12 +93,14 @@ if [[ $TROPICALCYCLONE != off ]]; then
    STORMNAMELC=$(echo $STORMNAME | tr '[:upper:]' '[:lower:]') 2>> ${SYSLOG}
    csvFileName="${STORMNAMELC}${YEAR}adv${CYCLE}${GRIDNAME}${SCENARIO}Max.csv"
 else
-   if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "nam" ]]; then
+   case $BACKGROUNDMET in
+   "on"|"nam")
       STORMNAMELC=nam
-   fi
-   if [[ $BACKGROUNDMET == "GFS" ]]; then
+      ;;
+   "GFS")
       STORMNAMELC=gfs
-   fi
+      ;;
+   esac
    csvFileName="${STORMNAMELC}adv${CYCLE}${GRIDNAME}${SCENARIO}Max.csv"
 fi
 # these files all cover the full domain and summarize some

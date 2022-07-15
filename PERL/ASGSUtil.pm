@@ -109,7 +109,7 @@ sub readProperties {
    my ( $runProp_ref, $fileName ) = @_;
    # open properties file
    my $rp;
-   unless ( open($rp,"<","$fileName") ) {
+   if (not open($rp,"<","$fileName") ) {
       stderrMessage("ERROR","Failed to open '$fileName': $!.");
       return;
    }
