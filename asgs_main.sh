@@ -968,7 +968,7 @@ downloadCycloneData()
     logMessage "$ENSTORM: $THIS: The new advisory number is ${newAdvisoryNum}." $APPLOGFILE
     cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG}
     if [[ $TRIGGER = rss || $TRIGGER = rssembedded ]]; then
-       perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata forecast.properties >> ${SYSLOG} 2>&1
+       ${SCRIPTDIR}/nhc_advisory_bot.pl --input ${forecastFileName}.html --output $forecastFileName --metadata forecast.properties >> ${SYSLOG} 2>&1
     fi
     if [[ $FTPSITE = filesystem ]]; then
        cp $HDIR/$hindcastFileName $hindcastFileName 2>> ${SYSLOG}
@@ -1008,7 +1008,7 @@ downloadRiverFluxData()
    SUCCESS=no
    if [[ $USERIVERFILEONLY = no ]]; then
       while [[ $TRIES -lt 2 ]]; do
-         perl ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG}
+         ${SCRIPTDIR}/get_flux.pl $OPTIONS 2>> ${SYSLOG}
          if [[ $? = 0 ]]; then
             logMessage "$ENSTORM: $THIS: Completed construction of river flux boundary condition (fort.20 file)."
             SUCCESS=yes
@@ -1974,7 +1974,7 @@ if [[ $START = coldstart ]]; then
    if [[ $PERIODICFLUX != null ]]; then
       FLUXOPTIONS="--gridfile ${INPUTDIR}/${GRIDFILE} --outfile $PERIODICFLUX --discharge $RIVERDISCHARGE --units $FLUXUNITS"
       logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
-      perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
+      $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
 
    CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
@@ -1995,7 +1995,7 @@ if [[ $START = coldstart ]]; then
    logMessage "Debug: hindcast: building fort.15"
    controlFile="$ADVISDIR/$ENSTORM/fort.15"
    swanFile="$ADVISDIR/$ENSTORM/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+   $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -2409,7 +2409,7 @@ while [ true ]; do
                 --velocityMultiplier $VELOCITYMULTIPLIER \
                 --scriptDir ${SCRIPTDIR}"
          scenarioMessage "$SCENARIO: $THIS: Converting NAM data to OWI format with the following options : $namToOwiOptions"
-         timeRange=$(perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $namToOwiOptions >> ${SYSLOG} 2>&1)
+         timeRange=$(${SCRIPTDIR}/NAMtoOWIRamp.pl $namToOwiOptions >> ${SYSLOG} 2>&1)
          # create links to the OWI files
          NAM221=$(ls $namEnd/$SCENARIO/NAM_${timeRange}.221 2>> $SYSLOG)
          NAM222=$(ls $namEnd/$SCENARIO/NAM_${timeRange}.222 2>> $SYSLOG)
@@ -2619,7 +2619,7 @@ while [ true ]; do
    debugMessage "$THIS: $ENSTORM: Building fort.15 file."
    controlFile="fort.15"
    swanFile="fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+   $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -3131,7 +3131,7 @@ while [ true ]; do
 
       controlFile="fort.15"
       swanFile="fort.26"
-      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+      $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
       controlExitStatus=$?
       if [[ $controlExitStatus != 0 ]]; then
          controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
