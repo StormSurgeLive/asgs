@@ -574,7 +574,7 @@ writeTDSProperties()
       OPENDAPHOST=renci_tds-k8     # alias in $HOME/.ssh/config
       OPENDAPPORT=":2022"
       OPENDAPDOWNLOADPORT=""
-      OPENDAPPROTOCOL="http"
+      OPENDAPPROTOCOL="https"
       OPENDAPBASEDIR=/thredds-data
       #echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> run.properties
       #echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> run.properties

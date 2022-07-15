@@ -62,7 +62,7 @@ TIDEFAC=on               # tide factor recalc
 BACKGROUNDMET=off         # NAM download/forcing
    FORECASTCYCLE="00,06,12,18"
 TROPICALCYCLONE=on      # tropical cyclone forcing
-   STORM=1              # storm number, e.g. 05=ernesto in 2006
+   STORM=01              # storm number, e.g. 05=ernesto in 2006
    YEAR=2022             # year of the storm
 WAVES=on                 # wave forcing
    REINITIALIZESWAN=no   # used to bounce the wave solution
@@ -85,9 +85,9 @@ QUEUENAME="RM-shared"
 
 INTENDEDAUDIENCE=developers-only    # "general" | "developers-only" | "professional"
 
-FINISH_NOWCAST_SCENARIO=( output/opendap_post_nowcast.sh ) # output/run_adda.sh )
+FINISH_NOWCAST_SCENARIO=( output/opendap_post_nowcast.sh output/opendap_post_nowcast_k8.sh ) # output/run_adda.sh )
 #POSTPROCESS=( accumulateMinMax.sh createMaxCSV.sh cpra_slide_deck_post.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
-POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
+POSTPROCESS=( createOPeNDAPFileList.sh opendap_post.sh opendap_post_k8.sh transmit_rps.sh )
 #POSTPROCESS=( includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh transmit_rps.sh )
 
 #OPENDAPNOTIFY="asgs.cera.lsu@gmail.com jason.g.fleming@gmail.com"
@@ -107,11 +107,15 @@ case $si in
        ENSTORM=nowcast
        ;;
     0)
-       ENSTORM=namforecast
+       ENSTORM=nhcOfcl
        ;;
     1)
-       ENSTORM=namforecastWind10m
-       source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+       ENSTORM=veerLeft100
+       PERCENT=-100
+       ;;
+    2)
+       ENSTORM=veerRight100
+       PERCENT=100
        ;;
     *)   
        echo "CONFIGRATION ERROR: Unknown ensemble member number: '$si'."

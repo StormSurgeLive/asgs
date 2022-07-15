@@ -40,10 +40,12 @@ if [ ! -e "$RUNPROPERTIES" ] ; then
     exit 1
 fi
 
-export ADDAHOME="/home/bblanton/GitHub/RENCI/ADCIRCDataAssimilation"
-export PYTHONPATH="/home/bblanton/GitHub/RENCI/ADCIRCDataAssimilation"
-export RUNTIMEDIR="./adda"
-PYTHON="/home/bblanton/miniconda3/bin/python"
+source "$SCRIPTDIR/output/adda_init.sh"
+echo "ADDAHOME=$ADDAHOME"
+#export ADDAHOME="/home/bblanton/GitHub/RENCI/ADCIRCDataAssimilation"
+#export PYTHONPATH="/home/bblanton/GitHub/RENCI/ADCIRCDataAssimilation"
+#export RUNTIMEDIR="./adda"
+#PYTHON="/home/bblanton/miniconda3/bin/python"
 
 DWLCfile="$RUNTIMEDIR/interpolated/ADCIRC_interpolated_wl.csv"
 echo "DWLCfile=$DWLCfile"
@@ -54,7 +56,7 @@ gridname=${properties['adcirc.gridname']}
 instancename=${properties['instancename']}
 adv=${properties['advisory']}
 
-Dest="/projects/ncfs/opendap/data/current_"$gridname"_dwlc"
+Dest="$ADDAStorage/current_"$gridname"_dwlc"
 DestName="$Dest/dwlc_$gridname_$adv.csv"
 DestLinkName="$Dest/dwlc_$gridname.csv"
 
