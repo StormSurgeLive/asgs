@@ -604,7 +604,7 @@ sub get_steps {
     #   Dev note: ADD new PATHs here using the existing pattern
     my $_get_all_paths = sub {
         my @all_paths = ();
-        push @all_paths, ( qq{$asgs_install_path/bin}, qq{$scriptdir/cloud/general} );
+        push @all_paths, ( qq{$scriptdir}, qq{$asgs_install_path/bin}, qq{$scriptdir/cloud/general} );
         foreach my $dir (
             qw[
             bin
