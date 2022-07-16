@@ -351,12 +351,12 @@ if (rd%dataFileFormat.eq.ASCII) then
       rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
    endif
    call writeMesh(rm)
+   if (meshonly.eqv..true.) then
+      write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
+      stop
+   endif
 endif
-!
-if (meshonly.eqv..true.) then
-   write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
-   stop
-endif
+
 !
 ! if the data file is a nodal attributes file, process that separately
 if (trim(fd%defaultFileName).eq.'fort.13') then
@@ -467,17 +467,13 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
    !
    !  R E A D   I N   O N E   D A T A S E T
    !
-
-!subroutine readOneDataSet(f, m, s, l, snapr, snapi)
-
-   ! jgfdebug
-   !write(*,*) 'call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)'
-
    call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)
-   !write(*,*) 'call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)'
+   if ( fd%allDataSetsHaveBeenRead.eqv..true. ) then
+      exit
+   endif
+
    call appendR1D(timesec, snapr)
    call appendI1D(it, snapi)
-   !call allMessage(INFO,"read one data file") !jgfdebug
    !
    !  P O P U L A T E   R E S U L T   A R R A Y ( S )
    !        F O R   T H I S   S I N G L E   D A T A S E T
@@ -525,7 +521,6 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
             endif
          endif
       end do
-      rd%timesec(ss) = fd%timesec(ss)
    endif
    ! ASCII FULLDOMAIN FILE and NETCDF SUBDOMAIN FILE
    if ( (fd%dataFileFormat.eq.ASCIIG).and.(rd%dataFileFormat.eq.NETCDFG) ) then
@@ -582,11 +577,6 @@ DO   ! jgf: loop until we run out of data (can't trust the nSnaps at top of asci
    !
    !   W R I T E   O U T   O N E   R E S U L T   D A T A S E T
    !
-   !call readOneDataset(fd, fm, ss, lineNum, snapr, snapi)
-
-            !jgfdebug
-            !write(*,*) rd%numValuesPerDataset
-
    call writeOneDataSet(rd, rm, ss, lineNum, snapr, snapi)
    !
    write(6,advance='no',fmt='(i6)') SS
@@ -680,7 +670,6 @@ if ( wetonly.eqv..true.) then
          full2subElements(e) = rm%ne
       endif
    enddo
-
 else
    do e = 1, fm%ne
       if (any(within(fm%nm(e,:)))) then
@@ -720,8 +709,7 @@ do n=1,fm%np
       sub2fullNodes(rm%np) = n ! record the node number of the selected node
    end if
 enddo
-
-allocate(rm%xyd(3,rm%np))
+call allocateNodalAndElementalArrays(rm)
 ! node table
 do i=1,rm%np
    do j=1,3
@@ -729,12 +717,18 @@ do i=1,rm%np
    end do
 end do
 ! element table
-allocate(rm%nm(rm%ne,3))
 do i=1,rm%ne
    do j=1,3
       rm%nm(i,j) = full2subNodes(fm%nm(sub2fullElements(i),j))
    end do
 end do
+! netcdf element table
+do i=1, rm%ne
+   do j=1, 3
+      rm%nmnc(j,i) = rm%nm(i,j)
+   end do
+end do
+
 !----------------------------------------------------------------------
 end subroutine subSetMesh
 !----------------------------------------------------------------------
@@ -754,7 +748,7 @@ type(meshNetCDF_t), intent(in) :: fn    ! fulldomain mesh netcdf IDs
 type(fileMetaData_t), intent(inout) :: fd  ! fulldomain data file
 type(mesh_t), intent(inout) :: rm          ! resultShape mesh
 type(meshNetCDF_t), intent(out) :: rn   ! resultShape mesh netcdf IDs
-type(fileMetaData_t), intent(out) :: rd ! resultShape data file
+type(fileMetaData_t), intent(inout) :: rd ! resultShape data file
 type(netCDFMetaDataFromExternalFile_t), intent(in) :: a ! attribute data file
 character(len=1000), intent(in) :: resultShape
 !
@@ -776,6 +770,8 @@ else
    rd%numValuesPerDataset = rm%np
 endif
 rd%irtype = fd%irtype
+rd%is3D = fd%is3D
+rm%is3D = fm%is3D
 !
 select case(rd%dataFileFormat)
 !
@@ -850,6 +846,7 @@ case(NETCDFG)
       call writeMeshDefinitionsToNetCDF(rm, rn, rd%nc_id, deflate)
       ! define variables and variable-associated metadata
       rd%dataFileCategory = fd%dataFileCategory
+      rd%defaultFileName = fd%defaultFileName
       call addDataAttributesNetCDF(rd, rm, rn)
       ! deflate arrays if applicable
 #ifdef NETCDF_CAN_DEFLATE
@@ -859,12 +856,14 @@ case(NETCDFG)
          enddo
       endif
 #endif
+      call check(nf90_enddef(rd%nc_id))
+      rm%writeBoundaryTable = .false.
+      call writeMeshDataToNetCDF(rm, rn, rd%nc_id)
    case default
       ! should be unreachable
       call allMessage(ERROR,'Only NETCDF and ASCII full domain file formats are supported.')
    end select
-   !
-   call check(nf90_enddef(rd%nc_id))
+
 case default
    ! should not be reachable
    call allMessage(ERROR,'Cannot create result file.')

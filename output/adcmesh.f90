@@ -115,6 +115,7 @@ type mesh_t
    logical :: is3D  ! true if the mesh is 3D
    ! boundary related parameters
    logical :: readBoundaryTable = .true.
+   logical :: writeBoundaryTable = .true.
    integer :: neta_count ! count of open boundary nodes
    integer :: nvel_count ! count of land boundary nodes
    integer :: nope ! number of open (ocean) elevation specified boundaries
@@ -1294,7 +1295,7 @@ endif
 CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,n%NC_DimID_nvertex))
 CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
 ! boundary parameters
-if (m%readBoundaryTable.eqv..true.) then
+if (m%writeBoundaryTable.eqv..true.) then
    if (m%nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'m%nope',m%nope,n%NC_DimID_nope))
    if (m%nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',m%nvdll_max,n%NC_DimID_max_nvdll))
    if (m%neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',m%neta,n%NC_DimID_neta))
@@ -1321,7 +1322,7 @@ CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'standard_name','face_node_conn
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'units','nondimensional'))
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'start_index',1))
 
-if (m%readBoundaryTable.eqv..true.) then
+if (m%writeBoundaryTable.eqv..true.) then
    if (m%nope.ne.0) then
       CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,n%NC_DimID_nope,n%NC_VarID_nvdll))
       CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
@@ -1414,22 +1415,33 @@ integer, intent(in) :: nc_id
 integer :: nc_count(2)
 integer :: nc_start(2)
 integer :: i, j
-
+write(6,'(a)') 'INFO: Writing mesh data to netcdf.'
 ! place mesh-related data into the file
 NC_Count = (/ m%np, 1 /)
 NC_Start = (/ 1, 1 /)
+print *,'x'
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_x,m%xyd(1,1:m%np),NC_Start,NC_Count))
+print *,'y'
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_y,m%xyd(2,1:m%np),NC_Start,NC_Count))
+print *,'d'
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_depth,m%xyd(3,1:m%np),NC_Start,NC_Count))
 NC_Count = (/ 3, m%ne /)
-
+print *,'e'
+!
+! populate netcdf-style element table
+do i=1, m%ne
+   do j=1, 3
+      m%nmnc(j,i) = m%nm(i,j)
+   end do
+end do
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_element,m%nmnc,NC_Start,NC_Count))
 !
 ! boundary parameters
-if (m%readBoundaryTable.eqv..false.) then
+if (m%writeBoundaryTable.eqv..false.) then
    write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
    return
 endif
+print *,'b'
 if (m%nope.ne.0) then
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nope,m%nope))
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_max_nvell,m%nvell_max))
@@ -1450,7 +1462,7 @@ if (m%nbou.ne.0) then
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nbvv,m%nbvv,NC_Start,NC_Count))
 end if
 
-write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
+write(6,'(a)') 'INFO: Mesh data has been written to the netCDF file.'
 !----------------------------------------------------------------------
 end subroutine writeMeshDataToNetCDF
 !----------------------------------------------------------------------

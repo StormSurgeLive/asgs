@@ -164,6 +164,7 @@ type fileMetaData_t
    logical :: timeVarying   ! .true. if we have datasets at different times
    logical :: useCPP        ! .true. if metadata should refer to CPP coordinates
    real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
+   logical :: allDataSetsHaveBeenRead  ! true if dataset counter exceeds number of datasets
 end type fileMetaData_t
 
 type netCDFMetaDataFromExternalFile_t
@@ -1853,8 +1854,10 @@ integer :: nc_count3D(3)
 integer :: errorIO ! i/o error flag
 character(len=10000) :: line ! used in debugging
 !
+f%allDataSetsHaveBeenRead = .false.
 if ( (f%dataFileFormat.eq.NETCDFG).and.(s.gt.f%nSnaps) ) then
    call allMessage(INFO,'All datasets have been read.')
+   f%allDataSetsHaveBeenRead = .true.
    return
 endif
 !
@@ -1920,18 +1923,8 @@ case(ASCII,ASCIIG)
    else
       ! sparse or full ascii real numbers
       do n=1,numNodesNonDefault
-
-         ! jgfdebug
-         !read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) line
-         !write(*,*) trim(adjustl(line))
-
          read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) h, (dtemp(c), c=1,f%irtype)
          l = l + 1
-         !if (allocated(f%rdata).eqv..true.) then
-         !   write(6,*) allocated(f%rdata),'allocated' ! jgfdebug
-         !else
-         !   write(6,*) allocated(f%rdata),'not allocated'! jgfdebug
-         !endif
          f%rdata(1:f%irtype,h) = dtemp(1:f%irtype)
       end do
    endif
@@ -2010,9 +2003,6 @@ integer :: ncStartMinMax(1)
 !
 select case(f%dataFileFormat)
 case(ASCII,SPARSE_ASCII,ASCIIG)
-
-   !jgfdebug
-
 
    if (f%is3D.eqv..true.) then
       !
@@ -2149,6 +2139,7 @@ case(NETCDFG,NETCDF3,NETCDF4)
             ! real data
             if (allocated(f%ncds(c)%rdata).eqv..true.) then
                ! data came from netcdf
+
                call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata,nc_start,nc_count))
             else
                ! data came from ascii
@@ -2177,11 +2168,6 @@ end select
  2454 format(2x, i8, 2x, 99(1pe20.10e3))
 
 end subroutine writeOneDataSet
-
-
-
-
-
 
 
 !----------------------------------------------------------------------
