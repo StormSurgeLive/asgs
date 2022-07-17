@@ -8,8 +8,7 @@ NETCDF4_F_VERSION=${5:-"4.5.4"};
 
 HDF5_USE_FILE_LOCKING=FALSE
 
-_TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
-_ASGS_TMP=${ASGS_TMPDIR:-$_TMPDIR}
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
 if [ $2 == "clean" ]; then
   echo Cleaning NetCDF libraries and utilities

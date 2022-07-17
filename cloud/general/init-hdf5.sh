@@ -8,8 +8,7 @@ HDF5_VERSION=${4:-1.12.2}
 # may need to make this available in asgs generally
 HDF5_USE_FILE_LOCKING=FALSE
 
-_TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
-_ASGS_TMP=${ASGS_TMPDIR:-$_TMPDIR}
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities

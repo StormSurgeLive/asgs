@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-OPT=${1-$ASGS_INSTALL_PATH}
+OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=$2
-JOBS=${3-1}
+JOBS=${3:-1}
+
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
 if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
   echo cleaning jq
@@ -18,7 +20,7 @@ if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
   rm -vf ./include/jq.h
   popd $OPT > /dev/null 2>&1
   echo cleaning jq build scripts and downloads
-  cd $ASGS_TMPDIR
+  cd $_ASGS_TMP
   rm -rfv ${JQ_DIR}* > /dev/null 2>&1
 
   # stop here if 'clean', proceed if 'rebuild'
@@ -35,7 +37,7 @@ fi
 JQ_VERSION=1.6
 JQ_DIR=jq-${JQ_VERSION}
 JQ_TGZ=${JQ_DIR}.tar.gz
-cd $ASGS_TMPDIR
+cd $_ASGS_TMP
 
 if [ ! -e ${JQ_TGZ} ]; then
   wget --no-check-certificate https://github.com/stedolan/jq/releases/download/${JQ_DIR}/${JQ_TGZ}
@@ -53,7 +55,7 @@ make install
 # no errors, so clean up
 if [ "$?" == 0 ]; then
   echo ...cleaning build scripts and downloads
-  cd $ASGS_TMPDIR
+  cd $_ASGS_TMP
   rm -rfv ${JQ_DIR}* > /dev/null 2>&1
   echo
   echo "Installation of 'jq' appears to have gone well"

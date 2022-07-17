@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-OPT=${1-$ASGS_INSTALL_PATH}
+OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=$2
-JOBS=${3-1}
+JOBS=${3:-1}
 
-if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then 
-  echo cleaning replaycli 
+if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
+  echo cleaning replaycli
   pushd $OPT > /dev/null 2>&1
   rm -vf ./bin/replaycli
   popd $OPT > /dev/null 2>&1

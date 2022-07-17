@@ -1,9 +1,9 @@
 #!/bin/bash
 
-PERLBREW_ROOT=${1-"$HOME/perl5"}
+PERLBREW_ROOT=${1:-"$HOME/perl5"}
 export PERLBREW_ROOT
-ACTION=${2-"install"}
-PERL_VERSION=${3-"perl-5.34.0"}
+ACTION=${2:-"install"}
+PERL_VERSION=${3:-"perl-5.34.0"}
 
 if [ "$ACTION" == "clean" ]; then
 
@@ -54,7 +54,7 @@ if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
   NOW_PERL=$(which perl)
   echo Currently perl is now: $NOW_PERL
   echo It will switch back to $CURRENT_PERL after this script ends,
-  echo see notes when this script finishes. 
+  echo see notes when this script finishes.
 
 else
 

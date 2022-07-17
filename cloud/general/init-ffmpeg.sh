@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-OPT=${1-$ASGS_INSTALL_PATH}
-COMPILER=${2-gfortran}
-JOBS=${3-1}
+OPT=${1:-$ASGS_INSTALL_PATH}
+COMPILER=${2:-gfortran}
+JOBS=${3:-1}
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
 if [ "$COMPILER" == "clean" ]; then
   echo cleaning NASM and ffmpeg libraries and utilities
@@ -35,7 +36,7 @@ FFMPEG_TAR=ffmpeg-${FFMPEG_VERSION}.tar
 FFMPEG_BZ2=${FFMPEG_TAR}.bz2
 FFMPEG_DIR=ffmpeg-${FFMPEG_VERSION}
 
-cd $ASGS_TMPDIR
+cd $_ASGS_TMP
 
 # requires NASM
 if [ ! -e ${NASM_TGZ} ]; then
@@ -50,7 +51,7 @@ make
 make install
 
 # now fetch and build/install ffmpeg
-cd $ASGS_TMPDIR
+cd $_ASGS_TMP
 
 if [ ! -e ${FFMPEG_BZ2} ]; then
   wget --no-check-certificate https://ffmpeg.org/releases/${FFMPEG_BZ2}
@@ -69,6 +70,6 @@ make install
 # no errors, so clean up
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
-  cd $ASGS_TMPDIR
+  cd $_ASGS_TMP
   rm -rfv nasm* ffmpeg*
 fi
