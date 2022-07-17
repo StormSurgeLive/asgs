@@ -1220,14 +1220,14 @@ do k = 1, m%nbou
       m%ifCount = m%ifCount + 1
    case(5,25)
       write(unit=iunit,fmt='(2(i0,1x),6(f8.3),a)',err=10,iostat=ios) &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%nodes(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%ibconn(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%barinht(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsb(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsp(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipeht(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipecoef(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipediam(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%ibconn(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%barinht(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsb(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsp(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipeht(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(1), &
       ' ! boundary node (nbvv), connected backface node (ibconn), ' // &
       'barrier height (barinht), coef. of subcrit. flow (barincfsb), ' // &
       'coef. of supercrit. flow (barincfsp), pipe height (pipeht), ' // &
@@ -1235,14 +1235,14 @@ do k = 1, m%nbou
       lineNum = lineNum + 1
       do j = 2, m%nvell(k)
          write(unit=iunit,fmt='(2(i0,1x),6(f8.3))',err=10,iostat=ios) &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%nodes(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%ibconn(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%barinht(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsb(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsp(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipeht(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipecoef(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipediam(j)
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%ibconn(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barinht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsb(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsp(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipeht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(j)
          lineNum = lineNum + 1
       end do
       m%ifwpCount = m%ifwpCount + 1
@@ -1419,14 +1419,10 @@ write(6,'(a)') 'INFO: Writing mesh data to netcdf.'
 ! place mesh-related data into the file
 NC_Count = (/ m%np, 1 /)
 NC_Start = (/ 1, 1 /)
-print *,'x'
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_x,m%xyd(1,1:m%np),NC_Start,NC_Count))
-print *,'y'
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_y,m%xyd(2,1:m%np),NC_Start,NC_Count))
-print *,'d'
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_depth,m%xyd(3,1:m%np),NC_Start,NC_Count))
 NC_Count = (/ 3, m%ne /)
-print *,'e'
 !
 ! populate netcdf-style element table
 do i=1, m%ne
@@ -1441,7 +1437,6 @@ if (m%writeBoundaryTable.eqv..false.) then
    write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
    return
 endif
-print *,'b'
 if (m%nope.ne.0) then
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nope,m%nope))
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_max_nvell,m%nvell_max))

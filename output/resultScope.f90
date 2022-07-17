@@ -347,7 +347,7 @@ call allMessage(INFO,'Finished selecting nodes and elements in the result mesh.'
 call get_command(cmdlinearg)
 rm%agrid = trim(fm%agrid) // ' ! command line used to make this result mesh: ' // trim(cmdlinearg)
 if (rd%dataFileFormat.eq.ASCII) then
-   if (trim(rm%meshFileName).eq."null") then
+   if (trim(rm%meshFileName).eq."null".or.trim(rm%meshFileName).eq."") then
       rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
    endif
    call writeMesh(rm)
@@ -620,13 +620,23 @@ use asgsio
 use logging
 implicit none
 type(mesh_t), intent(in)  :: fm ! full domain mesh
-type(mesh_t), intent(out) :: rm ! resultShape mesh
+type(mesh_t), intent(inout) :: rm ! resultShape mesh
 logical, intent(inout) :: within(*)
 logical, intent(in) :: wetonly
 !
 logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
+type(integerVector1D_t) :: l_ibtype
+type(integerVector1D_t) :: l_nvdll
+type(integerVector1D_t) :: l_nvell
+
+integer :: l_sfCount = 0
+integer :: l_efCount = 0
+integer :: l_ifCount = 0
+integer :: l_ifwpCount = 0
+
+integer :: streak ! number of consecutive boundary elements
 integer :: e ! element counter
-integer :: i, j, n
+integer :: i, j, k, n
 !
 allocate(elementWithin(fm%ne))
 elementWithin(:) = .false.
@@ -636,7 +646,7 @@ elementWithin(:) = .false.
 rm%ne = 0                 ! counter for elements that are included in the resultShape
 if ( wetonly.eqv..true.) then
    do e = 1, fm%ne
-      if (all(within(fm%nm(e,:))).eqv..true.) then
+      if (all(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
          elementWithin(e) = .true.
       endif
@@ -651,7 +661,7 @@ if ( wetonly.eqv..true.) then
    enddo
 else
    do e = 1, fm%ne
-      if (any(within(fm%nm(e,:))).eqv..true.) then
+      if (any(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
          elementWithin(e) = .true.
       endif
@@ -664,7 +674,7 @@ full2subElements(:) = 0
 rm%ne = 0
 if ( wetonly.eqv..true.) then
    do e = 1, fm%ne
-      if (all(within(fm%nm(e,:)))) then
+      if (all(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
          sub2fullElements(rm%ne) = e  ! record the element number mapping
          full2subElements(e) = rm%ne
@@ -672,7 +682,7 @@ if ( wetonly.eqv..true.) then
    enddo
 else
    do e = 1, fm%ne
-      if (any(within(fm%nm(e,:)))) then
+      if (any(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
          sub2fullElements(rm%ne) = e  ! record the element number mapping
          full2subElements(e) = rm%ne
@@ -699,9 +709,9 @@ do n = 1, fm%np
       full2subNodes(n) = rm%np  ! record the index of node numbers that have been selected
    endif
 enddo
-allocate(sub2fullNodes(rm%np))
 !
 ! record the fulldomain node number of the sequential nodes in the selection
+allocate(sub2fullNodes(rm%np))
 rm%np = 0
 do n=1,fm%np
    if (within(n).eqv..true.) then
@@ -728,6 +738,327 @@ do i=1, rm%ne
       rm%nmnc(j,i) = rm%nm(i,j)
    end do
 end do
+!
+!   S U B S E T    B O U N D A R I E S
+!
+! a boundary must be at least two nodes long ; boundary
+! segments in the result mesh that are only one node long will
+! not be included in the result mesh ; boundary segments that
+! have missing sections will be broken into multiple boundary
+! segments in the result mesh
+rm%nope = 0
+rm%neta = 0
+rm%nvdll_max = 0
+rm%nbou = 0
+rm%nvel = 0
+rm%nvell_max = 0
+rm%numSimpleFluxBoundaries = 0
+rm%numExternalFluxBoundaries = 0
+rm%numInternalFluxBoundaries = 0
+rm%numInternalFluxBoundariesWithPipes = 0
+rm%is3D = .false.
+call initI1D(l_nvdll)
+do k = 1, fm%nope
+   streak = 0
+   do j = 1, fm%nvdll(k)
+      if ( within(fm%elevationBoundaries(k)%nodes(j)).eqv..true. ) then
+         streak = streak + 1
+         rm%neta = rm%neta + 1
+      else
+         rm%neta = rm%neta - streak
+         streak = 0
+      endif
+      if ( streak.eq.2 ) then
+         rm%nope = rm%nope + 1
+         call appendI1D(l_nvdll,1)
+      endif
+      if ( streak.ge.2 ) then
+         l_nvdll%v(l_nvdll%n) = streak
+      endif
+      rm%nvdll_max = max(rm%nvdll_max,streak)
+   enddo
+enddo
+
+rm%sfCount = 0
+rm%efCount = 0
+rm%ifCount = 0
+rm%ifwpCount = 0
+l_sfCount = 0
+l_efCount = 0
+l_ifCount = 0
+l_ifwpCount = 0
+call initI1D(l_ibtype)
+call initI1D(l_nvell)
+do k = 1, fm%nbou
+   streak = 0
+   !write(*,*) 'k', k, 'fm%nvell(k)', fm%nvell(k), 'fm%ibtype_orig(k)', fm%ibtype_orig(k)
+   ! count the total number of each type of boundary for later
+   ! use in memory allocation
+   select case(fm%ibtype_orig(k))
+   case(0,1,2,10,11,12,20,21,22,30,52)
+      l_sfCount = l_sfCount + 1
+      do j = 1, fm%nvell(k)
+         if ( within(fm%simpleFluxBoundaries(l_sfCount)%nodes(j)).eqv..true. ) then
+            streak = streak + 1
+            rm%nvel = rm%nvel + 1
+         else
+            rm%nvel = rm%nvel - streak
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%numSimpleFluxBoundaries = rm%numSimpleFluxBoundaries + 1
+            rm%nbou = rm%nbou + 1
+            rm%sfCount = rm%sfCount + 1
+            call appendI1D(l_nvell,streak)
+            call appendI1D(l_ibtype, fm%ibtype_orig(k))
+            !write(*,*) 'l_sfCount', l_sfCount, 'rm%sfCount', rm%sfCount, 'l_nvell%v(l_nvell%n)', l_nvell%v(l_nvell%n)
+         endif
+         if ( streak.ge.2 ) then
+            l_nvell%v(l_nvell%n) = streak
+         endif
+         rm%nvell_max = max(rm%nvell_max,streak)
+
+      end do
+
+
+   case(3,13,23)
+      l_efCount = l_efCount + 1
+      do j = 1, fm%nvell(k)
+         if ( within(fm%externalFluxBoundaries(l_efCount)%nodes(j)).eqv..true. ) then
+            streak = streak + 1
+            rm%nvel = rm%nvel + 1
+         else
+            rm%nvel = rm%nvel - streak
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%numExternalFluxBoundaries = rm%numExternalFluxBoundaries + 1
+            rm%nbou = rm%nbou + 1
+            rm%efCount = rm%efCount + 1
+            call appendI1D(l_nvell,streak)
+            call appendI1D(l_ibtype, fm%ibtype_orig(k))
+            !write(*,*) 'l_efCount', l_efCount,'rm%efCount', rm%efCount, 'l_nvell%v(l_nvell%n)', l_nvell%v(l_nvell%n)
+         endif
+         if ( streak.ge.2 ) then
+            l_nvell%v(l_nvell%n) = streak
+         endif
+         rm%nvell_max = max(rm%nvell_max,streak)
+      end do
+
+
+   case(4,24)
+      l_ifCount = l_ifCount + 1
+      do j = 1, fm%nvell(k)
+         if ( (within(fm%internalFluxBoundaries(l_ifCount)%nodes(j)).eqv..true.) .and. (within(fm%internalFluxBoundaries(l_ifCount)%ibconn(j)).eqv..true.) ) then
+            streak = streak + 1
+            rm%nvel = rm%nvel + 1
+         else
+            rm%nvel = rm%nvel - streak
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%numInternalFluxBoundaries = rm%numInternalFluxBoundaries + 1
+            rm%nbou = rm%nbou + 1
+            rm%ifCount = rm%ifCount + 1
+            call appendI1D(l_nvell,streak)
+            call appendI1D(l_ibtype, fm%ibtype_orig(k))
+            !write(*,*) 'l_ifCount', l_ifCount, 'rm%ifCount', rm%ifCount, 'l_nvell%v(l_nvell%n)', l_nvell%v(l_nvell%n)
+
+         endif
+         if ( streak.ge.2 ) then
+            l_nvell%v(l_nvell%n) = streak
+         endif
+         rm%nvell_max = max(rm%nvell_max,streak)
+      end do
+
+   case(5,25)
+      l_ifwpCount = l_ifwpCount + 1
+      do j = 1, fm%nvell(k)
+         if ( (within(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%nodes(j)).eqv..true.) .and. (within(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%ibconn(j)).eqv..true.) ) then
+            streak = streak + 1
+            rm%nvel = rm%nvel + 1
+         else
+            rm%nvel = rm%nvel - streak
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%numInternalFluxBoundariesWithPipes = rm%numInternalFluxBoundariesWithPipes + 1
+            rm%nbou = rm%nbou + 1
+            rm%ifwpCount = rm%ifwpCount + 1
+            call appendI1D(l_nvell,streak)
+            call appendI1D(l_ibtype, fm%ibtype_orig(k))
+            !write(*,*) 'l_ifwpCount', l_ifwpCount, 'rm%ifwpCount', rm%ifwpCount, 'l_nvell%v(l_nvell%n)', l_nvell%v(l_nvell%n)
+         endif
+         if ( streak.ge.2 ) then
+            l_nvell%v(l_nvell%n) = streak
+         endif
+         rm%nvell_max = max(rm%nvell_max,streak)
+      end do
+
+   case default
+      write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') fm%ibtype_orig(k)
+      stop
+   end select
+   !write (*,*) l_sfCount, l_efCount, l_ifCount, l_ifwpCount, rm%nbou, rm%nvel, streak, l_nvell%n, l_nvell%v(l_nvell%n)
+enddo
+!write(*,*) l_sfCount, l_efCount, l_ifCount, l_ifwpCount
+!write(*,*) rm%sfCount, rm%efCount, rm%ifCount, rm%ifwpCount
+
+!
+! allocate result mesh boundary arrays
+allocate(rm%nvdll(rm%nope))
+do k = 1, rm%nope
+   rm%nvdll(k) = l_nvdll%v(k)
+enddo
+allocate(rm%nvell(rm%nbou))
+do k = 1, rm%nbou
+   rm%nvell(k) = l_nvell%v(k)
+enddo
+allocate(rm%ibtype_orig(l_ibtype%n))
+do k = 1, rm%nbou
+   rm%ibtype_orig(k) = l_ibtype%v(k)
+enddo
+call allocateBoundaryArrays(rm)
+!write(*,*) 'l_nvdll', rm%nope, (l_nvdll%v(k),k=1,rm%nope)
+!write(*,*) 'l_nvell', rm%nbou, (l_nvell%v(k),k=1,rm%nbou)
+!write(*,*) 'rm%nvdll', rm%nope, (rm%nvdll(k),k=1,rm%nope)
+!write(*,*) 'rm%nvell', rm%nbou, (rm%nvell(k),k=1,rm%nbou)
+!write(*,*) 'rm%ibtype_orig', rm%nbou, (rm%ibtype_orig(k),k=1,rm%nbou)
+!
+! populate result mesh elevation boundary arrays
+i=0
+do k = 1, fm%nope
+   streak = 0
+   do j = 1, fm%nvdll(k)
+      if ( within(fm%elevationBoundaries(k)%nodes(j)).eqv..true. ) then
+         streak = streak + 1
+      else
+         streak = 0
+      endif
+      if ( streak.eq.2 ) then
+         i = i + 1
+         rm%elevationBoundaries(i)%nodes(1) = full2subNodes(fm%elevationBoundaries(k)%nodes(j))
+      endif
+      if ( streak.ge.2 ) then
+         rm%elevationBoundaries(i)%nodes(streak) = full2subNodes(fm%elevationBoundaries(k)%nodes(j))
+      endif
+   enddo
+enddo
+!
+! populate result mesh flux boundary arrays
+rm%sfCount = 0
+rm%efCount = 0
+rm%ifCount = 0
+rm%ifwpCount = 0
+l_sfCount = 0
+l_efCount = 0
+l_ifCount = 0
+l_ifwpCount = 0
+do k = 1, fm%nbou
+   streak = 0
+   !write(*,*) 'k', k, 'fm%nvell(k)', fm%nvell(k), 'fm%ibtype_orig(k)', fm%ibtype_orig(k)
+   select case(fm%ibtype_orig(k))
+   case(0,1,2,10,11,12,20,21,22,30,52)
+      l_sfCount = l_sfCount + 1
+      do j = 1, fm%nvell(k)
+         if ( within(fm%simpleFluxBoundaries(l_sfCount)%nodes(j)).eqv..true. ) then
+            streak = streak + 1
+         else
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%sfCount = rm%sfCount + 1
+            !write(*,*) 'l_sfCount', l_sfCount, 'rm%sfCount', rm%sfCount, 'size(rm%simpleFluxBoundaries(rm%sfCount)%nodes)', size(rm%simpleFluxBoundaries(rm%sfCount)%nodes)
+            rm%simpleFluxBoundaries(rm%sfCount)%nodes(1) = full2subNodes(fm%simpleFluxBoundaries(l_sfCount)%nodes(j-1))
+         endif
+         if ( streak.ge.2 ) then
+            rm%simpleFluxBoundaries(rm%sfCount)%nodes(streak) = full2subNodes(fm%simpleFluxBoundaries(l_sfCount)%nodes(j))
+         endif
+      end do
+
+   case(3,13,23)
+      l_efCount = l_efCount + 1
+      do j = 1, fm%nvell(k)
+         if ( within(fm%externalFluxBoundaries(l_efCount)%nodes(j)).eqv..true. ) then
+            streak = streak + 1
+         else
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%efCount = rm%efCount + 1
+            !write(*,*) 'l_efCount', l_efCount, 'rm%efCount', rm%efCount, 'size(rm%externalFluxBoundaries(rm%efCount)%nodes)', size(rm%externalFluxBoundaries(rm%efCount)%nodes)
+            rm%externalFluxBoundaries(rm%efCount)%nodes(1) = full2subNodes(fm%externalFluxBoundaries(l_efCount)%nodes(j-1))
+            rm%externalFluxBoundaries(rm%efCount)%barlanht(1) = fm%externalFluxBoundaries(l_efCount)%barlanht(j-1)
+            rm%externalFluxBoundaries(rm%efCount)%barlancfsp(1) = fm%externalFluxBoundaries(l_efCount)%barlancfsp(j-1)
+         endif
+         if ( streak.ge.2 ) then
+            rm%externalFluxBoundaries(rm%efCount)%nodes(streak) = full2subNodes(fm%externalFluxBoundaries(l_efCount)%nodes(j))
+            rm%externalFluxBoundaries(rm%efCount)%barlanht(streak) = fm%externalFluxBoundaries(l_efCount)%barlanht(j)
+            rm%externalFluxBoundaries(rm%efCount)%barlancfsp(streak) =fm%externalFluxBoundaries(l_efCount)%barlancfsp(j)
+         endif
+      end do
+
+   case(4,24)
+      l_ifCount = l_ifCount + 1
+      do j = 1, fm%nvell(k)
+         if ( (within(fm%internalFluxBoundaries(l_ifCount)%nodes(j)).eqv..true.) .and. (within(fm%internalFluxBoundaries(l_ifCount)%ibconn(j)).eqv..true.) ) then
+            streak = streak + 1
+         else
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%ifCount = rm%ifCount + 1
+            !write(*,*) 'l_ifCount', l_ifCount, 'rm%ifCount', rm%ifCount, 'size(rm%internalFluxBoundaries(rm%ifCount)%nodes)', size(rm%internalFluxBoundaries(rm%ifCount)%nodes)
+            rm%internalFluxBoundaries(rm%ifCount)%nodes(1) = full2subNodes(fm%internalFluxBoundaries(l_ifCount)%nodes(j-1))
+            rm%internalFluxBoundaries(rm%ifCount)%ibconn(1) = full2subNodes(fm%internalFluxBoundaries(l_ifCount)%ibconn(j-1))
+            rm%internalFluxBoundaries(rm%ifCount)%barinht(1) = fm%internalFluxBoundaries(l_ifCount)%barinht(j-1)
+            rm%internalFluxBoundaries(rm%ifCount)%barincfsb(1) = fm%internalFluxBoundaries(l_ifCount)%barincfsb(j-1)
+            rm%internalFluxBoundaries(rm%ifCount)%barincfsp(1) = fm%internalFluxBoundaries(l_ifCount)%barincfsp(j-1)
+         endif
+         if ( streak.ge.2 ) then
+            rm%internalFluxBoundaries(rm%ifCount)%nodes(streak) = full2subNodes(fm%internalFluxBoundaries(l_ifCount)%nodes(j))
+            rm%internalFluxBoundaries(rm%ifCount)%ibconn(streak) = full2subNodes(fm%internalFluxBoundaries(l_ifCount)%ibconn(j))
+            rm%internalFluxBoundaries(rm%ifCount)%barinht(streak) = fm%internalFluxBoundaries(l_ifCount)%barinht(j)
+            rm%internalFluxBoundaries(rm%ifCount)%barincfsb(streak) = fm%internalFluxBoundaries(l_ifCount)%barincfsb(j)
+            rm%internalFluxBoundaries(rm%ifCount)%barincfsp(streak) = fm%internalFluxBoundaries(l_ifCount)%barincfsp(j)
+         endif
+      end do
+   case(5,25)
+      l_ifwpCount = l_ifwpCount + 1
+      do j = 1, fm%nvell(k)
+         if ( (within(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%nodes(j)).eqv..true.) .and. (within(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%ibconn(j)).eqv..true.) ) then
+            streak = streak + 1
+         else
+            streak = 0
+         endif
+         if ( streak.eq.2 ) then
+            rm%ifwpCount = rm%ifwpCount + 1
+            !write(*,*) 'l_ifwpCount', l_ifwpCount, 'rm%ifwpCount', rm%ifwpCount, 'size(rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%nodes)', size(rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%nodes)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%nodes(1) = full2subNodes(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%nodes(j-1))
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%ibconn(1) = full2subNodes(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%ibconn(j-1))
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%barinht(1) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%barinht(j-1)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%barincfsb(1) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%barincfsb(j-1)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%barincfsp(1) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%barincfsp(j-1)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%pipeht(1) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%pipeht(j-1)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%pipecoef(1) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%pipecoef(j-1)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%pipediam(1) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%pipediam(j-1)
+         endif
+         if ( streak.ge.2 ) then
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%nodes(streak) = full2subNodes(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%nodes(j))
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%ibconn(streak) = full2subNodes(fm%internalFluxBoundariesWithPipes(l_ifwpCount)%ibconn(j))
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%barinht(streak) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%barinht(j)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%barincfsb(streak) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%barincfsb(j)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%barincfsp(streak) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%barincfsp(j)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%pipeht(streak) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%pipeht(j)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%pipecoef(streak) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%pipecoef(j)
+            rm%internalFluxBoundariesWithPipes(rm%ifwpCount)%pipediam(streak) = fm%internalFluxBoundariesWithPipes(l_ifwpCount)%pipediam(j)
+         endif
+      end do
+   case default
+      write(6,'("ERROR: The boundary type ",i0," was found in the file but is not valid.")') fm%ibtype_orig(k)
+      stop
+   end select
+enddo
 
 !----------------------------------------------------------------------
 end subroutine subSetMesh
