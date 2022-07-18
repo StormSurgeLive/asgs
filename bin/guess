@@ -52,6 +52,13 @@ _guess_platform()
             default_platform=$platform
             break
         fi
+        # sorry to insert a corrner case here but $(hostname) on hatteras comes back with
+        # ht1.cluster on the login node and something like compute-13-1.cluster in an
+        # sinteractive session (and sinteractive is required to run asgs on hatteras)
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c "cluster") && ${platform} == "hatteras" && -e ${_BASE}/platforms/${platform}/init.sh ]]; then
+            default_platform=$platform
+            break
+        fi
       done
       unset _PLATFORMS
     fi
@@ -65,6 +72,13 @@ _guess_platform()
       done
       for platform in "${_PLATFORMS[@]}"; do
         if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh ]]; then
+            default_platform=$platform
+            break
+        fi
+        # sorry to insert a corrner case here but $(hostname) on hatteras comes back with
+        # ht1.cluster on the login node and something like compute-13-1.cluster in an
+        # sinteractive session (and sinteractive is required to run asgs on hatteras)
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c "cluster") && ${platform} == "hatteras" && -e ${_BASE}/platforms/${platform}/init.sh ]]; then
             default_platform=$platform
             break
         fi

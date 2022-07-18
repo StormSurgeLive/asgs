@@ -146,49 +146,6 @@ init_queenbeeC()
   MAKEJOBS=8
 }
 
-init_hatteras()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_hatteras()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=hatteras.renci.org
-  QUEUESYS=SLURM
-  QUEUENAME=batch # <---<< PARTITION synonym on slurm
-  SERQUEUE=batch
-  PPN=null
-  CONSTRAINT=null      # ivybridge or sandybridge
-  RESERVATION=null    # ncfs or null, causes job to run on dedicated cores
-  PARTITION=null
-  QCHECKCMD=sacct
-  JOBLAUNCHER='srun '
-  ACCOUNT=null
-  SUBMITSTRING=sbatch
-  SCRATCH=/projects/ncfs/data
-  SSHKEY=~/.ssh/id_rsa.pub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  WALLTIMEFORMAT="minutes"
-  QSUMMARYCMD=null
-  QUOTACHECKCMD="df -h /projects/ncfs"
-  ALLOCCHECKCMD=null
-  TDS=( renci_tds )
-  #
-  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
-  #
-  RMQMessaging_Enable="on"      # "on"|"off"
-  RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-  RMQMessaging_NcoHome="/home/ncfs"
-  RMQMessaging_LocationName="RENCI"
-  RMQMessaging_ClusterName="Hatteras"
-
-  #
-  # specify location of platform- and Operator-specific scripts to
-  # set up environment for different types of jobs
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  MAKEJOBS=8
-}
 #
 init_frontera()
 { #<- can replace the following with a custom script
@@ -533,10 +490,6 @@ set_hpc() {
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic
    fi
-   if [[ ${fqdn:0:2} == "ht" ]]; then
-      HPCENV=hatteras.renci.org
-      HPCENVSHORT=hatteras
-   fi
    if [[ ${fqdn:0:5} == "jason" ]]; then
       HPCENV=desktop.seahorsecoastal.com
       HPCENVSHORT=desktop
@@ -599,9 +552,6 @@ env_dispatch() {
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  echo "(info)    $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "hatteras") allMessage "$THIS: Hatteras (RENCI) configuration found."
-          init_hatteras
-          ;;
   "queenbee") allMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
           ;;

@@ -64,7 +64,6 @@ ASGS_HOME=${ASGS_HOME:-$(pwd)}
 ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
-echo "hatteras       - Hatteras (RENCI)"    # ht4
 echo "queenbee       - Queenbee (LONI)"     # qb2
 echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
 echo "supermic       - SuperMIC (LSU HPC)"  # smic
@@ -143,10 +142,6 @@ case "$platform" in
     WORK=${WORK:-/work}
     SCRATCH=${SCRATCH:-/scratch}
     DEFAULT_COMPILER=gfortran
-    ;;
-  hatteras)
-    WORK=${WORK:-$ASGS_HOME}
-    SCRATCH=${SCRATCH:-"/projects/$USER"}
     ;;
   queenbee|queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
