@@ -62,9 +62,6 @@ echo $ASGS_LOCAL_DIR
 # can tweak ASGS_TMPDIR default if TMPDIR is set in the environment
 ASGS_HOME=${ASGS_HOME:-$(pwd)}
 ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
-# if ASGS_TMPDIR was set, then set TMPDIR to the same value
-# so that gcc will put its temp files there
-TMPDIR=${ASGS_TMPDIR}
 
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 echo "hatteras       - Hatteras (RENCI)"    # ht4
@@ -178,7 +175,6 @@ esac
 export WORK
 export SCRATCH
 export ASGS_TMPDIR
-export TMPDIR
 
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
