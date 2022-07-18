@@ -549,9 +549,6 @@ writeTDSProperties()
    case $SERVER in
    "renci_tds")
       # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI
-      # http://tds.renci.org:80/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-      # http://tds.renci.org:80/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-      # http://tds.renci.org:80/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
       THREDDSHOST=tds.renci.org # WWW hostname for emailed links
       OPENDAPHOST=renci_tds     # alias in $HOME/.ssh/config
       OPENDAPPORT=":80"
@@ -566,9 +563,6 @@ writeTDSProperties()
 
    "renci_tds-k8")
       # THREDDS Data Server (TDS, i.e., OPeNDAP server) at RENCI, in K8S
-      # http://tds.renci.org:80/thredds/fileServer/DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-      # http://tds.renci.org:80/thredds/dodsC/     DataLayers/asgs/tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/maxele.63.nc
-      # http://tds.renci.org:80/thredds/catalog/                   tc/nam/2018070806/ec_95d/pod.penguin.com/podtest/namforecast/catalog.html
       THREDDSHOST=apsviz-sftp-dev-conn.apps.renci.org 
       THREDDSDOWNLOADHOST=apsviz-thredds-dev.apps.renci.org
       OPENDAPHOST=renci_tds-k8     # alias in $HOME/.ssh/config
