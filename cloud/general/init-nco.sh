@@ -43,5 +43,5 @@ make install
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
   cd $_ASGS_TMP
-  rm -rfv nco*
+  rm -rfv nco* $NCO_TGZ
 fi
