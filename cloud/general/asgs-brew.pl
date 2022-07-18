@@ -683,7 +683,6 @@ sub get_steps {
                 ASGS_BREW_FLAGS    => { value => qq{'$brewflags'},                       how => q{replace} },              # make brew flags available for later use
                 ASGS_HOME          => { value => qq{$asgs_home},                         how => q{replace} },              # used in preference of $HOME in most cases
                 ASGS_TMPDIR        => { value => qq{$asgs_tmpdir},                       how => q{replace} },              # used in preference of $TMPDIR in most cases
-                TMPDIR             => { value => qq{$asgs_tmpdir},                       how => q{replace} },              # so gcc can also use instead of /tmp (if set)
                 ASGS_MACHINE_NAME  => { value => qq{$asgs_machine_name},                 how => q{replace} },              # machine referred to as in platforms.sh & cmplrflags.mk
                 ASGS_COMPILER      => { value => qq{$asgs_compiler},                     how => q{replace} },              # compiler family designated during asgs-brew.pl build
                 ASGS_INSTALL_PATH  => { value => qq{$asgs_install_path},                 how => q{replace} },              # where asgs-brew.pl installs supporting bins & libs
