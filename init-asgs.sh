@@ -188,8 +188,10 @@ echo "Platform name       : $platform"
 if [ -n "$ASGS_LOCAL_DIR" ]; then
   echo "Local Site Dir      : $ASGS_LOCAL_DIR"
 fi
+PLATFORM_INIT_OPT=
 if [ -n "$PLATFORM_INIT" ]; then
   echo "Platform Init       : $PLATFORM_INIT"
+  PLATFORM_INIT_OPT="--platform-init $PLATFORM_INIT"
 fi
 echo "SCRIPTDIR           : $(pwd)"
 echo "ASGS HOME           : $ASGS_HOME"
@@ -295,7 +297,7 @@ if [ -e $HOME/bin/update-asgs ]; then
   echo "${W} $HOME/bin/update-asgs' has been detected. Use of this path is deprecated and will be removed."
 fi
 
-cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${EXTRA_ASGSBREW_OPTS}"
+cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${PLATFORM_INIT_OPT} ${EXTRA_ASGSBREW_OPTS}"
 
 if [ -z "$BATCH" ]; then
   echo
@@ -312,7 +314,7 @@ rm -v $HOME/bin/update-asgs 2> /dev/null
 if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   scriptdir=$(pwd)
   #
-  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR}"
+  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${PLATFORM_INIT_OPT}"
   full_command=$scriptdir/$base_cmd
   echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
   echo "#!/usr/bin/env bash"                               > ./update-asgs
