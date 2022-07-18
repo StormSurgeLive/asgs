@@ -62,6 +62,9 @@ echo $ASGS_LOCAL_DIR
 # can tweak ASGS_TMPDIR default if TMPDIR is set in the environment
 ASGS_HOME=${ASGS_HOME:-$(pwd)}
 ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
+# if ASGS_TMPDIR was set, then set TMPDIR to the same value
+# so that gcc will put its temp files there
+TMPDIR=${ASGS_TMPDIR}
 
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 echo "hatteras       - Hatteras (RENCI)"    # ht4
@@ -175,6 +178,7 @@ esac
 export WORK
 export SCRATCH
 export ASGS_TMPDIR
+export TMPDIR
 
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
@@ -295,7 +299,7 @@ if [ -e $HOME/bin/update-asgs ]; then
   echo "${W} $HOME/bin/update-asgs' has been detected. Use of this path is deprecated and will be removed."
 fi
 
-cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} ${EXTRA_ASGSBREW_OPTS}"
+cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${EXTRA_ASGSBREW_OPTS}"
 
 if [ -z "$BATCH" ]; then
   echo
@@ -312,7 +316,7 @@ rm -v $HOME/bin/update-asgs 2> /dev/null
 if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   scriptdir=$(pwd)
   #
-  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME}"
+  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR}"
   full_command=$scriptdir/$base_cmd
   echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
   echo "#!/usr/bin/env bash"                               > ./update-asgs
