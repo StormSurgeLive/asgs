@@ -48,6 +48,9 @@ if [ ! -e hdf5-${HDF5_VERSION}.tar.gz ]; then
 fi
 
 mkdir -p $OPT 2> /dev/null
+mkdir -p $OPT/bin 2> /dev/null
+mkdir -p $OPT/lib 2> /dev/null
+mkdir -p $OPT/include 2> /dev/null # avoid warnings for missing include directories [-Wmissing-include-dirs]
 
 if [ ! -e $OPT/bin/h5diff ]; then
   tar zxvf hdf5-${HDF5_VERSION}.tar.gz
