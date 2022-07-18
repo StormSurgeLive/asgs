@@ -152,7 +152,7 @@ sub _parse_options {
         $errmsg = qq{--compiler and --machinename flags are required};
     }
     elsif ( not $opts_ref->{'asgs-profile'} ) {
-        $errmsg = qq{--asgs-profile is not set, this is required to differentiate among different ASGS installations.\n\nNote: ASGS Shell looks for a profile called 'default' to load automatically on start.};
+        $errmsg = qq{--asgs-profile is not set, this is required to differentiate among different ASGS instances.\n\nNote: ASGS Shell looks for a profile called 'default' to load automatically on start.};
     }
     elsif ( $opts_ref->{'skip-steps'} and $opts_ref->{'run-steps'} ) {
         $errmsg = qq{--skip-steps can't be used with --run-steps};
@@ -192,7 +192,6 @@ sub _munge_option_defaults {
     my $adcirc_git_repo = $opts_ref->{'adcirc-git-repo'};
     $opts_ref->{'adcirc-dir'}   = $opts_ref->{'adcirc-dir'}   // qq{$asgs_home/$adcirc_git_repo};     # 'adcirc-cg' is the upstream repo name
     $opts_ref->{'install-path'} = $opts_ref->{'install-path'} // $ENV{WORK} // qq{$asgs_home/opt};    # if $WORK is defined in environment, use it as install-path base
-    $opts_ref->{'install-path'} = sprintf( "%s/%s", $opts_ref->{'install-path'}, $opts_ref->{'asgs-profile'} );
     return;
 }
 
