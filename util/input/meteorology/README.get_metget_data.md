@@ -20,6 +20,46 @@ The status of the files available can be found via the status endpoint:
 URL="https://api.metget.zachcobell.com/status"
 curl  -s -H "Content-Type: application/json" -H "x-api-key: $METGET_API_KEY" "$URL" | json_pp > metget.status.json
 ```
+The `--dry_run` argument can be added to form the request but not submit it. For example:
+
+```
+./get_metget_data.py --dryrun --apikey $METGET_API_KEY --endpoint "https://api.metget.zachcobell.com" --domain coamps-01L 0.1 -98 5 -58 50 --start '2022-06-04 00:00' --end '2022-06-09 06:00' --timestep 3600 --strict --backfill --output adcirc_coamps_forecast_2022060400-2022060906
+```
+Sample JSON from the build request above:
+```
+{
+        "version" : "0.0.1",
+        "creator" : "jason.kitt",
+        "background_pressure": 1013.0,
+        "backfill": true,
+        "nowcast": false,
+        "multiple_forecasts": false,
+        "start_date": "2022-06-04 00:00:00",
+        "end_date": "2022-06-09 06:00:00",
+        "format": "owi-ascii",
+        "data_type": "wind_pressure",
+        "time_step": 3600,
+        "domains": [
+                {
+                        "name": "coamps-tc-01L",
+                        "service": "coamps-tc",
+                        "storm": "01L",
+                        "x_init": -98.0,
+                        "y_init": 5.0,
+                        "x_end": -58.0,
+                        "y_end": 50.0,
+                        "di": 0.1,
+                        "dj": 0.1,
+                        "level": 0
+                }
+        ],
+        "compression": false,
+        "epsg": 4326,
+        "filename": "adcirc_coamps_forecast_2022060400-2022060906",
+        "strict": true,
+        "dry_run": true
+}
+```
 Sample JSON for a build request (from the SwaggerHub site linked above):
 ```
 {
@@ -69,9 +109,4 @@ Sample JSON for a build request (from the SwaggerHub site linked above):
     }
   ]
 }
-```
-The `--dry_run` argument can be added to form the request but not submit it. For example:
-
-```
-./get_metget_data.py --dryrun --domain coamps-01L 0.1 -98 5 -58 50 --start '2022-06-04 00:00' --end '2022-06-09 06:00' --timestep 3600 --strict --backfill --output adcirc_coamps_forecast_2022060400-2022060906
 ```
