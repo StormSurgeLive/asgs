@@ -48,7 +48,16 @@
 # -----------------------------------------------------------------------
 # export RETROSPECTIVE_TARGET_DATE=2022050100  # set end date for the retrospective
 # -----------------------------------------------------------------------
-#cat autodownloader_config_june_nowcast.inventory | awk 'BEGIN { FS="/" } { print $5 }' | sort | uniq -c -d
+# cat autodownloader_config_june_nowcast.inventory | awk 'BEGIN { FS="/" } { print $5 }' | sort | uniq -c -d
+# -----------------------------------------------------------------------
+# fortytwo.cct.lsu.edu/2022/nam/2022070100/LAv20a/qbc.loni.org/LAv20a_nam_akheir_10kcms/nowcast/fort.61.nc
+# fortytwo.cct.lsu.edu/2022/nam/2022063000/LAERDCv5i/supermic.hpc.lsu.edu/LAERDCv5i_nam_jgf_10kcms/nowcast/run.properties
+# fortytwo.cct.lsu.edu/2022/nam/2022060706/EGOMv20b/supermic.hpc.lsu.edu/EGOMv20b_nam_jgf/nowcast/fort.61.nc
+# tds.renci.org/2022/nam/2022060100/NCSC_SAB_v1.23/hatteras.renci.org/ncsc123-nam-sb/nowcast/fort.61.nc
+# tds.renci.org/2022/nam/2022060212/NCSC_SAB_v1.23/hatteras.renci.org/ncsc123-nam-sb55.01/nowcast/fort.61.nc
+# chg-1.oden.tacc.utexas.edu/2022/GFS/2022061806/HSOFS/ls6.tacc.utexas.edu/HSOFS_gfs_jgf/nowcast/fort.61.nc
+# -----------------------------------------------------------------------
+# pat=ncsc123-nam-sb55.01 ; mon=june; for file in fort.61.nc fort.72.nc ; do cat ../../../Operations/autodownloader_config_${mon}_nowcast.inventory | grep $pat | grep $file | sort -r | awk '{ print "/mnt/nas-storage/Operations/"$0 }' | stationRetrospective.sh ; done
 # -----------------------------------------------------------------------
 THIS=$(basename -- $0)
 timePeriods=( 1 2 4 7 14 21 30 ) # days back from the last available date
