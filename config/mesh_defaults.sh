@@ -156,6 +156,39 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
+   "LAERDCv5k")
+      #
+      # This is the successor to the LAv20a mesh (Louisiana) for 2022.
+      # v5j is the version number (they elected not to use the year in
+      # the version number unfortunately). Not sure why ERDC is in
+      # the file name, that's how we received it.
+      # This mesh requires ADCIRC v55.01.
+      nodes=3085851
+      elements=6050219
+      INPUTDIR=$SCRIPTDIR/input/meshes/LAERDC
+      GRIDFILE=LA_ERDC_v05j_chk.grd  # the j mesh goes with the k nodal attributes file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=LAERDCv5i_10.194kcms.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=LAERDCv5i_10.194kcms.norough.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=combined_stations_20200929.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=LA_ERDC_v05k_chk.13
+      NAPROPERTIES=${NAFILE}.properties
+      RIVERINIT=null             # this mesh has rivers with constant flow ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      ;;
       #
    "ec95d"|"EC95d")
       #
