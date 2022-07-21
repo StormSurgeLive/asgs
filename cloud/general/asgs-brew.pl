@@ -388,8 +388,10 @@ sub _get_asgsh {
       $export_asgs_local_dir = sprintf qq{export ASGS_LOCAL_DIR="%s"}, $ENV{ASGS_LOCAL_DIR};
     }
     my $export_asgs_platform_init = q{};
+    my $platform_init_example = q{};
     if ( $asgs_platform_init ne 'null' ) {
       $export_asgs_platform_init = sprintf qq{export PLATFORM_INIT="%s"}, $asgs_platform_init;
+      $platform_init_example = sprintf qq{--platform-init %s}, $asgs_platform_init;
     } 
 
     return qq{#!/usr/bin/env bash
@@ -398,7 +400,7 @@ sub _get_asgsh {
 #
 # Update shell by adding "--update-shell" flag to the asgs-brew.pl command used to build this
 # environment:
-#     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path $export_asgs_platform_init --update-shell
+#     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path $platform_init_example --update-shell
 
 if [ -n "\$_ASGSH_PID" ]; then
   echo
