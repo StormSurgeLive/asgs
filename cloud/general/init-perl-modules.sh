@@ -2,7 +2,7 @@
 
 # unconditionally attempts to install the Perl modules that are required
 
-PERLBREW_ROOT=${1:-"${ASGS_HOME}/perl5/perlbrew"}
+PERLBREW_ROOT=${1:-"${ASGS_HOME}/perl5/perlbrew"}  # ASGS_HOME is not exported by init-asgs.sh or asgs-brew.pl ...
 source $PERLBREW_ROOT/etc/bashrc
 
 # Note: not available via asgs-brew.pl at this time
@@ -17,7 +17,7 @@ if [ "${2}" = "clean" ]; then
     echo Y | cpanm --uninstall $module
   done
   exit
-fi  
+fi
 
 if [ ! -e $PERLBREW_ROOT/bin/cpanm ]; then
   echo installing cpanm...

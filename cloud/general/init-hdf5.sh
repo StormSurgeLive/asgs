@@ -8,8 +8,7 @@ HDF5_VERSION=${4:-1.12.2}
 # may need to make this available in asgs generally
 HDF5_USE_FILE_LOCKING=FALSE
 
-_TMPDIR=${TMPDIR:-/tmp/${USER}-asgs}
-_ASGS_TMP=${_ASGS_TMP:-$_TMPDIR}
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
@@ -22,6 +21,8 @@ if [ $2 == "clean" ]; then
   rm -rvf $_ASGS_TMP/hdf5-${HDF5_VFERSION}*
   cd $OPT/share
   rm -rvf hdf5_examples
+  cd $_ASGS_TMP
+  rm -rvf hdf5-${HDF5_VERSION}.tar.gz hdf5-${HDF5_VERSION}
   exit
 fi
 
@@ -47,6 +48,9 @@ if [ ! -e hdf5-${HDF5_VERSION}.tar.gz ]; then
 fi
 
 mkdir -p $OPT 2> /dev/null
+mkdir -p $OPT/bin 2> /dev/null
+mkdir -p $OPT/lib 2> /dev/null
+mkdir -p $OPT/include 2> /dev/null # avoid warnings for missing include directories [-Wmissing-include-dirs]
 
 if [ ! -e $OPT/bin/h5diff ]; then
   tar zxvf hdf5-${HDF5_VERSION}.tar.gz
@@ -60,4 +64,9 @@ fi
 if [ ! -e $OPT/bin/h5diff ]; then
   echo something went wrong with HD5
   exit 1
+else
+  # no errors, so clean up
+  echo cleaning build scripts and downloads
+  cd $_ASGS_TMP
+  rm -rvf hdf5-${HDF5_VERSION}.tar.gz hdf5-${HDF5_VERSION}
 fi

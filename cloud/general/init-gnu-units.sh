@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-OPT=${1-$ASGS_INSTALL_PATH}
+OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=$2
-JOBS=${3-1}
+JOBS=${3:-1}
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
-if [ "$COMPILER" == "clean" ]; then 
+if [ "$COMPILER" == "clean" ]; then
   echo cleaning units
   cd $OPT/bin
   rm -rvf units units_cur
@@ -14,6 +15,7 @@ if [ "$COMPILER" == "clean" ]; then
   rm -rvf units.1
   cd $OPT/share/man/man3
   cd $_ASGS_TMP
+  rm -rfv units*
   exit
 fi
 
@@ -39,5 +41,5 @@ make install
 if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
   cd $_ASGS_TMP
-  rm -rfv units* 
+  rm -rfv units*
 fi

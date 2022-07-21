@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-OPT=${1-$ASGS_INSTALL_PATH}
+OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=$2
-JOBS=${3-1}
+JOBS=${3:-1}
 
-if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then 
-  echo cleaning jq 
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
+
+if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
+  echo cleaning jq
   pushd $OPT > /dev/null 2>&1
   rm -vf ./share/man/man1/jq.1
   rm -vf ./share/doc/jq
@@ -17,6 +19,9 @@ if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
   rm -vf ./bin/jq
   rm -vf ./include/jq.h
   popd $OPT > /dev/null 2>&1
+  echo cleaning jq build scripts and downloads
+  cd $_ASGS_TMP
+  rm -rfv ${JQ_DIR}* > /dev/null 2>&1
 
   # stop here if 'clean', proceed if 'rebuild'
   if [ "$COMPILER" == "clean" ]; then
