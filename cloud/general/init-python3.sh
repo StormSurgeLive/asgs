@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 
-ACTION=${1-install}
-OPT=${2-$ASGS_INSTALL_PATH}
-JOBS=${3-1}
+ACTION=${1:-install}
+OPT=${2:-$ASGS_INSTALL_PATH}
+JOBS=${3:-1}
+
+_ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
 PYTHON3VERSION=3.7.9
 PYTHON3DIR=Python-${PYTHON3VERSION}
 PYTHON3TGZ=${PYTHON3DIR}.tgz
 
-if [[ "$ACTION" == "clean" || "$ACTION" == "rebuild" ]]; then 
-  echo cleaning python3 
+if [[ "$ACTION" == "clean" || "$ACTION" == "rebuild" ]]; then
+  echo cleaning python3
   cd $OPT/bin
   rm -rvf pyvenv-3.7 pyvenv python3-config python3.7m-config python3.7m python3.7-config python3.7 python3 \
           t pydoc3.7 pydoc3 pip3.7 pip3 pip idle3.7 idle3 easy_install-3.7 2to3-3.7 2to3
   cd $OPT/lib
-  rm -rvf *python* pkgconfig/*python* 
+  rm -rvf *python* pkgconfig/*python*
   cd $OPT/include
   rm -rvf ./python3.7m
   cd $OPT/share/man/man1
