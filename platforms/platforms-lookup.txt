@@ -1,0 +1,6 @@
+# Left column is the directory name under ./platforms
+# Right column is the expected result of `hostname --fqdn`
+ls6      ls6
+penguin  penguin
+mike     mike
+hatteras compute-[0-9][0-9]?-[0-9][0-9]?.cluster 
