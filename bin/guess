@@ -17,10 +17,6 @@ _guess_platform()
     default_platform=vagrant
   elif [ "$_ASGS_CONTAINER" = "docker" ]; then
     default_platform=docker
-  elif [ 1 -eq $(echo $HOSTNAME | grep -c ht3) ]; then
-    default_platform=hatteras
-  elif [ 1 -eq $(echo $HOSTNAME | grep -c ht4) ]; then
-    default_platform=hatteras
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qb1) ]; then
     default_platform=queenbee
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qb2) ]; then
@@ -39,9 +35,41 @@ _guess_platform()
     default_platform=desktop
   fi
 
+  # return if platform is not unknown 
+  if [ $default_platform != unknown ]; then
+    echo "$default_platform"
+    return
+  fi
+
   # IF NOT FOUND ABOVE ... dive into platforms defined in ./platforms/
   local _PLATFORMS=()
   local _BASE=${SCRIPTDIR:-.} # needs to operate outside of asgsh, for ./init-asgs.sh
+
+  # method 1 to find platform - using $_BASE/platforms-lookup.txt
+  if [ $default_platform == unknown ]; then
+    # look up via the text, find common name that is associated with
+    # the matching regular expression that is based on the expected hostname
+    local OLDIFS=$IFS
+    IFS=$'\n'
+    for line in $(cat ${_BASE}/platforms/platforms-lookup.txt | grep -v '#'); do
+      local common_name=$(echo $line | awk '{print $1}')
+      local hostname_regex=$(echo $line | awk '{print $2}')
+      if [[ $(echo $HOSTNAME | egrep -c "$hostname_regex") -eq 1 && -e ${_BASE}/platforms/${common_name}/init.sh ]]; then
+        default_platform=$common_name
+        break
+      fi
+    done 
+    IFS=$OLDIFS
+  fi
+
+  # return if platform is not unknown 
+  if [ $default_platform != unknown ]; then
+    echo "$default_platform"
+    return
+  fi
+
+  #TODO 1: should deprecate in favor of platforms-lookup.txt
+  # method 2 to find platform - fallback look to list of directories
   if [ $default_platform == unknown ]; then
     if [ -d ${_BASE}/platforms ]; then
       for platform in $(find ${_BASE}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
@@ -53,10 +81,18 @@ _guess_platform()
             break
         fi
       done
-      unset _PLATFORMS
     fi
   fi
 
+  # return if platform is not unknown 
+  if [ $default_platform != unknown ]; then
+    echo "$default_platform"
+    return
+  fi
+
+  #TODO 2: implement support for $ASGS_LOCAL_DIR/platforms-lookup.txt
+  #TODO 3: deprecate method below in favor of platforms-lookup.txt
+  # method 3 - supporting locally defined platforms
   # look in $ASGS_LOCAL_DIR, if ENV is set
   if [ $default_platform == unknown ]; then
     if [[ -n "${ASGS_LOCAL_DIR}" && -d ${ASGS_LOCAL_DIR}/platforms ]]; then
@@ -72,12 +108,11 @@ _guess_platform()
     fi
   fi
 
-  # return overall determination of platform
+  # return if platform is not unknown 
   if [ $default_platform != unknown ]; then
     echo "$default_platform"
+    return
   fi
-
-  return
 }
 
 _guess(){

@@ -115,6 +115,7 @@ type mesh_t
    logical :: is3D  ! true if the mesh is 3D
    ! boundary related parameters
    logical :: readBoundaryTable = .true.
+   logical :: writeBoundaryTable = .true.
    integer :: neta_count ! count of open boundary nodes
    integer :: nvel_count ! count of land boundary nodes
    integer :: nope ! number of open (ocean) elevation specified boundaries
@@ -1219,14 +1220,14 @@ do k = 1, m%nbou
       m%ifCount = m%ifCount + 1
    case(5,25)
       write(unit=iunit,fmt='(2(i0,1x),6(f8.3),a)',err=10,iostat=ios) &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%nodes(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%ibconn(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%barinht(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsb(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsp(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipeht(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipecoef(1), &
-                    m%internalFluxBoundariesWithPipes(m%ifCount)%pipediam(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%ibconn(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%barinht(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsb(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsp(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipeht(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(1), &
+                    m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(1), &
       ' ! boundary node (nbvv), connected backface node (ibconn), ' // &
       'barrier height (barinht), coef. of subcrit. flow (barincfsb), ' // &
       'coef. of supercrit. flow (barincfsp), pipe height (pipeht), ' // &
@@ -1234,14 +1235,14 @@ do k = 1, m%nbou
       lineNum = lineNum + 1
       do j = 2, m%nvell(k)
          write(unit=iunit,fmt='(2(i0,1x),6(f8.3))',err=10,iostat=ios) &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%nodes(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%ibconn(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%barinht(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsb(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%barincfsp(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipeht(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipecoef(j), &
-                       m%internalFluxBoundariesWithPipes(m%ifCount)%pipediam(j)
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%ibconn(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barinht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsb(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%barincfsp(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipeht(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(j), &
+                       m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(j)
          lineNum = lineNum + 1
       end do
       m%ifwpCount = m%ifwpCount + 1
@@ -1294,7 +1295,7 @@ endif
 CALL Check(NF90_DEF_DIM(NC_ID,'nvertex',3,n%NC_DimID_nvertex))
 CALL Check(NF90_DEF_DIM(NC_ID,'single',1,NC_DimID_single))
 ! boundary parameters
-if (m%readBoundaryTable.eqv..true.) then
+if (m%writeBoundaryTable.eqv..true.) then
    if (m%nope.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'m%nope',m%nope,n%NC_DimID_nope))
    if (m%nvdll_max.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'max_nvdll',m%nvdll_max,n%NC_DimID_max_nvdll))
    if (m%neta.ne.0) CALL Check(NF90_DEF_DIM(NC_ID,'neta',m%neta,n%NC_DimID_neta))
@@ -1321,7 +1322,7 @@ CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'standard_name','face_node_conn
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'units','nondimensional'))
 CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_element,'start_index',1))
 
-if (m%readBoundaryTable.eqv..true.) then
+if (m%writeBoundaryTable.eqv..true.) then
    if (m%nope.ne.0) then
       CALL Check(NF90_DEF_VAR(NC_ID,'nvdll',NF90_DOUBLE,n%NC_DimID_nope,n%NC_VarID_nvdll))
       CALL Check(NF90_PUT_ATT(NC_ID,n%NC_VarID_nvdll,'long_name','total number of nodes in each elevation specified & boundary segment'))
@@ -1414,7 +1415,7 @@ integer, intent(in) :: nc_id
 integer :: nc_count(2)
 integer :: nc_start(2)
 integer :: i, j
-
+write(6,'(a)') 'INFO: Writing mesh data to netcdf.'
 ! place mesh-related data into the file
 NC_Count = (/ m%np, 1 /)
 NC_Start = (/ 1, 1 /)
@@ -1422,11 +1423,17 @@ CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_x,m%xyd(1,1:m%np),NC_Start,NC_Count))
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_y,m%xyd(2,1:m%np),NC_Start,NC_Count))
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_depth,m%xyd(3,1:m%np),NC_Start,NC_Count))
 NC_Count = (/ 3, m%ne /)
-
+!
+! populate netcdf-style element table
+do i=1, m%ne
+   do j=1, 3
+      m%nmnc(j,i) = m%nm(i,j)
+   end do
+end do
 CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_element,m%nmnc,NC_Start,NC_Count))
 !
 ! boundary parameters
-if (m%readBoundaryTable.eqv..false.) then
+if (m%writeBoundaryTable.eqv..false.) then
    write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
    return
 endif
@@ -1450,7 +1457,7 @@ if (m%nbou.ne.0) then
    CALL Check(NF90_PUT_VAR(NC_ID,n%NC_VarID_nbvv,m%nbvv,NC_Start,NC_Count))
 end if
 
-write(6,'(a)') 'INFO: Mesh has been written to the netCDF file.'
+write(6,'(a)') 'INFO: Mesh data has been written to the netCDF file.'
 !----------------------------------------------------------------------
 end subroutine writeMeshDataToNetCDF
 !----------------------------------------------------------------------
