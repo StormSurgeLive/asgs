@@ -8,4 +8,4 @@ DOWNLOADPREFIX=/asgs
 CATALOGPREFIX=/asgs
 OPENDAPBASEDIR=/hurricane
 echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-echo "post.opendap.${SERVER}.copyablehosts : ( stampede2 frontera )" >> $RUNPROPERTIES
+echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> $RUNPROPERTIES
