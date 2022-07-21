@@ -156,16 +156,17 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
       ;;
-   "LAERDCv5j")
+   "LAERDCv5k")
       #
-      # This is the successor to the LAv20a mesh (Louisiana) for 2022. 
-      # v5j is the version number (they elected not to use the year in 
-      # the version number unfortunately). Not sure why ERDC is in 
+      # This is the successor to the LAv20a mesh (Louisiana) for 2022.
+      # v5j is the version number (they elected not to use the year in
+      # the version number unfortunately). Not sure why ERDC is in
       # the file name, that's how we received it.
+      # This mesh requires ADCIRC v55.01.
       nodes=3085851
       elements=6050219
       INPUTDIR=$SCRIPTDIR/input/meshes/LAERDC
-      GRIDFILE=LA_ERDC_v05j_chk.grd  # mesh (fort.14) file
+      GRIDFILE=LA_ERDC_v05j_chk.grd  # the j mesh goes with the k nodal attributes file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=LAERDCv5i_10.194kcms.15.template
       # wind at 10m fort.15 template
@@ -174,7 +175,7 @@ case $GRIDNAME in
       ELEVSTATIONS=combined_stations_20200929.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      NAFILE=LA_ERDC_v05j_chk.13
+      NAFILE=LA_ERDC_v05k_chk.13
       NAPROPERTIES=${NAFILE}.properties
       RIVERINIT=null             # this mesh has rivers with constant flow ...
       RIVERFLUX=null
