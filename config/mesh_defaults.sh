@@ -370,6 +370,8 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
       ;;
 "uriv18"|"URIv18")
+      nodes=2617704
+      elements=5149248
       INPUTDIR=$SCRIPTDIR/input/meshes/uriv18
       GRIDFILE=hsofs_NE-hires_v18_weir_rivers_depsm2_nopump.grd
       MESHPROPERTIES=${GRIDFILE}.nc.properties
@@ -396,6 +398,8 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_hsofs.dat
       ;;
    "hsofs_NE-hires_v2_depf2")
+      nodes=2617704
+      elements=5149248
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2
       GRIDFILE=hsofs_NE-hires_v2_depf2.grd
       MESHPROPERTIES=${GRIDFILE}.nc.properties
