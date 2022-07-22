@@ -110,6 +110,7 @@ writeProperties()
    echo "post.executable.initpost : $INITPOST" >> $STORMDIR_RUN_PROPERTIES
    echo "post.executable.postprocess : ( ${POSTPROCESS[@]} )" >> $STORMDIR_RUN_PROPERTIES
    echo "post.opendap.additionalFiles : ( ${postAdditionalFiles[@]} )" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.opendap.excludeFiles : ( ${postExcludeFiles[@]} )" >> $STORMDIR_RUN_PROPERTIES
    echo "post.opendap.tds : ( ${TDS[@]} )" >> $STORMDIR_RUN_PROPERTIES
    echo "post.opendap.target : $TARGET" >> $STORMDIR_RUN_PROPERTIES
    echo "post.file.sshkey : $SSHKEY" >> $STORMDIR_RUN_PROPERTIES
