@@ -89,7 +89,7 @@ if [[ -d $dirWind10m ]]; then
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       if [[ -e $dirWind10m/$file && ! -e ./wind10m.${file} ]]; then
          scenarioMessage "$THIS: Found $dirWind10m/${file}."
-         ln -s $dirWind10m/${file} ./wind10m.${file} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not link to Wind10m directory: `cat $errmsg`"
+         cp $dirWind10m/${file} ./wind10m.${file} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not copy from Wind10m directory: `cat $errmsg`"
          # update the run.properties file
          case $file in
          "fort.72.nc")
