@@ -1,0 +1,66 @@
+ -66.94350     44.91990      !Eastport Passamaquoddy Bay, ME   (NOS Station ID 841014) modified     
+ -67.29666     44.64166      !Cutler Naval Base, ME            (NOS Station ID 8411250)              
+ -68.12790     44.27950      !Bar Harbor, ME                   (NOS Station ID 8413320) modified
+ -70.13330     43.68330      !Portland, ME                     (NOS Station ID 8418150) modified
+ -70.56331     43.32000      !Wells, ME                        (NOS Station ID 8419317)
+ -70.71056     43.07139      !Fort Point, NH                   (NOS Station ID 8423898)
+ -70.87667     42.52333      !Salem, MA                        (NOS Station ID 8442645)
+ -71.05033     42.35392      !Boston, MA                       (NOS Station ID 8443970)
+ -70.89167     42.32833      !Boston Light, MA                 (NOS Station ID 8444162)
+ -70.95333     42.28000      !Nut Island, MA                   (NOS Station ID 8444525)
+ -70.50660     41.77270      !Sandwich, MA                     (NOS Station ID 8447180) modified
+ -69.94811     41.68815      !Chatham, MA                      (NOS Station ID 8447435) modified
+ -70.76833     41.35333      !Menemsha Harbor, MA              (NOS Station ID 8448725)
+ -70.71500     41.71167      !Great Hill, MA                   (NOS Station ID 8447368)
+ -70.67170     41.52330      !Woods Hole, MA                   (NOS Station ID 8447930)              
+ -70.09474     41.28627      !Nantucket Island, MA             (NOS Station ID 8449130) modified
+ -71.16463     41.70486      !Fall River, MA                   (NOS Station ID 8447386) modified
+ -71.39880     41.80680      !Providence, RI                   (NOS Station ID 8454000)              
+ -71.32750     41.49880      !Newport, RI		       (NOS Station ID 8452660)
+ -71.88097     41.34356      !LN-W                             (Woods Hole Group station)
+ -71.82774     41.34776      !LN-E                             (Woods Hole Group station)
+ -71.78696     41.33539      !W-W                              (Woods Hole Group station)
+ -71.74567     41.33471      !QW                               (Woods Hole Group station)
+ -71.71222     41.34508      !QE                               (Woods Hole Group station)
+ -71.63707     41.37105      !NN                               (Woods Hole Group station)
+ -71.69700     41.34718      !NW                               (Woods Hole Group station)
+ -71.60612     41.37493      !GH                               (Woods Hole Group station)
+ -71.49340     41.42879      !PJ-N                             (Woods Hole Group station)
+ -71.51617     41.38027      !PJ-S                             (Woods Hole Group station)
+ -71.53271     41.39481      !PP-N                             (Woods Hole Group station)
+ -71.53976     41.37491      !PP-S                             (Woods Hole Group station)
+ -72.08670     41.35500      !New London, CT                   (NOS Station ID 8461490)
+ -73.17822     41.15728      !Bridgeport, CT                   (NOS Station ID 8467150) modified
+ -71.96666     41.05000      !Montauk, NY                      (NOS Station ID 8510560)              
+ -74.01166     40.46833      !Sandy Hook, NJ                   (NOS Station ID 8531680)       
+ -74.41833     39.35166      !Atlantic City, NJ                (NOS Station ID 8534720)              
+ -74.97380     38.90830      !Cape May Ferry Terminal, NJ      (NOS Station ID 8536110) modified
+ -75.12080     38.84796      !Lewes, DE                        (NOS Station ID 8557380) modified
+ -75.98899     37.16508      !Kiptopeke, VA                    (NOS Station ID 8632200) modified             
+ -64.70333     32.37333      !Bermuda, St. Georges Island      (NOS Station ID 2695540)
+ -70.18167     42.05000      !Provincetown, MA                 (NOS Station ID 8446121)
+ -70.15385     41.75164      !Sesuit Harbor, MA                (NOS Station ID 8447241) modified
+ -70.66167     41.96000      !Plymouth Harbor, MA              (NOS Station ID 8446493)
+ -70.82000     42.81667      !Plum Island, MA                  (NOS Station ID 8440452)
+ -70.61500     42.65833      !Rockport, MA                     (NOS Station ID 8441551)
+ -72.6667      41.7687       !Hartford, CT                     (USGS station ID 01190070) modified
+ -71.3836      41.8760       !Head of Seekonk River
+ -71.40248     41.81714      !just north of FPHBarrier
+ -71.83345     41.38361      !Pawcatuck at Westerly            (USGS station ID 01118500) modified
+ -71.85833     41.31056      !Watch Hill Cove                  (USGS station ID 411838071513000)
+ -72.55101     41.54177      !Conn. river at Middle Haddam     (USGS station ID 01193050) modified
+ -72.38297     41.35148      !Conn. river at Essex             (USGS station ID 01194750) modified
+ -72.34677     41.31260      !Conn. river at Old Lyme          (USGS station ID 01194796) modified
+ -71.07556     42.39556      !Mystic river at Earhart Dam      (USGS station ID 01103050)
+ -71.07795     42.35882      !Charles river at Cambridge       (USGS station ID 01104705) modified
+ -71.06139     42.36844      !Charles river at Boston          (USGS station ID 01104715) modified
+ -71.16506     41.70514      !Fall River                       (NOS station ID 8447386) modified
+ -71.38960     41.76445      !mouth of pawtuxet
+ -71.40749     41.76716      !near head of model pawtuxet
+ -71.04270     42.27718      !neponset river mouth 
+ -71.07556     42.39556      !mystic river at A-Earhart dam    (USGS station ID 01103050)
+ -71.08188     42.39981      !near head of model mystic
+ -71.06167     42.36889      !charles river at CharlesR dam    (USGS station ID 01104715)
+ -71.11030     42.35269      !near head of model charles
+ -71.11064     41.84369      !near head of model taunton
+ -72.34716     41.31266      !CT river at old lyme             (USGS station ID 01194796) modified
