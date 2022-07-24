@@ -292,7 +292,7 @@ if [ -e $HOME/bin/update-asgs ]; then
   echo "${W} $HOME/bin/update-asgs' has been detected. Use of this path is deprecated and will be removed."
 fi
 
-cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${PLATFORM_INIT_OPT} ${EXTRA_ASGSBREW_OPTS}"
+cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} --work=$WORK --scratch=$SCRATCH ${PLATFORM_INIT_OPT} ${EXTRA_ASGSBREW_OPTS}"
 
 if [ -z "$BATCH" ]; then
   echo
@@ -309,7 +309,7 @@ rm -v $HOME/bin/update-asgs 2> /dev/null
 if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   scriptdir=$(pwd)
   #
-  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${PLATFORM_INIT_OPT}"
+  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} --work=$WORK --scratch=$SCRATCH ${PLATFORM_INIT_OPT}"
   full_command=$scriptdir/$base_cmd
   echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
   echo "#!/usr/bin/env bash"                               > ./update-asgs

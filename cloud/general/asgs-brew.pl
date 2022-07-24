@@ -60,15 +60,15 @@ sub _get_help {
     return qq{
 Usage:
 
-    $0 --machinename <MachineName> --compiler <CompilerFamily> --asgs-profile <ProfileName> [ --install-path some/path --home /path/other/than/user/\$HOME --force --clean [ --list-steps | --skip-steps | --run-steps ] ]
+    $0 --machinename <MachineName> --compiler <CompilerFamily> --asgs-profile <ProfileName> --work <WORK> --scratch <SCRATCH> [ --install-path some/path --home /path/other/than/user/\$HOME --force --clean [ --list-steps | --skip-steps | --run-steps ] ]
 
 Required Flags:
 
-    --compiler, --machinename, --asgs-profile
+    --compiler, --machinename, --asgs-profile, --work, --scratch
 
 Reset asgsh with clean environment:
 
-    $0 --machinename <MachineName> --compiler <CompilerFamily> --asgs-profile <ASGSProfileName> --run-steps setup-env
+    $0 --machinename <MachineName> --compiler <CompilerFamily> --asgs-profile <ASGSProfileName> --work <WORK> --scratch <SCRATCH> --run-steps setup-env
 
 More Help and Information:
 
@@ -129,6 +129,8 @@ sub _parse_options {
           force
           home=s
           tmpdir=s
+          work=s
+          scratch=s
           platform-init=s
           install-path=s
           list-steps
@@ -192,7 +194,7 @@ sub _munge_option_defaults {
     my $asgs_home       = $opts_ref->{home};
     my $adcirc_git_repo = $opts_ref->{'adcirc-git-repo'};
     $opts_ref->{'adcirc-dir'}   = $opts_ref->{'adcirc-dir'}   // qq{$asgs_home/$adcirc_git_repo};     # 'adcirc-cg' is the upstream repo name
-    $opts_ref->{'install-path'} = $opts_ref->{'install-path'} // $ENV{WORK} // qq{$asgs_home/opt};    # if $WORK is defined in environment, use it as install-path base
+    $opts_ref->{'install-path'} = $opts_ref->{'install-path'} //  $opts_ref->{'work'} // $ENV{WORK} // qq{$asgs_home/opt};    # if $WORK is defined in environment, use it as install-path base
     return;
 }
 
@@ -381,6 +383,8 @@ sub _get_asgsh {
     my $asgs_machine_name    = $opts_ref->{machinename};
     my $asgs_compiler        = $opts_ref->{compiler};
     my $scriptdir            = $opts_ref->{scriptdir};
+    my $asgs_work            = $opts_ref->{work} // $ENV{WORK} // $asgs_home;
+    my $asgs_scratch         = $opts_ref->{scratch} // $ENV{SCRATCH} // $asgs_work // $asgs_home;
     my $asgs_platform_init   = $opts_ref->{'platform-init'} // q{null};
     my ( $env_summary, $exported_list ) = $self->_get_env_summary($opts_ref);
     my $export_asgs_local_dir = q{};
@@ -400,7 +404,7 @@ sub _get_asgsh {
 #
 # Update shell by adding "--update-shell" flag to the asgs-brew.pl command used to build this
 # environment:
-#     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path $platform_init_example --update-shell
+#     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path $platform_init_example --work $asgs_work --scratch $asgs_scratch --update-shell
 
 if [ -n "\$_ASGSH_PID" ]; then
   echo
@@ -593,6 +597,8 @@ sub get_steps {
     my $asgs_install_path = $opts_ref->{'install-path'};
     my $asgs_compiler     = $opts_ref->{compiler};
     my $asgs_home         = $opts_ref->{home};
+    my $asgs_work         = $opts_ref->{work};
+    my $asgs_scratch      = $opts_ref->{scratch};
     my $asgs_tmpdir       = $opts_ref->{tmpdir} // q{/tmp};
     my $asgs_machine_name = $opts_ref->{machinename};
     my $makejobs          = $opts_ref->{'make-jobs'};
@@ -674,8 +680,8 @@ sub get_steps {
             # augment existing %ENV (cumulative)
             export_ENV => {
                 PATH               => { value => $_get_all_paths->(), how => q{prepend} },                                 # prefer ASGS binaries and tools; full list managed above
-                WORK               => { value => $ENV{WORK}    // $asgs_home // q{}, how => q{replace} },                  # standardize across all platforms
-                SCRATCH            => { value => $ENV{SCRATCH} // $ENV{WORK} // $asgs_home // q{}, how => q{replace} },    # standardize across all platforms
+                WORK               => { value => $asgs_work // $asgs_home // q{}, how => q{replace} },                     # standardize across all platforms
+                SCRATCH            => { value => $asgs_scratch // $asgs_work // q{}, how => q{replace} },                  # standardize across all platforms
                 LIBRARY_PATH       => { value => qq{$asgs_install_path/lib},             how => q{prepend} },              # for use by linkers
                 LD_LIBRARY_PATH    => { value => qq{$asgs_install_path/lib},             how => q{prepend} },              # for use by linkers
                 LD_RUN_PATH        => { value => qq{$asgs_install_path/lib},             how => q{prepend} },              # for use by binaries
