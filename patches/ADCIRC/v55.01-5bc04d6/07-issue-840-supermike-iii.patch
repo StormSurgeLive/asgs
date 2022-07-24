@@ -34,7 +34,7 @@ index edb616b..bec0be5 100644
       # netcdf_fortran modules prior to compiling or executing ADCIRC
       ifeq ($(MACHINENAME),queenbee)
 -        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
-+        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff lnetcdf
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
       endif
       ifeq ($(MACHINENAME),queenbeeC)
 -        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -L$(NETCDFHOME)/lib -lnetcdf -lnetcdf
