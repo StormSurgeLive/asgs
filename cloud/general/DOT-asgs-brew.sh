@@ -163,7 +163,7 @@ goto() {
     ;;
   workdir)
     if [ "$WORK" ]; then
-      cd $WORKDIR
+      cd $WORK
       _pwd
     else
       echo "workdir not yet defined"
