@@ -320,6 +320,12 @@ if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   if [ -n "$PLATFORM_INIT" ]; then
     echo "export PLATFORM_INIT=${PLATFORM_INIT}"        >> ./update-asgs
   fi
+  if [ -n "$WORK" ]; then
+    echo "export WORK=${WORK}"        >> ./update-asgs
+  fi
+  if [ -n "$SCRATCH" ]; then
+    echo "export SCRATCH=${SCRATCH}"        >> ./update-asgs
+  fi
   echo "if [ -n \"\$_ASGSH_PID\" ]; then"                 >> ./update-asgs
   echo "  echo This needs to be run outside of the asgsh environment" >> ./update-asgs
   echo "  echo exiting ..."                               >> ./update-asgs
@@ -351,7 +357,8 @@ if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
 else
   echo "You chose '$run', so the wizard has exited without executing the install command"
   echo
-  echo "If you changed your mind or made mistake, copy/paste the following and hit <enter>,"
+  echo "If you changed your mind or made mistake, re-run init-asgs.sh (the following "
+  echo "command is designed to be executed by this wrapper script):"
   echo
   printf "\t$cmd\n"
   echo
