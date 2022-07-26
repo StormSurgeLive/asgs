@@ -1,30 +1,30 @@
--94.985000 29.681667 ! 8770613  ! NOAA_NOS ! Morgans Point 
--94.793300 29.310000 ! 8771450  ! NOAA_NOS ! Galveston Pier 21 
+-94.985000 29.681667 ! 8770613  ! NOAA_NOS ! Morgans Point
+-94.793300 29.310000 ! 8771450  ! NOAA_NOS ! Galveston Pier 21
 -94.789400 29.284900 ! 8771510  ! NOAA_NOS ! Galveston Pleasure Pier
--97.046667 28.021667 ! 8774770  ! NOAA_NOS ! Rockport 
--97.216667 27.580000 ! 8775870  ! NOAA_NOS ! Bob Hall Pier Corpus Christi 
--97.215000 26.061667 ! 8779770  ! NOAA_NOS ! Port Isabel 
+-97.046667 28.021667 ! 8774770  ! NOAA_NOS ! Rockport
+-97.216667 27.580000 ! 8775870  ! NOAA_NOS ! Bob Hall Pier Corpus Christi
+-97.215000 26.061667 ! 8779770  ! NOAA_NOS ! Port Isabel
 -94.095692 30.133056 ! BEAT2    ! NOAA_RFS ! Neches River at Beaumont
--93.342778 29.768056 ! CAPL1    ! NOAA_RFS ! Tide Station at Calcasieu Pass 
--96.965278 28.661944 ! DUPT2    ! NOAA_RFS ! Guadalupe River near Bloomington 
--93.221667 30.223611 ! LCLL1    ! NOAA_RFS ! Tide Station at Lake Charles 
+-93.342778 29.768056 ! CAPL1    ! NOAA_RFS ! Tide Station at Calcasieu Pass
+-96.965278 28.661944 ! DUPT2    ! NOAA_RFS ! Guadalupe River near Bloomington
+-93.221667 30.223611 ! LCLL1    ! NOAA_RFS ! Tide Station at Lake Charles
 -95.976210 28.699167 ! MRCT2    ! NOAA_RFS ! Colorado River at Matagorda
--93.721111 30.097222 ! ORNT2    ! NOAA_RFS ! Sabine River at Orange 
+-93.721111 30.097222 ! ORNT2    ! NOAA_RFS ! Sabine River at Orange
 -93.869803 29.728333 ! SBPT2    ! NOAA_RFS ! Tide Station near Sabine Pass
 -95.093911 29.875853 ! SHLT2    ! NOAA_RFS ! San Jacinto River near Sheldon
--97.012778 28.792778 ! VICT2    ! NOAA_RFS ! Guadalupe River at Victoria 
--93.721554 30.097988 ! 08030540 ! USGS ! Sabine Rv (at Navy Pier) at Orange 
--95.141320 29.916333 ! 08072000 ! USGS ! Lk Houston nr Sheldon 
+-97.012778 28.792778 ! VICT2    ! NOAA_RFS ! Guadalupe River at Victoria
+-93.721554 30.097988 ! 08030540 ! USGS ! Sabine Rv (at Navy Pier) at Orange
+-95.141320 29.916333 ! 08072000 ! USGS ! Lk Houston nr Sheldon
 -95.093819 29.876581 ! 08072050 ! USGS ! San Jacinto Rv nr Sheldon
--94.774366 29.941342 ! 08067100 ! USGS ! Trinity Rv nr Moss Bluff 
--97.584722 26.235278 ! 08470500 ! USGS ! Arroyo Colorado at FM 106 Rio Hondo 
+-94.774366 29.941342 ! 08067100 ! USGS ! Trinity Rv nr Moss Bluff
+-97.584722 26.235278 ! 08470500 ! USGS ! Arroyo Colorado at FM 106 Rio Hondo
 -94.91721  29.481310 ! 8771013  ! NOAA_NOS ! Eagle Point
 -95.302500 28.942764 ! 8772447  ! NOAA_NOS ! USCG Freeport
--93.349043 29.815776 ! 08017118 ! USGS ! Calcasieu River at Cameron 
+-93.349043 29.815776 ! 08017118 ! USGS ! Calcasieu River at Cameron
 -95.291047 29.748886 ! 08074710 ! USGS ! Buffalo Bayou at Turning Basin Houston
--95.025556 29.554167 ! 08077637 ! USGS ! Clear Lk Second Outflow Channel at Kemah 
--94.920202 29.447454 ! 08077650 ! USGS ! Moses Lk-Galveston Bay nr Texas City 
--94.731309 29.812443 ! 08067252 ! USGS ! Trinity Rv at Wallisville 
+-95.025556 29.554167 ! 08077637 ! USGS ! Clear Lk Second Outflow Channel at Kemah
+-94.920202 29.447454 ! 08077650 ! USGS ! Moses Lk-Galveston Bay nr Texas City
+-94.731309 29.812443 ! 08067252 ! USGS ! Trinity Rv at Wallisville
 -95.380597 28.897700 ! 08117300 ! USGS ! Brazos Rv at GIWW Flood Gates nr Freeport
 -94.963257 29.345790 ! 08077740 ! USGS ! La Marque Levee Pump Sta nr La Marque
 -94.924981 29.358372 ! 08077658 ! USGS ! TX City Pump Sta at Texas City
@@ -32,117 +32,117 @@
 -97.23696  27.634767 ! 8775792  ! TCOON ! Packery Channel
 -97.0730   27.840400 ! 8775237  ! TCOON ! Port Aransas
 -97.318481 27.484700 ! 8776139  ! TCOON ! South Bird Island
--97.4247   26.559500 ! 8778490  ! TCOON ! Port Mansfield 
--96.6097   28.640400 ! 8773259  ! TCOON ! Port Lavaca 
+-97.4247   26.559500 ! 8778490  ! TCOON ! Port Mansfield
+-96.6097   28.640400 ! 8773259  ! TCOON ! Port Lavaca
 -97.024981 28.114436 ! 8774513  ! TCOON ! Copano Bay
--97.1671   26.072600 ! 8779748  ! TCOON ! South Padre Island USCG Station 
+-97.1671   26.072600 ! 8779748  ! TCOON ! South Padre Island USCG Station
 -96.3961   28.446200 ! 8773701  ! TCOON ! Port O'Connor
--97.40491  27.297020 ! 8776604  ! TCOON ! Baffin Bay 
+-97.40491  27.297020 ! 8776604  ! TCOON ! Baffin Bay
 -93.836700 29.678300 ! 8770822  ! TCOON ! Texas Point Sabine Pass
 -97.282558 26.262230 ! 8779280  ! TCOON ! Realitos Peninsula
 -94.390325 29.595161 ! 8770808  ! TCOON ! High Island
 -95.914075 28.709656 ! 8773146  ! TCOON ! Matagorda City
 -96.796583 28.227050 ! 8774230  ! TCOON ! Aransas Wildlife Refuge
--94.896493 29.302336 ! 8771486  ! TCOON ! Galveston Railroad Bridge 
--95.122570 29.075700 ! 8771972  ! TCOON ! San Luis Pass 
+-94.896493 29.302336 ! 8771486  ! TCOON ! Galveston Railroad Bridge
+-95.122570 29.075700 ! 8771972  ! TCOON ! San Luis Pass
 -95.2656   29.724700 ! 8770777  ! TCOON ! Manchester Houston
 -95.079344 29.765000 ! 8770733  ! TCOON ! Lynchburg Landing
 -94.5136   29.515400 ! 8770971  ! TCOON ! Rollover Pass
 -93.931400 29.867500 ! 8770475  ! TCOON ! Port Arthur
 -94.725978 29.357586 ! 8771341  ! TCOON ! Galveston Bay Entrance North Jetty
--97.485958 27.832750 ! 8775244  ! TCOON ! Nueces Bay 
+-97.485958 27.832750 ! 8775244  ! TCOON ! Nueces Bay
 -96.712569 28.406194 ! 8773037  ! TCOON ! Seadrift
--97.2035   27.820800 ! 8775283  ! TCOON ! Port Ingleside  
--97.3984   27.814300 ! 8775296  ! TCOON ! TX State Aquarium (USS Lexington) 
--95.616667 28.771667 ! 8772985  ! TCOON ! Sargent 
--97.484000 27.859500 ! 8775188  ! TCOON ! White Point  
+-97.2035   27.820800 ! 8775283  ! TCOON ! Port Ingleside
+-97.3984   27.814300 ! 8775296  ! TCOON ! TX State Aquarium (USS Lexington)
+-95.616667 28.771667 ! 8772985  ! TCOON ! Sargent
+-97.484000 27.859500 ! 8775188  ! TCOON ! White Point
 -97.520800 27.845900 ! 8775222  ! TCOON ! Viola Turning Basin
--95.2083 29.2119 ! SSS-TX-BRA-001 ! USGS ! Deployable 
--95.2881 29.0847 ! SSS-TX-BRA-002 ! USGS ! Deployable 
--95.4486 28.8683 ! SSS-TX-BRA-004 ! USGS ! Deployable 
--95.5556 28.9494 ! SSS-TX-BRA-005 ! USGS ! Deployable 
--95.5872 28.8667 ! SSS-TX-BRA-006 ! USGS ! Deployable 
--95.1314 29.2867 ! SSS-TX-BRA-007 ! USGS ! Deployable 
--95.3989 29.0356 ! SSS-TX-BRA-008 ! USGS ! Deployable 
--95.3297 29.0131 ! SSS-TX-BRA-009 ! USGS ! Deployable 
--95.2842 29.3364 ! SSS-TX-BRA-010 ! USGS ! Deployable 
--95.3567 29.2967 ! SSS-TX-BRA-011 ! USGS ! Deployable 
--94.7511 29.3344 ! SSS-TX-GAL-008 ! USGS ! Deployable 
--94.8778 29.2381 ! SSS-TX-GAL-010 ! USGS ! Deployable 
--94.9447 29.2208 ! SSS-TX-GAL-011 ! USGS ! Deployable 
--95.1172 29.0861 ! SSS-TX-GAL-015 ! USGS ! Deployable 
--94.9053 29.3039 ! SSS-TX-GAL-016 ! USGS ! Deployable 
--95.04   29.3558 ! SSS-TX-GAL-018 ! USGS ! Deployable 
--94.9578 29.5064 ! SSS-TX-GAL-019 ! USGS ! Deployable 
--95.0478 29.4567 ! SSS-TX-GAL-020 ! USGS ! Deployable 
--95.1039 29.5133 ! SSS-TX-GAL-021 ! USGS ! Deployable 
--95.0247 29.5517 ! SSS-TX-GAL-022 ! USGS ! Deployable 
--94.9989 29.6203 ! SSS-TX-HAR-002 ! USGS ! Deployable 
--95.1283 29.5919 ! SSS-TX-HAR-003 ! USGS ! Deployable 
--94.9933 29.7131 ! SSS-TX-HAR-004 ! USGS ! Deployable 
--96.2739 28.7206 ! SSS-TX-MAT-001 ! USGS ! Deployable 
--96.1503 28.7864 ! SSS-TX-MAT-002 ! USGS ! Deployable 
--95.9958 28.7875 ! SSS-TX-MAT-003 ! USGS ! Deployable 
--95.8528 28.8389 ! SSS-TX-MAT-004 ! USGS ! Deployable 
--95.9781 28.6006 ! SSS-TX-MAT-005 ! USGS ! Deployable 
--95.9756 28.6831 ! SSS-TX-MAT-006 ! USGS ! Deployable 
--96.2153 28.6114 ! SSS-TX-MAT-007 ! USGS ! Deployable 
--95.6269 28.7642 ! SSS-TX-MAT-008 ! USGS ! Deployable 
--95.6167 28.7706 ! SSS-TX-MAT-009 ! USGS ! Deployable 
--95.6683 28.8364 ! SSS-TX-MAT-010 ! USGS ! Deployable 
--96.7117 28.4064 ! SSS-TX-CAL-001 ! USGS ! Deployable 
--96.4025 28.4444 ! SSS-TX-CAL-002 ! USGS ! Deployable 
--96.6197 28.6192 ! SSS-TX-CAL-003 ! USGS ! Deployable 
--96.4117 28.6606 ! SSS-TX-CAL-004 ! USGS ! Deployable 
--96.3233 28.6414 ! SSS-TX-CAL-005 ! USGS ! Deployable 
--94.6753 29.6042 ! SSS-TX-CHA-003 ! USGS ! Deployable 
--94.6869 29.7728 ! SSS-TX-CHA-004 ! USGS ! Deployable 
--94.6342 29.4514 ! SSS-TX-GAL-001 ! USGS ! Deployable 
--94.6481 29.4658 ! SSS-TX-GAL-002 ! USGS ! Deployable 
--94.3903 29.5944 ! SSS-TX-GAL-005 ! USGS ! Deployable 
--94.1928 29.6844 ! SSS-TX-JEF-001 ! USGS ! Deployable 
--94.0436 29.675  ! SSS-TX-JEF-002 ! USGS ! Deployable 
--94.1164 29.7103 ! SSS-TX-JEF-004 ! USGS ! Deployable 
--94.0983 29.6969 ! SSS-TX-JEF-005 ! USGS ! Deployable 
--93.86   29.7111 ! SSS-TX-JEF-006 ! USGS ! Deployable 
--93.9425 29.7739 ! SSS-TX-JEF-007 ! USGS ! Deployable 
--93.8978 29.7647 ! SSS-TX-JEF-008 ! USGS ! Deployable 
--94.0884 29.6627 ! SSS-TX-JEF-009 ! USGS ! Deployable 
--93.6636 29.7503 ! SSS-LA-CAM-001 ! USGS ! Deployable 
--93.5825 29.7619 ! SSS-LA-CAM-002 ! USGS ! Deployable 
--93.3489 29.8042 ! SSS-LA-CAM-003 ! USGS ! Deployable 
--93.115  29.7861 ! SSS-LA-CAM-010 ! USGS ! Deployable 
--93.0797 29.8706 ! SSS-LA-CAM-011 ! USGS ! Deployable 
--93.0144 29.7706 ! SSS-LA-CAM-012 ! USGS ! Deployable 
--92.4269 29.6411 ! SSS-LA-VER-006 ! USGS ! Deployable 
--92.3417 29.6003 ! SSS-LA-VER-007 ! USGS ! Deployable 
+-95.2083 29.2119 ! SSS-TX-BRA-001 ! USGS ! Deployable
+-95.2881 29.0847 ! SSS-TX-BRA-002 ! USGS ! Deployable
+-95.4486 28.8683 ! SSS-TX-BRA-004 ! USGS ! Deployable
+-95.5556 28.9494 ! SSS-TX-BRA-005 ! USGS ! Deployable
+-95.5872 28.8667 ! SSS-TX-BRA-006 ! USGS ! Deployable
+-95.1314 29.2867 ! SSS-TX-BRA-007 ! USGS ! Deployable
+-95.3989 29.0356 ! SSS-TX-BRA-008 ! USGS ! Deployable
+-95.3297 29.0131 ! SSS-TX-BRA-009 ! USGS ! Deployable
+-95.2842 29.3364 ! SSS-TX-BRA-010 ! USGS ! Deployable
+-95.3567 29.2967 ! SSS-TX-BRA-011 ! USGS ! Deployable
+-94.7511 29.3344 ! SSS-TX-GAL-008 ! USGS ! Deployable
+-94.8778 29.2381 ! SSS-TX-GAL-010 ! USGS ! Deployable
+-94.9447 29.2208 ! SSS-TX-GAL-011 ! USGS ! Deployable
+-95.1172 29.0861 ! SSS-TX-GAL-015 ! USGS ! Deployable
+-94.9053 29.3039 ! SSS-TX-GAL-016 ! USGS ! Deployable
+-95.04   29.3558 ! SSS-TX-GAL-018 ! USGS ! Deployable
+-94.9578 29.5064 ! SSS-TX-GAL-019 ! USGS ! Deployable
+-95.0478 29.4567 ! SSS-TX-GAL-020 ! USGS ! Deployable
+-95.1039 29.5133 ! SSS-TX-GAL-021 ! USGS ! Deployable
+-95.0247 29.5517 ! SSS-TX-GAL-022 ! USGS ! Deployable
+-94.9989 29.6203 ! SSS-TX-HAR-002 ! USGS ! Deployable
+-95.1283 29.5919 ! SSS-TX-HAR-003 ! USGS ! Deployable
+-94.9933 29.7131 ! SSS-TX-HAR-004 ! USGS ! Deployable
+-96.2739 28.7206 ! SSS-TX-MAT-001 ! USGS ! Deployable
+-96.1503 28.7864 ! SSS-TX-MAT-002 ! USGS ! Deployable
+-95.9958 28.7875 ! SSS-TX-MAT-003 ! USGS ! Deployable
+-95.8528 28.8389 ! SSS-TX-MAT-004 ! USGS ! Deployable
+-95.9781 28.6006 ! SSS-TX-MAT-005 ! USGS ! Deployable
+-95.9756 28.6831 ! SSS-TX-MAT-006 ! USGS ! Deployable
+-96.2153 28.6114 ! SSS-TX-MAT-007 ! USGS ! Deployable
+-95.6269 28.7642 ! SSS-TX-MAT-008 ! USGS ! Deployable
+-95.6167 28.7706 ! SSS-TX-MAT-009 ! USGS ! Deployable
+-95.6683 28.8364 ! SSS-TX-MAT-010 ! USGS ! Deployable
+-96.7117 28.4064 ! SSS-TX-CAL-001 ! USGS ! Deployable
+-96.4025 28.4444 ! SSS-TX-CAL-002 ! USGS ! Deployable
+-96.6197 28.6192 ! SSS-TX-CAL-003 ! USGS ! Deployable
+-96.4117 28.6606 ! SSS-TX-CAL-004 ! USGS ! Deployable
+-96.3233 28.6414 ! SSS-TX-CAL-005 ! USGS ! Deployable
+-94.6753 29.6042 ! SSS-TX-CHA-003 ! USGS ! Deployable
+-94.6869 29.7728 ! SSS-TX-CHA-004 ! USGS ! Deployable
+-94.6342 29.4514 ! SSS-TX-GAL-001 ! USGS ! Deployable
+-94.6481 29.4658 ! SSS-TX-GAL-002 ! USGS ! Deployable
+-94.3903 29.5944 ! SSS-TX-GAL-005 ! USGS ! Deployable
+-94.1928 29.6844 ! SSS-TX-JEF-001 ! USGS ! Deployable
+-94.0436 29.675  ! SSS-TX-JEF-002 ! USGS ! Deployable
+-94.1164 29.7103 ! SSS-TX-JEF-004 ! USGS ! Deployable
+-94.0983 29.6969 ! SSS-TX-JEF-005 ! USGS ! Deployable
+-93.86   29.7111 ! SSS-TX-JEF-006 ! USGS ! Deployable
+-93.9425 29.7739 ! SSS-TX-JEF-007 ! USGS ! Deployable
+-93.8978 29.7647 ! SSS-TX-JEF-008 ! USGS ! Deployable
+-94.0884 29.6627 ! SSS-TX-JEF-009 ! USGS ! Deployable
+-93.6636 29.7503 ! SSS-LA-CAM-001 ! USGS ! Deployable
+-93.5825 29.7619 ! SSS-LA-CAM-002 ! USGS ! Deployable
+-93.3489 29.8042 ! SSS-LA-CAM-003 ! USGS ! Deployable
+-93.115  29.7861 ! SSS-LA-CAM-010 ! USGS ! Deployable
+-93.0797 29.8706 ! SSS-LA-CAM-011 ! USGS ! Deployable
+-93.0144 29.7706 ! SSS-LA-CAM-012 ! USGS ! Deployable
+-92.4269 29.6411 ! SSS-LA-VER-006 ! USGS ! Deployable
+-92.3417 29.6003 ! SSS-LA-VER-007 ! USGS ! Deployable
 -89.7406 30.1669 ! ut60 ! USGS ! Rigolets at Hwy 90 near Slidell, LA
--90.01   29.48305 ! ut61 ! USGS ! Barataria Waterway S of Lafitte, LA    
+-90.01   29.48305 ! ut61 ! USGS ! Barataria Waterway S of Lafitte, LA
 -90.1    29.4666 ! ut62 ! USGS ! Little Lake near Bay Dosgris E of Galliano, LA
--89.9405 29.32472 ! ut63 ! USGS ! Barataria Bay near Grand Terre Island, LA      
--90.0411 29.3983 ! ut64 ! USGS ! Hackberry Bay NW of Grand Isle, LA     
--95.9689 28.6844 ! ut65 ! USGS ! Colorado Rv Bypass Channel nr Matagorda, TX    
--95.3814 28.8978 ! ut66 ! USGS ! Brazos Rv at GIWW Flood Gates nr Freeport, TX  
--94.9631 29.3456 ! ut67 ! USGS ! La Marque Levee Pump Sta nr La Marque, TX 
+-89.9405 29.32472 ! ut63 ! USGS ! Barataria Bay near Grand Terre Island, LA
+-90.0411 29.3983 ! ut64 ! USGS ! Hackberry Bay NW of Grand Isle, LA
+-95.9689 28.6844 ! ut65 ! USGS ! Colorado Rv Bypass Channel nr Matagorda, TX
+-95.3814 28.8978 ! ut66 ! USGS ! Brazos Rv at GIWW Flood Gates nr Freeport, TX
+-94.9631 29.3456 ! ut67 ! USGS ! La Marque Levee Pump Sta nr La Marque, TX
 -94.9247 29.3572 ! ut68 ! USGS ! TX City Pump Sta at Texas City, TX
--94.12   29.4472 ! ut69 ! USGS ! Moses Lk-Galveston Bay nr Texas City, TX       
+-94.12   29.4472 ! ut69 ! USGS ! Moses Lk-Galveston Bay nr Texas City, TX
 -95.0237 29.5497 ! ut70 ! USGS ! Clear Lk Second Outflow Channel at Kemah, TX
--95.1783 29.5172 ! ut71 ! USGS ! Clear Ck nr Friendswood, TX    
--95.2907 29.7492 ! ut72 ! USGS ! Buffalo Bayou at Turning Basin, Houston, TX 
--94.7311 29.8122 ! ut73 ! USGS ! Trinity Rv at Wallisville, TX  
--93.3488 29.8155 ! ut74 ! USGS ! Calcasieu River at Cameron, LA         
--90.1814 29.5175 ! ut75 ! USGS ! Little Lake Near Cutoff, LA    
--89.9506 29.4225 ! ut76 ! USGS ! Barataria Bay N of Grand Isle, LA      
+-95.1783 29.5172 ! ut71 ! USGS ! Clear Ck nr Friendswood, TX
+-95.2907 29.7492 ! ut72 ! USGS ! Buffalo Bayou at Turning Basin, Houston, TX
+-94.7311 29.8122 ! ut73 ! USGS ! Trinity Rv at Wallisville, TX
+-93.3488 29.8155 ! ut74 ! USGS ! Calcasieu River at Cameron, LA
+-90.1814 29.5175 ! ut75 ! USGS ! Little Lake Near Cutoff, LA
+-89.9506 29.4225 ! ut76 ! USGS ! Barataria Bay N of Grand Isle, LA
 -89.606  29.5858 ! ut77 ! USGS ! Northeast Bay Gardene near Point-A-LA-Hache, LA
 -89.5636 29.6333 ! ut78 ! USGS ! Black Bay nr Snake Island nr Point-A-LA-Hache, LA
--97.2154 26.0616 ! ut79 ! TCOON ! Port Isabel, TX 
--93.9314 29.8675 ! ut80 ! TCOON ! Port Arthur 
+-97.2154 26.0616 ! ut79 ! TCOON ! Port Isabel, TX
+-93.9314 29.8675 ! ut80 ! TCOON ! Port Arthur
 -93.88   29.98   ! ut81 ! TCOON ! Rainbow Bridge
 -93.8705 29.7297 ! ut82 ! TCOON ! Sabine Pass
 -94.9847 29.682  ! ut83 ! TCOON ! Morgans Point
 -95.2656 29.7247 ! ut84 ! TCOON ! Manchester Houston
--93.8367 29.6783 ! ut85 ! TCOON ! Texas Point 
--94.5136 29.5154 ! ut86 ! TCOON ! Rollover Pass 
+-93.8367 29.6783 ! ut85 ! TCOON ! Texas Point
+-94.5136 29.5154 ! ut86 ! TCOON ! Rollover Pass
 -94.91721 29.48131 ! ut87 ! TCOON ! Eagle Point
 -94.787 29.3137  ! ut88 ! TCOON ! Galveston Pier 21
 -94.7883 29.285  ! ut89 ! TCOON ! Galveston Pleasure Pier
@@ -156,23 +156,23 @@
 -97.5208 27.8459 ! ut97 ! TCOON ! Viola Turning Basin
 -97.073  27.8404 ! ut98 ! TCOON ! Port Aransas
 -97.2035 27.8208 ! ut99 ! TCOON ! Ingleside
--97.3984 27.8143 ! ut100 ! TCOON ! TX State Aquarium       
--97.23696 27.63457 ! ut101 ! TCOON ! Packery Channel 
--97.21646 27.58102 ! ut102 ! TCOON ! Bob Hall Pier   
--97.3181  27.4847  ! ut103 ! TCOON ! South Bird island       
--97.40491 27.29702 ! ut104 ! TCOON ! Baffin Bay      
--97.4706  26.8015  ! ut105 ! TCOON ! Rincon del San Jose     
--97.4247  26.5595  ! ut106 ! TCOON ! Port Mansfield  
+-97.3984 27.8143 ! ut100 ! TCOON ! TX State Aquarium
+-97.23696 27.63457 ! ut101 ! TCOON ! Packery Channel
+-97.21646 27.58102 ! ut102 ! TCOON ! Bob Hall Pier
+-97.3181  27.4847  ! ut103 ! TCOON ! South Bird island
+-97.40491 27.29702 ! ut104 ! TCOON ! Baffin Bay
+-97.4706  26.8015  ! ut105 ! TCOON ! Rincon del San Jose
+-97.4247  26.5595  ! ut106 ! TCOON ! Port Mansfield
 -97.1671  26.0726  ! ut107 ! TCOON ! South Padre Island USCG Station
--88.075   30.25    ! ut108 ! NOAA ! Dauphin Island Start of NOAA Stations   
--89.325   30.325   ! ut109 ! NOAA ! Bay Waveland Yacht Club 
--89.4066  28.9316  ! ut110 ! NOAA ! Pilots Station East SW Pass     
--91.88    29.7133  ! ut111 ! NOAA ! Cypremont Point 
+-88.075   30.25    ! ut108 ! NOAA ! Dauphin Island Start of NOAA Stations
+-89.325   30.325   ! ut109 ! NOAA ! Bay Waveland Yacht Club
+-89.4066  28.9316  ! ut110 ! NOAA ! Pilots Station East SW Pass
+-91.88    29.7133  ! ut111 ! NOAA ! Cypremont Point
 -93.2222  30.2237  ! ut112 ! NOAA ! Lk Charles, Calcasieu Rvr
 -93.3431  29.7663  ! ut113 ! NOAA ! Calcasieu Pass, East Jetty
--97.2166  27.58    ! ut114 ! NOAA ! Corpus Christi, GOM 
+-97.2166  27.58    ! ut114 ! NOAA ! Corpus Christi, GOM
 -97.1176  27.6289  ! ut115 ! UND ! R Kennedy
--96.5503  28.2077  ! ut116 ! UND ! S Kennedy      
+-96.5503  28.2077  ! ut116 ! UND ! S Kennedy
 -96.214   28.4347  ! ut117 ! UND ! T Kennedy
 -95.75235 28.6251  ! ut118 ! UND ! U Kennedy
 -95.3151  28.8704  ! ut119 ! UND ! V Kennedy
@@ -181,10 +181,10 @@
 -94.3884  29.4964  ! ut122 ! UND ! Y Kennedy
 -94.1253  29.5846  ! ut123 ! UND ! Z Kennedy
 -81.121   24.7294  ! ut124 ! NOAA ! Vaca Key
--81.8259 24.5573   ! ut125 ! NOAA ! Key West        
--81.8239 26.1434   ! ut126 ! NOAA ! Naples  
--82.8317 27.9783   ! ut127 ! NOAA ! Clearwater Beach        
--83.0317 29.135    ! ut128 ! NOAA ! Cedar Key       
+-81.8259 24.5573   ! ut125 ! NOAA ! Key West
+-81.8239 26.1434   ! ut126 ! NOAA ! Naples
+-82.8317 27.9783   ! ut127 ! NOAA ! Clearwater Beach
+-83.0317 29.135    ! ut128 ! NOAA ! Cedar Key
 -84.9773 29.7136   ! ut129 ! NOAA ! Apalachicola
 -85.7113 30.0972   ! ut130 ! NOAA ! Panama City
 -88.5054 30.3477   ! ut131 ! NOAA ! Dock E Port of Pascagoula
@@ -204,7 +204,7 @@
 -94.41    29.25    ! 42035  ! NDBC ! Current Station
 -96.0221  28.3348  ! W    ! UT ! Current Station
 -95.36    27.92    ! 42019  ! NDBC ! Current Station
--96.8083  27.9328  ! TABS-D ! UT ! Current Station 
+-96.8083  27.9328  ! TABS-D ! UT ! Current Station
 -95.1127  29.7352  ! ut149 ! hanadi ! Deer Park Plant
 -95.1841  29.7447  ! ut150 ! hanadi !  Gulf Sulphur Services
 -95.0298  29.7328  ! ut151 ! hanadi ! Georgia Gulf Chems
@@ -586,3 +586,61 @@
 -95.011434      29.64985        ! ut528 ! UT ! West Side of Galveston Bay
 -95.031288      29.603937       ! ut529 ! UT ! 146 and Port St.
 -94.990401      29.671812       ! ut530 ! UT ! South of B in La Porte
+-89.3258000000 30.3264000000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club
+-89.2583000000 29.1783000000 ! 8760721 ! NOAA NOS ! Pilottown
+-89.4066670000 28.9316670000 ! 8760922 ! NOAA NOS ! Pilots Station East SW Pass
+-89.6732000000 29.8681000000 ! 8761305 ! NOAA NOS ! Shell Beach
+-89.9567000000 29.2633000000 ! 8761724 ! NOAA NOS ! Grand Isle
+-90.1134000000 30.0272000000 ! 8761927 ! NOAA NOS ! New Canal Station
+-90.1350000000 29.9333330000 ! 8761955 ! NOAA NOS ! Carrollton
+-90.1993000000 29.1142000000 ! 8762075 ! NOAA NOS ! Port Fourchon Belle Pass
+-90.4183330000 29.7766670000 ! 8762482 ! NOAA NOS ! West Bank 1 Bayou Gauche
+-90.3900000000 30.0683330000 ! 8762483 ! NOAA NOS ! I-10 Bonnet Carre Floodway
+-91.2366670000 29.6683330000 ! 8764044 ! NOAA NOS ! Berwick Atchafalaya River
+-91.3383330000 29.4483330000 ! 8764227 ! NOAA NOS ! LAWMA Amerada Pass
+-91.3839000000 29.3675000000 ! 8764314 ! NOAA NOS ! Eugene Island North
+-92.3052000000 29.5517000000 ! 8766072 ! NOAA NOS ! Freshwater Canal Locks
+-93.2216670000 30.2236110000 ! 8767816 ! NOAA NOS ! Lake Charles
+-93.3007000000 30.1903000000 ! 8767961 ! NOAA NOS ! Bulk Terminal
+-93.3427780000 29.7680560000 ! 8768094 ! NOAA NOS ! Calcasieu Pass
+-93.9300000000 29.8667000000 ! 8770475 ! TCOON ! Port Arthur
+-93.8817000000 29.9800000000 ! 8770520 ! TCOON ! Rainbow Bridge
+-93.8701000000 29.7284000000 ! 8770570 ! NOAA NOS ! Sabine Pass North
+-94.9850000000 29.6817000000 ! 8770613 ! NOAA NOS ! Morgans Point
+-95.0783000000 29.7650000000 ! 8770733 ! TCOON ! Lynchburg Landing
+-95.2658000000 29.7263000000 ! 8770777 ! TCOON ! Manchester Houston
+-94.3903000000 29.5947000000 ! 8770808 ! TCOON ! High Island
+-94.5133000000 29.5150000000 ! 8770971 ! TCOON ! Rollover Pass
+-94.8833000000 29.3833000000 ! 8771013 ! NOAA NOS ! Eagle Point
+-94.7250000000 29.3566670000 ! 8771341 ! TCOON ! Galveston Bay Entrance North Jetty
+-94.7933000000 29.3100000000 ! 8771450 ! NOAA NOS ! Galveston Pier 21
+-94.8966670000 29.3016670000 ! 8771486 ! TCOON ! Galveston Railroad Bridge
+-95.1133000000 29.0950000000 ! 8771972 ! TCOON ! San Luis Pass
+-95.3025000000 28.9427640000 ! 8772447 ! NOAA NOS ! Freeport
+-95.6168000000 28.7716000000 ! 8772985 ! TCOON ! Sargent
+-96.7116670000 28.4083330000 ! 8773037 ! TCOON ! Seadrift
+-95.9139000000 28.7100000000 ! 8773146 ! TCOON ! Matagorda City
+-96.6097000000 28.6404000000 ! 8773259 ! TCOON ! Port Lavaca
+-96.3883000000 28.4517000000 ! 8773701 ! TCOON ! Port O&#39;Connor
+-96.3283330000 28.4266670000 ! 8773767 ! NOAA NOS ! Matagorda Bay Entrance Channel
+-96.7950000000 28.2283000000 ! 8774230 ! TCOON ! Aransas Wildlife Refuge
+-97.0243890000 28.1144360000 ! 8774513 ! TCOON ! Copano Bay
+-97.0466670000 28.0216670000 ! 8774770 ! NOAA NOS ! Rockport
+-97.0727400000 27.8404000000 ! 8775237 ! TCOON ! Port Aransas
+-97.3984000000 27.8143000000 ! 8775296 ! TCOON ! USS Lexington
+-97.2367000000 27.6333000000 ! 8775792 ! TCOON ! Packery Channel
+-97.2167000000 27.5800000000 ! 8775870 ! NOAA NOS ! Bob Hall Pier Corpus Christi
+-97.3181000000 27.4847000000 ! 8776139 ! TCOON ! South Bird Island
+-97.4050000000 27.2950000000 ! 8776604 ! TCOON ! Baffin Bay
+-97.4916670000 26.8250000000 ! 8777812 ! TCOON ! Rincon del San Jose
+-97.4216670000 26.5550000000 ! 8778490 ! TCOON ! Port Mansfield
+-97.1766670000 26.0766670000 ! 8779748 ! TCOON ! South Padre Island USCG Station
+-93.3490430000 29.8157760000 ! 08017118 ! USGS ! Calcasieu River at Cameron
+-91.0997220000 29.6683330000 ! 073814675 ! USGS ! Bayou Boeuf at Railroad Bridge at Amelia
+-89.7195060000 29.7082660000 ! 073745257 ! USGS ! Crooked B. NW of L. Cuatro Caballo nr Delacroix
+-89.7039520000 29.5707770000 ! 073745258 ! USGS ! Cow Bayou at American Bay nr Pointe-A-La-Hache
+-91.1552780000 29.5855560000 ! 073816503 ! USGS ! Bayou Penchant S of Morgan City
+-89.9506270000 29.4227200000 ! 07380251 ! USGS ! Barataria Bay N of Grand Isle
+-89.9468060000 29.2728330000 ! 073802516 ! USGS ! Barataria Pass at Grand Isle
+-91.8803980000 29.7132660000 ! 07387040 ! USGS ! Vermilion Bay nr Cypremort Point
+-93.2995990000 30.0318790000 ! 08017095 ! USGS ! North Calcasieu Lake near Hackberry
