@@ -1341,6 +1341,10 @@ submitJob()
    #
    #  No queueing system, just run adcirc or adcswan (used on standalone computers or cloud)
    "serial")
+      if [[ -e "$ADCIRCDIR/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
+         cp "$ADCIRCDIR/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
+         echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
+      fi
       DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       logMessage "$ENSTORM: $THIS: Submitting ${JOBTYPE}.${ENSTORM} job in $PWD via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
@@ -1410,6 +1414,10 @@ submitJob()
    # No queueing system, just mpiexec (used on standalone computers
    # and small clusters)
    "mpiexec")
+      if [[ -e "$ADCIRCDIR/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
+         cp "$ADCIRCDIR/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
+         echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
+      fi
       DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S'%z)
       echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
       echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
