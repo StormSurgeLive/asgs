@@ -445,3 +445,12 @@
 -76.21856  36.29852 ! EMWN7 ! NCEM ! Pasquotank R. at Elizabeth City Mariners Wharf Park
 -76.61057  36.05635 ! EWPN7 ! NCEM ! Chowan R. at Edenton Waterfront Park
 -75.98735  35.11537 ! OCAN7 ! NCEM ! Pamlico Sound at Ocracoke - NCCAT Campus
+-84.945 19.820 ! 42056 ! NOAA NDBC ! wind
+-93.941 22.124 ! 42055 ! NOAA NDBC ! wind waves
+-93.646 26.055 ! 42002 ! NOAA NDBC ! wind waves
+-96.693 26.968 ! 42020 ! NOAA NDBC ! wind waves
+-95.345 27.910 ! 42019 ! NOAA NDBC ! wind waves
+-87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
+-88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
+-86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves
