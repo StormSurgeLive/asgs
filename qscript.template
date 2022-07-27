@@ -58,8 +58,9 @@ echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 #----------------------------------------------------------------------------
 #               W R I T E   J O B   P R O P E R T I E S
 #----------------------------------------------------------------------------
-# job properties (TODO: Add json propertes)
-
+if [[ -e %adcircdir%/adcirc.bin.buildinfo.json ]]; then
+   cp %adcircdir%/adcirc.bin.buildinfo.json . 2>> $SYSLOG
+fi
 echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
 echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> run.properties
 echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> run.properties
