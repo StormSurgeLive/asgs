@@ -644,3 +644,12 @@
 -89.9468060000 29.2728330000 ! 073802516 ! USGS ! Barataria Pass at Grand Isle
 -91.8803980000 29.7132660000 ! 07387040 ! USGS ! Vermilion Bay nr Cypremort Point
 -93.2995990000 30.0318790000 ! 08017095 ! USGS ! North Calcasieu Lake near Hackberry
+-84.945 19.820 ! 42056 ! NOAA NDBC ! wind
+-93.941 22.124 ! 42055 ! NOAA NDBC ! wind waves
+-93.646 26.055 ! 42002 ! NOAA NDBC ! wind waves
+-96.693 26.968 ! 42020 ! NOAA NDBC ! wind waves
+-95.345 27.910 ! 42019 ! NOAA NDBC ! wind waves
+-87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
+-88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
+-86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves
