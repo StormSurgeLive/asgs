@@ -32,16 +32,21 @@ fi
 
 rm -rf ./$NCO_DIR 2> /dev/null
 
-tar zxvf ./$NCO_TGZ
-
-cd $NCO_DIR
-./configure --prefix=$OPT
-make -j $JOBS
-make install
+if [ ! -e $OPT/bin/ncks ]; then
+   echo $OPT/bin/ncks was not found
+   tar zxvf ./$NCO_TGZ
+   cd $NCO_DIR
+   ./configure --prefix=$OPT
+   make -j $JOBS
+   make install
+fi
 
 # no errors, so clean up
-if [ "$?" == 0 ]; then
+if [ -e $OPT/bin/ncks ]; then
   echo cleaning build scripts and downloads
   cd $_ASGS_TMP
   rm -rfv nco* $NCO_TGZ
+else
+  echo something went wrong with installing nco
+  exit 1
 fi
