@@ -4,9 +4,9 @@ THIS=$(basename -- $0)
 
 echo "RMQMessaging:Validating Message Service..."
 
-RMQMessaging_Python=$(which python); # should be using python provided by ASGS environment
+RMQMessaging_Python=python3 ; # should be using python provided by ASGS environment
 
-if [[ ! -e ${RMQMessaging_Python} ]] ; then 
+if [[ ! -x $(which ${RMQMessaging_Python}) ]] ; then 
 	echo "Specified Python (${RMQMessaging_Python}) not found. Turning off RMQMessaging."
 	RMQMessaging_Enable="off"
 	return 1
