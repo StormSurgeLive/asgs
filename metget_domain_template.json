@@ -1,0 +1,12 @@
+{
+    "name": "%NULLSTORMNAME%",
+    "service": "%SERVICE%",
+    "storm": "%NULLSTORM%",
+    "x_init": %NULLX_INIT%,
+    "y_init": %NULLY_INIT%,
+    "x_end": %NULLX_END%,
+    "y_end": %NULLY_END%,
+    "di": %NULLDI%,
+    "dj": %NULLDJ%,
+    "level": %NULLLEVEL%
+}

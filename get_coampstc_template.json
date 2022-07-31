@@ -1,0 +1,19 @@
+{
+	"version" : "0.0.1",
+	"creator" : "ASGS",
+	"background_pressure": 1013.0,
+	"backfill": true,
+	"nowcast": %NOWCASTBOOLEAN%,
+	"multiple_forecasts": false,
+	"start_date": "%NULLSTARTDATE%",
+	"end_date": "%NULLENDDATE%",
+	"format": "owi-ascii",
+	"data_type": "wind_pressure",
+	"time_step": "%NULLTIMEINCREMENT%",
+	"compression": false,
+	"epsg": 4326,
+	"filename": "%NULLFILENAME%",
+	"strict": true,
+	"dry_run": "%NULLDRYRUN%",
+	"domains": [ %DOMAINS% ]
+}
