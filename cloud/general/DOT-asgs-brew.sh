@@ -67,6 +67,7 @@ help() {
   echo "           profile <name>      - directly edit the named ASGSH Shell profile"
   echo "           statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
   echo "           syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
+  echo "   fetch   <thing>             - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
   echo "   goto    <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform            - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
   echo "   inspect <option>            - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
