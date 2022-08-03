@@ -23,7 +23,7 @@ curl  -s -H "Content-Type: application/json" -H "x-api-key: $METGET_API_KEY" "$U
 The `--dry_run` argument can be added to form the request but not submit it. For example:
 
 ```
-./get_metget_data.py --dryrun --apikey $METGET_API_KEY --endpoint "https://api.metget.zachcobell.com" --domain coamps-01L 0.1 -98 5 -58 50 --start '2022-06-04 00:00' --end '2022-06-09 06:00' --timestep 3600 --strict --backfill --output adcirc_coamps_forecast_2022060400-2022060906
+./get_metget_data.py --dryrun --apikey $METGET_API_KEY --endpoint "https://api.metget.zachcobell.com" --domain coamps-01L 0.1 -98 5 -58 50 --start '2022-06-04 00:00' --end '2022-06-05 06:00' --timestep 3600 --strict --backfill --output adcirc_coamps_forecast_2022060400-2022060906
 ```
 Sample JSON from the build request above:
 ```
@@ -35,7 +35,7 @@ Sample JSON from the build request above:
         "nowcast": false,
         "multiple_forecasts": false,
         "start_date": "2022-06-04 00:00:00",
-        "end_date": "2022-06-09 06:00:00",
+        "end_date": "2022-06-05 06:00:00",
         "format": "owi-ascii",
         "data_type": "wind_pressure",
         "time_step": 3600,
@@ -55,11 +55,67 @@ Sample JSON from the build request above:
         ],
         "compression": false,
         "epsg": 4326,
-        "filename": "adcirc_coamps_forecast_2022060400-2022060906",
+        "filename": "adcirc_coamps_forecast_2022060400-2022060506",
         "strict": true,
         "dry_run": true
 }
 ```
+Was able to submit this build request successfully with `curl` as follows:
+```
+curl -v -o metget_response.json -X POST -H "Content-Type: application/json" -H "x-api-key: $METGET_API_KEY" -d @metget_debug.json https://api.metget.zachcobell.com/build
+json_pp < metget_response.json > metget_forecast_response.json
+```
+If the `dry_run` json property is set to `false`, the resulting success message looks like the following:
+```
+{
+   "body" : {
+      "error_text" : "n/a",
+      "message" : "Message received and added to queue",
+      "request_id" : "aab67d9b-536b-476f-bc96-213cb90a2619",
+      "request_url" : "https://metget-output.s3.amazonaws.com/aab67d9b-536b-476f-bc96-213cb90a2619",
+      "status" : "success"
+   },
+   "statusCode" : 200
+}
+```
+File status can be checked with a command like the following:
+```
+curl -v -o metget_response.json -X POST -H "Content-Type: application/json" -H "x-api-key: $METGET_API_KEY" -d '{ "request": "419ac00d-acc8-43bb-bef4-4f2306acd9e7" }' https://api.metget.zachcobell.com/check
+json_pp < metget_response.json > metget_check_response.json
+```
+The `check` response json looks like the following:
+```
+{
+   "body" : {
+      "destination" : "https://metget-output.s3.amazonaws.com/419ac00d-acc8-43bb-bef4-4f2306acd9e7",
+      "last_update" : "2022-08-03 17:40:02",
+      "message" : "Job has completed successfully",
+      "start" : "2022-08-03 17:38:51",
+      "status" : "completed",
+      "tries" : 1
+   },
+   "statusCode" : 200
+}
+```
+
+Downloading the list of files that were used to generate the data is as follows:
+```
+curl -v -H "x-api-key: $METGET_API_KEY" -O https://metget-output.s3.amazonaws.com/aab67d9b-536b-476f-bc96-213cb90a2619/filelist.json
+```
+The names of the files to download are at the bottom:
+```
+"output_files": [
+    "adcirc_coamps_forecast_2022060400-2022060506_00.pre",
+    "adcirc_coamps_forecast_2022060400-2022060506_00.wnd"
+  ]
+```
+These can be downloaded with the following commands:
+```
+curl -v -H "x-api-key: $METGET_API_KEY" -O https://metget-output.s3.amazonaws.com/aab67d9b-536b-476f-bc96-213cb90a2619/adcirc_coamps_forecast_2022060400-2022060506_00.pre
+curl -v -H "x-api-key: $METGET_API_KEY" -O https://metget-output.s3.amazonaws.com/aab67d9b-536b-476f-bc96-213cb90a2619/adcirc_coamps_forecast_2022060400-2022060506_00.wnd
+```
+
+
 Sample JSON for a build request (from the SwaggerHub site linked above):
 ```
 {
