@@ -114,6 +114,9 @@ writeProperties()
    echo "post.opendap.tds : ( ${TDS[@]} )" >> $STORMDIR_RUN_PROPERTIES
    echo "post.opendap.target : $TARGET" >> $STORMDIR_RUN_PROPERTIES
    echo "post.file.sshkey : $SSHKEY" >> $STORMDIR_RUN_PROPERTIES
+   if [ -n "$OPENDAPADDROOT" ]; then
+     echo "post.opendap.addroot : ${OPENDAPADDROOT}" >> $STORMDIR_RUN_PROPERTIES
+   fi
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR_RUN_PROPERTIES
    echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR_RUN_PROPERTIES

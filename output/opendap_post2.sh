@@ -225,6 +225,7 @@ for server in ${SERVERS[*]}; do
    DOWNLOADPREFIX=${properties["post.opendap.${server}.downloadprefix"]}
    CATALOGPREFIX=${properties["post.opendap.${server}.catalogprefix"]}
    OPENDAPBASEDIR=${properties["post.opendap.${server}.opendapbasedir"]}
+   OPENDAPADDROOT=${properties["post.opendap.addroot"]}
    #
    #--------------------------------------------------------------------
    #  O P E N  D A P    P A T H   F O R M A T I O N
@@ -235,7 +236,11 @@ for server in ${SERVERS[*]}; do
       # for NAM, the "advisory number" is actually the cycle time
       YEAR=${properties["forcing.nwp.year"]}
       NWPMODEL=${properties["forcing.nwp.model"]}
-      STORMNAMEPATH=$YEAR/$NWPMODEL
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$NWPMODEL
+      else
+        STORMNAMEPATH=$YEAR/$NWPMODEL
+      fi
    fi
    if [[ $TROPICALCYCLONE = on ]]; then
       YEAR=${properties["forcing.tropicalcyclone.year"]}
@@ -243,17 +248,30 @@ for server in ${SERVERS[*]}; do
       STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
       STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
       basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
-      STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
-      ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$basin$STORMNUMBER
+        ALTSTORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$STORMNAMELC  # symbolic link with name
+      else
+        STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
+        ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
+      fi
    fi
    if [[ $SCENARIO = "hindcast" ]]; then
       YEAR=${COLDSTARTDATE:0:4}
-      STORMNAMEPATH=$YEAR/initialize
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/initialize
+      else
+        STORMNAMEPATH=$YEAR/initialize
+      fi
    fi
    # form path to results on tds based on type of forcing or name of storm
    if [[ $SCENARIO == "asgs.instance.status" ]]; then
       YEAR=${COLDSTARTDATE:0:4}
-      STORMNAMEPATH=$YEAR/status
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/status
+      else
+        STORMNAMEPATH=$YEAR/status
+      fi
       OPENDAPSUFFIX=$HPCENV/$INSTANCENAME
       # update the url properties in the status json files before posting them
       # and save the url for keeping track of the previous url
