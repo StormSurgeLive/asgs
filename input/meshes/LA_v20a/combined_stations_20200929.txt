@@ -215,16 +215,16 @@
 -90.2709700000 29.9083900000 ! WBV7274 ! CPRA ! Bayou Verret / W. Tie-In Sector Gate Flood Side
 -90.0710400000 29.8126300000 ! WBV90 ! CPRA ! GIWW at West Closure Complex - Flood Side
 -90.12359 30.02416 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
--90.03515 30.03355 ! IHNC-01   ! CPRA ! Seabrook Complex - Flood Side (cf USGS 073802332)  
+-90.03515 30.03355 ! IHNC-01   ! CPRA ! Seabrook Complex - Flood Side (cf USGS 073802332)
 -89.89900 30.01564 ! IHNC-02   ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
 -90.07104 29.81263 ! WBV90    ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
--90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762) 
--90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770) 
--90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742) 
--89.90434 29.85293 ! LPV-149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760) 
+-90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
+-90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770)
+-90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742)
+-89.90434 29.85293 ! LPV-149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760)
 -89.83563 29.93600 ! LPV-144   ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
 -90.27097 29.90839 ! WBV7274  ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
--89.60107 29.37341 ! NOV-13    ! CPRA ! Mississippi River at Empire Floodgate (cf USGS 07380260) 
+-89.60107 29.37341 ! NOV-13    ! CPRA ! Mississippi River at Empire Floodgate (cf USGS 07380260)
 -89.59537 29.38984 ! NOV14    ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)
 -90.01918 30.04635 ! LakefrontAirport ! CPRA ! Lake Pontchartrain at Lakefront Airport (cf USACE 85670)
 -90.09251 30.35976 ! Mandeville ! CPRA ! Lake Pontchartrain at Mandeville (cf USACE 85575)
@@ -236,7 +236,7 @@
 -89.9468000000 29.2728333000 ! BaraPass ! CPRA ! Barataria Pass at Grand Isle (cf USGS 073802516)
 -92.3053360000 29.5505010000 ! FreshCanal ! CPRA ! Freshwater Canal at Freshwater Bayou Lock South (cf USACE 76593)
 -93.3488889000 29.8155556000 ! CalcRiv ! CPRA ! Calcasieu River at Cameron (cf USGS 8017118)
--90.7292930000 29.3284210000 ! HoumaNavCanal ! CPRA ! Houma Navigation Canal ( cf USACE 76305) 
+-90.7292930000 29.3284210000 ! HoumaNavCanal ! CPRA ! Houma Navigation Canal ( cf USACE 76305)
 -89.79694440	29.57111110	!	WestPoint	!	CPRA	!	MS River at West Point a la Hache
 -89.96990000	29.68454440	!	Alliance	!	CPRA	!	MS River at Alliance
 -90.13611111	29.93472222	!	Carrollton	!	CPRA	!	MS River at Carrollton
