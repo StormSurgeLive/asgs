@@ -178,4 +178,5 @@ variables_init()
 
    SCENARIO="null"
    SCENARIODIR="null"
+   OPENDAPADDROOT=""
 }
