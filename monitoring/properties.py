@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #----------------------------------------------------------------------
 # properties.py : Set and get key/value pairs from run.properties file.
 #----------------------------------------------------------------------
@@ -45,7 +45,7 @@ parser.add_option("-o", "--output", dest="outputFile", default=outputPropertiesF
 # were already in the file)
 #
 # Open run.properties and make property dictionary  
-#print "start"
+#print("start")
 runProp = dict()
 try: 
     f = open(options.directory + '/' + options.inputFile,'r')
@@ -53,16 +53,16 @@ try:
         fields = line.split(':',1)
         runProp[fields[0].strip()] = fields[1].strip()
     f.close()
-    #print "try"
+    #print("try")
 except:
-    print "properties.py: Could not open " + options.directory + "/" + options.inputFile + " file."
-    #print "except"
+    print("properties.py: Could not open " + options.directory + "/" + options.inputFile + " file.")
+    #print("except")
     exit()
 #print "start"
 #
 # if the value is present, write the property; if not, read it 
 if options.value != "null":
-    #print "options.value is " + options.value
+    #print("options.value is " + options.value)
     runProp[options.prop] = options.value
     try: 
         f = open(options.directory + "/" + options.outputFile,'w')
@@ -74,8 +74,8 @@ if options.value != "null":
             f.write(key + " : " + runProp[key] + "\n")
         f.close()
     except:
-        print "properties.py: Could not open " + options.directory + "/" + options.outputFile + " file."
+        print("properties.py: Could not open " + options.directory + "/" + options.outputFile + " file.")
         exit()
 else:
-    #print "options.value is " + options.value
-    print runProp[options.prop]
+    #print("options.value is " + options.value)
+    print(runProp[options.prop])

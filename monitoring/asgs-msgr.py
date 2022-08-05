@@ -45,10 +45,10 @@ def JsonifyMessage(Uid,
                    InstanceName):
 	
 	msg_obj = {'uid': Uid, 'name': 'asgs', 'physical_location': LocationName, 'clustername': ClusterName, 
-                   'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 
-                   'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 
-                   'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName,
-		   'subpctcomplete': SubPctComplete}
+               'date-time': UTCDateTime, 'message': Message, 'event_type': EventType, 'process': Process, 
+               'pctcomplete': PctComplete, 'state': State, 'storm': StormName, 'storm_number': StormNumber, 
+               'advisory_number': AdvisoryNumber, 'run_params': RunParams, 'instance_name': InstanceName,
+               'subpctcomplete': SubPctComplete}
 
 	return json.dumps(msg_obj)
 
@@ -68,7 +68,7 @@ def queue_message(message):
 def main(argv):
 
 	Uid = '0'
-        LocationName = 'unknown'
+	LocationName = 'unknown'
 	ClusterName = 'unknown'
 	tmpDateTime = datetime.datetime.utcnow()
 	UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
@@ -81,20 +81,20 @@ def main(argv):
 	PctComplete = '0'
 	SubPctComplete = '0'
 	State = 'unknown'
-        RunParams = 'N/A'
-        InstanceName = 'N/A'
-        Transmit = "on"
+	RunParams = 'N/A'
+	InstanceName = 'N/A'
+	Transmit = "on"
 
 	try:
-        	opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:k:u",
-                        ["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
-                         "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
-                         "EventType=", "Process=", "PctComplete=", "State=", "RunParams=",
-                         "InstanceName=", "Transmit=", "SubPctComplete="])
+			opts, args = getopt.getopt(argv,"hu:l:c:d:s:n:a:m:y:p:t:r:q:i:k:u",
+                	["Help","Uid=","LocationName=","ClusterName=","UTCDateTime=",
+                 	 "StormName=", "StormNumber=", "AdvisoryNumber=", "Message=",
+                 	 "EventType=", "Process=", "PctComplete=", "State=", "RunParams=",
+                 	 "InstanceName=", "Transmit=", "SubPctComplete="])
 	except getopt.GetoptError as err:
-        	print('\nCommand line option error: ' + str(err))
-        	usage()
-        	sys.exit(2)
+			print('\nCommand line option error: ' + str(err))
+			usage()
+			sys.exit(2)
 
 	for opt, arg in opts:
 		if opt in ("-h", "--Help"):
@@ -133,33 +133,33 @@ def main(argv):
 		elif opt in ("-r", "--State"):
 			State = arg
 
-        if (Message == 'none'):
-               # return without sending 
-        	sys.exit()
+	if (Message == 'none'):
+		# return without sending 
+		sys.exit()
 
-	msg = JsonifyMessage(
-			Uid,
-                        LocationName, 
-			ClusterName, 
-			UTCDateTime, 
-			StormName, 
-			StormNumber, 
-			AdvisoryNumber, 
-			Message, 
-			EventType,
+        msg = JsonifyMessage(
+                        Uid,
+                        LocationName,
+                        ClusterName,
+                        UTCDateTime,
+                        StormName,
+                        StormNumber,
+                        AdvisoryNumber,
+                        Message,
+                        EventType,
                         Process,
                         PctComplete,
                         SubPctComplete,
                         State,
                         RunParams,
                         InstanceName
-			)
+                        )
 
 	if (Transmit == 'on'):
-                queue_message(msg)
-        else:
-                print('Message not transmitted.\n')
+		queue_message(msg)
+	else:
+		print('Message not transmitted.\n')
 
 
 if __name__ == "__main__":
-    	main(sys.argv[1:])
+	main(sys.argv[1:])
