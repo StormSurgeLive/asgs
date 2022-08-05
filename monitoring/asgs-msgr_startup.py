@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import datetime
 import getopt
@@ -54,13 +54,13 @@ def transmit_message(message):
 def main(argv):
 
 	Uid = '0'
-        LocationName = 'unknown'
+	LocationName = 'unknown'
 	ClusterName = 'unknown'
 	tmpDateTime = datetime.datetime.utcnow()
 	UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
 	Message = 'none'
-        InstanceName = 'N/A'
-        Transmit = "on"
+	InstanceName = 'N/A'
+	Transmit = "on"
 
 	try:
         	opts, args = getopt.getopt(argv,"hu:l:c:d:i:k",
@@ -90,17 +90,17 @@ def main(argv):
 		elif opt in ("-m", "--Message"):
 			Message = arg
 
-        if (Message == 'none'):
-               # return without sending 
-        	sys.exit()
+	if (Message == 'none'):
+		# return without sending 
+		sys.exit()
 
 	msg = JsonifyMessage(
 			Uid,
-                        LocationName, 
+			LocationName, 
 			ClusterName, 
 			UTCDateTime, 
 			Message, 
-                        InstanceName
+			InstanceName
 			)
 
 	if (Transmit == 'on'):
@@ -108,7 +108,7 @@ def main(argv):
 	        #print('\n')
 	        #print(msg)
 	        #print('\n')
-        else:
+	else:
                 print('Message not transmitted.\n')
                 #print('\n')
 

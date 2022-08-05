@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import datetime
 import getopt
@@ -63,7 +63,7 @@ def queue_message(message):
 
 def main(argv):
 	Uid = '0'
-        LocationName = 'unknown'
+	LocationName = 'unknown'
 	ClusterName = 'unknown'
 	tmpDateTime = datetime.datetime.utcnow()
 	UTCDateTime = tmpDateTime.strftime("%Y-%m-%d %H:%M:%S")
@@ -75,9 +75,9 @@ def main(argv):
 	Process = 'Commandline Kill'
 	PctComplete = '0'
 	State = 'EXIT'
-        RunParams = 'N/A'
-        InstanceName = 'unknown'
-        Transmit = "off"
+	RunParams = 'N/A'
+	InstanceName = 'unknown'
+	Transmit = "off"
 	EchoMessage = "on"
 
 	try:
@@ -126,17 +126,17 @@ def main(argv):
 		elif opt in ("-r", "--State"):
 			State = arg
 
-        if (Message == 'none'):
+	if (Message == 'none'):
 		print('Message == none.  Not sending')
-                # return without sending 
-        	sys.exit(2)
+		# return without sending 
+		sys.exit(2)
 	if (InstanceName == 'unknown'):
 		print('Cannot kill an "unknown" instance {}.').format(InstanceName)
-        	sys.exit(2)
+		sys.exit(2)
 
 	msg = JsonifyMessage(
 			Uid,
-                        LocationName, 
+			LocationName, 
 			ClusterName, 
 			UTCDateTime, 
 			StormName, 
@@ -144,13 +144,12 @@ def main(argv):
 			AdvisoryNumber, 
 			Message, 
 			EventType,
-                        Process,
-                        PctComplete,
-                        State,
-                        RunParams,
-                        InstanceName
+			Process,
+			PctComplete,
+			State,
+			RunParams,
+			InstanceName
 			)
-
 
 	if (EchoMessage == 'on'):
 	       print('\n')
@@ -158,9 +157,9 @@ def main(argv):
 	       print('\n')
 
 	if (Transmit == 'on'):
-               queue_message(msg)
-        else:
-                print('Message not transmitted.\n')
+		queue_message(msg)
+	else:
+		print('Message not transmitted.\n')
 
 
 if __name__ == "__main__":
