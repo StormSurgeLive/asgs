@@ -137,7 +137,7 @@ def main(argv):
 		# return without sending 
 		sys.exit()
 
-        msg = JsonifyMessage(
+	msg = JsonifyMessage(
                         Uid,
                         LocationName,
                         ClusterName,
