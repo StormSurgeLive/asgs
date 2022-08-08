@@ -821,15 +821,34 @@ SSHCMD
       # Operators can post results to the same directories
       partialPath=$OPENDAPDIR
       while [[ $partialPath != $OPENDAPBASEDIR  ]]; do
-         # I don't think we need to retry this like we do on the
-         # scp version. The only reason for the retries on the scp
-         # method is because of the possibility of flaky ssh connections
-         if [[ $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
-            chmod 755 $partialPath 2>> $SYSLOG
-         fi
+         retry=0
+         while [[ $retry -lt $timeoutRetryLimit ]]; do
+            if [[ $(stat -c %u "$partialPath") -eq $(id -u $USER) ]]; then
+               chmod a+wx $partialPath 2>> $SYSLOG
+            fi
+            if [[ $? != 0 ]]; then
+               MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory ${partialPath}."
+               if [ "$MANUAL" == 1 ]; then
+                 echo "$MSG"
+               else
+                 warn "$MSG"
+               fi
+               unset MSG
+               threddsPostStatus=fail
+            else
+               allMessage "$SCENARIO: $_THIS: Successfully changed permissions."
+               break
+            fi
+            retry=`expr $retry + 1`
+            if [[ $retry -lt $timeoutRetryLimit ]]; then
+               allMessage "$SCENARIO: $_THIS: Trying again."
+            else
+               allMessage "$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
+            fi
+         done
          # cut off the end of the partial path and keep going until we get down
          # to OPENDAPBASEDIR
-         partialPath=$(dirname $partialPath)
+         partialPath=`dirname $partialPath`
       done
       #
       # create link with storm name instead of storm number
@@ -857,6 +876,7 @@ SSHCMD
             fi
             continue
          fi
+         chmod +r $file 2>> $SYSLOG
          logMessage "$SCENARIO: $_THIS: $postDesc $file."
          $postCMD $file $OPENDAPDIR 2>> ${SYSLOG}
          if [[ $? != 0 ]]; then
@@ -868,8 +888,6 @@ SSHCMD
               warn "$MSG"
             fi
             unset MSG
-         else
-            chmod 755 $OPENDAPDIR/$file 2>> $SYSLOG
          fi
       done
       ;;
