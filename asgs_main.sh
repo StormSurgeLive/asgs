@@ -1914,7 +1914,6 @@ ADVISDIR=null   # determined below
 HSTIME=null     # determined below
 #
 # execute FINISH_INIT hooks
-echo "asgs_main.sh statusDir is $statusDir"
 executeHookScripts "FINISH_INIT"
 #
 ###############################
