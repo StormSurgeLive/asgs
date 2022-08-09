@@ -54,7 +54,7 @@ readConfig()
    # pick up config parameters, set by the Operator, that differ from the defaults
    source ${CONFIG}
    # ensure single digit STORM numbers issued by NHC are zero-padded
-   if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then 
+   if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then
      STORM=$(printf "%02d" "$STORM")
    fi
    # maintain backward compatibility with old config files
@@ -183,7 +183,7 @@ checkHotstart()
    # TODO: This function should autodetect the hotstart file format,
    # composition, and location rather than assuming it based on the
    # current ASGS configuration file.
-   THIS="asgs_main.sh>checkHotstart()"
+   local THIS="asgs_main.sh>checkHotstart()"
    # set name and specific file location based on format (netcdf or binary)
    HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
    if [[ $HOTSTARTFORMAT = binary ]]; then
@@ -232,7 +232,7 @@ checkHotstart()
 # From http://www.linuxjournal.com/content/floating-point-math-bash
 function float_cond()
 {
-    THIS="asgs_main.sh>float_cond()"
+    local THIS="asgs_main.sh>float_cond()"
     local cond=0
     if [[ $# -gt 0 ]]; then
         cond=$(echo "$*" | bc -q 2>/dev/null)
@@ -1596,17 +1596,13 @@ RUNDIR=$SCRATCHDIR/asgs$$
 if [[ "$RMQMessaging_Enable" == "on" ]]; then
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    allMessage "RMQ Messaging enabled."
+   # Send message with config file contents as the message body.  This is only done once at ASGS startup
+   logMessage "Sending a message with the asgs configuration file as the message body."
+   RMQMessageStartup "$CONFIG"
+   # set a RunParams string for messaging
+   RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
+   RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 fi
-#
-# Send message with config file contents as the message body.  This is only done once at ASGS startup
-logMessage "Sending a message with the asgs configuration file as the message body."
-RMQMessageStartup "$CONFIG"
-
-#
-# set a RunParams string for messaging
-RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
-RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
-
 # save the value from of LASTSUBDIR from config in case
 # LASTSUBDIR=null in STATEFILE due to previous failed
 # initialization
@@ -1660,9 +1656,9 @@ fi
 statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 # see if the storm directory already exists in the scratch space
 for dir in $RUNDIR $statusDir ; do
-   allMessage "$THIS: Making directory $dir"
    if [ ! -d $dir ]; then
-      mkdir -p $dir
+      logMessage "$THIS: Making directory '$dir'."
+      mkdir -p $dir 2>> $SYSLOG
    fi
 done
 
@@ -1801,7 +1797,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
       # get cold start time from the run.properties file
       curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
-      logMessage "$ENSTORM: $THIS: Detecting cold start date from $RUNDIR/from.run.properties."
+      logMessage "$THIS: Detecting cold start date from $RUNDIR/from.run.properties."
       COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
       logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
       # pull down fort.68 file and save as fort.67 just because that
@@ -1918,6 +1914,7 @@ ADVISDIR=null   # determined below
 HSTIME=null     # determined below
 #
 # execute FINISH_INIT hooks
+echo "asgs_main.sh statusDir is $statusDir"
 executeHookScripts "FINISH_INIT"
 #
 ###############################

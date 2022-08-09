@@ -68,7 +68,7 @@ if ( @keys ) {
 }
 if ( defined $key ) {
     if ( exists($jshash_ref->{$key}) ) {
-        if ( reftype($jshash_ref->{$key}) eq 'ARRAY' ) {
+        if ( defined reftype($jshash_ref->{$key}) && reftype($jshash_ref->{$key}) eq 'ARRAY' ) {
             my $listref = $jshash_ref->{$key};
             if ( defined $first ) {
                 print $listref->[0];

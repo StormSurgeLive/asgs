@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-allMessage "$THIS: Setting default parameters for input/output."
+consoleMessage "$THIS: Setting default parameters for input/output."
 #
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
 # water surface elevation station output
@@ -48,7 +48,7 @@ HOTSTARTFORMAT=netcdf
 MINMAX=reset
 #
 if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
-   scenarioMessage "THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
+   scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
    ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="01:00:00" # forecast wall clock time
    CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
