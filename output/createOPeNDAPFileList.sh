@@ -3,7 +3,7 @@
 # createOPeNDAPFileList.sh : Construct a list of the files that
 # should be posted to OPeNDAP and write the list to run.properties.
 #-----------------------------------------------------------------------
-# Copyright(C) 2018--2019 Jason Fleming
+# Copyright(C) 2018--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -85,21 +85,20 @@ for file in $fcstFile $bestFile ; do
       cp $file . 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not link to $file: `cat $errmsg`"
    fi
 done
-ceraNonPriorityFiles=( `ls $CONFIG $SYSLOG $CYCLELOG $SCENARIOLOG adcirc.bin.buildinfo.json cpra.post.log *.csv endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SCENARIOLOG` )
-ceraPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 *.jpg 2>> $SCENARIOLOG`)
+secondPriorityFiles=( `ls $CONFIG $SYSLOG $CYCLELOG $SCENARIOLOG adcirc.bin.buildinfo.json cpra.post.log *.csv endrisinginun.63.nc everdried.63.nc fort.64.nc fort.68.nc fort.71.nc fort.72.nc fort.73.nc initiallydry.63.nc inundationtime.63.nc maxinundepth.63.nc maxrs.63.nc maxvel.63.nc minpr.63.nc rads.64.nc swan_DIR.63.nc swan_DIR_max.63.nc swan_TMM10.63.nc swan_TMM10_max.63.nc 2>> $SCENARIOLOG` )
+firstPriorityFiles=(`ls run.properties maxele.63.nc fort.63.nc fort.61.nc fort.15 fort.22 *.jpg 2>> $SCENARIOLOG`)
 if [[ $TROPICALCYCLONE = on ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SCENARIOLOG` )
+   firstPriorityFiles=( ${firstPriorityFiles[*]} `ls al${STORM}${YEAR}.fst bal${STORM}${YEAR}.dat 2>> $SCENARIOLOG` )
 fi
 #if [[ $WAVES = on ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc 2>> $SCENARIOLOG` )
+   firstPriorityFiles=( ${firstPriorityFiles[*]} `ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc 2>> $SCENARIOLOG` )
 #fi
 dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
 if [[ -d $dirWind10m ]]; then
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SCENARIOLOG` )
-   ceraNonPriorityFiles=( ${ceraNonPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
+   firstPriorityFiles=( ${firstPriorityFiles[*]} `ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SCENARIOLOG` )
+   secondPriorityFiles=( ${secondPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
 else
-   ceraPriorityFiles=( ${ceraPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
+   firstPriorityFiles=( ${firstPriorityFiles[*]} `ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG` )
 fi
-FILES=( ${ceraPriorityFiles[*]} "sendNotification" ${ceraNonPriorityFiles[*]} )
+FILES=( ${firstPriorityFiles[*]} "sendNotification" ${secondPriorityFiles[*]} )
 echo "post.opendap.files : ( ${FILES[@]} )" >> run.properties
-
