@@ -143,7 +143,7 @@ for _file in ${_FILES[*]}; do
     continue
   fi
   # readlink will resolve $_file to a full path
-  _file=$(readlink -f $SCENARIODIR/$_file)
+  _file=$(readlink -f $_file)
   if [[ -e $_file ]]; then
     FILES+=($_file)
   else

@@ -471,10 +471,10 @@ writeASGSInstanceStatus()
     # the syslog file can get pretty big, I don't think we want to
     # send it every 60 seconds, need to figure out how we can just send
     # the extra increment each time and append on the remote server
-    statusFiles="asgs.instance.status.json hook.status.json"
+    statusFiles="$statusDir/asgs.instance.status.json $statusDir/hook.status.json"
     #statusFiles="asgs.instance.status.json hook.status.json $textlog"
     if [[ $previousHookStatusFile != "null" ]]; then
-        statusFiles+=" $previousHookStatusFile"
+        statusFiles+=" $statusDir/$previousHookStatusFile"
     fi
     statusFiles+=" sendNotification"
     echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
@@ -483,7 +483,7 @@ writeASGSInstanceStatus()
     echo "status.hook.latest : $latestHook" >> $statfile
     echo "monitoring.logging.file.syslog : $SYSLOG" >> $statfile   # for use in opendap_post.sh
     echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post.sh
-    echo "monitoring.logging.file.scenariolog : asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
+    echo "monitoring.logging.file.scenariolog : $statusDir/asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
     echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post.sh
     echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post.sh
@@ -652,7 +652,7 @@ postScenarioStatus() {
     # FIXME: need to have a better way of separating the list of
     # files to be posted to opendap on any particular execution of
     # output/opendap_post.sh from the run.properties file
-    echo "post.opendap.files : ( scenario.status.json sendNotification )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
+    echo "post.opendap.files : ( $SCENARIODIR/scenario.status.json sendNotification )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     echo "notification.opendap.email.opendapnotify : null" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     $SCRIPTDIR/output/$OPENDAPPOST $scenarioStatusDir/run.properties
 }
