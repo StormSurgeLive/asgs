@@ -5,6 +5,7 @@ package bin::nhc_recorder;
 use strict;
 use warnings;
 use Weather::NHC::TropicalCyclone ();
+use Try::ALRM;
 use POSIX qw/strftime/;
 
 use constant {
@@ -32,42 +33,61 @@ sub run {
     # SET UP
     eval { mkdir q{./advisories}, 0777 };
 
-    GET_JSON:
+  GET_JSON:
     while (1) {
-        local $@;
-        my $ok = eval {
-          $nhc->fetch;
-          1;
-        };
-        if (not $ok or $@) {
-          print qq{Error getting NHC storms.json. Sleeping $sleep seconds, then checking again...\n};
-          print qq{$@\n} if $@;
-          sleep $sleep;
-        } 
 
-        my $storms_ref = $nhc->active_storms;
+        my $next;
+        retry {
+            my ($attempts) = @_;
+            $nhc->fetch;
+        }
+        ALRM {
+            my ($attempts) = @_;
+            if ( $attempts < tries ) {
+                printf STDERR qq{ - Never gonna give you up ... Retrying ...\n};
+            }
+            else {
+                printf STDERR qq{ - Giving up ...\n};
+            }
+        }
+        finally {
+            my ( $attempts, $success ) = @_;
+            if ($success) {
+                printf STDERR qq{Got storms.json after %d %s...\n}, $attempts, ( $attempts == 1 ) ? q{try} : q{tries};
+            }
+            else {
+                printf STDERR qq{Error getting NHC storms.json after %d tries. Sleeping %d seconds, then checking again...\n}, $attempts, $sleep;
+                sleep $sleep;
+                $next = 1;
+            }
+        }
+        timeout => 30, tries => 3;
+
+        next GET_JSON if $next;
+
+        my $storms_ref  = $nhc->active_storms;
         my $storm_count = @$storms_ref;
 
         print qq{\n(found $storm_count storm(s)) ...\n};
 
-        if (not @$storms_ref) {
-          _sleep( $sleep, q{polling for latest NHC information...} );
-          next GET_JSON;
+        if ( not @$storms_ref ) {
+            _sleep( $sleep, q{polling for latest NHC information...} );
+            next GET_JSON;
         }
 
-        STORMS:
+      STORMS:
         foreach my $storm (@$storms_ref) {
             my $name = $storm->name;
             my $id   = $storm->id;
             mkdir qq{./advisories/$id}, 0755 || die $!;
             local $@;
             eval {
-              my $advNum = _fetch_advisory($storm);
-              _fetch_best_track( $storm, $advNum );
-              _fetch_rss( $storm, $advNum, $nhc );
+                my $advNum = _fetch_advisory($storm);
+                _fetch_best_track( $storm, $advNum );
+                _fetch_rss( $storm, $advNum, $nhc );
             };
             print qq{$@\n} if $@;
-         
+
             _sleep( $sleep, q{polling for latest NHC information...} );
         }
     }
