@@ -65,7 +65,6 @@ init_queenbee()
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   TDS=( lsu_tds )
-  SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -103,7 +102,6 @@ init_supermic()
   ACCOUNT=null
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
-  SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -163,7 +161,6 @@ init_frontera()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -204,7 +201,6 @@ init_stampede2()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -240,7 +236,6 @@ init_lonestar5()
   ACCOUNT=null
   PPN=24
   SUBMITSTRING=sbatch
-  SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -275,7 +270,6 @@ init_docker()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=${SCRATCH:-/scratch/$USER}
-  SSHKEY=id_rsa_docker
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -299,7 +293,6 @@ init_desktop()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=/srv/asgs
-  SSHKEY=id_rsa_desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
@@ -318,7 +311,6 @@ init_desktop_serial() # changed from init_desktop-serial due to bash complaints
   QCHECKCMD="ps -aux | grep adcirc "
   SUBMITSTRING="./"
   SCRATCH=/srv/asgs
-  SSHKEY=id_rsa_desktop-serial
   ADCOPTIONS='compiler=gfortran MACHINENAME=desktop-serial'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
@@ -335,7 +327,6 @@ init_Poseidon()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
   SCRATCH=/home/fhrl/Documents/asgs_processing
-  SSHKEY=id_rsa_desktop
   ADCOPTIONS='compiler=gfortran MACHINENAME=desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
