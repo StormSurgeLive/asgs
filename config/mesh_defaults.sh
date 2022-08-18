@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-allMessage "$THIS: Setting default values for the mesh ${MESH}."
+consoleMessage "$THIS: Setting default values for the mesh '${MESH}'."
 MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
 OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
