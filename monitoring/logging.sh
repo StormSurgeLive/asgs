@@ -329,18 +329,22 @@ consoleMessage()
 allMessage()
 {
 #   consoleMessage $@
-   logMessage $1 $2
-   cycleMessage $1 $2
-   scenarioMessage $1 $2
+   logMessage "$1" "$2"
+   cycleMessage "$1" "$2"
+   scenarioMessage "$1" "$2"
 }
 #
 # log a warning message, execution continues
 warn()
 { local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
   MSG="[${DATETIME}] WARNING: $1"
-  for warnlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2 ; do
+  for warnlogfile in $SYSLOG $2 ; do
     if [[ -e $warnlogfile ]]; then
-      caller 1 >> $warnlogfile
+      local frame=0
+      while caller $frame; do
+         caller $frame >> $warnlogfile
+         ((frame++));
+      done
       echo ${MSG} >> $warnlogfile
     fi
   done
@@ -355,7 +359,11 @@ error()
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
   for errorlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $errorlogfile ]]; then
-      caller 1 >> $errorlogfile
+      local frame=0
+      while caller $frame; do
+         caller $frame >> $errorlogfile
+         ((frame++));
+      done
       echo ${MSG} >> $errorlogfile
     fi
   done
@@ -371,6 +379,11 @@ fatal()
   MSG="[${DATETIME}] FATAL ERROR: $1"
   for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $fatallogfile ]]; then
+      local frame=0
+      while caller $frame; do
+         caller $frame >> $fatallogfile
+         ((frame++));
+      done
       echo ${MSG} >> $fatallogfile
     fi
   done
@@ -398,7 +411,7 @@ writeASGSInstanceStatus()
 {
     local THIS="asgs_main->monitoring/logging.sh->writeASGSInstanceStatus()"
     local statfile="$statusDir/asgs.instance.status.properties"
-    local jsonfile="asgs.instance.status.json"
+    local jsonfile="$statusDir/asgs.instance.status.json"
     logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
     local logfile=$(basename -- $SYSLOG)
     local textlog="${logfile%.*}.txt" # directly viewable in web browser
@@ -447,7 +460,7 @@ writeASGSInstanceStatus()
     echo "archive.path.archivedir : $ARCHIVEDIR" >> $statfile
     # runtime
     echo "path.rundir : $RUNDIR" >> $statfile
-    echo "path.statusdir : $RUNDIR/status" >> $statfile
+    echo "path.statusdir : $statusDir" >> $statfile
     echo "path.lastsubdir : $LASTSUBDIR" >> $statfile
     echo "asgs.instance.status.url : $asgsInstanceStatusURL" >> $statfile
     echo "hook.status.url : $hookStatusURL" >> $statfile
@@ -458,25 +471,26 @@ writeASGSInstanceStatus()
     # the syslog file can get pretty big, I don't think we want to
     # send it every 60 seconds, need to figure out how we can just send
     # the extra increment each time and append on the remote server
-    statusFiles="asgs.instance.status.json hook.status.json"
+    statusFiles="$statusDir/asgs.instance.status.json $statusDir/hook.status.json"
     #statusFiles="asgs.instance.status.json hook.status.json $textlog"
     if [[ $previousHookStatusFile != "null" ]]; then
-        statusFiles+=" $previousHookStatusFile"
+        statusFiles+=" $statusDir/$previousHookStatusFile"
     fi
+    statusFiles+=" sendNotification"
     echo "notification.opendap.email.opendapnotify : $statusNotify" >> $statfile
     echo "post.opendap.files : ( $statusFiles )" >> $statfile
     echo "status.file.previous : $previousStatusFile" >> $statfile
     echo "status.hook.latest : $latestHook" >> $statfile
     echo "monitoring.logging.file.syslog : $SYSLOG" >> $statfile   # for use in opendap_post.sh
     echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post.sh
-    echo "monitoring.logging.file.scenariolog : asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
+    echo "monitoring.logging.file.scenariolog : $statusDir/asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
     echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post.sh
     echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post.sh
     echo "InitialHotStartTime : $HSTIME" >> $statfile    # for use in opendap_post.sh
     # forecast scenario package
     echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
-    local myscenarios=$(str="( " ; si=0 ; while [[ $si -lt $SCENARIOPACKAGESIZE ]]; do source $ASGS_CONFIG ; str+="$ENSTORM " ; si=$(($si + 1)) ; done ; str+=")" ; echo $str )
+    local myscenarios=$(str="( " ; si=0 ; while [[ $si -lt $SCENARIOPACKAGESIZE ]]; do source $ASGS_CONFIG > /dev/null 2>&1 ; str+="$ENSTORM " ; si=$(($si + 1)) ; done ; str+=")" ; echo $str )
     echo "forecast.scenarios : $myscenarios" >> $statfile
     #
     ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
@@ -638,8 +652,8 @@ postScenarioStatus() {
     # FIXME: need to have a better way of separating the list of
     # files to be posted to opendap on any particular execution of
     # output/opendap_post.sh from the run.properties file
-    echo "post.opendap.files : ( scenario.status.json )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
-    echo "notification.opendap.email.enable : no" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
+    echo "post.opendap.files : ( $SCENARIODIR/scenario.status.json sendNotification )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
+    echo "notification.opendap.email.opendapnotify : null" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     $SCRIPTDIR/output/$OPENDAPPOST $scenarioStatusDir/run.properties
 }
 #

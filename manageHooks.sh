@@ -24,11 +24,11 @@
 # Executed upon startup initialization
 nullifyHooks()
 {
-    local THIS="asgs_main->manageHooks->nullifyHooksTimes()"
+    local THIS="asgs_main->manageHooks->nullifyHooks()"
     logMessage "$THIS: Nullifying the time values associated with each hook."
     for k in ${allHooks[@]} ; do
         hooksTimes[$k]="null"
-        logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
+        logMessage "$THIS: Setting hooksTimes['$k'] to '${hooksTimes[$k]}'."
     done
 }
 #
@@ -36,11 +36,11 @@ nullifyHooks()
 # executed when a new nowcast/forecast cycle starts
 nullifyNowcastForecastHooks()
 {
-    local THIS="asgs_main->manageHooks->nullifyNowcastForecastHooksTimes()"
+    local THIS="asgs_main->manageHooks->nullifyNowcastForecastHooks()"
     logMessage "$THIS: Nullifying the time values associated with each nowcast and forecast hook."
     for k in "${nowcastHooks[@]}" "${forecastHooks[@]}" ; do
         hooksTimes["$k"]="null"
-        logMessage "$THIS: Setting hooksTimes[$k] to ${hooksTimes[$k]}"
+        logMessage "$THIS: Setting hooksTimes['$k'] to '${hooksTimes[$k]}'."
     done
 }
 #
@@ -49,7 +49,7 @@ timestampHook()
 {
     hook=$1
     local THIS="asgs_main->manageHooks->timestampHook()"
-    logMessage "$THIS: Updating timestamp for the $hook hook."
+    logMessage "$THIS: Updating timestamp for the '$hook' hook."
     dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     local status="null"
     local statusURL="null"
@@ -85,22 +85,22 @@ timestampHook()
         mypath="status"
         ;;
     *)
-        warn "$THIS: Unrecognized hook ${hooksTimes[$hook]}."
+        warn "$THIS: Unrecognized hook '${hooksTimes[$hook]}'."
         ;;
     esac
     # TODO: go to that directory and get the statusURL from the status.json file
     # and put the statusURL into this status.json file
-    for file in cycle.status.json scenario.status.json ; do 
+    for file in cycle.status.json scenario.status.json ; do
         if [[ $mypath != "null" && -e $RUNDIR/$mypath/$file ]]; then
            status=\"${mypath}/${file}\"
-           # the URL should be in the $SCENARIODIR/status/run.properties file  
+           # the URL should be in the $SCENARIODIR/status/run.properties file
            # as the downloadurl property
            if [[ $file == "scenario.status.json" || -e $RUNDIR/$mypath/status/run.properties ]]; then
                local downloadurl=$(grep downloadurl $RUNDIR/$mypath/status/run.properties)
-               if [[ ! -z $downloadurl && $downloadurl != "" ]]; then 
+               if [[ ! -z $downloadurl && $downloadurl != "" ]]; then
                    statusURL=\"${downloadurl##downloadurl : }/$file\"
-               fi           
-           fi 
+               fi
+           fi
         fi
     done
     if [[ $mypath != "null" ]]; then
@@ -129,7 +129,7 @@ writeHookStatus()
 {
     local THIS="asgs_main->manageHooks.sh->writeHookStatus()"
     local jsonfile="$statusDir/hook.status.json"
-    logMessage "$THIS: Writing status associated with ASGS hooks to $jsonfile."
+    logMessage "$THIS: Writing status associated with ASGS hooks to '$jsonfile'."
     #
     # write the time value(s) associated with each hook; will be null
     # if that hook has not been reached for this cycle
@@ -138,12 +138,12 @@ writeHookStatus()
     echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
     echo \""path.rundir\" : \"$RUNDIR\"," >> $jsonfile
     echo \""path.scriptdir\" : \"$SCRIPTDIR\"," >> $jsonfile
-    if [[ $LASTSUBDIR != "null" ]]; then 
-       echo \""path.lastsubdir\" : \"$LASTSUBDIR\"," >> $jsonfile 
+    if [[ $LASTSUBDIR != "null" ]]; then
+       echo \""path.lastsubdir\" : \"$LASTSUBDIR\"," >> $jsonfile
     else
-       echo \""path.lastsubdir\" : null," >> $jsonfile 
+       echo \""path.lastsubdir\" : null," >> $jsonfile
     fi
-    echo \""monitoring.logging.file.syslog\" : \"$SYSLOG\"," >> $jsonfile 
+    echo \""monitoring.logging.file.syslog\" : \"$SYSLOG\"," >> $jsonfile
     echo \""config.file\" : \"$CONFIG\"," >> $jsonfile
     echo "\"monitoring.hook\" : {" >> $jsonfile
     for k in ${allHooks[@]} ; do
