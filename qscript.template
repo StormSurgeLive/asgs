@@ -59,8 +59,8 @@ echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 #               W R I T E   J O B   P R O P E R T I E S
 #----------------------------------------------------------------------------
 
-if [[ -e "%adcircdir%/adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
-   cp "%adcircdir%/adcirc.bin.buildinfo.json" . 2>> $SYSLOG
+if [[ -e "%adcircdir%/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
+   cp "%adcircdir%/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
    echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
 fi
 echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
