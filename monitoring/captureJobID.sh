@@ -4,7 +4,7 @@
 # capture the job ID from stdout from a successful batch
 # job submission.
 #----------------------------------------------------------------
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2021--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -35,7 +35,7 @@ case $HPCENVSHORT in
    grep 'batch job' jobID.tmp | grep -Eo [0-9]+ > jobID
    rm jobID.tmp
    ;;
-"queenbeeC")
+"queenbeeC"|"mike")
    # SLURM returns information similar to the following when a
    # job is submitted:
    #
