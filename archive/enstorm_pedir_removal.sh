@@ -3,7 +3,7 @@
 # esnstorm_pedir_removal.sh: Removes the PE* subdirectories that were
 # created by adcprep for use in a parallel adcirc simulation.
 #----------------------------------------------------------------
-# Copyright(C) 2017--2021 Jason Fleming
+# Copyright(C) 2017--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -130,11 +130,13 @@ else
 fi
 #
 #
-# pull in platform-specific value for the command used to remove directories
+# set platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)
 REMOVALCMD="rm -rf"
-HPCENVSHORT=${properties["hpc.hpcenvshort"]}
-env_dispatch ${HPCENVSHORT}
+which rmpurge >/dev/null 2>&1 
+if [[ $? == 0 ]]; then 
+   REMOVALCMD='rmpurge'
+fi
 THIS=archive/enstorm_pedir_removal.sh
 # now delete the subdomain directories
 rm errmsg ; touch errmsg
