@@ -186,7 +186,7 @@ checkHotstart()
    local THIS="asgs_main.sh>checkHotstart()"
    # set name and specific file location based on format (netcdf or binary)
    HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
-   if [[ $HOTSTARTFORMAT = binary ]]; then
+   if [[ $HOTSTARTFORMAT == binary ]]; then
       HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
    fi
    # check for existence of hotstart file
@@ -207,7 +207,7 @@ checkHotstart()
          # jgf20170131: hstime reports errors to stderr so we must capture
          # that with backticks and tee to the log file
          HSTIME=''
-         if [[ $HOTSTARTFORMAT = netcdf ]]; then
+         if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG}`
          else
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
@@ -268,7 +268,7 @@ prep()
     OUTPUTOPTIONS="${11}" # contains list of args for appending files
     HOTSTARTCOMP=${12} # fulldomain or subdomain
     WALLTIME=${13} # HH:MM:SS format
-    HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
+    HOTSTARTFORMAT=${14}   # "binary" or "netcdf" or "netcdf3"
     MINMAX=${15}           # "continuous" or "reset"
     HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
     NAFILE=${17}  # full domain nodal attributes file
@@ -389,7 +389,7 @@ prep()
        done
        # bring in hotstart file(s)
        if [[ $QUEUESYS = serial ]]; then
-          if [[ $HOTSTARTFORMAT = netcdf ]]; then
+          if [[ $HOTSTARTFORMAT == netcdf || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
@@ -498,7 +498,7 @@ prep()
        fi
        # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
-          if [[ $HOTSTARTFORMAT = netcdf ]]; then
+          if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
@@ -2811,7 +2811,7 @@ while [ true ]; do
 
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
-   if [[ $HOTSTARTFORMAT = netcdf ]]; then
+   if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}

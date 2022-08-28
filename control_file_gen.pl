@@ -300,9 +300,9 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
-   if ( $hsformat eq "netcdf" ) {
+   if ( $hsformat eq "netcdf" || $hsformat eq "netcdf3" ) {
       $NHSTAR = 3;
-      if ( defined $netcdf4 ) {
+      if ( defined $netcdf4 && $hsformat ne "netcdf3" ) {
          $NHSTAR = 5;
       }
    }
@@ -315,9 +315,9 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
 # file during the run, we know we will always be left with a fort.67 file.
 if ( defined $hstime ) {
    $ihot = 68;
-   if ( $hsformat eq "netcdf" ) {
+   if ( $hsformat eq "netcdf" || $hsformat eq "netcdf3" ) {
       $ihot = 368;
-      if ( defined $netcdf4 ) {
+      if ( defined $netcdf4 && $hsformat ne "netcdf3" ) {
          $ihot = 568;
       }
    }
