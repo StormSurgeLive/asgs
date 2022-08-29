@@ -3,7 +3,7 @@
 # io_defaults.sh : Functions required for initializing
 # parameters that are only related to input/output controls.
 #----------------------------------------------------------------
-# Copyright(C) 2019 Jason Fleming
+# Copyright(C) 2019--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -41,9 +41,13 @@ SPARSE=""
 NETCDF4="--netcdf4"
 OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
 # fulldomain or subdomain hotstart files
-HOTSTARTCOMP=fulldomain
-# binary or netcdf hotstart files
-HOTSTARTFORMAT=netcdf
+if [[ $HOTSTARTCOMP != "subdomain" ]]; then
+   HOTSTARTCOMP="fulldomain"
+fi
+# binary, netcdf, or netcdf3 hotstart files
+if [[ $HOTSTARTFORMAT != "netcdf3" && $HOTSTARTFORMAT != "binary" ]]; then
+   HOTSTARTFORMAT="netcdf"
+fi
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
