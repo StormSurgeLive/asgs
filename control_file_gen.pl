@@ -575,7 +575,7 @@ if ( $waves eq "on" ) {
        s/%swandt%/$swandt/;
        # fill in ensemble name -- this is in the comment line
        my $ensembleid72 = substr($ensembleid,0,72); # 'title2' in SWAN documentation, max 72 char
-       s/%EnsembleID%/$ensembleid/;
+       s/%EnsembleID%/$ensembleid72/;
        # may be asymmetric parameters, or wtiminc, rstiminc, etc
        my $wtiminc72 = substr($wtiminc,0,72);
        s/%WTIMINC%/$wtiminc72/;                     # 'title3' in SWAN documentation, max 72 char
