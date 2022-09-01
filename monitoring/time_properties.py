@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #----------------------------------------------------------------------
 # properties.py : Set and get key/value pairs from run.properties file.
 #----------------------------------------------------------------------
@@ -45,13 +45,13 @@ try:
         runProp[fields[0].strip()] = fields[1].strip()
     f.close()
 except:
-    print "properties.py: Could not open " + options.directory + "/" + options.inputFile + " file."
+    print("properties.py: Could not open " + options.directory + "/" + options.inputFile + " file.")
     exit()
 #
 # if the value is present, write the property; if not, read it 
 for key in runProp:
     if re.search(r'time.*' + options.jobtype + '.*start', key): 
-        print key
+        print(key)
         #
         # convert start time to python datetime object
         #advisory_dt = datetime.strptime(runProp['time.forecast.valid.cdt'],'%Y%m%d%H%M%S')

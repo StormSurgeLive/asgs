@@ -300,9 +300,9 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
 # we want a hotstart file if this is a nowcast or hindcast
 if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 1;
-   if ( $hsformat eq "netcdf" ) {
+   if ( $hsformat eq "netcdf" || $hsformat eq "netcdf3" ) {
       $NHSTAR = 3;
-      if ( defined $netcdf4 ) {
+      if ( defined $netcdf4 && $hsformat ne "netcdf3" ) {
          $NHSTAR = 5;
       }
    }
@@ -315,9 +315,9 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
 # file during the run, we know we will always be left with a fort.67 file.
 if ( defined $hstime ) {
    $ihot = 68;
-   if ( $hsformat eq "netcdf" ) {
+   if ( $hsformat eq "netcdf" || $hsformat eq "netcdf3" ) {
       $ihot = 368;
-      if ( defined $netcdf4 ) {
+      if ( defined $netcdf4 && $hsformat ne "netcdf3" ) {
          $ihot = 568;
       }
    }
@@ -970,7 +970,7 @@ sub customParameters {
 sub owiParameters {
    #
    # open met file
-   open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI (NWS12) file $stormDir/fort.22 for reading: $!.";
+   open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI ASCII (NWS12) file $stormDir/fort.22 for reading: $!.";
    my $line = <METFILE>;
    close(METFILE);
    $line =~ /^# (\d+)/;
@@ -1012,7 +1012,7 @@ sub owiParameters {
       $owiend = $fields221[-1];
    }
    # create run description
-   $rundesc = "cs:$csdate"."0000 cy:$owistart ASGS NAM";
+   $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend ASGS OWI ASCII ";
    $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $oy = $1;
    $om = $2;

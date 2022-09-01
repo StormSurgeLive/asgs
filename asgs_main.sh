@@ -54,7 +54,7 @@ readConfig()
    # pick up config parameters, set by the Operator, that differ from the defaults
    source ${CONFIG}
    # ensure single digit STORM numbers issued by NHC are zero-padded
-   if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then 
+   if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then
      STORM=$(printf "%02d" "$STORM")
    fi
    # maintain backward compatibility with old config files
@@ -183,10 +183,10 @@ checkHotstart()
    # TODO: This function should autodetect the hotstart file format,
    # composition, and location rather than assuming it based on the
    # current ASGS configuration file.
-   THIS="asgs_main.sh>checkHotstart()"
+   local THIS="asgs_main.sh>checkHotstart()"
    # set name and specific file location based on format (netcdf or binary)
    HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
-   if [[ $HOTSTARTFORMAT = binary ]]; then
+   if [[ $HOTSTARTFORMAT == binary ]]; then
       HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
    fi
    # check for existence of hotstart file
@@ -207,7 +207,7 @@ checkHotstart()
          # jgf20170131: hstime reports errors to stderr so we must capture
          # that with backticks and tee to the log file
          HSTIME=''
-         if [[ $HOTSTARTFORMAT = netcdf ]]; then
+         if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG}`
          else
             HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
@@ -232,7 +232,7 @@ checkHotstart()
 # From http://www.linuxjournal.com/content/floating-point-math-bash
 function float_cond()
 {
-    THIS="asgs_main.sh>float_cond()"
+    local THIS="asgs_main.sh>float_cond()"
     local cond=0
     if [[ $# -gt 0 ]]; then
         cond=$(echo "$*" | bc -q 2>/dev/null)
@@ -268,7 +268,7 @@ prep()
     OUTPUTOPTIONS="${11}" # contains list of args for appending files
     HOTSTARTCOMP=${12} # fulldomain or subdomain
     WALLTIME=${13} # HH:MM:SS format
-    HOTSTARTFORMAT=${14}   # "binary" or "netcdf"
+    HOTSTARTFORMAT=${14}   # "binary" or "netcdf" or "netcdf3"
     MINMAX=${15}           # "continuous" or "reset"
     HOTSWAN=${16} # "yes" or "no" to reinitialize SWAN only
     NAFILE=${17}  # full domain nodal attributes file
@@ -389,7 +389,7 @@ prep()
        done
        # bring in hotstart file(s)
        if [[ $QUEUESYS = serial ]]; then
-          if [[ $HOTSTARTFORMAT = netcdf ]]; then
+          if [[ $HOTSTARTFORMAT == netcdf || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
@@ -498,7 +498,7 @@ prep()
        fi
        # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
-          if [[ $HOTSTARTFORMAT = netcdf ]]; then
+          if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
@@ -1596,17 +1596,13 @@ RUNDIR=$SCRATCHDIR/asgs$$
 if [[ "$RMQMessaging_Enable" == "on" ]]; then
    source ${SCRIPTDIR}/monitoring/asgs-msgr.sh
    allMessage "RMQ Messaging enabled."
+   # Send message with config file contents as the message body.  This is only done once at ASGS startup
+   logMessage "Sending a message with the asgs configuration file as the message body."
+   RMQMessageStartup "$CONFIG"
+   # set a RunParams string for messaging
+   RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
+   RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
 fi
-#
-# Send message with config file contents as the message body.  This is only done once at ASGS startup
-logMessage "Sending a message with the asgs configuration file as the message body."
-RMQMessageStartup "$CONFIG"
-
-#
-# set a RunParams string for messaging
-RMQRunParams="$GRIDNAME:EnsSize=$SCENARIOPACKAGESIZE:Pid=$$"
-RMQMessage "INFO" "$CURRENT_EVENT" "platforms.sh" "$CURRENT_STATE" "$HPCENVSHORT configuration found."
-
 # save the value from of LASTSUBDIR from config in case
 # LASTSUBDIR=null in STATEFILE due to previous failed
 # initialization
@@ -1660,9 +1656,9 @@ fi
 statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 # see if the storm directory already exists in the scratch space
 for dir in $RUNDIR $statusDir ; do
-   allMessage "$THIS: Making directory $dir"
    if [ ! -d $dir ]; then
-      mkdir -p $dir
+      logMessage "$THIS: Making directory '$dir'."
+      mkdir -p $dir 2>> $SYSLOG
    fi
 done
 
@@ -1801,7 +1797,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
       # get cold start time from the run.properties file
       curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
-      logMessage "$ENSTORM: $THIS: Detecting cold start date from $RUNDIR/from.run.properties."
+      logMessage "$THIS: Detecting cold start date from $RUNDIR/from.run.properties."
       COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
       logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
       # pull down fort.68 file and save as fort.67 just because that
@@ -2815,7 +2811,7 @@ while [ true ]; do
 
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
-   if [[ $HOTSTARTFORMAT = netcdf ]]; then
+   if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
    else
       HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}

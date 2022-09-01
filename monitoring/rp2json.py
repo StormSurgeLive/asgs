@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import pika
-import datetime
+#import datetime
 import json
 
 def ReadRPToDict(input_filename, uid, instance_name, physical_location):
