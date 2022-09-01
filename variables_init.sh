@@ -159,6 +159,7 @@ variables_init()
    declare -g -A hooksScripts    # space-delimited string of scripts to execute at each hook
    declare -g -a allHooks
    allHooks=( ${initHooks[@]} ${spinupHooks[@]} ${nowcastHooks[@]} ${forecastHooks[@]} EXIT_STAGE )
+   statusDir="null"
    previousStatusFile="null"
    previousHookStatusFile="null"
    hookStatusURL="null"
@@ -178,4 +179,5 @@ variables_init()
 
    SCENARIO="null"
    SCENARIODIR="null"
+   OPENDAPADDROOT=""
 }

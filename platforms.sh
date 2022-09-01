@@ -65,7 +65,6 @@ init_queenbee()
   JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   ACCOUNT=null
   TDS=( lsu_tds )
-  SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -103,7 +102,6 @@ init_supermic()
   ACCOUNT=null
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
-  SSHKEY=~/.ssh/id_rsa.pub
   REMOVALCMD="rmpurge"
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -163,7 +161,6 @@ init_frontera()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SSHKEY=~/.ssh/id_rsa_frontera
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -204,7 +201,6 @@ init_stampede2()
   JOBLAUNCHER='ibrun '
   ACCOUNT=null
   SUBMITSTRING=sbatch
-  SSHKEY=~/.ssh/id_rsa_stampede2
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -240,7 +236,6 @@ init_lonestar5()
   ACCOUNT=null
   PPN=24
   SUBMITSTRING=sbatch
-  SSHKEY=id_rsa_lonestar5
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -275,7 +270,6 @@ init_docker()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=${SCRATCH:-/scratch/$USER}
-  SSHKEY=id_rsa_docker
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
   ARCHIVEDIR=$SCRATCH
@@ -292,15 +286,14 @@ init_desktop()
 {
   local THIS="platforms.sh>env_dispatch()>init_desktop()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=jason-desktop.seahorsecoastal.com
+  HPCENV=desktop.seahorsecoastal.com
   QUEUESYS=mpiexec
   QUEUENAME=mpiexec
   SERQUEUE=cmd
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
   SCRATCH=/srv/asgs
-  SSHKEY=id_rsa_jason-desktop
-  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
+  ADCOPTIONS='compiler=gfortran MACHINENAME=desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -313,13 +306,12 @@ init_desktop_serial() # changed from init_desktop-serial due to bash complaints
 {
   local THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=jason-desktop-serial
+  HPCENV=desktop-serial
   QUEUESYS=serial
   QCHECKCMD="ps -aux | grep adcirc "
   SUBMITSTRING="./"
   SCRATCH=/srv/asgs
-  SSHKEY=id_rsa_jason-desktop-serial
-  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop-serial'
+  ADCOPTIONS='compiler=gfortran MACHINENAME=desktop-serial'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -335,8 +327,7 @@ init_Poseidon()
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec -n"
   SCRATCH=/home/fhrl/Documents/asgs_processing
-  SSHKEY=id_rsa_jason-desktop
-  ADCOPTIONS='compiler=gfortran MACHINENAME=jason-desktop'
+  ADCOPTIONS='compiler=gfortran MACHINENAME=desktop'
   SWANMACROSINC=macros.inc.gfortran
   ARCHIVE=enstorm_pedir_removal.sh
   ARCHIVEBASE=$SCRATCH
@@ -362,9 +353,9 @@ writeTDSProperties()
 {
    local THIS="platforms.sh>writeTDSProperties()"
    SERVER=$1
-   RUNPROPERTIES=run.properties
+   local RUNPROPERTIES=run.properties
    if [[ $# -eq 2 ]]; then
-      RUNPROPERTIES=$2
+      local RUNPROPERTIES=$2
    fi
    scenarioMessage "$THIS: Setting platforms-specific parameters for ${SERVER}."
    operator=$USER
@@ -431,12 +422,12 @@ writeTDSProperties()
       ;;
    *) # if not found, look in ./thredds-servers where we add new servers now
       local SERVERDEF="${SCRIPTDIR}/ssh-servers/${SERVER}.sh"
-      echo $SERVERDEF
+      consoleMessage $SERVERDEF
       if [ -e "$SERVERDEF" ]; then
-        echo "$THIS: Found THREDDS Data Server $SERVER in $SCRIPTDIR/$SERVER.sh"
-	source "$SERVERDEF"
+        consoleMessage "$THIS: Found THREDDS Data Server $SERVER in $SCRIPTDIR/$SERVER.sh"
+	      source "$SERVERDEF"
       else
-        echo "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
+        consoleMessage "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
       fi
       ;;
    esac
@@ -489,10 +480,6 @@ set_hpc() {
    if [[ ${fqdn:0:4} == "smic" ]]; then
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic
-   fi
-   if [[ ${fqdn:0:5} == "jason" ]]; then
-      HPCENV=desktop.seahorsecoastal.com
-      HPCENVSHORT=desktop
    fi
    if [ 1 -eq $(hostname --fqdn | grep -c soldier) ]; then
       HPCENV=soldier.seahorsecoastal.com
@@ -552,43 +539,43 @@ env_dispatch() {
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  echo "(info)    $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "queenbee") allMessage "$THIS: Queenbee (LONI) configuration found."
+  "queenbee") consoleMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "supermic") allMessage "$THIS: SuperMIC (LSU HPC) configuration found."
+  "supermic") consoleMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "queenbeeC") allMessage "$THIS: QueenbeeC (LONI) configuration found."
+  "queenbeeC") consoleMessage "$THIS: QueenbeeC (LONI) configuration found."
           init_queenbeeC
           ;;
-  "lonestar5") allMessage "$THIS: Lonestar (TACC) configuration found."
+  "lonestar5") consoleMessage "$THIS: Lonestar (TACC) configuration found."
           init_lonestar5
           ;;
-  "stampede2") allMessage "$THIS: Stampede2 (TACC) configuration found."
+  "stampede2") consoleMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
           ;;
-  "frontera") allMessage "$THIS: Frontera (TACC) configuration found."
+  "frontera") consoleMessage "$THIS: Frontera (TACC) configuration found."
           init_frontera
           ;;
-  "desktop") allMessage "$THIS: desktop configuration found."
+  "desktop") consoleMessage "$THIS: desktop configuration found."
           init_desktop
           ;;
   "desktop-serial") consoleMessage "$THIS: desktop-serial configuration found."
           init_desktop-serial
           ;;
-  "docker") allMessage "$THIS: docker configuration found."
+  "docker") consoleMessage "$THIS: docker configuration found."
           init_docker
           ;;
-  "poseidon") allMessage "$THIS: Poseidon configuration found."
+  "poseidon") consoleMessage "$THIS: Poseidon configuration found."
           init_Poseidon
           ;;
-  "vagrant") allMessage "$THIS: vagrant configuration found."
+  "vagrant") consoleMessage "$THIS: vagrant configuration found."
           init_vagrant
           ;;
-  "docker") allMessage "$THIS: docker configuration found."
+  "docker") consoleMessage "$THIS: docker configuration found."
           init_docker
           ;;
-  "test") allMessage "$THIS: test environment (default) configuration found."
+  "test") consoleMessage "$THIS: test environment (default) configuration found."
           init_test
           ;;
   *) # fallback for new method of initializing a platform

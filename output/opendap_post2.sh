@@ -24,6 +24,7 @@ THIS=$(basename -- $0)
 #
 EXIT_SUCCESS=0
 EXIT_ERROR=1
+sendEmail="no"
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
@@ -147,8 +148,8 @@ for _file in ${_FILES[*]}; do
     FILES+=($_file)
   else
     MSG="cycle $CYCLE: $SCENARIO: $THIS: Can't find '$_file', which is listed in in $RUNPROPERTIES."
-    echo $MSG
-    warn $MSG
+    warn "$MSG"
+    consoleMessage "$MSG"
   fi
 done
 
@@ -157,8 +158,8 @@ done
 # send when done with all files ...
 if [[ -z $sendNotification ]]; then
     MSG="cycle $CYCLE: $SCENARIO: $THIS: 'sendNotification' tracer not found in file list."
-    echo $MSG
-    warn $MSG
+    warn "$MSG"
+    consoleMessage "$MSG"
 fi
 
 # assert there are files to upload
@@ -172,11 +173,16 @@ if [[ ${#_FILES[@]} -eq 0 ]]; then
    exit
 fi
 if [[ $SCENARIO == "asgs.instance.status" ]]; then
-    statusDir=${properties['path.statusdir']}
-    cd ${statusDir} > errmsg 2>&1 || warn "$SCENARIO: $THIS: Failed to change directory to '$statusDir': `cat errmsg`."
+   statusDir=${properties['path.statusdir']}
+   cd ${statusDir} > errmsg 2>&1 || warn "$SCENARIO: $THIS: Failed to change directory to '$statusDir': `cat errmsg`."
+   sendEmail="no"
 else
-    SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
-    cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
+   cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
+   if [[ -z $OPENDAPNOTIFY || $OPENDAPNOTIFY == "" || $OPENDAPNOTIFY == "null" ]]; then
+      sendEmail="no"
+   else
+      sendEmail="yes"
+   fi
 fi
 # load asgs operator email address
 ASGSADMIN=${properties["notification.email.asgsadmin"]}
@@ -185,10 +191,7 @@ INSTANCENAME=${properties["instancename"]}
 HPCENVSHORT=${properties["hpc.hpcenvshort"]}
 TROPICALCYCLONE=${properties["forcing.tropicalcyclone"]}
 BACKGROUNDMET=${properties["forcing.backgroundmet"]}
-enableStatusNotify=${properties["notification.opendap.email.enable"]}
-if [[ -z $enableStatusNotify || $enableStatusNotify = "" ]]; then
-   enableStatusNotify="no"
-fi
+
 # get the scenario number
 SCENARIONUMBER=${properties["scenario.number"]} # this is used in the subject line of the email
 env_dispatch $HPCENVSHORT # set up JOBENV with perlbrew for asgs-sendmail etc
@@ -202,20 +205,13 @@ for server in ${SERVERS[*]}; do
    if [[ $server = "(" || $server = ")" ]]; then
       continue
    fi
-   allMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to opendap server ${server}."
+   consoleMessage "cycle $CYCLE: $SCENARIO: $THIS: Posting to opendap server ${server}."
    # pick up config of the thredds data server where the files are to be posted
-   allMessage "Setting opendap server parameters with writeTDSProperties ${server}."
+   consoleMessage "Setting opendap server parameters with writeTDSProperties ${server}."
    # write platform-dependent properties related to posting to thredds server for
    # opendap service  (from platforms.sh)
-   writeTDSProperties $server $RUNPROPERTIES  # this writes to a local run.properties file
-   if [[ $SCENARIO == "asgs.instance.status" && -s $RUNPROPERTIES ]]; then
-      cat run.properties >> $RUNPROPERTIES 2>> $SYSLOG
-      rm run.properties 2>> $SYSLOG # so we don't keep appending to it
-      $SCRIPTDIR/metadata.pl --redact --jsonify --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      if [[ -s "asgs.instance.status.json" ]]; then
-         sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
-      fi
-   fi
+   writeTDSProperties $server $RUNPROPERTIES  # this writes TDS properties to the properties file
+
    # FIXME: enable Operator to override TDS parameter settings from platforms.sh
    _THIS="output/opendap_post2.sh-->$server"
    loadProperties $RUNPROPERTIES # reload to pick up properties written by writeTDSProperties
@@ -225,6 +221,7 @@ for server in ${SERVERS[*]}; do
    DOWNLOADPREFIX=${properties["post.opendap.${server}.downloadprefix"]}
    CATALOGPREFIX=${properties["post.opendap.${server}.catalogprefix"]}
    OPENDAPBASEDIR=${properties["post.opendap.${server}.opendapbasedir"]}
+   OPENDAPADDROOT=${properties["post.opendap.addroot"]}
    #
    #--------------------------------------------------------------------
    #  O P E N  D A P    P A T H   F O R M A T I O N
@@ -235,7 +232,11 @@ for server in ${SERVERS[*]}; do
       # for NAM, the "advisory number" is actually the cycle time
       YEAR=${properties["forcing.nwp.year"]}
       NWPMODEL=${properties["forcing.nwp.model"]}
-      STORMNAMEPATH=$YEAR/$NWPMODEL
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$NWPMODEL
+      else
+        STORMNAMEPATH=$YEAR/$NWPMODEL
+      fi
    fi
    if [[ $TROPICALCYCLONE = on ]]; then
       YEAR=${properties["forcing.tropicalcyclone.year"]}
@@ -243,25 +244,38 @@ for server in ${SERVERS[*]}; do
       STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
       STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
       basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
-      STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
-      ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$basin$STORMNUMBER
+        ALTSTORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$STORMNAMELC  # symbolic link with name
+      else
+        STORMNAMEPATH=$YEAR/$basin$STORMNUMBER
+        ALTSTORMNAMEPATH=$YEAR/$STORMNAMELC  # symbolic link with name
+      fi
    fi
    if [[ $SCENARIO = "hindcast" ]]; then
       YEAR=${COLDSTARTDATE:0:4}
-      STORMNAMEPATH=$YEAR/initialize
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/initialize
+      else
+        STORMNAMEPATH=$YEAR/initialize
+      fi
    fi
    # form path to results on tds based on type of forcing or name of storm
    if [[ $SCENARIO == "asgs.instance.status" ]]; then
       YEAR=${COLDSTARTDATE:0:4}
-      STORMNAMEPATH=$YEAR/status
+      if [ -n "${OPENDAPADDROOT}" ]; then
+        STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/status
+      else
+        STORMNAMEPATH=$YEAR/status
+      fi
       OPENDAPSUFFIX=$HPCENV/$INSTANCENAME
       # update the url properties in the status json files before posting them
       # and save the url for keeping track of the previous url
       hookStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
       asgsInstanceStatusURL=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
-      cp -f hook.status.json tmp.hook.status.json
-      awk -f $SCRIPTDIR/monitoring/replaceURL.awk -v u=\"$hookStatusURL\" -v i=\"$asgsInstanceStatusURL\" tmp.hook.status.json > hook.status.json
-      rm tmp.hook.status.json
+      cp -f hook.status.json tmp.hook.status.json 2>> $SYSLOG
+      awk -f $SCRIPTDIR/monitoring/replaceURL.awk -v u=\"$hookStatusURL\" -v i=\"$asgsInstanceStatusURL\" tmp.hook.status.json > hook.status.json 2>>$SYSLOG
+      rm tmp.hook.status.json 2>>$SYSLOG
    else
       OPENDAPSUFFIX=$CYCLE/$GRIDNAME/$HPCENV/$INSTANCENAME/$SCENARIO
    fi
@@ -322,12 +336,6 @@ for server in ${SERVERS[*]}; do
    #-------------------------------------------------------------------
    #     C R E A T E    N O T I F I C A T I O N   E M A I L
    #-------------------------------------------------------------------
-   # @jasonfleming: Hack in the ability to send the notification email
-   # before all the files have been posted.
-   opendapEmailSent=no
-   if [[ $enableStatusNotify == "no" ]]; then
-       opendapEmailSent=yes # hack to prevent this script from sending the notification email
-   fi
    #
    runStartTime=${properties["RunStartTime"]}
 
@@ -375,8 +383,7 @@ wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$logfile
 
 END
-      $SCRIPTDIR/metadata.pl --jsonify --redact --metadatafile $RUNPROPERTIES --converted-file-name asgs.instance.status.json 2>> $SYSLOG
-      sed --in-place "s/$USER/\$USER/g" asgs.instance.status.json 2>> $SYSLOG
+
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
@@ -471,7 +478,7 @@ SSHCMD
             fi
             unset MSG
             remotePathOwner=$(ssh $OPENDAPHOST "stat -c %u \"$partialPath\"")
-            remoteUser=$(ssh $OPENDAPHOST "id -u $USER")
+            remoteUser=$(ssh $OPENDAPHOST 'id -u $USER') # single quotes to prevent $USER from being expanded locally
             if [[ $remoteUser -eq $remotePathOwner ]]; then
                ssh $OPENDAPHOST bash <<SSHCMD >> $SYSLOG 2>&1
 # this block will be executed on the remote server,
@@ -570,38 +577,44 @@ SSHCMD
       for file in ${FILES[*]}; do
          echo "Processing $file"
          # send opendap posting notification email early if directed
-         if [[ $file == "sendNotification" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
-            MSG="$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-            if [ "$MANUAL" == 1 ]; then
-              echo "$MSG"
-            else
-              allMessage "$MSG" >> "$SYSLOG"
-            fi
-            unset MSG
-            # use asgs sendmail if Operator has set it up
-            MSG="asgs-sendmail --subject '$subject' --to '$OPENDAPNOTIFY' < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1"
-            if [ "$MANUAL" == 1 ]; then
-              echo "$MSG"
-            else
-              allMessage "$MSG" >> "$SYSLOG"
-            fi
-            unset MSG
+         if [[ $file == "sendNotification" ]]; then
+            if [[ $sendEmail == "yes" ]]; then
+               MSG="$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+               if [ "$MANUAL" == 1 ]; then
+               echo "$MSG"
+               else
+               allMessage "$MSG" >> "$SYSLOG"
+               fi
+               unset MSG
+               # use asgs sendmail if Operator has set it up
+               MSG="asgs-sendmail --subject '$subject' --to '$OPENDAPNOTIFY' < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1"
+               if [ "$MANUAL" == 1 ]; then
+               echo "$MSG"
+               else
+               allMessage "$MSG" >> "$SYSLOG"
+               fi
+               unset MSG
 
-            asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt >> ${SCENARIOLOG} 2>&1
-            ERR=$?
-            if [[ $ERR != $EXIT_SUCCESS ]]; then
-              MSGS="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
-              if [ "$MANUAL" == 1 ]; then
-                echo "$MSG"
-              else
-                warn "$MSG"
-              fi
-              unset MSG
+               asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt >> ${SCENARIOLOG} 2>&1
+               ERR=$?
+               if [[ $ERR != $EXIT_SUCCESS ]]; then
+               MSGS="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
+               if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+               else
+                  warn "$MSG"
+               fi
+               unset MSG
+               else
+               sendEmail="no"
+               fi
+               continue
             else
-              opendapEmailSent=yes
+               # we are here because OPENDAPNOTIFY indicates an email should not be sent
+               continue # sendNotification is not really a file, so go to the next (actual) file
             fi
-            continue
          fi
+
          chmod +r $file 2>> $SCENARIOLOG
          MSG="$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          if [ "$MANUAL" == 1 ]; then
@@ -857,24 +870,29 @@ SSHCMD
       fi
       for file in ${FILES[*]}; do
          # send opendap posting notification email early if directed
-         if [[ $file = "sendNotification" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
-            allMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-            echo "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
-            # use asgs sendmail if Operator has set it up
-            cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" 2>> ${SYSLOG} 2>&1
-            ERR=$?
-            if [[ $ERR != $EXIT_SUCCESS ]]; then
-              MSGS="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
-              if [ "$MANUAL" == 1 ]; then
-                echo "$MSG"
-              else
-                warn "$MSG"
-              fi
-              unset MSG
+         if [[ $file = "sendNotification" ]]; then
+            if [[ $sendEmail == "yes" ]]; then
+               allMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+               echo "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
+               # use asgs sendmail if Operator has set it up
+               cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" 2>> ${SYSLOG} 2>&1
+               ERR=$?
+               if [[ $ERR != $EXIT_SUCCESS ]]; then
+               MSGS="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
+               if [ "$MANUAL" == 1 ]; then
+                  echo "$MSG"
+               else
+                  warn "$MSG"
+               fi
+               unset MSG
+               else
+               sendEmail="no"
+               fi
+               continue
             else
-              opendapEmailSent=yes
+               # we are here because the "file" is sendNotification but no notification should be sent
+               continue # sendNotification is not a real file, go to the next (actual) file
             fi
-            continue
          fi
          chmod +r $file 2>> $SYSLOG
          logMessage "$SCENARIO: $_THIS: $postDesc $file."
@@ -913,7 +931,7 @@ SSHCMD
    #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
    #   cat ${SCENARIODIR}/opendap_results_notify.txt | asgs-sendmail --subject "$subject" --to "$ASGSADMIN" 2>> ${SYSLOG} 2>&1
    #else
-   if [[ $opendapEmailSent = "no" && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
+   if [[ $sendEmail == "yes" ]]; then
       MSG="$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
       if [ "$MANUAL" == 1 ]; then
         echo "$MSG"
@@ -933,5 +951,6 @@ SSHCMD
         fi
         unset MSG
       fi
+      sendEmail="no"
    fi
 done # end loop over opendap servers

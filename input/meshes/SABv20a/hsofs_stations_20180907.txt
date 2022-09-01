@@ -822,14 +822,23 @@
 -76.61057  36.05635 ! EWPN7 ! NCEM ! Chowan R. at Edenton Waterfront Park
 -75.98735  35.11537 ! OCAN7 ! NCEM ! Pamlico Sound at Ocracoke - NCCAT Campus
 -90.12359 30.02416 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
--90.03579 30.03415 ! IHNC01   ! CPRA ! Seabrook Complex - Flood Side (cf USACE 76065)  
+-90.03579 30.03415 ! IHNC01   ! CPRA ! Seabrook Complex - Flood Side (cf USACE 76065)
 -89.90000 29.99000 ! IHNC02   ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
 -90.07232 29.81197 ! WBV90    ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
--90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762) 
--90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770) 
--90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742) 
--89.90434 29.85293 ! LPV149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760) 
+-90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
+-90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770)
+-90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742)
+-89.90434 29.85293 ! LPV149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760)
 -89.83563 29.93600 ! LPV144   ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
 -90.27097 29.90839 ! WBV7274  ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
--89.60107 29.37341 ! NOV13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440) 
+-89.60107 29.37341 ! NOV13    ! CPRA ! Mississippi River at Empire Floodgate (cf USACE 01440)
 -89.59600 29.38935 ! NOV14    ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)
+-84.945 19.820 ! 42056 ! NOAA NDBC ! wind
+-93.941 22.124 ! 42055 ! NOAA NDBC ! wind waves
+-93.646 26.055 ! 42002 ! NOAA NDBC ! wind waves
+-96.693 26.968 ! 42020 ! NOAA NDBC ! wind waves
+-95.345 27.910 ! 42019 ! NOAA NDBC ! wind waves
+-87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
+-88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
+-86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves

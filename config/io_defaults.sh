@@ -3,7 +3,7 @@
 # io_defaults.sh : Functions required for initializing
 # parameters that are only related to input/output controls.
 #----------------------------------------------------------------
-# Copyright(C) 2019 Jason Fleming
+# Copyright(C) 2019--2022 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-allMessage "$THIS: Setting default parameters for input/output."
+consoleMessage "$THIS: Setting default parameters for input/output."
 #
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
 # water surface elevation station output
@@ -41,14 +41,18 @@ SPARSE=""
 NETCDF4="--netcdf4"
 OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
 # fulldomain or subdomain hotstart files
-HOTSTARTCOMP=fulldomain
-# binary or netcdf hotstart files
-HOTSTARTFORMAT=netcdf
+if [[ $HOTSTARTCOMP != "subdomain" ]]; then
+   HOTSTARTCOMP="fulldomain"
+fi
+# binary, netcdf, or netcdf3 hotstart files
+if [[ $HOTSTARTFORMAT != "netcdf3" && $HOTSTARTFORMAT != "binary" ]]; then
+   HOTSTARTFORMAT="netcdf"
+fi
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
 if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
-   scenarioMessage "THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
+   scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
    ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="01:00:00" # forecast wall clock time
    CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
