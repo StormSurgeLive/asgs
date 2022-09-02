@@ -308,7 +308,16 @@ _parse_config() {
 _load_state_file() {
   if [ -e "${1}" ]; then
     STATEFILE=${1}
-    . $STATEFILE
+    # pull out var info the old fashioned way...
+    stateScriptDir=$(egrep '^ *SCRIPTDIR=' "${1}" | sed 's/^ *SCRIPTDIR=//' | sed 's/ *#.*$//g')
+    if [[ $SCRIPTDIR != $stateScriptDir ]]; then
+      echo "${W} The state file '${1}' exists but has a different SCRIPTDIR than this ASGS installation."
+      echo "${W} '${1}' was not loaded and cannot be used with this ASGS instance."
+      _unset_statevars
+      return
+    else
+      . $STATEFILE
+    fi
   else
     echo "${W} state file '${1}' does not exist."
     echo "${I} no indication of first run yet?"
