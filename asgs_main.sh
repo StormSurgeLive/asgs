@@ -2381,39 +2381,49 @@ while [ true ]; do
 
    case $BACKGROUNDMET in
       "namBlend")
-         # determine the cycle time corresponding to the current state of the simulation
-         csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
-         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
-         lastCycle=$(TZ=UTC date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
-         scenarioMessage "Getting NAM data."
-         # are we sure that the current nam nowcast endtime is the
-         # same as the BEST track file end time??
-         erroValue=1
-         while [[ $erroValue -ne 0 ]]; do
-            namEnd=$(get_nam_data.pl --stage NOWCAST --selectfile get_nam_status.pl.json 2>> $SYSLOG 2>&1)
-            erroValue=$?
-            if [[ erroValue -ne 0 ]]; then
-               sleep 60
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading NAM far field winds."
+         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         cp $RUNDIR/get_nam_data.pl.json $SCENARIODIR 2>> $SYSLOG
+         cd $SCENARIODIR 2>> ${SYSLOG}
+         # convert met files to ASCII WIN/PRE format
+         logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format."
+         boolApplyRamp=false
+         if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
+            boolApplyRamp=true
+         fi
+         ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
+         escPtFilePath=${ptFilePath////'\/'}
+         escSCENARIODIR=${SCENARIODIR////'\/'}
+         sed \
+            -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
+            -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
+            -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
+            -e "s/%NULLNAMRAWFORMAT%/grib2/" \
+            -e "s/\"%NULLVELMULT%\"/$VELOCITYMULTIPLIER/" \
+            -e "s/\"%NULLPRESSMULT%\"/0.01/" \
+            -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
+            -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
+             < get_nam_data.pl.json \
+             | $SCRIPTDIR/NAMtoOWIRamp.pl \
+             > /dev/null
+           2>> $SYSLOG
+         preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
+         winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+         # copy log data to scenario.log
+         for file in lambert_diag.out reproject.log ; do
+            if [[ -e $ADVISDIR/$file ]]; then
+               scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
+               cat $ADVISDIR/$file >> $SCENARIOLOG
             fi
          done
-         scenarioMessage "The download of NAM nowcast data appears to have been successful. The data end on ${namEnd}."
-         namToOwiOptions=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --stage $stage \
-                --applyRamp $SPATIALEXTRAPOLATIONRAMP \
-                --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE \
-                --dataDir $SCENARIODIR/$namEnd/$SCENARIO \
-                --outDir ${SCENARIODIR}/$namEnd/$SCENARIO/ \
-                --velocityMultiplier $VELOCITYMULTIPLIER \
-                --scriptDir ${SCRIPTDIR}"
-         scenarioMessage "$SCENARIO: $THIS: Converting NAM data to OWI format with the following options : $namToOwiOptions"
-         timeRange=$(perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $namToOwiOptions >> ${SYSLOG} 2>&1)
          # create links to the OWI files
-         NAM221=$(ls $namEnd/$SCENARIO/NAM_${timeRange}.221 2>> $SYSLOG)
-         NAM222=$(ls $namEnd/$SCENARIO/NAM_${timeRange}.222 2>> $SYSLOG)
-         scenarioMessage "The NAM nowcast gridded data files for blending are $NAM221 and ${NAM222}."
-         ln -s $NAM221 fort.221 2>> ${SYSLOG}
-         ln -s $NAM222 fort.222 2>> ${SYSLOG}
-         cp $namEnd/$SCENARIO/fort.22 $SCENARIODIR/owi_fort.22 2>> $SYSLOG  # contains the WTIMINC, which is needed by control_file_gen.pl
-      ;;
+         ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
+         ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+         # created by NAMtoOWIRamp.pl, contains the WTIMINC,
+         # which is needed by control_file_gen.pl
+         mv fort.22 owi_fort.22 2>> $SYSLOG
+         ;;
       "on"|"NAM")
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
