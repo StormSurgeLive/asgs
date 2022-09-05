@@ -40,7 +40,7 @@ downloadGFS()
     ARCHIVEDIR=${13}
     STATEFILE=${14}
     #
-    THIS="asgs_main.sh>downloadGFS.sh"
+    local THIS="asgs_main.sh>downloadGFS.sh"
     CURRENT_STATE="WAIT"
     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading GFS meteorological data for $ENSTORM."
     logMessage "$ENSTORM: $THIS: Downloading GFS meteorological data."
@@ -138,7 +138,7 @@ downloadGFS()
             fi
             latestCycle=$(<"latestCycle")
         done
-        # refine the list of NAM cycles to end the nowcast on the correct cycle
+        # refine the list of GFS cycles to end the nowcast on the correct cycle
         select_nam_nowcast.pl < get_gfs_status.pl.json > select_gfs_nowcast.pl.json 2>> $SYSLOG
         if [[ $? != 0 ]]; then
             warn "$THIS: Failed to select the proper GFS cycle to end the nowcast with select_nam_nowcast.pl."
@@ -263,7 +263,11 @@ downloadGFS()
         ndate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
         wtiminc=$(( (ndate - sdate) ))
         # write to a temp/pseudo fort.22 file
-        echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > fort.22
+        fort22="fort.22"
+        if [[ $BACKGROUNDMET == "gfsBlend" ]]; then
+            fort22="owi_fort.22"
+        fi
+        echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > $fort22
         #
         # find the end time for use in the main file header
         endDateTime=$(wgrib2 ${gfsFileList[-1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
@@ -311,25 +315,27 @@ downloadGFS()
             < select_gfs_nowcast.pl.json \
             > ${THIS}.json
             2>> $SYSLOG
-        ADVISDIR=$RUNDIR/$thisCycle
-        CYCLEDIR=$ADVISDIR
-        CYCLELOG=$CYCLEDIR/cycle.log
-        NOWCASTDIR=$ADVISDIR/$ENSTORM
-        SCENARIODIR=$CYCLEDIR/$SCENARIO
-        SCENARIOLOG=$SCENARIODIR/scenario.log
-        mkdir -p $SCENARIODIR 2>> $SYSLOG
+        if [[ $BACKGROUNDMET == "GFS" ]]; then # don't need to do this for "gfsBlend"
+            ADVISDIR=$RUNDIR/$thisCycle
+            CYCLEDIR=$ADVISDIR
+            CYCLELOG=$CYCLEDIR/cycle.log
+            NOWCASTDIR=$ADVISDIR/$ENSTORM
+            SCENARIODIR=$CYCLEDIR/$SCENARIO
+            SCENARIOLOG=$SCENARIODIR/scenario.log
+            mkdir -p $SCENARIODIR 2>> $SYSLOG
+            #
+            # record the new advisory number to the statefile
+            debugMessage "$THIS: $ENSTORM: The new GFS cycle is $thisCycle."
+            cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
+            sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
+            debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
+            cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+        fi
         #
         # put files in scenario directory
-        mv $winFileName $preFileName fort.22 run.properties $SCENARIODIR 2>> $SYSLOG
+        mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
         cp ${THIS}.json "${winFileName%.*}.json" 2>> $SYSLOG
         cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR 2>> $SYSLOG
-        #
-        # record the new advisory number to the statefile
-        debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
-        cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
-        sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
-        debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
-        cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
 
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
