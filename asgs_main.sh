@@ -2240,9 +2240,9 @@ while [ true ]; do
       if [[ $WAVES == on ]]; then
          NWS=$(($BASENWS + 300))
       fi
-      # need to set NWS properly for NAM blending
+      # need to set NWS properly for NAM or GFS blending
       case $BACKGROUNDMET in
-         "namBlend")
+         "namBlend"|"gfsBlend")
             if [[ $BASENWS -gt 8 ]]; then
                NWS=$(($BASENWS + 10))  # e.g., 20 becomes 30
                if [[ $WAVES == on ]]; then
@@ -2324,7 +2324,7 @@ while [ true ]; do
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
                case $BACKGROUNDMET in
-                  "namBlend")
+                  "namBlend"|"gfsBlend")
                      # ADCIRC needs to read a file named fort.22 that represents
                      # the gridded NAM wind field
                      CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/NWS_${BASENWS}_fort.22"
@@ -2363,9 +2363,9 @@ while [ true ]; do
             NWS=-12
          fi
          ;;
-      "namBlend")
+      "namBlend"|"gfsBlend")
          if [[ $TROPICALCYCLONE == "off" ]]; then
-            fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to 'namBlend' but this setting is only meaningful when TROPICALCYCLONE is set to 'on'."
+            fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to '$BACKGROUNDMET' but this setting is only meaningful when TROPICALCYCLONE is set to 'on'."
          fi
          ;;
       "off")
@@ -2485,6 +2485,14 @@ while [ true ]; do
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         ;;
+      "gfsBlend")
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
+         #
+         # Detect latest GFS data, subset, download, reproject, reformat
+         # to Oceanweather WIN/PRE format, and make symbolic links
+         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         cd $SCENARIODIR 2>> $SYSLOG
          ;;
       "GFS")
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
