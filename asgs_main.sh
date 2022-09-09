@@ -304,14 +304,12 @@ prep()
         fi
     fi
     if [ $START = coldstart ]; then
-       # if we have variable river flux, link the fort.20 and fort.88 files
+       # if we have variable river flux, link the fort.20 file
        if [[ $VARFLUX = on || $VARFLUX = default ]]; then
           # jgf20110525: For now, just copy a static file to this location
           # and adcprep it. TODO: When real time flux data become available,
           # grab those instead of relying on a static file.
           ln -s ${INPUTDIR}/${HINDCASTRIVERFLUX} ./fort.20
-          # run adcprep to decompose the river elevation init (fort.88) file
-          ln -s ${INPUTDIR}/${RIVERINIT} ./fort.88
        fi
     else
        # hotstart
@@ -460,9 +458,6 @@ prep()
           if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
-             THIS="asgs_main.sh>prep()"
-             logMessage "$ENSTORM: $THIS: Running adcprep to prepare fort.88 file."
-             prepFile prep88 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
        fi
@@ -702,7 +697,7 @@ EOF
 }
 #
 # function to run adcprep in a platform dependent way to decompose
-# the fort.15, fort.20, or fort.88 file
+# the fort.15 and fort.20
 #
 # TODO: This should be refactored and streamlined as described in the TODO
 # above the prep() function above.
@@ -1730,7 +1725,6 @@ else
    fi
 fi
 if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-   checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
    checkFileExistence $INPUTDIR "River flux default file " $RIVERFLUX
 fi
 #
