@@ -41,7 +41,7 @@ downloadBackgroundMet()
     ARCHIVEDIR=${13}
     STATEFILE=${14}
     #
-    THIS="asgs_main.sh>downloadBackgroundMet.sh"
+    local THIS="asgs_main.sh>downloadBackgroundMet.sh"
     CURRENT_STATE="WAIT"
     RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
     logMessage "$ENSTORM: $THIS: Downloading meteorological data."
@@ -49,7 +49,7 @@ downloadBackgroundMet()
     #
     # if there isn't an archive directory for NAM data inside
     # the instance directory, make one
-   instanceNamDir=$RUNDIR/nam
+    instanceNamDir=$RUNDIR/nam
     if [[ ! -d $instanceNamDir ]]; then
        mkdir -p $instanceNamDir 2>> $SYSLOG
     fi
@@ -159,11 +159,13 @@ downloadBackgroundMet()
             warn "$THIS: Failed to extract the selected NAM nowcast cycle from select_nam_nowcast.pl.json with latest.pl"
         fi
         thisCycle=$(<"thisCycle")
-        debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
-        cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
-        sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
-        debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
-        cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+        if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" ]]; then # don't need to do this for "namBlend"
+            debugMessage "$THIS: $ENSTORM: The new NAM cycle is $thisCycle."
+            cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
+            sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
+            debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
+            cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+        fi
     else
         # F O R E C A S T
         # download forecast data
