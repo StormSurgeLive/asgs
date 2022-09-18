@@ -304,14 +304,12 @@ prep()
         fi
     fi
     if [ $START = coldstart ]; then
-       # if we have variable river flux, link the fort.20 and fort.88 files
+       # if we have variable river flux, link the fort.20 file
        if [[ $VARFLUX = on || $VARFLUX = default ]]; then
           # jgf20110525: For now, just copy a static file to this location
           # and adcprep it. TODO: When real time flux data become available,
           # grab those instead of relying on a static file.
           ln -s ${INPUTDIR}/${HINDCASTRIVERFLUX} ./fort.20
-          # run adcprep to decompose the river elevation init (fort.88) file
-          ln -s ${INPUTDIR}/${RIVERINIT} ./fort.88
        fi
     else
        # hotstart
@@ -460,9 +458,6 @@ prep()
           if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
-             THIS="asgs_main.sh>prep()"
-             logMessage "$ENSTORM: $THIS: Running adcprep to prepare fort.88 file."
-             prepFile prep88 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
        fi
@@ -702,7 +697,7 @@ EOF
 }
 #
 # function to run adcprep in a platform dependent way to decompose
-# the fort.15, fort.20, or fort.88 file
+# the fort.15 and fort.20
 #
 # TODO: This should be refactored and streamlined as described in the TODO
 # above the prep() function above.
@@ -1730,7 +1725,6 @@ else
    fi
 fi
 if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-   checkFileExistence $INPUTDIR "River elevation initialization file " $RIVERINIT
    checkFileExistence $INPUTDIR "River flux default file " $RIVERFLUX
 fi
 #
@@ -2240,9 +2234,9 @@ while [ true ]; do
       if [[ $WAVES == on ]]; then
          NWS=$(($BASENWS + 300))
       fi
-      # need to set NWS properly for NAM blending
+      # need to set NWS properly for NAM or GFS blending
       case $BACKGROUNDMET in
-         "namBlend")
+         "namBlend"|"gfsBlend")
             if [[ $BASENWS -gt 8 ]]; then
                NWS=$(($BASENWS + 10))  # e.g., 20 becomes 30
                if [[ $WAVES == on ]]; then
@@ -2324,7 +2318,7 @@ while [ true ]; do
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
                case $BACKGROUNDMET in
-                  "namBlend")
+                  "namBlend"|"gfsBlend")
                      # ADCIRC needs to read a file named fort.22 that represents
                      # the gridded NAM wind field
                      CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/NWS_${BASENWS}_fort.22"
@@ -2363,9 +2357,9 @@ while [ true ]; do
             NWS=-12
          fi
          ;;
-      "namBlend")
+      "namBlend"|"gfsBlend")
          if [[ $TROPICALCYCLONE == "off" ]]; then
-            fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to 'namBlend' but this setting is only meaningful when TROPICALCYCLONE is set to 'on'."
+            fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to '$BACKGROUNDMET' but this setting is only meaningful when TROPICALCYCLONE is set to 'on'."
          fi
          ;;
       "off")
@@ -2381,39 +2375,49 @@ while [ true ]; do
 
    case $BACKGROUNDMET in
       "namBlend")
-         # determine the cycle time corresponding to the current state of the simulation
-         csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
-         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
-         lastCycle=$(TZ=UTC date -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H")
-         scenarioMessage "Getting NAM data."
-         # are we sure that the current nam nowcast endtime is the
-         # same as the BEST track file end time??
-         erroValue=1
-         while [[ $erroValue -ne 0 ]]; do
-            namEnd=$(get_nam_data.pl --stage NOWCAST --selectfile get_nam_status.pl.json 2>> $SYSLOG 2>&1)
-            erroValue=$?
-            if [[ erroValue -ne 0 ]]; then
-               sleep 60
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading NAM far field winds."
+         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         cp $RUNDIR/get_nam_data.pl.json $SCENARIODIR 2>> $SYSLOG
+         cd $SCENARIODIR 2>> ${SYSLOG}
+         # convert met files to ASCII WIN/PRE format
+         logMessage "$ENSTORM: $THIS: Converting NAM data to OWI format."
+         boolApplyRamp=false
+         if [[ $SPATIALEXTRAPOLATIONRAMP == "yes" ]]; then
+            boolApplyRamp=true
+         fi
+         ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
+         escPtFilePath=${ptFilePath////'\/'}
+         escSCENARIODIR=${SCENARIODIR////'\/'}
+         sed \
+            -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
+            -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
+            -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
+            -e "s/%NULLNAMRAWFORMAT%/grib2/" \
+            -e "s/\"%NULLVELMULT%\"/$VELOCITYMULTIPLIER/" \
+            -e "s/\"%NULLPRESSMULT%\"/0.01/" \
+            -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
+            -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
+             < get_nam_data.pl.json \
+             | $SCRIPTDIR/NAMtoOWIRamp.pl \
+             > /dev/null
+           2>> $SYSLOG
+         preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
+         winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+         # copy log data to scenario.log
+         for file in lambert_diag.out reproject.log ; do
+            if [[ -e $ADVISDIR/$file ]]; then
+               scenarioMessage "$ENSTORM: $THIS: $file is as follows:"
+               cat $ADVISDIR/$file >> $SCENARIOLOG
             fi
          done
-         scenarioMessage "The download of NAM nowcast data appears to have been successful. The data end on ${namEnd}."
-         namToOwiOptions=" --ptFile ${SCRIPTDIR}/input/${PTFILE} --namFormat grib2 --stage $stage \
-                --applyRamp $SPATIALEXTRAPOLATIONRAMP \
-                --rampDistance $SPATIALEXTRAPOLATIONRAMPDISTANCE \
-                --dataDir $SCENARIODIR/$namEnd/$SCENARIO \
-                --outDir ${SCENARIODIR}/$namEnd/$SCENARIO/ \
-                --velocityMultiplier $VELOCITYMULTIPLIER \
-                --scriptDir ${SCRIPTDIR}"
-         scenarioMessage "$SCENARIO: $THIS: Converting NAM data to OWI format with the following options : $namToOwiOptions"
-         timeRange=$(perl ${SCRIPTDIR}/NAMtoOWIRamp.pl $namToOwiOptions >> ${SYSLOG} 2>&1)
          # create links to the OWI files
-         NAM221=$(ls $namEnd/$SCENARIO/NAM_${timeRange}.221 2>> $SYSLOG)
-         NAM222=$(ls $namEnd/$SCENARIO/NAM_${timeRange}.222 2>> $SYSLOG)
-         scenarioMessage "The NAM nowcast gridded data files for blending are $NAM221 and ${NAM222}."
-         ln -s $NAM221 fort.221 2>> ${SYSLOG}
-         ln -s $NAM222 fort.222 2>> ${SYSLOG}
-         cp $namEnd/$SCENARIO/fort.22 $SCENARIODIR/owi_fort.22 2>> $SYSLOG  # contains the WTIMINC, which is needed by control_file_gen.pl
-      ;;
+         ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
+         ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+         # created by NAMtoOWIRamp.pl, contains the WTIMINC,
+         # which is needed by control_file_gen.pl
+         mv fort.22 owi_fort.22 2>> $SYSLOG
+         ;;
       "on"|"NAM")
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2485,6 +2489,14 @@ while [ true ]; do
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         ;;
+      "gfsBlend")
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
+         #
+         # Detect latest GFS data, subset, download, reproject, reformat
+         # to Oceanweather WIN/PRE format, and make symbolic links
+         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         cd $SCENARIODIR 2>> $SYSLOG
          ;;
       "GFS")
          RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" "NWS is $NWS. Downloading background meteorology for $ENSTORM."

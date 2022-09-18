@@ -6,9 +6,9 @@ $ after that.
 $
 $ comment lines:
 PROJ 'ASGS' '%nr%'
-'StormName: %StormName%'
-'EnsembleID: %EnsembleID%'
-'WTIMINC Line in ADCIRC fort.15: %WTIMINC%'
+'%StormName%'
+'%EnsembleID%'
+'%WTIMINC%'
 $
 $********************MODEL INPUT*************************
 $
