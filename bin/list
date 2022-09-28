@@ -40,6 +40,14 @@ _list() {
         printf "% 2d. %s\n" $LISTNUM $m
         LISTNUM=$(($LISTNUM+1))
       done
+      # list locally defined meshes if they exist
+      local LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
+      if [[ -n "$ASGS_LOCAL_DIR" && -e "$LOCAL_MESH_DEFAULTS" ]]; then
+        for m in $(cat $LOCAL_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print $1}'); do
+          printf "% 2d. %s (** locally defined)\n" $LISTNUM $m
+          LISTNUM=$(($LISTNUM+1))
+        done
+      fi
       ;;
     platforms)
       cat $ASGS_PLATFORMS | egrep '^init_' | sed 's/init_//g' | sed 's/()//g' | awk '{print "- " $1}'
