@@ -21,7 +21,9 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-consoleMessage "$THIS: Setting default values for the mesh '${MESH}'."
+source $SCRIPTDIR/monitoring/logging.sh
+consoleMessage "$THIS: Setting default values for the mesh '${GRIDNAME}'."
+
 MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
 OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
@@ -31,11 +33,9 @@ UNITOFFSETFILE=null
 # with ADCIRC+SWAN v52; not clear whether it is correctly
 # formatted with ADCIRC+SWAN v55 yet.
 SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
-#
+
 case $GRIDNAME in
-      #
    "LA_v19k-WithUpperAtch_chk")
-      #
       nodes=1593485
       elements=3102441
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v19k
@@ -881,6 +881,21 @@ case $GRIDNAME in
       UNITOFFSETFILE=null
       ;;
    *)
-      warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
+      LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
+      if [[ -n "$ASGS_LOCAL_DIR" && -e "$LOCAL_MESH_DEFAULTS" ]]; then
+        consoleMessage "'$GRIDNAME' not found in officially supported mesh list,"
+        consoleMessage "... looking in '$LOCAL_MESH_DEFAULTS'"
+        source "${LOCAL_MESH_DEFAULTS}"
+        if [[ -n "$nodes" ]]; then
+          consoleMessage "... found '$GRIDNAME', nodes: $nodes, elements: $elements"
+        fi
+      else
+        warn "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
+      fi
+      # final sanity check
+      if [[ "$nodes" -le 0 ]]; then
+        consoleMessage "cycle $CYCLE: $SCENARIO: $THIS: Mesh GRIDNAME $GRIDNAME was not recognized."
+        exit 1
+      fi
       ;;
 esac
