@@ -6,11 +6,13 @@ use strict;
 use warnings;
 use Weather::NHC::TropicalCyclone ();
 use POSIX qw/strftime/;
+use File::Copy qw/copy/;
 
 use constant {
     EXIT_SUCCESS      => 0,
     EXIT_ERROR        => 255,
     DEFAULT_SLEEP_SEC => 60,
+    TMP_JSON_FILE     => qq{/tmp/CurrentStorms.json.$$},
 };
 
 # set up for "ctrl-c" to check before sleep is up
@@ -18,7 +20,8 @@ my $sigint;
 $SIG{INT} = sub {
     exit if $sigint;
     ++$sigint;
-    print qq{Hit ctrl-c again to exit.\n};
+    print qq{\n\nHit ctrl-c again to exit,\n\n... about to check for new advisory in 1 sec ..\n};
+    sleep 1;
 };
 
 exit run() if not caller;
@@ -32,16 +35,20 @@ sub run {
     # SET UP
     eval { mkdir q{./advisories}, 0777 };
 
+    local $SIG{ALRM} = sub {
+      die qq{'fetch' timed out ...\n};
+    };
+
     GET_JSON:
     while (1) {
         local $@;
         my $ok = eval {
-          $nhc->fetch;
+          $nhc->fetch(120, TMP_JSON_FILE);
           1;
         };
         if (not $ok or $@) {
-          print qq{Error getting NHC storms.json. Sleeping $sleep seconds, then checking again...\n};
           print qq{$@\n} if $@;
+          print qq{Error getting NHC storms.json. Sleeping $sleep seconds, then checking again...\n};
           sleep $sleep;
         } 
 
@@ -67,9 +74,18 @@ sub run {
               _fetch_rss( $storm, $advNum, $nhc );
             };
             print qq{$@\n} if $@;
-         
-            _sleep( $sleep, q{polling for latest NHC information...} );
         }
+
+        # needs a env check and option for git integration, but..
+        # maybe make it a shell script to invoke, if it exists
+        my $datetime = time;
+        eval {
+          `git add *`;
+          `git commit -m 'latest update $datetime'`;
+          `git push origin master`;
+        };
+
+        _sleep( $sleep, q{polling for latest NHC information...} );
     }
     exit EXIT_SUCCESS;
 }
@@ -91,14 +107,15 @@ sub _fetch_advisory {
     my $name  = $storm->name;
     my $id    = $storm->id;
     my ( $text, $advNum, $local_file ) = $storm->fetch_publicAdvisory( $storm->id . q{.fst} );
-    print qq{+++ $id $name (current advisory: $advNum) +++\n};
+    print qq{+++ Checking: $id $name (current advisory: $advNum) +++\n};
     if ( !-e qq{advisories/$id/$advNum.$local_file} ) {
         rename $local_file, qq{advisories/$id/$advNum.$local_file};
         chmod 0644, qq{advisories/$id/$advNum.$local_file};
+	# storm JSON file that contained the updated advisory
+	copy TMP_JSON_FILE, qq{advisories/$id/$advNum.CurrentStorms.json};
         print _record_event( qq{new advisory ($advNum) for $id detected}, qq{advisories/$id/$id-replay.log} );
     }
     else {
-        print qq{- no new advisory found...\n};
         unlink $local_file;
     }
     return $advNum;
@@ -116,7 +133,6 @@ sub _fetch_best_track {
         print _record_event( qq{new best track for $id detected}, qq{advisories/$id/$id-replay.log} );
     }
     else {
-        print qq{- no new best track found...\n};
         unlink $local_file;
     }
     return;
@@ -150,7 +166,6 @@ sub _fetch_rss {
         print _record_event( qq{new RSS (index.xml) detected}, qq{advisories/$id/$id-replay.log} );
     }
     else {
-        print qq{- no new index.xml found...\n};
         unlink $local_file;
     }
     return;
