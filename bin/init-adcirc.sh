@@ -255,7 +255,11 @@ if [[ -d "${CUSTOM_SRC}" ]]; then                     # handle custom filesystem
   make clobber
   popd
 elif [[ -z "${CUSTOM_SRC}" ]]; then                   # handle git-based menu item with patches
-  if [[ ! -d ${ADCIRCBASE} ]]; then
+  if [[ ${ADCIRC_GIT_BRANCH} == "null" && -n "${ADCIRC_FETCH_CMD}" ]]; then
+    rm -rfv "${ADCIRC_DOWNLOAD_FILE}"
+    $ADCIRC_FETCH_CMD
+    exit
+  elif [[ ! -d ${ADCIRCBASE} ]]; then
     if [ "$INTERACTIVE" == "yes" ]; then
       _answer=yes
       read -p "Create directory, '$ADCIRCBASE'? [$_answer] " answer
