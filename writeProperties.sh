@@ -258,7 +258,11 @@ writeTropicalCycloneProperties()
    # legacy properties
    echo "storm : $STORM" >> $STORMDIR_RUN_PROPERTIES
    echo "stormnumber : $STORM" >> $STORMDIR_RUN_PROPERTIES
-   echo "WindModel : vortex-nws$NWS" >> $STORMDIR_RUN_PROPERTIES
+   local windModel="vortex-nws$NWS"
+   if [[ $BACKGROUNDMET == "gfsBlend" || $BACKGROUNDMET == "namBlend" ]]; then
+      windModel=${windModel}-${BACKGROUNDMET,,}
+   fi
+   echo "WindModel : $windModel" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file that are associated with
