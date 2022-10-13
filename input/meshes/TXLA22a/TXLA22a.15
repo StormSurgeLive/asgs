@@ -4,7 +4,7 @@ Run_001
 0        	 ! NABOUT 
 300        	 ! NSCREEN 
 0        	 ! IHOT 
-20         	 ! ICS 
+2          	 ! ICS
 511112          	 ! IM 
 1            	 ! NOLIBF 
 2            	 ! NOLIFA 

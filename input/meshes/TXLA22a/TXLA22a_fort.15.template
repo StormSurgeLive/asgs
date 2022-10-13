@@ -4,7 +4,7 @@ ASGS %StormName%
 0        	 ! NABOUT 
 %NSCREEN%        	 ! NSCREEN 
 %IHOT%        	 ! IHOT 
-20         	 ! ICS 
+2         	 ! ICS
 511112          	 ! IM 
 1            	 ! NOLIBF 
 2            	 ! NOLIFA 

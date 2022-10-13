@@ -6,13 +6,39 @@
 # Usage, in an ASGS config script:
 #
 #   HINDCASTLENGTH=30
+#   # finds HINDCASTLENGTH or sets default
+#   COLDSTARTDATE=$(get-coldstart-date)
+#
+#   or
+#
+#   HINDCASTLENGTH=30
+#   # explicitly passed HINDCASTLENGTH
 #   COLDSTARTDATE=$(get-coldstart-date ${HINDCASTLENGTH})
+
+#   or
+#
+#   HINDCASTLENGTH=30
+#   HINDCASTENDDATE=2020103000
+#   # explicitly passed HINDCASTLENGTH and HINDCQSTENDDATE (order matters)
+#   COLDSTARTDATE=$(get-coldstart-date)
+#
+#   or
+#
+#   HINDCASTLENGTH=30
+#   HINDCASTENDDATE=2020103000
+#   # explicitly passed HINDCASTLENGTH and HINDCQSTENDDATE (order matters)
+#   COLDSTARTDATE=$(get-coldstart-date ${HINDCASTLENGTH} ${HINDCASTENDDATE})
 #
 
-HINDCASTLENGTH=${1:-30}
-defaultHINDCASTENDDATE=$(date +%Y%m%d)  # e.g., 20210505
-HINDCASTENDDATE=${2:-$defaultHINDCASTENDDATE} 
+defaultHINDCASTLENGTH=${HINDCASTLENGTH:-"30"}
+HINDCASTLENGTH=${1:-$defaultHINDCASTLENGTH}
+
+defaultHINDCASTENDDATE=${HINDCASTENDDATE:-$(date +%Y%m%d)}
+HINDCASTENDDATE=${2:-$defaultHINDCASTENDDATE}
+
 COLDSTARTDATE=$(date --date="${HINDCASTENDDATE} -${HINDCASTLENGTH} days" +%Y%m%d%H)
-echo -n $COLDSTARTDATE
+
+# print to STDOUT, no new line
+printf "%d" $COLDSTARTDATE
 
 exit 0
