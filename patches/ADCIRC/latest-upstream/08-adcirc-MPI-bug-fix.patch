@@ -1,0 +1,22 @@
+diff --git a/src/writer.F b/src/writer.F
+index 9fdfc6e..527fbf3 100644
+--- a/src/writer.F
++++ b/src/writer.F
+@@ -1121,11 +1121,16 @@ C-----------------------------------------------------------------------
+       USE MESH, ONLY : NE, NP
+       USE GLOBAL_IO, ONLY: packOne, unpackOne, 
+      &    packTwo, unpackTwo, HEADER_MAX
++      USE MESSENGER
++!
+ !
+       IMPLICIT NONE
++#ifndef HAVE_MPI_MOD
++      include 'mpif.h'
++#endif
+       INTEGER :: STAT(MPI_STATUS_SIZE)
+       integer :: i
+-      integer :: ierr
++c     integer :: ierr
+ 
+       REAL(8), intent(in) :: TimeLoc
+       INTEGER, intent(in) :: IT
