@@ -1,0 +1,21 @@
+diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
+index efe1715..73ebe14 100644
+--- a/work/cmplrflags.mk
++++ b/work/cmplrflags.mk
+@@ -265,6 +265,16 @@ ifeq ($(compiler),intel)
+         FLIBS   := $(INCDIRS) -xCORE-AVX512 
+      endif
+   endif
++  ifeq ($(MACHINENAME),ls6)
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX
++     FLIBS   := $(INCDIRS)
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX
++        FLIBS   := $(INCDIRS)
++     endif
++  endif
+   ifeq ($(MACHINENAME),queenbee)
+      FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
+      CFLAGS  := $(INCDIRS) -O3 -DLINUX -xSSE4.2
