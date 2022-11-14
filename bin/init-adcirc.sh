@@ -35,6 +35,7 @@ fi
 
 ADCIRCS=()
 NUM_ADC=0
+_ASGS_ADCIRC_BASE=$SCRIPTDIR/opt/models/adcircs
 
 # support function for menu detecting selection
 _is_a_num()
@@ -47,6 +48,10 @@ _is_a_num()
   fi
   return
 }
+
+#
+# M E N U  D I S P L A Y  &  S E L E C T I O N  L O G I C
+#
 
 # This function is just to support the menu that comes up when the utility is run
 _show_supported_versions()
@@ -91,71 +96,64 @@ if [ -z "$ADCIRC_META_DIR" ]; then
   exit 1
 fi
 
-INTERACTIVE=
-if [ -n "$_ASGSH_PID" ]; then
-  # indicates further down to interactively guide user through (in asgsh env)
-  # the building of ADCIRC, otherwise it does things automatically
-  # assuming the required environment is provided through asgs-brew.pl
+_show_supported_versions noexit 
+# get branch/tag/sha to checkout
+__SELECTED_VERSION=${ADCIRCS[0]} # current preferred default
+read -p "What supported 'version' of the ADCIRC source do you wish to build (by name or select 1-${NUM_ADC})? [$__SELECTED_VERSION] " _SELECTED_VERSION
+echo
 
-  INTERACTIVE=yes
+# Handle selection by number
+if [ -n "$_SELECTED_VERSION" ]; then
+  # check for number selection
+  _isnum=$(_is_a_num $_SELECTED_VERSION)
+  if [ $_isnum -gt -1 ]; then
+    _SELECTED_VERSION=${ADCIRCS[$(($_isnum-1))]} # zero indexed
+    if [ -z "$_SELECTED_VERSION" ]; then
+      echo "(fatal) invalid value..."
+      echo
+      exit 1
+    else
+      echo "${I} Version Selected: '$_SELECTED_VERSION'"
+      echo
+    fi
+  fi
+  # do not export, don't affect current environment after build
+  SELECTED_VERSION=$_SELECTED_VERSION
+else
+  SELECTED_VERSION=$__SELECTED_VERSION
 fi
 
-# Ask user for preferences, but offer defaults in the present in the asgsh environment
-if [ "$INTERACTIVE" == "yes" ]; then
-  _show_supported_versions noexit 
-  # get branch/tag/sha to checkout
-  __ADCIRC_GIT_BRANCH=${ADCIRCS[0]} # current preferred default
-  read -p "What supported 'version' of the ADCIRC source do you wish to build (by name or select 1-${NUM_ADC})? [$__ADCIRC_GIT_BRANCH] " _ADCIRC_GIT_BRANCH
+# obtain patch information for the selection
+__ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
+PATCHSET_NAME=${SELECTED_VERSION}
+PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
+SWANDIR=
+CUSTOM_SRC=
 
-  #                                 #
-#   # Handles selection by number #   #
-  #                                 #
-  if [ -n "$_ADCIRC_GIT_BRANCH" ]; then
-    echo
-    # check for number selection
-    _isnum=$(_is_a_num $_ADCIRC_GIT_BRANCH)
-    if [ $_isnum -gt -1 ]; then
-      _ADCIRC_GIT_BRANCH=${ADCIRCS[$(($_isnum-1))]} # zero indexed
-      if [ -z "$_ADCIRC_GIT_BRANCH" ]; then
-        echo "(fatal) invalid value..."
-        echo
-        exit 1
-      else
-        echo "${I} Selection: '$_ADCIRC_GIT_BRANCH'"
-      fi
-    fi
-    # do not export, don't affect current environment after build
-    ADCIRC_GIT_BRANCH=$_ADCIRC_GIT_BRANCH
-  else
-    ADCIRC_GIT_BRANCH=$__ADCIRC_GIT_BRANCH
-  fi
+#
+# S O U R C E  S E L E C T I O N ' S  I N F O . S H
+#
 
-  # obtain patch information for the selection
-
-  __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
-  PATCHSET_NAME=${ADCIRC_GIT_BRANCH}
-  PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
-  SWANDIR=
-  CUSTOM_SRC=
-  if [[ "$ADCIRC_GIT_BRANCH" != "custom" && -e $PATCHSET_DIR/info.sh ]]; then
-    source $PATCHSET_DIR/info.sh
-  elif [[ "$ADCIRC_GIT_BRANCH" == "custom" ]]; then
+# This case statement simply picks between 'custom', which
+# has no info.sh file and anything else, that does have a
+# info.sh file in $SCRIPTDIR/patches/ADCIRC
+case "$SELECTED_VERSION" in
+  custom)
+    ADCIRC_SRC_TYPE=custom
+    # handle 'custom' which assumes a local directory that is already
+    # set to build properly, and has no patchsets in $SCRIPTDIR/patches/ADCIRC
     PATCHSET_DIR=
-    echo
     read -p "What directory is the custom ADCIRC source code? " _CUSTOM_SRC
     if [[ -z "$_CUSTOM_SRC" || ! -d $(readlink -f $_CUSTOM_SRC/work) ]]; then
       echo "For 'custom' ADCIRC, a local source code directory is currently required. Please try again."
       exit 1
     fi
-    echo
     CUSTOM_SRC=$(readlink -f $_CUSTOM_SRC)
+    echo
     echo "Found: '$CUSTOM_SRC'"
     echo
-    # we need this later to get the profile name
-    _ADCIRC_GIT_BRANCH=${ADCIRC_GIT_BRANCH}
-    read -p "Custom profile name ['$_ADCIRC_GIT_BRANCH']? " _ADCIRC_GIT_BRANCH
-    ADCIRC_GIT_BRANCH=$_ADCIRC_GIT_BRANCH
-    PATCHSET_NAME=${ADCIRC_GIT_BRANCH} # will be 'custom'
+    PATCHSET_NAME=${SELECTED_VERSION} # will be 'custom'
+    # find swan directory
     if [[ -d $CUSTOM_SRC/swan ]]; then
       SWANDIR=swan             # version  < 55
     elif [[ -d $CUSTOM_SRC/thirdparty/swan ]]; then
@@ -164,67 +162,151 @@ if [ "$INTERACTIVE" == "yes" ]; then
       echo "FATAL ERROR: SWAN directory not found in '$CUSTOM_SRC', doesn't appear to be a valid ADCIRC source directory."
       exit 1
     fi
-  fi
 
-  echo
-  # determine what to name the ADCIRC profile; if 'custom' $PATCHSET_NAME will be
-  # defined literally as the string "custom"
-  if [ -n "$PATCHSET_NAME" ]; then
+    # required
+    __ADCIRC_PROFILE_NAME=custom-${ADCIRC_COMPILER}-${ASGS_MACHINE_NAME}
+    ;;
+  *)
+    source $PATCHSET_DIR/info.sh
     __ADCIRC_PROFILE_NAME=${PATCHSET_NAME}-${ADCIRC_COMPILER}-${ASGS_MACHINE_NAME}
-  else
-    __ADCIRC_PROFILE_NAME=${ADCIRC_GIT_BRANCH}-${ADCIRC_COMPILER}-${ASGS_MACHINE_NAME}
-  fi 
+    ;;
+esac
 
-  read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
-  if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
-    ADCIRC_PROFILE_NAME=$_ADCIRC_PROFILE_NAME
-  else
-    ADCIRC_PROFILE_NAME=$__ADCIRC_PROFILE_NAME
-  fi
-  echo
+#
+# C H O O S E  A D C I R C  P R O F I L E  N A M E
+#
 
-  # default location of the build is going to be within ASGS_INSTALL_PATH
-  __ADCIRCBASE=${ASGS_INSTALL_PATH}/models/adcircs/adcirc-cg-${ADCIRC_PROFILE_NAME}
-  read -p "In what directory would you like to build ADCIRC? [${__ADCIRCBASE}] " _ADCIRCBASE
-  if [ -n "${_ADCIRCBASE}" ]; then
-    ADCIRCBASE=$_ADCIRCBASE
-  else
-    ADCIRCBASE=$__ADCIRCBASE
-  fi
-  echo
+read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
+if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
+  ADCIRC_PROFILE_NAME=$_ADCIRC_PROFILE_NAME
+else
+  ADCIRC_PROFILE_NAME=$__ADCIRC_PROFILE_NAME
 fi
+echo
+
+#
+# C H O O S E  B U I L D  A N D  I N S T A L L  L O C A T I O N
+#
+
+# default location of the build is going to be within ASGS_INSTALL_PATH
+__ADCIRCBASE=${_ASGS_ADCIRC_BASE}/adcirc-cg-${ADCIRC_PROFILE_NAME}
+read -p "In what directory would you like to build ADCIRC? [${__ADCIRCBASE}] " _ADCIRCBASE
+if [ -n "${_ADCIRCBASE}" ]; then
+  ADCIRCBASE=$_ADCIRCBASE
+else
+  ADCIRCBASE=$__ADCIRCBASE
+fi
+echo
 
 if [[ -d "${ADCIRCBASE}" ]]; then
-  _delete=N
+  _delete=no
   echo "$W '$ADCIRCBASE' exists!"
-  read -p "$W delete and proceed y/N? [$_delete] " delete
+  echo
+  read -p "Delete this directory and continue? [$_delete] " delete
   echo
   if [ -z "$delete" ]; then
     delete=$_delete
   fi
-  if [[ "${delete,,}" == "n" ]]; then
-    exit 1
+  if [[ "${delete,,}" != "no" ]]; then
+    echo " ... deleting '$ADCIRCBASE'"
+    rm -rf $ADCIRCBASE
+    echo
   fi
-  echo " ... deleting '$ADCIRCBASE'"
-  rm -rf $ADCIRCBASE
 fi
 
-ADCIRCDIR=${ADCIRCBASE}/work
+# some variables based on ADCIRCBASE that we can define now
+ADCIRC_WORK_DIR=${ADCIRCBASE}/work
+BUILDSCRIPT="${ADCIRCBASE}/asgs-build.sh"
+ADCIRC_BUILD_INFO=${ADCIRCBASE}/adcirc.bin.buildinfo.json
+
+#
+# L O C A T E  &  G E T  C O D E  L O G I C
+#
+
+case "${ADCIRC_SRC_TYPE}" in
+  custom)
+    # must mkdir $ADCIRCBASE explicitly here
+    mkdir -p $ADCIRCBASE
+    # copy across local file system
+    echo " ... copying from from '$CUSTOM_SRC' to '$ADCIRCBASE'"
+    cp -rf $CUSTOM_SRC/* $ADCIRCBASE
+    # clean up destination
+    echo " ... cleaning up cruft from '$ADCIRCBASE'"
+    rm -rf $ADCIRCBASE/.git 2> /dev/null
+    pushd $ADCIRC_WORK_DIR
+    make clobber
+    popd
+    ;;
+  remote-zip)
+    # must mkdir $ADCIRCBASE explicitly here
+    mkdir -p $ADCIRCBASE
+    # remote .zip file needing to be fetched
+    pushd $ASGS_TMPDIR
+    if [ -d $ADCIRC_EXTRACT_DIR ]; then
+      echo ./$ADCIRC_EXTRACT_DIR detected, deleting ...
+      rm -rf $ADCIRC_SRC_FILE $ADCIRC_EXTRACT_DIR   # force clean for dev
+    fi
+    wget "${ADCIRC_ARCHIVE_URL}"
+    ${ADCIRC_EXTRACT_CMD} $ADCIRC_SRC_FILE
+    # clean up .zip
+    rm -rv $ADCIRC_SRC_FILE
+    cp -rv $ADCIRC_EXTRACT_DIR/* $ADCIRCBASE
+    ;;
+  git)
+    # $ADCIRCBASE is made by virtue of the "git clone" command in this case
+    if [ ! -d ${ADCIRCBASE} ]; then
+      _answer=yes
+      read -p "Clone (download) ADCIRC git repository from GitHub? [$_answer] " answer
+      echo
+      if [ -z "$answer" ]; then
+        answer=$_answer
+      fi
+      if [ "$answer" != 'no' ]; then
+        echo
+        git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
+	pushd $ADCIRCBASE
+      fi
+      echo
+      read -p "Which ADCIRC branch would you like to checkout from GitHub ('.' to skip checkout)? [$ADCIRC_GIT_BRANCH] " repo
+      if [ -z "$repo" ]; then
+        repo=$ADCIRC_GIT_BRANCH
+      fi
+      do_checkout=yes
+      if [ "$repo" == "." ]; then
+        do_checkout=no
+      fi
+      echo
+      if [ "$do_checkout" == "yes" ]; then
+        CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
+        if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
+          _GIT_OUT=$(git checkout ${ADCIRC_GIT_BRANCH} 2>&1)
+          EXIT=$?
+          if [ $EXIT -gt 0 ]; then
+            echo $_GIT_OUT
+            echo "(fatal) error checking out git repository. Exiting ($EXIT)."
+            exit $EXIT
+          fi
+        fi
+      fi
+    else
+        # still cd to this directory
+	pushd $ADCIRCBASE
+    fi
+    ;;
+  *)
+    echo ADCIRC source retrieval not supported, if needed please file a feature request
+    exit 1
+    ;;
+esac
+
+#
+# C R E A T E  B U I L D  C O M M A N D S
+#
 
 # deal with SWAN coupling build based on supported ADCIRC branches (versions):
 # and potential patching of ADCIRC or SWAN
 __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
 SWANDIR=${ADCIRCBASE}/${SWANDIR}
-
-# meant to be run under the asgs-brew.pl environment
-# looks for:
-# ASGS_MACHINE_NAME - passed to MACHINENAME of ADCIRC's Makefile, internally determines compiler flags and some library paths
-# NETCDFHOME        - tells ADCIRC where to look for NetCDF libraries
-# ADCIRCBASE        - main directory containing ADCIRC source code
-# ADCIRC_COMPILER   - "intel" or "gfortran", set via --compiler in asgs-brew.pl
-# ADCIRC_GIT_BRANCH - passed to `git checkout`, set via --adcirc-git-branch in asgs-brew.pl
-# ADCIRC_GIT_URL    - git repo remote URL, set via --adcirc-git-remote in asgs-brew.pl
-# ADCIRC_GIT_REPO   - git repository (likely 'adcirc-cg')
 
 # first class ADCIRC related binaries
 # + the SWAN=enable is only relevant to adcprep but 
@@ -241,99 +323,9 @@ ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${A
 SWAN_UTIL_BINS="unhcat.exe"
 SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
 
-# git repo wrangling if not copying from a local filesystem
-#TODO: put all this in function
-if [[ -d "${CUSTOM_SRC}" ]]; then                     # handle custom filesystem based source, no patches
-  # copy across local file system
-  mkdir -p $ADCIRCBASE
-  echo " ... copying from from '$CUSTOM_SRC' to '$ADCIRCBASE'"
-  cp -rf $CUSTOM_SRC/* $ADCIRCBASE
-  # clean up destination
-  echo " ... cleaning up cruft from '$ADCIRCBASE'"
-  rm -rf $ADCIRCBASE/.git 2> /dev/null
-  pushd $ADCIRCBASE
-  make clobber
-  popd
-elif [[ -z "${CUSTOM_SRC}" ]]; then                   # handle git-based menu item with patches
-  if [[ ! -d ${ADCIRCBASE} ]]; then
-    if [ "$INTERACTIVE" == "yes" ]; then
-      _answer=yes
-      read -p "Create directory, '$ADCIRCBASE'? [$_answer] " answer
-      if [ -z "$answer" ]; then
-        answer=$_answer
-      fi
-      if [ "$answer" != 'yes' ]; then
-        echo '(fatal) no directory was created. Exiting install.'
-        exit
-      fi
-      echo
-    fi
-    mkdir -p ${ADCIRCBASE} 2> /dev/null
-  else
-    echo Found directory, ${ADCIRCBASE}
-    echo
-  fi
-  if [ ! -d ${ADCIRCBASE}/.git ]; then
-    if [ "$INTERACTIVE" == "yes" ]; then
-      _answer=yes
-      read -p "Download ADCIRC git repository from GitHub? [$_answer] " answer
-      if [ -z "$answer" ]; then
-        answer=$_answer
-      fi
-      if [ "$answer" != 'no' ]; then
-        echo
-        git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
-      fi
-    fi
-  else
-    echo "$ADCIRCBASE appears to already contain a git repository."
-  fi
-fi
-
-# current branch management is naive and assumes that the branch
-# requested is available locally (via origin or any other manually
-# added remotes (see, git remote --help for more information)
-if [ ! -d "$ADCIRCBASE" ]; then
-  echo "(fatal) $ADCIRCBASE not found. Exiting install."
-  exit 1
-else
-  cd ${ADCIRCBASE}
-fi
-
-# only try to checkout branch/tag/SHA if it's a git directory (looks for .git)
-
-if [ -d "$ADCIRCBASE/.git" ]; then
-  if [ "$INTERACTIVE" == "yes" ]; then
-    echo
-    read -p "Which ADCIRC branch would you like to checkout from GitHub ('.' to skip checkout)? [$ADCIRC_GIT_BRANCH] " repo
-    if [ -z "$repo" ]; then
-      repo=$ADCIRC_GIT_BRANCH
-    fi
-    do_checkout=yes
-    if [ "$repo" == "." ]; then
-      do_checkout=no
-    fi
-    echo
-  fi
-  if [ "$do_checkout" == "yes" ]; then
-    CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
-    if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
-      _GIT_OUT=$(git checkout ${ADCIRC_GIT_BRANCH} 2>&1)
-      EXIT=$?
-      if [ $EXIT -gt 0 ]; then
-        echo $_GIT_OUT
-        echo "(fatal) error checking out git repository. Exiting ($EXIT)."
-        exit $EXIT
-      fi
-    fi
-  fi
-fi
-
-# final check to make sure it looks like the expected ADCIRC source
-if [ ! -d "$ADCIRCDIR" ]; then
-  echo "(fatal) $ADCIRCDIR is missing the './work' directory. Exiting install."
-  exit 1
-fi
+#
+# W R I T E   M E T A D A T A  &  B U I L D  A D C I R C
+#
 
 # used to get values of specific variables out of SWAN's macros.inc
 function splitMacrosInc
@@ -407,37 +399,48 @@ function dumpJSON()
     "adcirc.source.asgs.patches.applied" : [
 $patchJSON
     ],
-    "adcirc.source.branch-base"          : "$ADCIRC_GIT_BRANCH",
-    "env.adcirc.build.ASGS_HOME"         : "$ASGS_HOME",
-    "env.adcirc.build.ASGS_MACHINE_NAME" : "$ASGS_MACHINE_NAME",
-    "env.adcirc.build.NETCDFHOME"        : "$NETCDFHOME",
-    "env.adcirc.build.ADCIRCBASE"        : "$ADCIRCBASE",
-    "env.adcirc.build.ADCIRCDIR"         : "$ADCIRCDIR",
-    "env.adcirc.build.SWANDIR"           : "$SWANDIR",
-    "env.adcirc.build.CUSTOM_SRC"        : "${CUSTOM_SRC:-0}", 
-    "env.adcirc.build.ADCIRC_COMPILER"   : "$ADCIRC_COMPILER",
-    "env.adcirc.build.ADCIRC_GIT_BRANCH" : "$ADCIRC_GIT_BRANCH",
-    "env.adcirc.build.ADCIRC_GIT_URL"    : "$ADCIRC_GIT_URL",
-    "env.adcirc.build.ADCIRC_GIT_REPO"   : "$ADCIRC_GIT_REPO",
-    "env.adcirc.build.ASGS_MAKEJOBS"     : "$ASGS_MAKEJOBS",
-    "env.adcirc.build.ADCIRC_MAKE_CMD"   : "$ADCIRC_MAKE_CMD",
+    "adcirc.source.branch-base"           : "$ADCIRC_GIT_BRANCH",
+    "env.adcirc.build.ASGS_HOME"          : "$ASGS_HOME",
+    "env.adcirc.build.ASGS_MACHINE_NAME"  : "$ASGS_MACHINE_NAME",
+    "env.adcirc.build.NETCDFHOME"         : "$NETCDFHOME",
+    "env.adcirc.build.ADCIRCBASE"         : "$ADCIRCBASE",
+    "env.adcirc.build.ADCIRC_WORK_DIR"    : "$ADCIRC_WORK_DIR",
+    "env.adcirc.build.SWANDIR"            : "$SWANDIR",
+    "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}", 
+    "env.adcirc.build.ADCIRC_COMPILER"    : "${ADCIRC_COMPILER:-0}",
+    "env.adcirc.build.ADCIRC_GIT_BRANCH"  : "${ADCIRC_GIT_BRANCH:-0}",
+    "env.adcirc.build.ADCIRC_GIT_URL"     : "${ADCIRC_GIT_URL:-0}",
+    "env.adcirc.build.ADCIRC_GIT_REPO"    : "${ADCIRC_GIT_REPO:-0}",
+    "env.adcirc.build.ADCIRC_SRC_TYPE"    : "${ADCIRC_SRC_TYPE:-0}",
+    "env.adcirc.build.ADCIRC_BASE_URL"    : "${ADCIRC_BASE_URL:-0}",
+    "env.adcirc.build.ADCIRC_SRC_FILE"    : "${ADCIRC_SRC_FILE:-0}",
+    "env.adcirc.build.ADCIRC_EXTRACT_DIR" : "${ADCIRC_EXTRACT_DIR:-0}",
+    "env.adcirc.build.ADCIRC_ARCHIVE_URL" : "${ADCIRC_ARCHIVE_URL:-0}",
+    "env.adcirc.build.ASGS_MAKEJOBS"      : "$ASGS_MAKEJOBS",
+    "env.adcirc.build.ADCIRC_MAKE_CMD"    : "$ADCIRC_MAKE_CMD",
     "env.adcirc.build.SWAN_UTIL_BINS_MAKE_CMD" : "$SWAN_UTIL_BINS_MAKE_CMD",
     "env.adcirc.build.ADCSWAN_MAKE_CMD"        : "$ADCSWAN_MAKE_CMD",
     "env.adcirc.build.ADCIRC_PROFILE_NAME"     : "$ADCIRC_PROFILE_NAME",
-    "env.adcirc.build.ADCIRC_BINS"       : "$ADCIRC_BINS",
-    "env.adcirc.build.ADCSWAN_BINS"      : "$ADCSWAN_BINS",
-    "env.adcirc.build.SWAN_UTIL_BINS"    : "$SWAN_UTIL_BINS",
-    "env.adcirc.build.PATH"              : "$PATH",
-    "env.adcirc.build.LD_LIBRARY_PATH"   : "$LD_LIBRARY_PATH",
-    "env.adcirc.build.LD_INCLUDE_PATH"   : "$LD_INCLUDE_PATH",
-    "adcirc.build.fortran.mpif90"        : "$MPIF90",
-    "adcirc.build.fortran.compiler"      : "$_FC",
+    "env.adcirc.build.ADCIRC_BINS"        : "$ADCIRC_BINS",
+    "env.adcirc.build.ADCSWAN_BINS"       : "$ADCSWAN_BINS",
+    "env.adcirc.build.SWAN_UTIL_BINS"     : "$SWAN_UTIL_BINS",
+    "env.adcirc.build.PATH"               : "$PATH",
+    "env.adcirc.build.LD_LIBRARY_PATH"    : "$LD_LIBRARY_PATH",
+    "env.adcirc.build.LD_INCLUDE_PATH"    : "$LD_INCLUDE_PATH",
+    "adcirc.build.fortran.mpif90"         : "$MPIF90",
+    "adcirc.build.fortran.compiler"       : "$_FC",
+    "adcirc.build.c.compiler"             : "$_CC",
+    "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
+    "adcirc.build.modules.loaded"         : "$MODULE_LIST"
     "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
-    "adcirc.build.c.compiler"            : "$_CC",
-    "adcirc.build.c.compiler.version"    : "$_CC_VERSION",
-    "adcirc.build.modules.loaded"        : "$MODULE_LIST"
   }
 JSON
+export ADCIRC_SRC_TYPE=remote-zip
+export ADCIRC_BASE_URL=https://zenodo.org/record/3911282/files
+export ADCIRC_SRC_FILE=adcirc-cg-GLOBAL.zip
+export ADCIRC_EXTRACT_DIR=adcirc-cg-GLOBAL
+export ADCIRC_ARCHIVE_URL=${ADCIRC_BASE_URL}/${ADCIRC_SRC_FILE}
+export ADCIRC_EXTRACT_CMD=unzip
 }
 
 function dumpMETA() 
@@ -448,7 +451,7 @@ export ASGS_HOME='$ASGS_HOME'
 export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME'
 export NETCDFHOME='$NETCDFHOME'
 export ADCIRCBASE='$ADCIRCBASE'
-export ADCIRCDIR='$ADCIRCDIR'
+export ADCIRC_WORK_DIR='$ADCIRC_WORK_DIR'
 export SWANDIR='$SWANDIR'
 export ADCIRC_COMPILER='$ADCIRC_COMPILER'
 export ADCIRC_BUILD_INFO='$ADCIRC_BUILD_INFO'
@@ -469,92 +472,87 @@ META
 # loop required to generate this part of the JSON string...
 #    "adcirc.source.asgs.patches.applied" : [ { "path" : "/work2/06482/asgs/stampede2/asgs/patches/ADCIRC/v53release/01-v53release-qbc.patch", "commit" : "1234562943927bc2af0f4a894e0417134f373a100" } ],
 
-# ~ A P P L Y  P A T C H S E T ~
-#
+# A P P L Y  P A T C H S E T S
+
 # Notes:
 # 1. Fails if patchset is define, but directory doesn't exit
+#
 # 2. Informs and skips patching if patches have already been applied
+#
 # 3. Adding a patch set is not too difficult, but is not done here; look "up"
 #
-BUILDSCRIPT="${ADCIRCBASE}/asgs-build.sh"
-ADCIRC_BUILD_INFO=${ADCIRCBASE}/adcirc.bin.buildinfo.json
-
 # NOTE: Currently, patches are only available when the patchset
 # directory is present in $SCRIPTDIR/patches/ADCIRC; they are
 # not applied what CUSTOM_SRC is defined (i.e., pointing to a
 # custom source that is presumably already to build without patching)
-if [[ -z "${CUSTOM_SRC}" && -n "${PATCHSET_DIR}" ]]; then
-  if [ -e "${BUILDSCRIPT}" ]; then
-    echo "(info) patches already applied, skipping ..."
-    ALREADYPATCHED=1
-  else
-    if [[ ! -d "${PATCHSET_DIR}" && -z "${CUSTOM_SRC}" ]]; then
-      echo "(fatal) patch set directory not found. Exiting."
-      exit 1
+
+pushd $ADCIRCBASE
+case "${ADCIRC_SRC_TYPE}" in
+  git|remote-zip)
+    if [ -e "${BUILDSCRIPT}" ]; then
+      echo "(info) patches already applied, skipping ..."
+      ALREADYPATCHED=1
+    else
+      if [[ ! -d "${PATCHSET_DIR}" && -z "${CUSTOM_SRC}" ]]; then
+        echo "(fatal) patch set directory not found. Exiting."
+        exit 1
+      fi
+      echo
+      echo applying patches from $PATCHSET_DIR ...
+      # apply from perspective of $ADCIRCBASE, since it's possible we could also
+      # be patching in a third party directory
+      pCOUNT=1
+      patches=()
+      for diff in $(find ${PATCHSET_DIR} -type f -name *.patch  | sort -n); do
+        patches+=($diff)
+        printf "applying patch %02d ... %s\n" $pCOUNT $diff
+        OUT=$(patch -p1 < $diff 2>&1)
+        EXIT=$?
+        if [ $EXIT -gt 0 ]; then
+          echo $OUT
+          echo "(fatal) error applying patch: $diff"
+          echo Exiting.
+         exit $EXIT
+        fi
+        _app_date=$(date "+%D %T %Z")
+        echo "# $_app_date $diff" >> $BUILDSCRIPT
+        pCOUNT=$((pCOUNT+1))
+      done
+      # generates JSON array for list of patches
+      patchJSON=$(
+      for i in "${patches[@]}"
+      do
+        if [ "$i" != "${patches[@]: -1}" ]; then
+          echo "      \"$i\"",
+        fi
+      done
+      echo "      \"${patches[@]: -1}\"")
     fi
-    echo
-    #
-    # P A T C H E S  A P P L I E D  H E R E
-    #
-    echo applying patches from $PATCHSET_DIR ...
-    # apply from perspective of $ADCIRCBASE, since it's possible we could also
-    # be patching in a third party directory
-    pCOUNT=1
-    patches=()
-    for diff in $(find ${PATCHSET_DIR} -type f -name *.patch  | sort -n); do
-      patches+=($diff)
-      printf "applying patch %02d ... %s\n" $pCOUNT $diff
-      OUT=$(patch -p1 < $diff 2>&1)
-      EXIT=$?
-      if [ $EXIT -gt 0 ]; then
-        echo $OUT
-        echo "(fatal) error applying patch: $diff"
-        echo Exiting.
-        exit $EXIT
-      fi
-      _app_date=$(date "+%D %T %Z")
-      echo "# $_app_date $diff" >> $BUILDSCRIPT
-      pCOUNT=$((pCOUNT+1))
-    done
-    # generates JSON array for list of patches
-    patchJSON=$(
-    for i in "${patches[@]}"
-    do
-      if [ "$i" != "${patches[@]: -1}" ]; then
-        echo "      \"$i\"",
-      fi
-    done
-    echo "      \"${patches[@]: -1}\"")
-  fi
+  ;;
+esac
+
+echo
+echo "About to build ADCIRC in $ADCIRC_WORK_DIR with the following command:"
+echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
+echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
+echo "cd $ADCIRC_WORK_DIR && \\"         >> ${BUILDSCRIPT}
+echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
+echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
+
+echo
+cat ${BUILDSCRIPT} | grep -v '#'
+echo
+echo Build command contained in file, ${BUILDSCRIPT}
+echo
+_answer=yes
+read -p "Proceed to build? [$_answer] " answer
+echo
+if [ -z "$answer" ]; then
+  answer=$_answer
 fi
-
-if [ "$INTERACTIVE" = "yes" ]; then
-  answer=
-  if [ -z "${ALREADYPATCHED}" ]; then
-    echo
-    echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
-    echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
-    echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
-    echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
-    echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
-    echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
-  fi
-
-  echo
-  cat ${BUILDSCRIPT} | grep -v '#'
-  echo
-  echo Build command contained in file, ${BUILDSCRIPT}
-  echo
-  _answer=yes
-  read -p "Proceed to build? [$_answer] " answer
-  echo
-  if [ -z "$answer" ]; then
-    answer=$_answer
-  fi
-  if [ "$answer" != 'yes' ]; then
-    echo "build stopped. Exiting."
-    exit 1
-  fi
+if [ "$answer" != 'yes' ]; then
+  echo "build stopped. Exiting."
+  exit 1
 fi
 
 # attempt to build
@@ -575,44 +573,42 @@ mkdir -p $ADCIRC_META_DIR 2> /dev/null
 
 dumpMETA "$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME"
 
-if [ "$INTERACTIVE" == "yes" ]; then
-  echo
-  echo '                    .?MMMMMMM8$@m-(".-.'
-  echo '                 (MMMMMMMMMMMMMMe(%e9ODA#%eRwC1%%?!-";'
-  echo '                MMMMMADCIRCMMMMM*%JOMMADCIRCMMMM8M0DC?*%4?".'
-  echo '              .9MMMMMMMMMMMMMMMwe2#MMMMMMRC41%J#M&DC1D8&wM@*M&'
-  echo '              MMMADCIRCMMMMM0@R9eemMMM#0##M9m**i(%???*i(|1#MRD2'
-  echo '             MMMMMMMMMMM@$449w2C!J%?C%"";"eCw$"|m==||;-`M.'
-  echo '           .MMADCIRCMMDO*i(((||(ii?*1?*%i"=(?mR  1%?(("%!'
-  echo '           mM@MM92e! ;"i"?ii(ei;""""";";-(??.'
-  echo '          %MA!!?;"%"="i""mi -1"""|""=;"""`&('
-  echo '          .(4?"(= ;;"""*9w|.-||(i%%|;` ;;.; '
-  echo '           *eJ;`%("((|i99C|.=|C=!1e;"w......'
-  echo '           0m*"1|;"!*(&9me .-1       M .`..R'
-  echo '           29*"M      -&C(..";       "i . i%'
-  echo '           #C!%m      MRD"...J        M.;(|.'
-  echo '           @81!9     i&&2;...J=       1;!eiM'
-  echo '           99*C8     9!"=  `.(%       $A&2"92'
-  echo '           w=-(?     M%=`.`.e(        AMM*%!.'
-  echo '          CM("A      OJ%. .!e         #MMO1w%'
-  echo '          CMA"M.   .MMM%-; *.         (MMMR0M'
-  echo '         %MMO!wD4 -MMM@%"|"M.        1MMMM8&DJ'
-  echo '         8O1DMMM0w"(!%(*1%"M*       .MM%?AOMMM.'
-  echo '         R#MMMMMM!24mO91!("=J.      *MMwADCIRCMM'
-  echo '     =C@M0MM@Ae2MADCIRCMA1%"%J4|    %MMMMMMM0@&M?"'
-  echo '   (*M@MMR&&&2C#@#R&&&OC(" .&1= ***MMMM#A8&AA1(=('
-  echo '  ******%(MMMMM@M#OwmJw4A&&i.="2MMM8OwRwCCC1JmD&&$MD'
-  echo
-  echo S U C C E S S ! 
-  echo
-  echo ADCIRC has been build and the ADCIRC profile registered in asgsh.
-  echo To load this profile, at the asgsh prompt, enter:
-  echo
-  echo   load adcirc $ADCIRC_PROFILE_NAME
-  echo
-  echo Once loaded, save the current asgsh profile using the the 'save' command.
-  echo
-  echo Information on the build itself is available in JSON format in,
-  echo   $ADCIRC_BUILD_INFO
-  echo
-fi
+echo
+echo '                    .?MMMMMMM8$@m-(".-.'
+echo '                 (MMMMMMMMMMMMMMe(%e9ODA#%eRwC1%%?!-";'
+echo '                MMMMMADCIRCMMMMM*%JOMMADCIRCMMMM8M0DC?*%4?".'
+echo '              .9MMMMMMMMMMMMMMMwe2#MMMMMMRC41%J#M&DC1D8&wM@*M&'
+echo '              MMMADCIRCMMMMM0@R9eemMMM#0##M9m**i(%???*i(|1#MRD2'
+echo '             MMMMMMMMMMM@$449w2C!J%?C%"";"eCw$"|m==||;-`M.'
+echo '           .MMADCIRCMMDO*i(((||(ii?*1?*%i"=(?mR  1%?(("%!'
+echo '           mM@MM92e! ;"i"?ii(ei;""""";";-(??.'
+echo '          %MA!!?;"%"="i""mi -1"""|""=;"""`&('
+echo '          .(4?"(= ;;"""*9w|.-||(i%%|;` ;;.; '
+echo '           *eJ;`%("((|i99C|.=|C=!1e;"w......'
+echo '           0m*"1|;"!*(&9me .-1       M .`..R'
+echo '           29*"M      -&C(..";       "i . i%'
+echo '           #C!%m      MRD"...J        M.;(|.'
+echo '           @81!9     i&&2;...J=       1;!eiM'
+echo '           99*C8     9!"=  `.(%       $A&2"92'
+echo '           w=-(?     M%=`.`.e(        AMM*%!.'
+echo '          CM("A      OJ%. .!e         #MMO1w%'
+echo '          CMA"M.   .MMM%-; *.         (MMMR0M'
+echo '         %MMO!wD4 -MMM@%"|"M.        1MMMM8&DJ'
+echo '         8O1DMMM0w"(!%(*1%"M*       .MM%?AOMMM.'
+echo '         R#MMMMMM!24mO91!("=J.      *MMwADCIRCMM'
+echo '     =C@M0MM@Ae2MADCIRCMA1%"%J4|    %MMMMMMM0@&M?"'
+echo '   (*M@MMR&&&2C#@#R&&&OC(" .&1= ***MMMM#A8&AA1(=('
+echo '  ******%(MMMMM@M#OwmJw4A&&i.="2MMM8OwRwCCC1JmD&&$MD'
+echo
+echo S U C C E S S ! 
+echo
+echo ADCIRC has been build and the ADCIRC profile registered in asgsh.
+echo To load this profile, at the asgsh prompt, enter:
+echo
+echo   load adcirc $ADCIRC_PROFILE_NAME
+echo
+echo Once loaded, save the current asgsh profile using the the 'save' command.
+echo
+echo Information on the build itself is available in JSON format in,
+echo   $ADCIRC_BUILD_INFO
+echo
