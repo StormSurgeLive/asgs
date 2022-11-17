@@ -215,7 +215,7 @@ if [[ -d "${ADCIRCBASE}" ]]; then
 fi
 
 # some variables based on ADCIRCBASE that we can define now
-ADCIRC_WORK_DIR=${ADCIRCBASE}/work
+ADCIRCDIR=${ADCIRCBASE}/work
 BUILDSCRIPT="${ADCIRCBASE}/asgs-build.sh"
 ADCIRC_BUILD_INFO=${ADCIRCBASE}/adcirc.bin.buildinfo.json
 
@@ -233,7 +233,7 @@ case "${ADCIRC_SRC_TYPE}" in
     # clean up destination
     echo " ... cleaning up cruft from '$ADCIRCBASE'"
     rm -rf $ADCIRCBASE/.git 2> /dev/null
-    pushd $ADCIRC_WORK_DIR
+    pushd $ADCIRCDIR
     make clobber
     popd
     ;;
@@ -402,7 +402,7 @@ $patchJSON
     "env.adcirc.build.ASGS_MACHINE_NAME"  : "$ASGS_MACHINE_NAME",
     "env.adcirc.build.NETCDFHOME"         : "$NETCDFHOME",
     "env.adcirc.build.ADCIRCBASE"         : "$ADCIRCBASE",
-    "env.adcirc.build.ADCIRC_WORK_DIR"    : "$ADCIRC_WORK_DIR",
+    "env.adcirc.build.ADCIRCDIR"    : "$ADCIRCDIR",
     "env.adcirc.build.SWANDIR"            : "$SWANDIR",
     "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}", 
     "env.adcirc.build.ADCIRC_COMPILER"    : "${ADCIRC_COMPILER:-0}",
@@ -449,7 +449,7 @@ export ASGS_HOME='$ASGS_HOME'
 export ASGS_MACHINE_NAME='$ASGS_MACHINE_NAME'
 export NETCDFHOME='$NETCDFHOME'
 export ADCIRCBASE='$ADCIRCBASE'
-export ADCIRC_WORK_DIR='$ADCIRC_WORK_DIR'
+export ADCIRCDIR='$ADCIRCDIR'
 export SWANDIR='$SWANDIR'
 export ADCIRC_COMPILER='$ADCIRC_COMPILER'
 export ADCIRC_BUILD_INFO='$ADCIRC_BUILD_INFO'
@@ -542,10 +542,10 @@ case "${ADCIRC_SRC_TYPE}" in
 esac
 
 echo
-echo "About to build ADCIRC in $ADCIRC_WORK_DIR with the following command:"
+echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
 echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
 echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
-echo "cd $ADCIRC_WORK_DIR && \\"         >> ${BUILDSCRIPT}
+echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
 echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
 echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
 
