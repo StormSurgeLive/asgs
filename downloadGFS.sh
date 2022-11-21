@@ -41,8 +41,6 @@ downloadGFS()
     STATEFILE=${14}
     #
     local THIS="asgs_main.sh>downloadGFS.sh"
-    CURRENT_STATE="WAIT"
-    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading GFS meteorological data for $ENSTORM."
     logMessage "$ENSTORM: $THIS: Downloading GFS meteorological data."
     cd $RUNDIR 2>> ${SYSLOG}
     #
@@ -123,16 +121,12 @@ downloadGFS()
             get_gfs_status.pl < $filledGfsTemplateName > get_gfs_status.pl.json 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                 warn "$THIS: Failed to get status of GFS cycles with get_gfs_status.pl."
-                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" \
-                    "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
                 sleep 60
                 continue
             fi
             bashJSON.pl --key cyclelist --last < get_gfs_status.pl.json > latestCycle 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                 warn "$THIS: Failed to extract the latest GFS cycle from get_gfs_status.pl.json with bashJSON.pl"
-                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" \
-                    "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
                 sleep 60
                 continue
             fi
