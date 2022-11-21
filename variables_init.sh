@@ -173,10 +173,6 @@ variables_init()
 
    stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 
-   # RMQMessaging defaults
-   RMQMessaging_Enable=${RMQMessaging_Enable:-off}     # "on"|"off"
-   RMQMessaging_Transmit=${RMQMessaging_Transmit:-off} # enables message transmission ("on" | "off")
-
    SCENARIO="null"
    SCENARIODIR="null"
    OPENDAPADDROOT=""

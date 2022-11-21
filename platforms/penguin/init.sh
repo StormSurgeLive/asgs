@@ -23,11 +23,6 @@ export PPN=28
 export SUBMITSTRING=qsub
 export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
 export QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-if [[ ${RMQMessaging_Enable} == "on" ]]; then
-  export   RMQMessaging_LocationName="Penguin"
-  export   RMQMessaging_ClusterName="POD"
-  export   RMQMessaging_NcoHome="$HOME/local"
-fi
 export JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
 export local THIS="platforms.sh>env_dispatch()>init_penguinpod()"
 export SSHKEY=~/.ssh/id_rsa.pub

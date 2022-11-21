@@ -96,158 +96,6 @@ findAndClearOrphans() {
    done
 }
 
-function IncrementNCEPCycle()
-{
-	local DATE='date --utc'
-	local inc=21600  # cycle increment in secs
-
-	if [  $# -eq 0 ] ; then
-		d=`$DATE +%Y%m%d%H`
-		cy=${d:8:2}
-		cy=`echo "6*($cy/6)" | bc`
-	else
-		d=$1
-	fi
-
-	if [ ${#d} -lt 10 ] ; then
-		echo input date must of YYYYMMDDHH
-		exit 1
-	fi
-
-	#cy=${d:8:2}
-	#cy=`echo "6*($cy/6)" | bc`
-	#echo $d, $cy
-	#echo Current NCEP Cycle = $cy
-
-	# input YYMMDDHH in epoch seconds
-	d1=`$DATE -d "${d:0:4}-${d:4:2}-${d:6:2} ${d:8:2}:00:00" +%s`
-	d2=$[$d1+$inc]
-	d2=`$DATE -d "1970-01-01 UTC $d2 seconds" +%Y%m%d%H`
-	cy=${d2:8:2}
-	cy=`echo "6*(${d2:8:2}/6)" | bc`
-	d2=`printf "${d2:0:8}%02d" $cy`
-	echo $d2
-	#echo Next NCEP Cycle = $cy
-}
-
-RMQMessageStartup()
-{
-  _CONFIG=$1
-  if [[ ${RMQMessaging_Enable} == "on" && -e "${RMQMessaging_StartupScript}" && -e "${_CONFIG}" ]];
-  then
-    local DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
-    CONFIG_DUMP=$(cat "$_CONFIG" | sed '/^#/d' | sed '/^$/d')
-    ${RMQMessaging_StartupScript}                      \
-         --Uid "$$"                                    \
-         --LocationName "${RMQMessaging_LocationName}" \
-         --ClusterName "${RMQMessaging_ClusterName}"   \
-         --Message "$CONFIG_DUMP"                      \
-         --InstanceName "$INSTANCENAME"                \
-         --Transmit "${RMQMessaging_Transmit}" >> $SYSLOG 2>&1
-  fi
-}
-
-# MTYPE EVENT PROCESS STATE MSG PCTCOM
-RMQMessage()
-{
-  # short circuit if not enabled or start up script is not defined or doesn't exist
-  if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_StartupScript}" ]]
-  then
-    return
-  fi
-
-  MTYPE=$1
-  EVENT=$2
-  PROCESS=$3
-  STATE=$4
-  MSG=$5
-  local DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
-  #MSG="RMQ-$MTYPE : $EVENT : $STATE : ${DATETIME} : $MSG"
-  PCTCOM=0
-
-  if [ "$#" -eq 6 ]
-  then
-    PCTCOM=$6
-  fi
-
-  # adding log file specific to RMQMessaging to augment and eventually maybe
-  # replace echoing messages to the console
-
-
-  APPLOGFILE=$RUNDIR/RMQMessaging.log
-
-  if [[ 10#$RMQADVISORY -lt 0 ]]
-  then
-	echo "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..."
-	appMessage "warn: RMQA ($RMQADVISORY) < 0.  Not sending message ..." $APPLOGFILE
-	return
-  fi
-
-  re='^[0-9]+([.][0-9]+)?$'
-  if ! [[ $PCTCOM =~ $re ]]
-  then
-      echo "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..."
-      appMessage "warn: PCTCOM ($PCTCOM) not a number in RMQMessage.  Not sending message ..." $APPLOGFILE
-  else
-     printf "RMQ : %s : %10s : %4s : %4s : %21s : %4s : %5.1f : %s : %s\n" ${INSTANCENAME} ${RMQADVISORY} ${MTYPE} ${EVENT} ${DATETIME} ${STATE} ${PCTCOM} ${PROCESS} "${MSG}"
-
-     # Send message to RabbitMQ queue.  The queue parameters are in the asgs_msgr.py code
-     ${RMQMessaging_Script} \
-         --Uid "$$"                                    \
-         --LocationName "${RMQMessaging_LocationName}" \
-         --ClusterName "${RMQMessaging_ClusterName}"   \
-         --StormNumber "$STORM"                        \
-         --StormName "$STORMNAME"                      \
-         --AdvisoryNumber "$RMQADVISORY"               \
-         --Message "$MSG"                              \
-         --EventType "$EVENT"                          \
-         --Process "$PROCESS"                          \
-         --PctComplete 0                               \
-         --SubPctComplete "$PCTCOM"                    \
-         --State "$STATE"                              \
-         --RunParams "$RMQRunParams"                   \
-         --InstanceName "$INSTANCENAME"                \
-         --Transmit "${RMQMessaging_Transmit}" >> ${SYSLOG} 2>&1
-   fi
-   unset re
-}
-
-# send run.properties as a message to the asgs monitor queue
-RMQMessageRunProp()
-{
-  if [[ ${RMQMessaging_Enable} == "off" || ! -e "${RMQMessaging_Script_RP}" ]]
-  then
-    estr="warn: RMQMessageRunProp did not send rp message because either RMQMessaging_Enable is off or RMQMessaging_Script_RP not found. "
-	echo $estr
-	allMessage $estr
-    return 1
-  fi
-
-  RPDIR=$1
-  ASGS_PID=$2
-  local DATETIME=`date --utc +'%Y-%h-%d-T%H:%M:%S'`
-
-  # adding log file specific to RMQMessaging to augment and eventually maybe
-  # replace echoing messages to the console
-
-  APPLOGFILE=$RUNDIR/RMQMessaging.log
-
-  ${RMQMessaging_Script_RP} \
-     --Uid $ASGS_PID \
-     --LocationName "${RMQMessaging_LocationName}" \
-     --InstanceName "$INSTANCENAME"                \
-     --Transmit "${RMQMessaging_Transmit}"         \
-     --input_filename "$RPDIR/run.properties"      \
-     --output_filename "$RPDIR/run.properties.json" >> ${SYSLOG} 2>&1
-
-  if [ $? == 0 ] ; then
-    allMessage "${RMQMessaging_Script_RP} returned a 0 status."
-  else
-    allMessage "${RMQMessaging_Script_RP} returned a non-0 status, with these parameters: $ASGS_PID, $INSTANCENAME, $RPDIR, ${RMQMessaging_Transmit}"
-  fi
-
-}
-
 # set the name of the asgs log file
 setSyslogFileName()
 {
@@ -451,9 +299,6 @@ writeASGSInstanceStatus()
     # notification
     echo "notification.emailnotify : $EMAILNOTIFY" >> $statfile
     echo "intendedAudience : $INTENDEDAUDIENCE" >> $statfile
-    # monitoring (includes logging)
-    echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $statfile
-    echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $statfile
     # archiving
     echo "archive.executable.archive : $ARCHIVE" >> $statfile
     echo "archive.path.archivebase : $ARCHIVEBASE" >> $statfile
@@ -659,7 +504,6 @@ postScenarioStatus() {
 #
 #  send message when shutting down on INT and clear all processes
 sigint() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigint()" "EXIT" "Received Ctrl-C from console.  Shutting ASGS down ..."
    allMessage "Received Ctrl-C from console.  Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
    exit 0
@@ -667,7 +511,6 @@ sigint() {
 #
 #  send message when shutting down on TERM and clear all processes
 sigterm() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigterm()" "EXIT" "Received SIGTERM.  Shutting ASGS down ..."
    allMessage "Received SIGTERM. Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
    exit 0
@@ -676,7 +519,6 @@ sigterm() {
 #
 # send message when shutting down on EXIT and clear all processes
 sigexit() {
-   RMQMessage "EXIT" "EXIT" "asgs_main.sh>sigexit()" "EXIT" "Received SIGEXIT.  Shutting ASGS down ..."
    allMessage "Received SIGEXIT.  Shutting ASGS instance $INSTANCENAME down."
    trap - SIGTERM && kill -- -$$ # "untrap" SIGTERM and send SIGTERM to all processes in this process group
    exit 0
