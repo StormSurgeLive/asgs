@@ -77,12 +77,7 @@ verify_python3() {
 verify_regressions() {
   echo +
   echo ++ Regression Testing
-  ANS=$(python $SCRIPTDIR/monitoring/FortCheck.py $SCRIPTDIR/cloud/general/t/test-data/fort.61.nc 2>&1)
-  if [ "$ANS" == "100.00" ]; then
-   echo "ok ./monitoring/FortCheck.py can read fort.61.nc"
-  else
-   echo "not ok ./monitoring/FortCheck.py can't read cloud/general/t/test-data/fort.61.nc"
-  fi 
+  echo "ok - no checks found"
 }
 
 # todo - added to general 'verify' function once it's merged to master

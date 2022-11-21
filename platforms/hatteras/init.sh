@@ -34,9 +34,4 @@ export ARCHIVEDIR=$SCRATCH
 export TDS=(renci_tds)
 export MAKEJOBS=8
 export MATLABEXE=script # "script" means just execute matlab (don't use mex files)
-export RMQMessaging_Enable="on"      # "on"|"off" 
-export RMQMessaging_Transmit="on"    #  enables message transmission ("on" | "off")
-export RMQMessaging_NcoHome="/home/ncfs" 
-export RMQMessaging_LocationName="RENCI"
-export RMQMessaging_ClusterName="Hatteras"
 module load icc/2022.0.2  mvapich2/2.3.7-intel

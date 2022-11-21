@@ -43,7 +43,6 @@ downloadBackgroundMet()
     #
     local THIS="asgs_main.sh>downloadBackgroundMet.sh"
     CURRENT_STATE="WAIT"
-    RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE"  "Downloading NAM meteorological data for $ENSTORM."
     logMessage "$ENSTORM: $THIS: Downloading meteorological data."
     cd $RUNDIR 2>> ${SYSLOG}
     #
@@ -122,16 +121,12 @@ downloadBackgroundMet()
             get_nam_status.pl < $filledNamTemplateName > get_nam_status.pl.json 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                 warn "$THIS: Failed to get status of NAM cycles with get_nam_status.pl."
-                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" \
-                    "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
                 sleep 60
                 continue
             fi
             latest.pl < get_nam_status.pl.json > latestCycle 2>> $SYSLOG
             if [[ $? != 0 ]]; then
                 warn "$THIS: Failed to extract the latest NAM cycle from get_nam_status.pl.json with latest.pl"
-                RMQMessage "INFO" "$CURRENT_EVENT" "$THIS>$ENSTORM" "$CURRENT_STATE" \
-                    "Waiting on NCEP data for $ENSTORM. Sleeping 60 secs (TRY=$TRIES) ..."
                 sleep 60
                 continue
             fi

@@ -9,7 +9,6 @@ export DEFAULT_COMPILER=intel
 export HPCENV=mike.hpc.lsu.edu
 export HPCENVSHORT=mike
 
-export RMQMessaging_Enable="off"
 export HPCENV=mike.hpc.lsu.edu
 export QUEUESYS=SLURM
 export QCHECKCMD=squeue

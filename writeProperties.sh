@@ -92,18 +92,6 @@ writeProperties()
    echo "notification.hpc.email.notifyuser : deprecated - do not use - will be removed in the future" >> $STORMDIR_RUN_PROPERTIES
    echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR_RUN_PROPERTIES
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR_RUN_PROPERTIES
-   # monitoring (includes logging)
-   echo "monitoring.rmqmessaging.enable : $RMQMessaging_Enable " >> $STORMDIR_RUN_PROPERTIES
-   # only record other RMQ parameters if it's actually "on"
-   if [ "$RMQMessaging_Enable" == "on" ]
-   then
-     echo "monitoring.rmqmessaging.transmit : $RMQMessaging_Transmit" >> $STORMDIR_RUN_PROPERTIES
-     echo "monitoring.rmqmessaging.script : $RMQMessaging_Script" >> $STORMDIR_RUN_PROPERTIES
-     echo "monitoring.rmqmessaging.scriptrp : $RMQMessaging_Script_RP" >> $STORMDIR_RUN_PROPERTIES
-     echo "monitoring.rmqmessaging.ncohome : $RMQMessaging_NcoHome" >> $STORMDIR_RUN_PROPERTIES
-     echo "monitoring.rmqmessaging.locationname : $RMQMessaging_LocationName" >> $STORMDIR_RUN_PROPERTIES
-     echo "monitoring.rmqmessaging.clustername : $RMQMessaging_ClusterName" >> $STORMDIR_RUN_PROPERTIES
-   fi
    echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR_RUN_PROPERTIES
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR_RUN_PROPERTIES
