@@ -855,6 +855,7 @@ sub getStations {
    while (<STATIONS>) {
       $_ =~ s/^\s+//;
       next if (substr($_,0,1) eq '#');  # skip comment lines in the stations file
+      next if ($_ eq '');               # skip empty lines in the stations file
       $numstations.=$_;
       $number++;
    }
@@ -863,7 +864,11 @@ sub getStations {
    chomp($numstations);
    # need to add this as a sort of comment in the fort.15 for the post
    # processing script station_transpose.pl to find
-   $numstations = $number . " " . $station_file . " " . $station_var . "\n" . $numstations;
+   if ( $number != 0 ) {
+      $numstations = $number . " " . $station_file . " " . $station_var . "\n" . $numstations;
+   } else {
+      $numstations = $number . " " . $station_file . " " . $station_var . " (file contains no stations)";
+   }
    return $numstations;
 }
 #
