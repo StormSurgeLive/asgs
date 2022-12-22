@@ -1,0 +1,35 @@
+diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
+index 4be9ae4..5a50128 100644
+--- a/work/cmplrflags.mk
++++ b/work/cmplrflags.mk
+@@ -270,6 +270,20 @@ ifeq ($(compiler),intel)
+         FLIBS   := $(INCDIRS)
+      endif
+   endif
++  #wwlwpd: NOTE: Mike III at LSU-HPC recommends 'mpiifort', Intel's MPI implementation wrapper
++  #wwlwpd: instead of the traditional "mpif90"; but the flags are the same we still redefine
++  #wwlwpd: "PFC" below
++  ifeq ($(MACHINENAME),mike)
++     PFC     :=  mpiifort
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
++     FLIBS   := $(INCDIRS) -xAVX
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
++        FLIBS   := $(INCDIRS) -xAVX
++     endif
++  endif
+   ifeq ($(MACHINENAME),queenbee)
+      FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
+      CFLAGS  := $(INCDIRS) -O3 -DLINUX -xSSE4.2
+@@ -362,6 +376,9 @@ ifeq ($(compiler),intel)
+      ifeq ($(MACHINENAME),ls6)
+         FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
+      endif
++     ifeq ($(MACHINENAME),mike)
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
++     endif
+      # jgf20150817: Adding support for spirit.afrl.hpc.mil;
+      # load the following modules: netcdf-fortran/intel/4.4.2
+      # and hdf5/intel/1.8.12 and hdf5-mpi/intel/sgimpt/1.8.12
