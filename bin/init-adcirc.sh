@@ -154,10 +154,10 @@ case "$SELECTED_VERSION" in
     echo
     PATCHSET_NAME=${SELECTED_VERSION} # will be 'custom'
     # find swan directory
-    if [[ -d $CUSTOM_SRC/swan ]]; then
-      SWANDIR=swan             # version  < 55
-    elif [[ -d $CUSTOM_SRC/thirdparty/swan ]]; then
+    if [[ -d $CUSTOM_SRC/thirdparty/swan ]]; then
       SWANDIR=thirdparty/swan  # version >= 55
+    elif [[ -d $CUSTOM_SRC/swan ]]; then
+      SWANDIR=swan             # version  < 55
     else
       echo "FATAL ERROR: SWAN directory not found in '$CUSTOM_SRC', doesn't appear to be a valid ADCIRC source directory."
       exit 1
@@ -232,7 +232,8 @@ case "${ADCIRC_SRC_TYPE}" in
     cp -rf $CUSTOM_SRC/* $ADCIRCBASE
     # clean up destination
     echo " ... cleaning up cruft from '$ADCIRCBASE'"
-    rm -rf $ADCIRCBASE/.git 2> /dev/null
+    rm -rf "$ADCIRCBASE/.git" 2> /dev/null
+    rm "${BUILDSCRIPT}"       2> /dev/null
     pushd $ADCIRCDIR
     make clobber
     popd
