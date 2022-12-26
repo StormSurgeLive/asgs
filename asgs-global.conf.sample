@@ -3,8 +3,8 @@
 ;;; Live config file should exists as $HOME/asgs-global.conf
 
 [email]
-from_address=info@stormsurge.email
-reply_to_address=info@stormsurge.email
+from_address=info@stormsurge.live
+reply_to_address=info@stormsurge.live
 smtp_host=email-smtp.us-east-1.amazonaws.com
 smtp_port=587
 smtp_username=<get from lead operator>
