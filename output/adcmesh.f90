@@ -86,6 +86,12 @@ type mesh_t
    real(8), allocatable :: x_cpp(:)
    real(8), allocatable :: y_cpp(:)
    !
+   ! parameters related to cartesian unit sphere
+   logical :: cartesianSphereComputed = .false.
+   real(8), allocatable :: x_cartesian_sphere(:)
+   real(8), allocatable :: y_cartesian_sphere(:)
+   real(8), allocatable :: z_cartesian_sphere(:)
+   !
    ! parameters related to Albers Equal Area Conic projection
    logical :: albersComputed = .false.
    real(8), allocatable :: xalbers(:)
@@ -227,7 +233,10 @@ type meshNetCDF_t
    integer :: NC_VarID_depth = -99
    integer :: NC_VarID_x_cpp = -99
    integer :: NC_VarID_y_cpp = -99
-end type meshNetCDF_t
+   integer :: NC_VarID_x_cartesian_sphere = -99
+   integer :: NC_VarID_y_cartesian_sphere = -99
+   integer :: NC_VarID_z_cartesian_sphere = -99
+   end type meshNetCDF_t
 
 integer, parameter :: specifiedFluxBoundaryTypes(5) = (/ 2, 12, 22, 32, 52 /)
 !
@@ -1858,6 +1867,30 @@ m%y_cpp = m%xyd(2,:)*deg2rad * R
 return
 !-----------------------------------------------------------------------
 END SUBROUTINE computeCPP
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!  S U B R O U T I N E   C O M P U T E  C A R T E S I A N   S P H E R E
+!-----------------------------------------------------------------------
+!     jgf: Very short subroutine to compute the coordinate locations
+!     on a sphere with a unit radius,
+!     allocating memory in the process, and not overwriting the
+!     original lat/lon data.
+!-----------------------------------------------------------------------
+SUBROUTINE computeCartesianSphere(m)
+IMPLICIT NONE
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
+if (m%cartesianSphereComputed.eqv..false.) then
+   allocate(m%x_cartesian_sphere(m%np),m%y_cartesian_sphere(m%np),m%z_cartesian_sphere(m%np))
+   m%cartesianSphereComputed = .true.
+endif
+write(6,'("INFO: Generating cartesian coordinates on a unit sphere.")')
+m%x_cartesian_sphere = cos(m%xyd(1,:)*deg2rad) * cos(m%xyd(2,:)*deg2rad)
+m%y_cartesian_sphere = sin(m%xyd(1,:)*deg2rad) * cos(m%xyd(2,:)*deg2rad)
+m%z_cartesian_sphere = sin(m%xyd(2,:)*deg2rad)
+return
+!-----------------------------------------------------------------------
+END SUBROUTINE computeCartesianSphere
 !-----------------------------------------------------------------------
 
 
