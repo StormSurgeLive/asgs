@@ -43,7 +43,7 @@ if [ ! -e ${NASM_TGZ} ]; then
   wget --no-check-certificate https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/${NASM_TGZ}
 fi
 # check that there are no issues with downloading nasm
-if [[ -e ${NASM_TGZ} && -s ${NASM_TGZ} &&  "$(file nasm-2.15.05.tar.gz)" =~ "gzip compressed data" ]]; then
+if [[ -e ${NASM_TGZ} && -s ${NASM_TGZ} &&  "$(file ${NASM_TGZ} )" =~ "gzip compressed data" ]]; then
   rm -rf $NASM_DIR 2> /dev/null
   tar zxvf $NASM_TGZ
   cd $NASM_DIR
