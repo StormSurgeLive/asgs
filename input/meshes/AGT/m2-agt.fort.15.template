@@ -1,0 +1,68 @@
+ASGS %StormName%
+%EnsembleID%
+1 20.0 1 50 1000.0 ! NFOVER
+0        	 ! NABOUT
+%NSCREEN%  	 ! NSCREEN
+%IHOT%     	 ! IHOT
+-22       	 ! ICS
+513113     	 ! IM
+1          	 ! NOLIBF
+2            ! NOLIFA
+1            ! NOLICA
+1            ! NOLICAT
+2            ! NWP
+internal_tide_friction
+quadratic_friction_coefficient_at_sea_floor
+1   	 	 ! NCOR
+2   	 	 ! NTIP
+%NWS%  	 	 ! NWS
+1    	 	 ! NRAMP
+9.810000   	 ! G
+0.0022222  	 ! TAU0
+%DT%   	 	 ! DTDP
+0   	 	 ! STATIM
+0   	 	 ! REFTIM
+%WTIMINC%    ! WTIMINC
+%RNDAY%	 	 ! RNDY
+5   	 	 ! DRAMP
+0.5 0.5 0    ! A00, B00, C00
+0.1 0 0 0.01 ! H0, 2*dummy, VELMIN
+0.0 45.0 	 ! SLAM0, SFEA0
+0.002500     ! CF
+-0.200000    ! ELSM
+0.000000   	 ! CORI
+1   	 	 ! NTIF
+M2
+0.242922  1.405189028e-04 0.693000 %M2NF% %M2EQARG%	 !  TPK, AMIGT, ETRF, FFT, FACET
+0   	 	 ! NBFR
+90   	 	 ! ANGINN
+%FORT61%
+%NUMELEVSTATIONS%
+%FORT62%
+%NUMVELSTATIONS%
+%FORT7172%
+%NUMMETSTATIONS%
+%FORT63%
+%FORT64%
+%FORT7374%
+0  	 	     ! NFREQ
+0 0 0 0  	 ! THAS, THAF, NHAINC, FMV
+0 0 0 0   	 ! NHASE, NHASV, NHAGE, NHAGV
+%NHSTAR%  %NHSINC%      ! NHSTAR, NHSINC
+1 0 1.000000000e-10 25  ! ITITER, ISLDIA, CONVCR, ITMAX
+LSU ASGS
+LSU CCT
+OceanMesh2D
+History: None
+https://www.seahorsecoastal.com/
+Comments: None
+Host: Name
+Metric, NAVD, CF, UGRID
+info@stormsurge.live
+%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
+
+&metControl
+WindDragLimit = 2.500000e-03,
+DragLawString = default,
+outputWindDrag = F,
+invertedBarometerOnElevationBoundary = F /

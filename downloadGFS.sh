@@ -6,7 +6,7 @@
 # ftp site to determine status of GFS data and then subsets
 # and downloads via curl.
 #----------------------------------------------------------------
-# Copyright(C) 2022 Jason Fleming
+# Copyright(C) 2022--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -241,9 +241,7 @@ downloadGFS()
         #
         # form win/pre file header line
         SWLat=$(printf "%3.4f" ${gfsLatLonGrid['lat0']})
-        # wgrib2 regridding longitudes have a range of 0 to 360
-        # but win/pre format expects -180 to 180
-        SWLon=$(printf "%3.4f" $(echo ${gfsLatLonGrid['lon0']} - 360.0 | bc -q))
+        SWLon=$(printf "%3.4f" ${gfsLatLonGrid['lon0']})
         #
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
@@ -269,8 +267,10 @@ downloadGFS()
         # write the headers to the win/pre files
         preFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.221
         winFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.222
-        printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $preFileName # fort.221
-        printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $winFileName # fort.222
+        headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)"
+        headerLine="${headerLineTemplate:0:30}#${gfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#gfsDomain['coverage']}):${#headerLineTemplate}}"
+        echo "$headerLine" > $preFileName # fort.221
+        echo "$headerLine" > $winFileName # fort.222
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
@@ -490,8 +490,10 @@ downloadGFS()
         # write the headers to the win/pre files
         preFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.221
         winFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.222
-        printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $preFileName # fort.221
-        printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime > $winFileName # fort.222
+        headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)"
+        headerLine="${headerLineTemplate:0:30}#${gfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#gfsDomain['coverage']}):${#headerLineTemplate}}"
+        echo "$headerLine" > $preFileName # fort.221
+        echo "$headerLine" > $winFileName # fort.222
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file

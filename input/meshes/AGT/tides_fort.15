@@ -1,0 +1,68 @@
+Global_TestCase
+M2_Tide_w_SAL
+1        	 ! NFOVER 
+0        	 ! NABOUT 
+120        	 ! NSCREEN 
+0        	 ! IHOT 
+-22         	 ! ICS 
+513113          	 ! IM 
+1            	 ! NOLIBF 
+2            	 ! NOLIFA 
+1           	 ! NOLICA 
+1           	 ! NOLICAT 
+2           	 ! NWP 
+internal_tide_friction
+quadratic_friction_coefficient_at_sea_floor
+1   	 	 ! NCOR 
+2   	 	 ! NTIP 
+0   	 	 ! NWS 
+1    	 	 ! NRAMP 
+9.810000    	 ! G  
+0.0022222   	 ! TAU0 
+720    	 	 ! DTDP 
+0  	 	 ! STATIM 
+0   	 	 ! REFTIM 
+31   	 	 ! RNDY 
+5   	 	 ! DRAMP 
+0.5 0.5 0   	  ! A00, B00, C00 
+0.1 0 0 0.01    	 ! H0, 2*dummy, VELMIN 
+0.000000 45.000000  	 	 ! SLAM0, SFEA0 
+0.002500     	 ! CF 
+-0.200000     	 	 ! ELSM 
+0.000000   	 ! CORI 
+1   	 	 ! NTIF 
+M2 
+0.242922  1.405189028e-04 0.693000 1.026777 26.668130   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+0   	 	 ! NBFR 
+90   	 	 ! ANGINN 
+0 0 0 0   	 ! NOUTE, TOUTSE, TOUTFE, NSPOOLE 
+0  	 	 ! NSTAE 
+0 0 0 0  	 ! NOUTV, TOUTV, TOUTFV, NSPOOLV 
+0  	 	 ! NSTAV 
+5 0 31 120  	 ! NOUTGE, ... 
+5 0 31 120      ! NOUTGV, ... 
+1  	 	 ! NFREQ 
+M2 
+ 1.405189028e-04 1.026777 26.668130 
+14 31 2 0  	 ! THAS, THAF, NHAINC, FMV 
+0 0 5 5   	 ! NHASE, NHASV, NHAGE, NHAGV 
+0 0  	  ! NHSTAR, NHSINC 
+1 0   1.000000000e-10 25  	 ! ITITER, ISLDIA, CONVCR, ITMAX 
+Global_TestCase
+Notre Dame CHL
+OceanMesh2D
+History: None
+https://github.com/CHLNDDEV/OceanMesh2D/
+Comments: None
+Host: Name
+Metric, MSL
+wpringle@nd.edu
+2018-01-01 00:00
+! -- Begin met Control Namelist -- 
+&metControl
+WindDragLimit = 2.500000e-03,
+DragLawString = default,
+outputWindDrag = F,
+invertedBarometerOnElevationBoundary = F,
+/
+! -- End met Control Namelist -- 
