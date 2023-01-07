@@ -546,8 +546,11 @@ case "${ADCIRC_SRC_TYPE}" in
   ;;
 esac
 
-echo
-echo "About to build ADCIRC in $ADCIRCDIR with the following command:"
+# what macros.inc should SWAN use?
+if [[ "${ADCIRC_COMPILER}" == 'gfortran' && -e "${SWANDIR}/macros.inc.gfortran" ]]; then
+  echo "mv ${SWANDIR}/macros.inc.gfortran ${SWANDIR}/macros.inc # added by init-adcirc.sh wizard"  >> ${BUILDSCRIPT}
+fi
+echo                                     >> ${BUILDSCRIPT}
 echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
 echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
 echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
@@ -588,34 +591,25 @@ mkdir -p $ADCIRC_META_DIR 2> /dev/null
 
 dumpMETA "$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME"
 
-echo
-echo '                    .?MMMMMMM8$@m-(".-.'
-echo '                 (MMMMMMMMMMMMMMe(%e9ODA#%eRwC1%%?!-";'
-echo '                MMMMMADCIRCMMMMM*%JOMMADCIRCMMMM8M0DC?*%4?".'
-echo '              .9MMMMMMMMMMMMMMMwe2#MMMMMMRC41%J#M&DC1D8&wM@*M&'
-echo '              MMMADCIRCMMMMM0@R9eemMMM#0##M9m**i(%???*i(|1#MRD2'
-echo '             MMMMMMMMMMM@$449w2C!J%?C%"";"eCw$"|m==||;-`M.'
-echo '           .MMADCIRCMMDO*i(((||(ii?*1?*%i"=(?mR  1%?(("%!'
-echo '           mM@MM92e! ;"i"?ii(ei;""""";";-(??.'
-echo '          %MA!!?;"%"="i""mi -1"""|""=;"""`&('
-echo '          .(4?"(= ;;"""*9w|.-||(i%%|;` ;;.; '
-echo '           *eJ;`%("((|i99C|.=|C=!1e;"w......'
-echo '           0m*"1|;"!*(&9me .-1       M .`..R'
-echo '           29*"M      -&C(..";       "i . i%'
-echo '           #C!%m      MRD"...J        M.;(|.'
-echo '           @81!9     i&&2;...J=       1;!eiM'
-echo '           99*C8     9!"=  `.(%       $A&2"92'
-echo '           w=-(?     M%=`.`.e(        AMM*%!.'
-echo '          CM("A      OJ%. .!e         #MMO1w%'
-echo '          CMA"M.   .MMM%-; *.         (MMMR0M'
-echo '         %MMO!wD4 -MMM@%"|"M.        1MMMM8&DJ'
-echo '         8O1DMMM0w"(!%(*1%"M*       .MM%?AOMMM.'
-echo '         R#MMMMMM!24mO91!("=J.      *MMwADCIRCMM'
-echo '     =C@M0MM@Ae2MADCIRCMA1%"%J4|    %MMMMMMM0@&M?"'
-echo '   (*M@MMR&&&2C#@#R&&&OC(" .&1= ***MMMM#A8&AA1(=('
-echo '  ******%(MMMMM@M#OwmJw4A&&i.="2MMM8OwRwCCC1JmD&&$MD'
-echo
-echo S U C C E S S ! 
+echo '                               _                    '
+echo '                             ,"_".                  '
+echo '                          _ /_| |_\ _               '
+echo '                         /_\|  ^  |/_\              '
+echo '                         | || /|\ || |              '
+echo '                         | |||   ||| |              '
+echo '                         | |||. .||| |              '
+echo '                         | ||| u ||| |              '
+echo '                         | |||   ||| |              '
+echo '                         | |||   ||| |              '
+echo '                         | ,"  V  ". |              '
+echo '                         ,"_x_   _x_".              '
+echo '                        /____  |  ____\             '
+echo '                         /_\ ||||| /_\              '
+echo '                         .:   : :   :.              '
+echo '                         : .  : .  : :              '
+echo '                        .:  .   : :   ..            '
+echo '                                                    '
+echo '                        S U C C E S S !             '
 echo
 echo ADCIRC has been build and the ADCIRC profile registered in asgsh.
 echo To load this profile, at the asgsh prompt, enter:
