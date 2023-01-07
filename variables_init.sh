@@ -3,7 +3,7 @@
 # variables_init.sh: Called when ASGS first starts up, to declare
 # and initialize variables.
 #----------------------------------------------------------------
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2021--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -26,7 +26,11 @@ variables_init()
    HPCENVSHORT=${HPCENVSHORT:-null}
    HPCENV=${HPCENV:-null}
    BACKGROUNDMET=on
+   # tides
    TIDEFAC=off
+   selfAttractionEarthLoadTide="notprovided"
+   LOADTIDEURL=null
+   #
    TROPICALCYCLONE=off
    GET_ATCF_SCRIPT=${GET_ATCF_SCRIPT:-"$SCRIPTDIR/get_atcf.pl"}
    WAVES=off
@@ -140,6 +144,8 @@ variables_init()
    declare -g -a subshellPIDs  # list of process IDs of subshells
    declare -g -a logFiles      # list of log files to be tailed onto scenario.log
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
+   # mesh coordinate system
+   zNorth="northpole"
    #
    #  H O O K S
    #

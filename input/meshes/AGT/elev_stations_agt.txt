@@ -1,0 +1,6 @@
+-87.2112        30.4044  ! 8729840 ! NOAA NOS ! Pensacola, FL
+-88.075         30.25    ! 8735180 ! NOAA NOS ! Dauphin Island, AL
+-88.79833       30.39167 ! 8743281 ! NOAA NOS ! Ocean Springs, MS
+-89.3667        30.2817  ! 8747766 ! NOAA NOS ! Waveland, MS
+-89.40667       28.93167 ! 8760922 ! NOAA NOS ! Pilots Station East SW Pass, LA
+-89.95667       29.26333 ! 8761724 ! NOAA NOS ! Grand Isle, LA

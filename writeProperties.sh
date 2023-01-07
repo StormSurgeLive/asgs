@@ -3,7 +3,7 @@
 # writeProperties.sh: Writes configuration and specification
 # info to run.properties metadata file.
 #----------------------------------------------------------------
-# Copyright(C) 2021 Jason Fleming
+# Copyright(C) 2021--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -46,6 +46,7 @@ writeProperties()
    echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tide.selfattractionearthloadtide : $selfAttractionEarthLoadTide" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.varflux : $VARFLUX" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR_RUN_PROPERTIES
@@ -78,6 +79,7 @@ writeProperties()
    # other adcirc specific
    echo "adcirc.hotstartformat : $HOTSTARTFORMAT" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.timestepsize : $TIMESTEPSIZE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.mesh.znorth : $zNorth" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.hotstartcomp : $HOTSTARTCOMP" >> $STORMDIR_RUN_PROPERTIES
    echo "file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR_RUN_PROPERTIES
    echo "file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR_RUN_PROPERTIES

@@ -6,7 +6,7 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2022 Jason Fleming
+# Copyright(C) 2006--2023 Jason Fleming
 # Copyright(C) 2006--2007, 2019--2022 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -81,26 +81,31 @@ checkFileExistence()
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
      else
-        # if this is a mesh or nodal attributes file, attempt to download and uncompress it
-        if [[ $FTYPE = "ADCIRC mesh file"  ]]; then
+        # if this is a mesh (fort.14), nodal attributes (fort.13), static water level correction,
+        # or self attracting / earth load tide (fort.24) file, attempt to download and uncompress it
+        if [[ $FTYPE == "ADCIRC mesh file"  ]]; then
            logMessage "Downloading $FTYPE from ${MESHURL}/${FNAME}.xz."
            curl --version >> $SYSLOG
            curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
-        if [[ $FTYPE = "ADCIRC nodal attributes (fort.13) file" ]]; then
+        if [[ $FTYPE == "ADCIRC nodal attributes (fort.13) file" ]]; then
            logMessage "Attempting to download $FTYPE from ${NODALATTRIBUTESURL}/${FNAME}.xz."
            curl ${NODALATTRIBUTESURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download nodal attributes file from ${NODALATTRIBUTESURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
-        if [[ $FTYPE = "ADCIRC static water level offset data file" ]]; then
+        if [[ $FTYPE == "ADCIRC static water level offset data file" ]]; then
            logMessage "Attempting to download $FTYPE from ${OFFSETURL}/${FNAME}.xz."
-            curl ${OFFSETURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download file from ${OFFSETURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+           curl ${OFFSETURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download file from ${OFFSETURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        fi
+        if [[ $FTYPE == "ADCIRC self attracting earth load tide file" ]]; then
+           logMessage "Attempting to download $FTYPE from ${LOADTIDEURL}/${FNAME}.xz."
+            curl ${LOADTIDEURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download file from ${LOADTIDEURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
         logMessage "THIS: Uncompressing ${FPATH}/${FNAME}.xz."
         xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
         [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
      fi
   fi
-  if [[ $success = no ]]; then
+  if [[ $success == no ]]; then
      fatal "$THIS: The $FTYPE '${FPATH}/${FNAME}' does not exist."
   fi
 }
@@ -233,7 +238,7 @@ function float_cond()
 }
 #
 # subroutine to run adcprep, using a pre-prepped archive of fort.13,
-# fort.14 and fort.18 files
+# fort.14, fort.24 files
 #
 # This subroutine deals with all the possible situations that can arise
 # when running adcprep (hot vs cold, remaking the archive, swan vs no swan etc)
@@ -291,6 +296,15 @@ prep()
         if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
            ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
         fi
+    fi
+    # symbolically link self attraction / earth load tide file if needed
+    if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
+        ln -s $INPUTDIR/$selfAttractionEarthLoadTide $ADVISDIR/$ENSTORM/fort.24 2>> ${SYSLOG}
+    fi
+    # create the znorth file if needed
+    if [[ ! -e $ADVISDIR/$ENSTORM/fort.rotm && $zNorth != "northpole" ]]; then
+        echo "znorth_in_spherical_coors" > $ADVISDIR/$ENSTORM/fort.rotm 2>> ${SYSLOG}
+        echo "$zNorth"                  >> $ADVISDIR/$ENSTORM/fort.rotm 2>> ${SYSLOG}
     fi
     if [ $START = coldstart ]; then
        # if we have variable river flux, link the fort.20 file
@@ -671,6 +685,9 @@ EOF
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
        if [[ ! -z $NAFILE && $NAFILE != null ]]; then
           FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
+       fi
+       if [[ $selfAttractionEarthLoadTide != "notprovided" ]]; then
+          FILELIST=$FILELIST' PE*/fort.24'
        fi
        tar czf ${INPUTDIR}/${PREPPED} ${FILELIST} 2>> ${SYSLOG}
        # check status of tar operation; if it failed, delete the file
@@ -1535,7 +1552,7 @@ executeHookScripts "START_INIT"
 #
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1
-# catch ^C for a final message? 
+# catch ^C for a final message?
 trap 'sigint' INT
 trap 'sigterm' TERM
 trap 'sigexit' EXIT
@@ -1678,7 +1695,10 @@ fi
 if [[ $STATICOFFSET != "null" ]]; then
    checkFileExistence $INPUTDIR "ADCIRC static water level offset data file" $UNITOFFSETFILE
 fi
-
+# self attraction / earth load tide forcing
+if [[ $selfAttractionEarthLoadTide != "notprovided" ]]; then
+   checkFileExistence $INPUTDIR "ADCIRC self attracting earth load tide file" $selfAttractionEarthLoadTide
+fi
 #
 #  O B T A I N   I N I T I A L   H O T S T A R T   F I L E
 #  F R O M   F I L E S Y S T E M   O R   U R L
