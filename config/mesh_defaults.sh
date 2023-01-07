@@ -3,7 +3,7 @@
 # mesh_defaults.sh : Functions required for initializing
 # parameters that are mesh dependent.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2021 Jason Fleming
+# Copyright(C) 2019--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,13 +28,66 @@ MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
 OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
 UNITOFFSETFILE=null
+LOADTIDEURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides
+#
 # The following is common to all meshes and is only used
 # for SWAN (WAVES=on); may not give good numerical results
 # with ADCIRC+SWAN v52; not clear whether it is correctly
 # formatted with ADCIRC+SWAN v55 yet.
 SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
-
+#
+# For ADCIRC versions v55.01 and later, rotated spherical coordinate
+# systems are available that are useful for global meshes to place the
+# poles on land to avoid numerical distortion. The use of this capability
+# and the specification of the coordinates of the north pole are controlled
+# via the zNorth parameter and triggered by a negative value of ICS in the
+# fort.15 file. The north pole location $zNorth is written to a fort.rotm file.
+# Options include the fcollowing:
+# zNorth="northpole"         ! no coordinate system rotation
+# zNorth="-42.8906  72.3200  ! Greenland-Antarctica"
+# zNorth="112.8516  40.3289  ! China-Argentina"
+# zNorth="114.16991  0.77432 ! Borneo-Brazil"
+# Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
+# Model coordinate system reference: https://wiki.adcirc.org/ICS
+zNorth="northpole"
+#
+# Self Attraction/Earth Load Tide Forcing File (fort.24)
+# The Not all meshes will have one of these available, although the global meshes do.
+# This file is required if NTIP=2 (tidal potential parameter) in fort.15
+selfAttractionEarthLoadTide="notprovided"
+#
 case $GRIDNAME in
+   "AGT")
+      # adcirc-global-test mesh, from ADCIRC test suite repository
+      # https://github.com/adcirc/adcirc-testsuite
+      nodes=27330
+      elements=50859
+      INPUTDIR=${SCRIPTDIR}/input/meshes/AGT # mesh and other input files
+      GRIDFILE=agt.14
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=m2-agt.fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE # no wind roughness in AGT fort.13
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=elev_stations_agt.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=agt.13
+      NAPROPERTIES=${NAFILE}.properties
+      RIVERINIT=null                            # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=720.0          # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      zNorth="112.8516 40.3289  ! China-Argentina"
+      selfAttractionEarthLoadTide="m2-agt.fort.24"
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="01:00:00" # forecast wall clock time
+      ;;
    "LA_v19k-WithUpperAtch_chk")
       nodes=1593485
       elements=3102441

@@ -1,0 +1,100 @@
+Global_TestCase
+Katrina_CFSR_6hr+OWI_3hr
+1        	 ! NFOVER 
+0        	 ! NABOUT 
+120        	 ! NSCREEN 
+0        	 ! IHOT 
+-22         	 ! ICS 
+513113          	 ! IM 
+1            	 ! NOLIBF 
+2            	 ! NOLIFA 
+1           	 ! NOLICA 
+1           	 ! NOLICAT 
+2           	 ! NWP 
+internal_tide_friction
+quadratic_friction_coefficient_at_sea_floor
+1   	 	 ! NCOR 
+2   	 	 ! NTIP 
+-14   	 	 ! NWS 
+1    	 	 ! NRAMP 
+9.810000    	 ! G  
+0.0022222   	 ! TAU0 
+720    	 	 ! DTDP 
+0  	 	 ! STATIM 
+0   	 	 ! REFTIM 
+21600 10800	 ! WTMINC 
+30   	 	 ! RNDY 
+5   	 	 ! DRAMP 
+0.5 0.5 0   	  ! A00, B00, C00 
+0.1 0 0 0.01    	 ! H0, 2*dummy, VELMIN 
+0.000000 45.000000  	 	 ! SLAM0, SFEA0 
+0.002500     	 ! CF 
+-0.200000     	 	 ! ELSM 
+0.000000   	 ! CORI 
+10   	 	 ! NTIF 
+MM 
+0.022079  2.639202770e-06 0.690000 1.000000 127.951081   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+MF 
+0.041842  5.323414440e-06 0.690000 1.000000 156.800727   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+Q1 
+0.019303  6.495854130e-05 0.695000 1.269903 113.837609   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+O1 
+0.100818  6.759774407e-05 0.695000 1.173163 245.525849   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+P1 
+0.047037  7.252294576e-05 0.706000 0.989708 140.203536   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+K1 
+0.141909  7.292115851e-05 0.736000 1.109050 217.622925   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+N2 
+0.046510  1.378796998e-04 0.693000 0.967835 333.856526   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+M2 
+0.242922  1.405189028e-04 0.693000 0.964426 101.945997   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+S2 
+0.113308  1.454441043e-04 0.693000 1.002079 0.028438    	 !  TPK, AMIGT, ETRF, FFT, FACET 
+K2 
+0.030779  1.458423170e-04 0.693000 1.305885 254.790821   	 !  TPK, AMIGT, ETRF, FFT, FACET 
+0   	 	 ! NBFR 
+90   	 	 ! ANGINN 
+5 24 30 5  	 ! NOUTE, TOUTSE, TOUTFE, NSPOOLE 
+6  	 	 ! NSTAE 
+-87.2112 	30.4044	NOAA_8729840
+-88.075  	30.25	NOAA_8735180
+-88.79833	30.39167	NOAA_8743281
+-89.3667	30.2817	NOAA_8747766
+-89.40667	28.93167	NOAA_8760922
+-89.95667	29.26333	NOAA_8761724
+5 24 30 5 	 ! NOUTV, TOUTV, TOUTFV, NSPOOLV 
+6  	 	 ! NSTAV 
+-87.2112 	30.4044	NOAA_8729840
+-88.075  	30.25	NOAA_8735180
+-88.79833	30.39167	NOAA_8743281
+-89.3667	30.2817	NOAA_8747766
+-89.40667	28.93167	NOAA_8760922
+-89.95667	29.26333	NOAA_8761724
+0 0 0 0  	 ! NOUTM, TOUTM, TOUTFM, NSPOOLM 
+0   	 	 ! NSTAM 
+5 24 30 120  	 ! NOUTGE, ... 
+5 24 30 120      ! NOUTGV, ... 
+5 24 30 120  	 ! NOUTGM, ... 
+0  	 	 ! NFREQ 
+0 0 0 0  	 ! THAS, THAF, NHAINC, FMV 
+0 0 0 0   	 ! NHASE, NHASV, NHAGE, NHAGV 
+0 0  	  ! NHSTAR, NHSINC 
+1 0   1.000000000e-10 25  	 ! ITITER, ISLDIA, CONVCR, ITMAX 
+Global_TestCase
+Notre Dame CHL
+OceanMesh2D
+History: None
+https://github.com/CHLNDDEV/OceanMesh2D/
+Comments: None
+Host: Name
+Metric, MSL
+wpringle@nd.edu
+2005-08-01 00:00:00
+! -- Begin met Control Namelist -- 
+&metControl
+WindDragLimit = 2.500000e-03,
+DragLawString = default,
+outputWindDrag = F,
+invertedBarometerOnElevationBoundary = F,
+/
+! -- End met Control Namelist -- 
