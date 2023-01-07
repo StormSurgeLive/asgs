@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index cafdbe0..4be9ae4 100644
+index cafdbe0..b2b22c0 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,5 @@
@@ -22,7 +22,15 @@ index cafdbe0..4be9ae4 100644
          FLIBS          :=$(FLIBS) -L/usr/lib64 -lnetcdff
       else
          FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -159,24 +156,16 @@ ifeq ($(compiler),gfortran)
+@@ -108,6 +105,7 @@ ifeq ($(compiler),gnu)
+      MULTIPLE := TRUE
+   endif
+ endif
++
+ #
+ ifeq ($(compiler),gfortran)
+   ifeq ($(MACHINENAME),jason-desktop)
+@@ -159,24 +157,16 @@ ifeq ($(compiler),gfortran)
          #
          # export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/local/lib
          # export PATH=${PATH}:${HOME}/local/bin
@@ -47,7 +55,7 @@ index cafdbe0..4be9ae4 100644
       FLIBS      := $(FLIBS) -lnetcdff
    endif
    IMODS 	:=  -I
-@@ -226,10 +215,10 @@ endif
+@@ -226,10 +216,10 @@ endif
  # feupdateenv until run time, thus avoiding the error message:
  # "feupdateenv is not implemented and will always fail"
  ifeq ($(compiler),intel)
@@ -61,7 +69,7 @@ index cafdbe0..4be9ae4 100644
    CFLAGS        := $(INCDIRS) -O2 -xSSE4.2 -m64 -mcmodel=medium -DLINUX
    FLIBS         :=
    ifeq ($(DEBUG),full)
-@@ -271,6 +260,16 @@ ifeq ($(compiler),intel)
+@@ -271,6 +261,30 @@ ifeq ($(compiler),intel)
          FLIBS   := $(INCDIRS) -xCORE-AVX512 
       endif
    endif
@@ -75,10 +83,24 @@ index cafdbe0..4be9ae4 100644
 +        FLIBS   := $(INCDIRS)
 +     endif
 +  endif
++  #wwlwpd: NOTE: Mike III at LSU-HPC recommends 'mpiifort', Intel's MPI implementation wrapper
++  #wwlwpd: instead of the traditional "mpif90"; but the flags are the same we still redefine
++  #wwlwpd: "PFC" below
++  ifeq ($(MACHINENAME),mike)
++     PFC     :=  mpiifort
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
++     FLIBS   := $(INCDIRS) -xAVX
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
++        FLIBS   := $(INCDIRS) -xAVX
++     endif
++  endif
    ifeq ($(MACHINENAME),queenbee)
       FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
       CFLAGS  := $(INCDIRS) -O3 -DLINUX -xSSE4.2
-@@ -291,6 +290,27 @@ ifeq ($(compiler),intel)
+@@ -291,6 +305,26 @@ ifeq ($(compiler),intel)
          FLIBS   := $(INCDIRS) -xAVX
       endif
    endif
@@ -102,11 +124,10 @@ index cafdbe0..4be9ae4 100644
 +        FLIBS   := $(INCDIRS) -xAVX
 +     endif
 +  endif
-+  endif
    #
    #@jasonfleming Added to fix bus error on hatteras@renci
    ifeq ($(HEAP_ARRAYS),fix)
-@@ -311,34 +331,24 @@ ifeq ($(compiler),intel)
+@@ -311,34 +345,24 @@ ifeq ($(compiler),intel)
    MSGLIBS       :=
    ifeq ($(NETCDF),enable)
       ifeq ($(MACHINENAME),hatteras)
@@ -147,7 +168,7 @@ index cafdbe0..4be9ae4 100644
       endif
       ifeq ($(MACHINENAME),frontera)
          # specify NETCDFHOME on the command line or as an environment var
-@@ -347,42 +357,23 @@ ifeq ($(compiler),intel)
+@@ -347,42 +371,26 @@ ifeq ($(compiler),intel)
       # @jasonfleming: Added support for lonestar5 at tacc.utexas.edu;
       # load the following module: netcdf/4.3.3.1
       ifeq ($(MACHINENAME),lonestar5)
@@ -157,6 +178,9 @@ index cafdbe0..4be9ae4 100644
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 +     endif
 +     ifeq ($(MACHINENAME),ls6)
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
++     endif
++     ifeq ($(MACHINENAME),mike)
          FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
       endif
       # jgf20150817: Adding support for spirit.afrl.hpc.mil;
@@ -193,11 +217,12 @@ index cafdbe0..4be9ae4 100644
    $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
    ifneq ($(FOUND),TRUE)
       FOUND := TRUE
-@@ -390,22 +381,13 @@ ifeq ($(compiler),intel)
-      MULTIPLE := TRUE
+@@ -391,21 +399,15 @@ ifeq ($(compiler),intel)
    endif
  endif
--
+ 
++endif
++
  #
  # Corbitt 120322:  These flags work on the Notre Dame Athos & Zas
  ifeq ($(compiler),intel-ND)
@@ -218,7 +243,7 @@ index cafdbe0..4be9ae4 100644
    ifeq ($(DEBUG),full)
       FFLAGS1    :=  $(INCDIRS) -g -O0 -traceback -debug -check all -FI -assume byterecl -132 -DEBUG -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
    endif
-@@ -423,29 +405,21 @@ ifeq ($(compiler),intel-ND)
+@@ -423,29 +425,21 @@ ifeq ($(compiler),intel-ND)
    CFLAGS        := $(INCDIRS) -O3 -m64 -mcmodel=medium -DLINUX
    FLIBS         := 
    ifeq ($(DATETIME),enable)
@@ -253,7 +278,7 @@ index cafdbe0..4be9ae4 100644
    CLIBS         :=
    MSGLIBS       :=
    $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
-@@ -454,15 +428,13 @@ ifeq ($(compiler),intel-ND)
+@@ -454,15 +448,13 @@ ifeq ($(compiler),intel-ND)
    else
       MULTIPLE := TRUE
    endif
@@ -270,7 +295,7 @@ index cafdbe0..4be9ae4 100644
    CC            :=  icc -O2 -no-ipo
    CCBE          :=  icc -O2 -no-ipo
    FFLAGS1       :=  $(INCDIRS) -fixed -extend-source 132 -O2 -finline-limit=1000 -real-size 64 -no-ipo -assume buffered_io
-@@ -476,9 +448,6 @@ ifeq ($(compiler),intel-sgi)
+@@ -476,9 +468,6 @@ ifeq ($(compiler),intel-sgi)
    IMODS         :=  -module
    FLIBS         :=
    ifeq ($(NETCDF),enable)
@@ -280,7 +305,7 @@ index cafdbe0..4be9ae4 100644
       ifeq ($(MACHINENAME),thunder)
          # add the following lines to ~/.personal.bashrc:
          # module load costinit
-@@ -520,7 +489,6 @@ ifeq ($(compiler),cray_xt3)
+@@ -520,7 +509,6 @@ ifeq ($(compiler),cray_xt3)
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
  # jgf20101102: on Sapphire,
@@ -288,7 +313,7 @@ index cafdbe0..4be9ae4 100644
  #              HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.5-serial/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lz
-@@ -563,10 +531,8 @@ ifeq ($(compiler),cray_xt4)
+@@ -563,10 +551,8 @@ ifeq ($(compiler),cray_xt4)
  # be linked in, so the user must specify HDF5HOME on the command line.
  # On Jade, HDF5 was compiled with szip compression, so this library is
  # required as well.
@@ -299,7 +324,7 @@ index cafdbe0..4be9ae4 100644
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -L$(SZIPHOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz
    endif
-@@ -599,7 +565,6 @@ ifeq ($(compiler),cray_xt5)
+@@ -599,7 +585,6 @@ ifeq ($(compiler),cray_xt5)
    FLIBS  	:=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -307,7 +332,7 @@ index cafdbe0..4be9ae4 100644
  # jgf20090518: on Jade, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.2/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -633,7 +598,6 @@ ifeq ($(compiler),xtintel)
+@@ -633,7 +618,6 @@ ifeq ($(compiler),xtintel)
    FLIBS         :=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -315,7 +340,7 @@ index cafdbe0..4be9ae4 100644
  # jgf20090518: on Jade, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.2/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -703,10 +667,8 @@ ifeq ($(compiler),utils)
+@@ -703,10 +687,8 @@ ifeq ($(compiler),utils)
  # be linked in, so the user must specify HDF5HOME on the command line.
  # On Jade, HDF5 was compiled with szip compression, so this library is
  # required as well.
@@ -326,7 +351,7 @@ index cafdbe0..4be9ae4 100644
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -L$(SZIPHOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz
    endif
-@@ -778,7 +740,6 @@ ifeq ($(compiler),diamond)
+@@ -778,7 +760,6 @@ ifeq ($(compiler),diamond)
    LIBS          :=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -334,7 +359,7 @@ index cafdbe0..4be9ae4 100644
  # jgf20101103: on Diamond, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.4-serial/lib
    ifeq ($(NETCDF),enable)
       NETCDFHOME     :=/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial
-@@ -822,7 +783,6 @@ ifeq ($(compiler),garnet)
+@@ -822,7 +803,6 @@ ifeq ($(compiler),garnet)
    endif
    IMODS		:=  -module
    FLIBS         :=
@@ -342,7 +367,7 @@ index cafdbe0..4be9ae4 100644
  # jgf20110815: on Garnet, HDF5HOME=/opt/cray/hdf5/default/hdf5-pgi
  # jgf20130815: on Garnet, load module cray-netcdf, with the path to the
  #              installation being /opt/cray/netcdf/4.3.0
-@@ -897,7 +857,6 @@ ifeq ($(compiler),circleci)
+@@ -897,7 +877,6 @@ ifeq ($(compiler),circleci)
    endif
  endif
  #
@@ -350,7 +375,7 @@ index cafdbe0..4be9ae4 100644
  #$(MACHINE)
  ########################################################################
  # Compiler flags for Linux operating system on 32bit x86 CPU
-@@ -944,7 +903,7 @@ endif
+@@ -944,7 +923,7 @@ endif
  ifeq ($(compiler),intel)
    PPFC	        :=  ifort -w
    FC	        :=  ifort -w
@@ -359,7 +384,7 @@ index cafdbe0..4be9ae4 100644
    OPTLVL        := -O2
    ifeq ($(ADC_DEBUG),yes)
      OPTLVL        := -g
-@@ -1248,7 +1207,6 @@ ifeq ($(IBM),p6)
+@@ -1248,7 +1227,6 @@ ifeq ($(IBM),p6)
     MSGLIBS       := -lm
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -367,7 +392,7 @@ index cafdbe0..4be9ae4 100644
  # yf20110301: on Cirrus/Stratus, HDF5HOME=/usrx/local/hdf5/lib
    HDF5HOME=/usrx/local/hdf5/lib
    ifeq ($(NETCDF),enable)
-@@ -1525,9 +1483,9 @@ ifneq (,$(findstring powerpc-darwin,$(MACHINE)-$(OS)))
+@@ -1525,9 +1503,9 @@ ifneq (,$(findstring powerpc-darwin,$(MACHINE)-$(OS)))
    PPFC	        := f90
    FC	        := f90
    PFC	        := mpif77
@@ -380,7 +405,7 @@ index cafdbe0..4be9ae4 100644
    DA  	   	:=  -DREAL8 -DCSCA -DLINUX
    DP  	   	:=  -DREAL8 -DCSCA -DCMPI -DLINUX
    DPRE	   	:=  -DREAL8 -DLINUX
-@@ -1555,10 +1513,10 @@ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
+@@ -1555,10 +1533,10 @@ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
    PPFC	        := ifort
    FC	        := ifort
    PFC	        := mpif77
