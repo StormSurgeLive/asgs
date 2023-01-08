@@ -1,12 +1,13 @@
 !--------------------------------------------------------------------------
 ! generateCPP.f90
 !
-! A program to precompute the CPP (carte parallelogrammatique projection)
-! and adding it to a NetCDF data file that contains an ADCIRC mesh.
-! This projection is useful in visualization.
+! Computes coordinates for points in geographic projection in
+! netcdf file. The CPP (carte parallelogrammatique projection)
+! and cartesian unit sphere are both available.
+! These coordinates are useful for visualization.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012--2017 Jason Fleming
+! Copyright(C) 2012--2022 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -35,9 +36,11 @@ type(meshNetCDF_t) :: n
 integer :: NC_Count(2)
 integer :: NC_Start(2)
 character(len=NF90_MAX_NAME) :: varname
-type(fileMetaData_t) :: fn ! netcdf file 
+type(fileMetaData_t) :: fn ! netcdf file
 logical :: foundCPP
 logical :: projectCPP
+logical :: foundCartesianSphere
+logical :: projectCartesianSphere
 logical :: fileFound
 integer :: errorIO
 integer :: i  ! loop counter
@@ -46,7 +49,8 @@ integer :: i  ! loop counter
 if (loggingInitialized.eqv..false.) then
    call initLogging(availableUnitNumber(),'generateCPP.f90')
 endif
-
+projectCPP = .false.
+projectCartesianSphere = .false.
 fileFound = .false.
 argcount = iargc() ! count up command line options
 if (argcount.gt.0) then
@@ -70,6 +74,9 @@ if (argcount.gt.0) then
             call getarg(i, cmdlinearg)
             read(cmdlinearg,*) m%sfea0
             write(6,*) "INFO: slam0=",m%slam0," and sfea0=",m%sfea0,"."
+         case("--cartesian-sphere")
+            write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+            projectCartesianSphere = .true.
          case default
             write(6,*) "WARNING: The command line option ",trim(cmdlineopt)," was not recognized."
       end select
@@ -86,22 +93,29 @@ call findMeshDimsNetCDF(m, n)
 call readMeshNetCDF(m, n)
 !
 ! check to see if we have already created netcdf variables for the
-! CPP coordinates
+! CPP and cartesian sphere coordinates
 call check(nf90_open(trim(fn%dataFileName), NF90_WRITE, fn%nc_id))
 call check(nf90_inquire(fn%nc_id,nVariables=fn%nvar))
 foundCPP = .false.
+foundCartesianSphere = .false.
 do i=1,fn%nvar
    call check(nf90_inquire_variable(fn%nc_id, i, name=varname))
    if ( trim(varname).eq."x_cpp" ) then
       foundCPP = .true.
-      write(6,'("INFO: CPP coordinates are already present in the file. They will be updated.")')
+      write(6,'("INFO: CPP coordinates are already present in the file.")')
       n%NC_VarID_x_cpp = i
       call check(nf90_inq_varid(fn%nc_id, "y_cpp", n%NC_VarID_y_cpp))
-      exit
+   endif
+   if ( trim(varname).eq."x-cartesian-sphere" ) then
+      foundCartesianSphere = .true.
+      write(6,'("INFO: Cartesian sphere coordinates are already present in the file.")')
+      n%NC_VarID_x_cartesian_sphere = i
+      call check(nf90_inq_varid(fn%nc_id, "y-cartesian-sphere", n%NC_VarID_y_cartesian_sphere))
+      call check(nf90_inq_varid(fn%nc_id, "z-cartesian-sphere", n%NC_VarID_z_cartesian_sphere))
    endif
 end do
-! if we didn't find the cpp coordinate variables, create them
-if ( foundCPP.eqv..false. ) then
+! if we didn't find the CPP coordinate variables, create them
+if ( (foundCPP.eqv..false.) .and. (projectCPP.eqv..true.) ) then
    write(6,'("INFO: CPP coordinates were not present in the file. They will be created.")')
    call check(nf90_redef(fn%nc_id))
    call check(nf90_def_var(fn%nc_id, "x_cpp", NF90_DOUBLE, n%NC_DimID_node, n%NC_VarID_x_cpp))
@@ -116,24 +130,70 @@ if ( foundCPP.eqv..false. ) then
    call check(nf90_put_att(fn%nc_id,n%nc_varid_y_cpp,'positive','north'))
 #ifdef HAVE_NETCDF4
 #ifdef NETCDF_CAN_DEFLATE
-         call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_x_cpp, 1, 1, 2))
-         call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_y_cpp, 1, 1, 2))
+   call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_x_cpp, 1, 1, 2))
+   call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_y_cpp, 1, 1, 2))
+#endif
+#endif
+   call check(nf90_enddef(fn%nc_id))
+endif
+! if we didn't find the cartesian sphere coordinate variables, create them
+if ( (foundCartesianSphere.eqv..false.) .and. (projectCartesianSphere.eqv..true.) ) then
+   write(6,'("INFO: Cartesian sphere coordinates were not present in the file. They will be created.")')
+   call check(nf90_redef(fn%nc_id))
+   call check(nf90_def_var(fn%nc_id, "x-cartesian-sphere", NF90_DOUBLE, n%NC_DimID_node, n%NC_VarID_x_cartesian_sphere))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_x_cartesian_sphere,'long_name','x cartesian coordinate on a unit sphere'))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_x_cartesian_sphere,'standard_name','x'))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_x_cartesian_sphere,'units','earth radius normalized to unity'))
+   call check(nf90_def_var(fn%nc_id, "y-cartesian-sphere", NF90_DOUBLE, n%NC_DimID_node, n%NC_VarID_y_cartesian_sphere))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_y_cartesian_sphere,'long_name','y cartesian coordinate on a unit sphere'))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_y_cartesian_sphere,'standard_name','y'))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_y_cartesian_sphere,'units','earth radius normalized to unity'))
+   call check(nf90_def_var(fn%nc_id, "z-cartesian-sphere", NF90_DOUBLE, n%NC_DimID_node, n%NC_VarID_z_cartesian_sphere))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_z_cartesian_sphere,'long_name','z cartesian coordinate on a unit sphere'))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_z_cartesian_sphere,'standard_name','z'))
+   call check(nf90_put_att(fn%nc_id,n%nc_varid_z_cartesian_sphere,'units','earth radius normalized to unity'))
+#ifdef HAVE_NETCDF4
+#ifdef NETCDF_CAN_DEFLATE
+   call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_x_cartesian_sphere, 1, 1, 2))
+   call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_y_cartesian_sphere, 1, 1, 2))
+   call check(nf90_def_var_deflate(fn%nc_id, n%NC_VarID_z_cartesian_sphere, 1, 1, 2))
 #endif
 #endif
    call check(nf90_enddef(fn%nc_id))
 endif
 !
-! compute the projection to cartesian coordinates
-call computeCPP(m)
+if ( projectCPP.eqv..true. ) then
+   !
+   ! compute the projection to cpp coordinates
+   call computeCPP(m)
+   !
+   ! write the projected coordinates to the file
+   write(6,'("INFO: Adding CPP coordinates to the NetCDF file.")')
+   call check(nf90_put_var(fn%nc_id, n%NC_VarID_x_cpp, m%x_cpp))
+   call check(nf90_put_var(fn%nc_id, n%NC_VarID_y_cpp, m%y_cpp))
+   !
+   ! clean up
+   deallocate(m%x_cpp, m%y_cpp)
+   write(6,'("INFO: Finished generating CPP coordinates. Variable names are x_cpp and y_cpp.")')
+endif
 !
-! write the projected coordinates to the file
-write(6,'("INFO: Adding CPP coordinates to the NetCDF file.")')
-call check(nf90_put_var(fn%nc_id, n%NC_VarID_x_cpp, m%x_cpp))
-call check(nf90_put_var(fn%nc_id, n%NC_VarID_y_cpp, m%y_cpp))
-!
-! clean up
-deallocate(m%x_cpp, m%y_cpp)
-write(6,'("INFO: Finished generating CPP coordinates. Variable names are x_cpp and y_cpp.")')
+if ( projectCartesianSphere.eqv..true. ) then
+   !
+   ! compute the projection to unit sphere in cartesian coordinates
+   call computeCartesianSphere(m)
+   !
+   ! write the projected coordinates to the file
+   write(6,'("INFO: Adding cartesian unit sphere coordinates to the NetCDF file.")')
+   call check(nf90_put_var(fn%nc_id, n%NC_VarID_x_cartesian_sphere, m%x_cartesian_sphere))
+   call check(nf90_put_var(fn%nc_id, n%NC_VarID_y_cartesian_sphere, m%y_cartesian_sphere))
+   call check(nf90_put_var(fn%nc_id, n%NC_VarID_z_cartesian_sphere, m%z_cartesian_sphere))
+   !
+   ! clean up
+   deallocate(m%x_cartesian_sphere, m%y_cartesian_sphere, m%z_cartesian_sphere)
+   write(6,'("INFO: Finished generating CPP coordinates. Variable names are x_cartesian_sphere, y_cartesian_sphere, and z_cartesian_sphere.")')
+endif
+
+
 !----------------------------------------------------------------------
 end program generateCPP
 !----------------------------------------------------------------------

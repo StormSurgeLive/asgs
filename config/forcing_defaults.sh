@@ -59,7 +59,8 @@ forecastDownload="only-to-run"        # "only-to-run" or "all"
 #  Meteorological Forcing : Global Forecast System (GFS) Model
 #
 GFSBACKSITE="ftp.ncep.noaa.gov"           # forecast data from NCEP
-GFSBACKDIR="/pub/data/nccf/com/gfs/v16.2" # contains the GFS files
+GFSBACKDIR="/pub/data/nccf/com/gfs/v16.3" # contains the GFS files
+# GFS subset
 gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
