@@ -42,13 +42,17 @@ cd $_ASGS_TMP
 if [ ! -e ${NASM_TGZ} ]; then
   wget --no-check-certificate https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/${NASM_TGZ}
 fi
-
-rm -rf $NASM_DIR 2> /dev/null
-tar zxvf $NASM_TGZ
-cd $NASM_DIR
-./configure --prefix=$OPT
-make
-make install
+# check that there are no issues with downloading nasm
+if [[ -e ${NASM_TGZ} && -s ${NASM_TGZ} &&  "$(file ${NASM_TGZ} )" =~ "gzip compressed data" ]]; then
+  rm -rf $NASM_DIR 2> /dev/null
+  tar zxvf $NASM_TGZ
+  cd $NASM_DIR
+  ./configure --prefix=$OPT
+  make
+  make install
+else
+  echo ERROR: cloud/general/init_ffmpeg.sh: Failed to download ${NASM_TGZ}
+fi
 
 # now fetch and build/install ffmpeg
 cd $_ASGS_TMP
