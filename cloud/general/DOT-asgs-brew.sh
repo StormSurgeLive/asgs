@@ -899,6 +899,7 @@ show scratchdir
 show workdir
 show machinename
 show platform_init
+show adcirccompiler
 echo
 
 # construct to handle "autorun" options
