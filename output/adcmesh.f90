@@ -168,10 +168,12 @@ type mesh_t
    integer, allocatable :: nneighele(:)
    real(8) :: slam0  ! longitude on which cpp projection is centered (degrees)
    real(8) :: sfea0  ! latitude on which cpp projection is centered (degrees)
-   real(8) :: lonmin   ! domain extents (degrees)
+   real(8) :: lonmin ! domain extents (degrees)
    real(8) :: lonmax
    real(8) :: latmin
    real(8) :: latmax
+   logical :: useStationTolerance ! allow close stations to be associated with mesh with some tolerance
+   real(8) :: stationTolerance    ! tolerance to use for stations just outside mesh
    !
    ! elevation boundaries
    type(simpleBoundary_t), allocatable :: elevationBoundaries(:)
@@ -267,6 +269,7 @@ type station_t
    logical :: elementFound   ! true if the element number is known
    integer :: elementIndex   ! where station is located in a particular mesh element table array
    real(8) :: elementArea    ! total area in m^2
+   logical :: outsideWithinTolerance  ! if the station is actually outside mesh but within tolerance (for meshes where this criterion is active)
    real(8) :: elementBathyDepth       ! spatially weighted interpolation of nodal depths (m)
    integer :: n(3)           ! nodes that surround the station
    real(8) :: w(3)           ! weights used to interpolate station values based on nodal values
@@ -579,6 +582,7 @@ integer :: nc_ele_start(2)
 integer :: nc_boundmax_count(2) ! max boundary nodes table is 2D
 integer :: nc_boundmax_start(2)
 !
+m%useStationTolerance = .false.
 write(6,'(a)') 'INFO: Reading mesh from the netCDF file.'
 call allocateNodalAndElementalArrays(m)
 !
@@ -688,6 +692,7 @@ integer :: lineNum ! line number currently being read
 !
 ! initialization
 m%nfluxf = 0
+m%useStationTolerance = .false.
 !
 if (trim(m%meshFileName).eq."null") then
    write(6,'(a)',advance='no') "Enter name of the mesh file: "
@@ -2059,6 +2064,7 @@ integer :: e
 
 if (station%elementFound.eqv..false.) then
 
+   station%outsideWithinTolerance = .false.
    do e=1,m%ne
       X1 = station%lon
       X2 = m%xyd(1,m%nm(e,2))
@@ -2095,6 +2101,12 @@ if (station%elementFound.eqv..false.) then
       if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
          station%elementIndex = e
          station%elementFound = .true.
+         exit
+      endif
+      if (m%useStationTolerance.and.(SubArea1+SubArea2+SubArea3).LE.((1.0+m%stationTolerance)*TotalArea))THEN
+         station%elementIndex = e
+         station%elementFound = .true.
+         station%outsideWithinTolerance = .true.
          exit
       endif
    end do
