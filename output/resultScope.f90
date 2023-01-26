@@ -4,7 +4,7 @@
 ! data are too large to feasibly analyze/visualize.
 !----------------------------------------------------------------------
 ! Copyright(C) 2009 Seizo Tanaka
-! Copyright(C) 2016--2017 Jason Fleming
+! Copyright(C) 2016--2022 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -40,6 +40,10 @@ implicit none
 type(mesh_t) :: fm ! full domain mesh
 type(meshNetCDF_t) :: fn ! fulldomain mesh netcdf IDs
 type(fileMetaData_t) :: fd   ! fulldomain data file
+!
+type(mesh_t) :: fmMod ! full domain mesh
+type(meshNetCDF_t) :: fnMod ! fulldomain mesh netcdf IDs
+type(fileMetaData_t) :: fdMod   ! fulldomain data file
 !
 type(mesh_t) :: rm ! resultShape mesh
 type(meshNetCDF_t) :: rn ! resultShape mesh netcdf IDs
@@ -85,9 +89,13 @@ real(8) :: upperRightLatitude
 real(8) :: upperRightLongitude
 real(8) :: lowerLeftLatitude
 real(8) :: lowerLeftLongitude
-logical :: wetonly ! .true. if the result mesh(es) should consist of wet nodes only
-integer, allocatable :: w(:) ! 1 if node is wet, 0 if node is dry
+logical :: wetonly  ! .true. if the result mesh(es) should consist of wet nodes only (elements must have 3 wet nodes)
+logical :: nodelist ! .true. if a list of nodes will be provided (greedy for elements)
+integer, allocatable :: w(:) ! >=1 if node is wet, 0 if node is dry
 integer :: wUnit ! to read wet dry file
+character(1000) :: toSet ! the variable to be set
+real(8) :: bathyValue    ! bathy value to reset data to
+logical :: setBathy      ! true if bathy data are to be set
 real(8) :: temp1, temp2
 
 character(1) :: junkc
@@ -98,10 +106,14 @@ integer :: h ! horizontal node counter
 !
 fm%meshFileName = "null"
 rm%meshFileName = "null"
+fmMod%meshFileName = "null"
 fd%dataFileFormat = ASCII
 rd%dataFileFormat = ASCII
+fdMod%dataFileFormat = ASCII
 meshonly = .false.
 wetonly = .false.
+nodelist = .false.
+setBathy = .false.
 dataFileBase = "null"
 fd%defaultFileName = "null"
 !
@@ -169,6 +181,20 @@ if (argcount.gt.0) then
          case default
             call allMessage(WARNING,'Command line option "'//trim(cmdlineopt)//'" was not recognized.')
          end select
+      case('--set')
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),' ',trim(cmdlinearg),'.'
+         toSet = trim(cmdlinearg)
+         select case(trim(toSet))
+         case('bathy')
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            read(cmdlinearg,*) bathyValue
+            setBathy = .true.
+         case default
+            write(6,'(a,a,a)') 'WARNING: Command line option "',trim(toSet),'" was not recognized.'
+         end select
       case('--resultshape')
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -210,6 +236,8 @@ if (argcount.gt.0) then
             polygonFile = trim(cmdlinearg)
          case('wetonly')
             wetonly = .true.
+         case('nodelist')
+            nodelist = .true.
          case default
             write(6,'(a,a,a)') 'WARNING: Command line option "',trim(cmdlineopt),'" was not recognized.'
          end select
@@ -318,14 +346,14 @@ case('polygon')
    end do
    write(scratchMessage,'(a,i0,a)' ) 'There are ',count(within),' vertices in the polygon.'
    call allMessage(INFO,trim(scratchMessage))
-case('wetonly')
-   call allMessage(INFO,'The wet vertices will be determined by reading data on STDIN.')
+case('wetonly','nodelist')
+   call allMessage(INFO,'The vertices will be determined by reading data on STDIN.')
    allocate(w(fm%np))
    do n=1, fm%np
       read(*,*) w(n)
    end do
    do n=1, fm%np
-      if (w(n).eq.1) then
+      if (w(n).ge.1) then
          within(n) = .true.
       endif
    end do
@@ -336,6 +364,20 @@ case default
    write(6,'(a,a,a)') 'ERROR: The result shape "',trim(resultShape),'" was not recognized.'
    stop
 end select
+!
+! if the bathy should be set, output the fulldomain mesh with the selected
+! nodes set to the specified value
+if ( setBathy.eqv..true. ) then
+   fmMod%meshFileName = fm%meshFileName
+   call read14(fmMod)
+   do n=1, fmMod%np
+      if (within(n).eqv..true.) then
+         fmMod%xyd(3,n) = bathyValue
+      endif
+   end do
+   fmMod%meshFileName = trim(fm%meshFileName) // '_' // trim(resultShape) // '-set.14'
+   call writeMesh(fmMod)
+endif
 !
 !   S U B S E T   T H E   M E S H
 !
@@ -351,12 +393,12 @@ if (rd%dataFileFormat.eq.ASCII) then
       rm%meshFileName = trim(meshFileBase) // '_' // trim(resultShape) // '-sub.14'
    endif
    call writeMesh(rm)
-   if (meshonly.eqv..true.) then
-      write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
-      stop
-   endif
 endif
-
+!
+if (meshonly.eqv..true.) then
+   write(6,'("INFO: The --meshonly command line option was specified; the subdomain mesh has been written and execution is complete.")')
+   stop
+endif
 !
 ! if the data file is a nodal attributes file, process that separately
 if (trim(fd%defaultFileName).eq.'fort.13') then
