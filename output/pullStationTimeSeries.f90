@@ -19,7 +19,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !------------------------------------------------------------------
-! Compile with accompanying makefile. 
+! Compile with accompanying makefile.
 !------------------------------------------------------------------
 program pullStationTimeSeries
 use asgsio
@@ -53,7 +53,7 @@ real(8) :: snapr
 integer :: numNodesNonDefault
 integer :: i, j, node, ds, s, k
 integer :: errorIO
-logical :: zeroIndex     ! true if stations should be numbered starting at zero 
+logical :: zeroIndex     ! true if stations should be numbered starting at zero
 integer :: stationStart  ! station index to start on
 integer :: stationEnd    ! station index to end on
 logical :: useGivenNodeNumber ! .true. if given node numbers should be used in first column of output
@@ -61,12 +61,15 @@ logical :: peak = .false. ! .true. if a peak value should be generated for every
 integer, allocatable :: ipeakvalues(:)
 real(8), allocatable :: peakvalues1(:)
 real(8), allocatable :: peakvalues2(:)
-character(len=2000) :: note     ! metadata for station file output 
-character(len=2000) :: filetype ! timeseries or peak 
+character(len=2000) :: note     ! metadata for station file output
+character(len=2000) :: filetype ! timeseries or peak
+logical :: useProximityTolerance   ! true if stations just outside mesh should be included
+real(8) :: proximityTolerance      ! additional factor for comparing areas
+logical :: quiet                   ! true if the output of station numbers to the screen should be suppressed
 !---------------------------------------------------------------------------------
 ! M A U R E P A R T I C L E
 !---------------------------------------------------------------------------------
-! TODO: fix the maureparticle interface so it determines the number of datasets, time increment, and start time automatically 
+! TODO: fix the maureparticle interface so it determines the number of datasets, time increment, and start time automatically
 integer :: numParticles = 0    ! number of particles in the file
 integer :: numDatasets = 0     ! number of datasets in the file
 real(8) :: timeIncrement = 0   ! time increment (sec) between datasets
@@ -82,11 +85,11 @@ integer, allocatable :: peakParticleCount(:)       ! raw number of particles at 
 real(8), allocatable :: peakParticlesPerArea(:)     ! p/m^2 at model location (numValuesPerDataset)
 real(8), allocatable :: peakParticlesPerVolume(:)   ! p/m^3 at model location (numValuesPerDataset)
 real(8), allocatable :: peakTime(:)       ! p/m^3 (numValuesPerDataset)
-logical :: duration                       ! true if time extent of nonzero particle count should be reported 
+logical :: duration                       ! true if time extent of nonzero particle count should be reported
 real(8), allocatable :: durationStart(:)  ! (numValuesPerDataset) (sec) when nonzero particle count was first detected
 real(8), allocatable :: durationEnd(:)    ! (numValuesPerDataset) (sec) since nonzero particle count was found
 type(fileMetaData_t), allocatable :: pd(:)      ! (3) time series of (a) particle count, (b) particles per m^2, and (c) particles per m^3
-integer :: numValuesPerDataset  ! number of stations for station file or number of elements for .100 file   
+integer :: numValuesPerDataset  ! number of stations for station file or number of elements for .100 file
 integer :: f                    ! particle station file loop counter
 integer :: p                    ! particle loop counter
 integer :: e                    ! element loop counter
@@ -98,18 +101,24 @@ character(len=10) :: fileExtension ! .100 for elemental quantity, .200 for peak 
 ! initializations
 call initLogging(availableUnitNumber(),'pullStationTimeSeries.f90')
 m%meshFileName = 'fort.14'
+m%useStationTolerance = .false.
+m%stationTolerance = 0.d0
 stationFileName = 'null'  ! e.g., stations.txt
 nodeFileName = 'null'     ! e.g., nodes.txt
 numStations = 0
 numNodeStations = 0
 fs%dataFileName = 'stations_timeseries.txt'
 fs%dataFileFormat = ASCIIG
+ft%dataFileName = 'null'
 ft%dataFileFormat = ASCIIG
+headerLineOne = "# headerLineOne"
 dataSetHeaderLine = "-99999.0 -99999"
 zeroIndex = .false.
 useGivenNodeNumber = .false.
 peak = .false.
 duration = .false.
+useProximityTolerance = .false.
+quiet = .false.
 
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -153,24 +162,24 @@ if (argcount.gt.0) then
          call getarg(i, cmdlinearg)
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
          read(cmdlinearg,*) startTime
-         
+
       case("--time-increment")
          i = i + 1
          call getarg(i, cmdlinearg)
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-         read(cmdlinearg,*) timeIncrement         
+         read(cmdlinearg,*) timeIncrement
 
       case("--to-element")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
-         toElement = .true. 
+         toElement = .true.
 
       case("--peak")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
          peak = .true.
-         
+
       case("--duration")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
-         duration = .true.         
+         duration = .true.
 
       case("--netcdf")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
@@ -183,6 +192,12 @@ if (argcount.gt.0) then
          call getarg(i, cmdlinearg)
          write(6,'(99(a))') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
          stationFileName = trim(cmdlinearg)
+      case("--proximity-tolerance")
+         useProximityTolerance = .true.
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(99(a))') "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+         read(cmdlinearg,*) m%stationTolerance
       case("--nodefile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -190,7 +205,10 @@ if (argcount.gt.0) then
          nodeFileName = trim(cmdlinearg)
       case("--use-given-node-number")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
-         useGivenNodeNumber = .true.         
+         useGivenNodeNumber = .true.
+      case("--quiet")
+         write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
+         quiet = .true.
       case("--outputfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -207,7 +225,7 @@ else
 
    WRITE(*,*)'STATION X,Y FILE?'
    READ(*,*) stationFileName
-end if    
+end if
 !
 ! read in the mesh
 if ( ft%dataFileFormat.eq.NETCDFG ) then
@@ -219,9 +237,9 @@ else
 endif
 !
 !------------------------------------------------------------------------
-!                  P R O C E S S 
+!                  P R O C E S S
 !                 S T A T I O N S
-!------------------------------------------------------------------------ 
+!------------------------------------------------------------------------
 !  count the number of stations
 if ( trim(adjustl(stationFileName)).ne.'null' ) then
    sfUnit = availableUnitNumber()
@@ -237,7 +255,7 @@ if ( trim(adjustl(stationFileName)).ne.'null' ) then
    stationEnd = numStations
    if (zeroIndex.eqv..true.) then
       stationStart = 0
-      stationEnd = numStations - 1 
+      stationEnd = numStations - 1
    endif
    allocate(stations(stationStart:stationEnd))
    !
@@ -262,10 +280,10 @@ if ( trim(adjustl(nodeFileName)).ne.'null' ) then
    8 write(6,'(a,i0,a,a,a)') 'INFO: There are ',numNodeStations,' node(s) in ',trim(nodeFileName),'.'
    rewind(nfUnit)
    allocate(nodeStations(numNodeStations))
-   allocate(isNodeStationInMesh(numNodeStations))   
+   allocate(isNodeStationInMesh(numNodeStations))
    isNodeStationInMesh(:) = .true. ! most likely case
    !
-   ! read node station file for the node numbers 
+   ! read node station file for the node numbers
    write(6,'(a)') 'INFO: Reading node file.'
    do i=1, numNodeStations
       read(nfUnit,*) nodeStations(i)
@@ -287,7 +305,7 @@ if ( (numStations.eq.0) .and. (numNodeStations.eq.0) .and. (toElement.eqv..false
    write(6,'(a)') 'WARNING: There are no stations or nodes and this is not a conversion to an elemental file. Exiting.'
    stop
 endif
-! 
+!
 ! grab memory for holding a single data set for 1 or 2 component data
 allocate(adcirc_data(m%np,2))
 !jgfdebug
@@ -298,13 +316,16 @@ allocate(adcirc_data(m%np,2))
 if ( numStations.ne.0 ) then
    write(6,'(a,i0,a)') 'INFO: Finding element containing each station and computing interpolation weights for ',numStations,' station(s).'
    do s=stationStart, stationEnd
-      write(6,'(i0,1x)',advance='no') s    ! update progress bar
+      if ( quiet.eqv..false. ) then
+         write(6,'(i0,1x)',advance='no') s    ! update progress bar
+      endif
       stations(s)%elementFound = .false.
+      m%useStationTolerance = useProximityTolerance
       call computeStationWeights(stations(s), m)
    end do
 endif
 !
-! write the station weights, element indices, and element total areas to a text file in pseudo-fort.61 format 
+! write the station weights, element indices, and element total areas to a text file in pseudo-fort.61 format
 ! for reference or troubleshooting
 ! write station values (if any) for this dataset
 if ( numStations.ne.0 ) then
@@ -313,7 +334,7 @@ if ( numStations.ne.0 ) then
    write(swUnit,*) trim(adjustl(headerLineOne))
    write(swUnit,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, numStations, ft%time_increment, ft%nspool, 3
    write(swUnit,*) trim(adjustl(dataSetHeaderLine))
-   do s=stationStart,stationEnd 
+   do s=stationStart,stationEnd
       write(swUnit,'(i10,2x,3(f15.7,3x),i10,2x,f15.7)') s, (stations(s)%w(i),i=1,3), stations(s)%elementIndex, stations(s)%elementArea
    end do
    close(swUnit)
@@ -336,41 +357,47 @@ if ( numStations.ne.0 ) then
          stations(s)%elementBathyDepth =                                           &
                       m%xyd(3,m%nm(stations(s)%elementIndex,1)) * stations(s)%w(1) &
                     + m%xyd(3,m%nm(stations(s)%elementIndex,2)) * stations(s)%w(2) &
-                    + m%xyd(3,m%nm(stations(s)%elementIndex,3)) * stations(s)%w(3) 
+                    + m%xyd(3,m%nm(stations(s)%elementIndex,3)) * stations(s)%w(3)
       endif
       write(sbtUnit,'(i10,2x,e17.10)') s, stations(s)%elementBathyDepth
    end do
 endif
-if ( numNodeStations.ne.0 ) then 
+if ( numNodeStations.ne.0 ) then
    ! write nodal values (if any) for this dataset
    do k=1, numNodeStations
       i = k + s ! index for first column
       if ( useGivenNodeNumber.eqv..true. ) then
          i = nodeStations(k)
       endif
-      if (isNodeStationInMesh(k).eqv..true.) then 
+      if (isNodeStationInMesh(k).eqv..true.) then
          write(sbtUnit,'(i10,2x,e17.10,a,i0)') i, m%xyd(3,nodeStations(k)), ' ! node ',node
       else
-         write(sbtUnit,'(i10,2x,e17.10,a,i0,a)') i, -99999.0, ' ! warning: node ',node,' was not found in the mesh. '               
+         write(sbtUnit,'(i10,2x,e17.10,a,i0,a)') i, -99999.0, ' ! warning: node ',node,' was not found in the mesh. '
       endif
    end do
 endif
 close(sbtUnit)
 !
 write(6,'(a)') 'INFO: Wrote station values successfully.'
+!
+! stop here if there is no time series data file to process
+if ( trim(ft%dataFileName).eq.'null' ) then
+   write(6,'(a,i0,a)') 'INFO: A time series data file was not provided with "--datafile". Execution complete.'
+   stop
+endif
 !------------------------------------------------------------------------
 !    F I N I S H E D   P R O C E S S I N G   S T A T I O N S
 !
 !
 !                 N O W   P R O C E S S   D A T A
 !------------------------------------------------------------------------
-!         M A U R E P A R T I C L E 
-!          S T A T I O N   A N D  
+!         M A U R E P A R T I C L E
+!          S T A T I O N   A N D
 !          E L E M E N T  D A T A
-!------------------------------------------------------------------------ 
-! maureparticle files are read to compute (a) number of particles in the 
+!------------------------------------------------------------------------
+! maureparticle files are read to compute (a) number of particles in the
 ! element where the station is located; (b) number of particles per square
-! meter in the element; and (c) number of particles per cubic meter, 
+! meter in the element; and (c) number of particles per cubic meter,
 ! using the nominal water depth at the location
 if (ft%dataFileCategory.eq.MAUREPT) then
    ! check for existence of command line options
@@ -381,16 +408,16 @@ if (ft%dataFileCategory.eq.MAUREPT) then
    if ( numParticles.eq.0 ) then
       call allMessage(ERROR,"The --num-particles command line argument was not supplied. Exiting.")
       stop
-   endif   
+   endif
    if ( timeIncrement.eq.0 ) then
       call allMessage(ERROR,"The --time-increment command line argument was not supplied. Exiting.")
-      stop      
+      stop
    endif
    allocate(particlesXY(2,numParticles),particles2elements(numParticles),elementParticleCount(m%ne))
    allocate(pd(3))
-   filetype = 'timeseries'  
+   filetype = 'timeseries'
    fileExtension = '.61'         ! scalar station file
-   snapR = startTime   
+   snapR = startTime
    snapI = 1
    ! open maureparticle file containing particle datasets including
    ! location and element index where they are found over time
@@ -403,12 +430,12 @@ if (ft%dataFileCategory.eq.MAUREPT) then
       if ( peak.eqv..true. ) then
          fileExtension = '.200'  ! element output (peak values)
       endif
-   else 
+   else
       ! particle station file
       numValuesPerDataSet = numStations
       if (peak.eqv..true.) then
           fileExtension = '.161'  ! scalar station file (peak values)
-      endif      
+      endif
    endif
    allocate(particleCount(numValuesPerDataset),particlesPerArea(numValuesPerDataset),particlesPerVolume(numValuesPerDataset))
    if (duration.eqv..true.) then
@@ -417,12 +444,12 @@ if (ft%dataFileCategory.eq.MAUREPT) then
       durationStart(:) = -1.d0
       durationEnd(:) = -1.d0
    endif
-   if (peak.eqv..true.) then   
-      filetype = 'peak'      
-      allocate(peakParticleCount(numValuesPerDataset))      
+   if (peak.eqv..true.) then
+      filetype = 'peak'
+      allocate(peakParticleCount(numValuesPerDataset))
       allocate(peakParticlesPerArea(numValuesPerDataset))
       allocate(peakParticlesPerVolume(numValuesPerDataset))
-      allocate(peakTime(numValuesPerDataset))      
+      allocate(peakTime(numValuesPerDataset))
       peakParticleCount(:) = 0
       peakParticlesPerArea(:) = 0.d0
       peakParticlesPerVolume(:) = 0.d0
@@ -434,50 +461,50 @@ if (ft%dataFileCategory.eq.MAUREPT) then
    pd(1)%dataFileName = "count_"     ! raw particle count
    pd(2)%dataFileName = "perarea_"   ! particles per square meter for each station
    pd(3)%dataFileName = "pervolume_" ! particles per cubic meter for each station
-   ! open particle data station files 
+   ! open particle data station files
    call get_command(cmdlinearg)
    do f=1,3
-      pd(f)%dataFileName = "particles_" // trim(adjustl(pd(f)%dataFileName)) // trim(adjustl(filetype)) // trim(adjustl(fileExtension)) 
-      pd(f)%nSnaps = 1 
+      pd(f)%dataFileName = "particles_" // trim(adjustl(pd(f)%dataFileName)) // trim(adjustl(filetype)) // trim(adjustl(fileExtension))
+      pd(f)%nSnaps = 1
       if (peak.eqv..true.) then
-         pd(f)%nSnaps = snapI 
+         pd(f)%nSnaps = snapI
       else
          pd(f)%nSnaps = numDatasets
       endif
-      pd(f)%time_increment = timeIncrement 
-      pd(f)%nspool = -99 
+      pd(f)%time_increment = timeIncrement
+      pd(f)%nspool = -99
       pd(f)%irtype = 1
       pd(f)%fun = availableUnitNumber()
       open(unit=pd(f)%fun,file=trim(pd(f)%dataFileName),status='replace',action='write')
-      ! first header line (to make the data look like fort.61)    
+      ! first header line (to make the data look like fort.61)
       write(pd(f)%fun,'(a)') trim(m%agrid) // ' ! command line that created this station time series file: ' // trim(cmdlinearg)
       ! write 2nd header line to make these files look like an ascii adcirc fort.61 file (or adcirc .100 file)
       write(pd(f)%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') pd(f)%nSnaps, numValuesPerDataset, pd(f)%time_increment, pd(f)%nspool, pd(f)%irtype
-   enddo      
+   enddo
    ! open maureparticle file
    ft%fun = availableUnitNumber()
    call openFileForRead(ft%fun,ft%dataFileName,errorIO)
    ! loop until we run out of data
-   do    
+   do
       write(6,'(i0,1x)',advance='no') snapI    ! update progress bar
       ! write station dataset headers for time seriest files
       if (peak.eqv..false.) then
          do f=1,3
             write(pd(f)%fun,*) snapR, snapI
-         end do   
+         end do
       endif
       elementParticleCount(:) = 0              ! reset particle counter for each element
       ! read one maureparticle dataset
       do p=1,numParticles
          ! maureparticle format : particleID, lon(deg), lat(deg), timestamp(sec), element index
-         read(ft%fun,*,end=456) j, tempR1, tempR2, snapR, tempI1  
+         read(ft%fun,*,end=456) j, tempR1, tempR2, snapR, tempI1
          particlesXY(1,j) = tempR1
          particlesXY(2,j) = tempR2
          particles2elements(j) = tempI1
          ! only add in the particle to the element if it was not marked lost
          if (tempI1.ne.0) then
-            elementParticleCount(tempI1) = elementParticleCount(tempI1) + 1 
-         endif 
+            elementParticleCount(tempI1) = elementParticleCount(tempI1) + 1
+         endif
       end do
       if ( toElement.eqv..true. ) then
          do e=1,m%ne
@@ -515,7 +542,7 @@ if (ft%dataFileCategory.eq.MAUREPT) then
                   durationEnd(j) = snapR
                endif
             endif
-         enddo           
+         enddo
       endif
       ! see if peak values have been exceeded, and if so, update the peak
       ! value and the time of peak occurrence
@@ -529,8 +556,8 @@ if (ft%dataFileCategory.eq.MAUREPT) then
             endif
          enddo
       else
-         ! write time series values for this dataset (if the peak values were not requested) 
-         do j=1, numValuesPerDataset     
+         ! write time series values for this dataset (if the peak values were not requested)
+         do j=1, numValuesPerDataset
             write(pd(1)%fun,'(i10,2x,i10,a)') j, particleCount(j)
             write(pd(2)%fun,'(i10,2x,f15.7,a)') j, particlesPerArea(j)
             write(pd(3)%fun,'(i10,2x,f15.7,a)') j, particlesPerVolume(j)
@@ -553,22 +580,22 @@ if (ft%dataFileCategory.eq.MAUREPT) then
          do e=1,m%ne
             write(pd(1)%fun,'(i10,2x,i10,a)')   e, peakParticleCount(e)
             write(pd(2)%fun,'(i10,2x,f15.7,a)') e, peakParticlesPerArea(e)
-            write(pd(3)%fun,'(i10,2x,f15.7,a)') e, peakParticlesPerVolume(e)                                       
+            write(pd(3)%fun,'(i10,2x,f15.7,a)') e, peakParticlesPerVolume(e)
          end do
       else
          ! station output
          do s=stationStart,stationEnd
             if (stations(s)%elementIndex.eq.0) then
                note = ' ! warning: this station is actually outside the mesh'
-               write(pd(1)%fun,'(i10,2x,i10,a)')   s, -99999, trim(note)         
-               write(pd(2)%fun,'(i10,2x,f15.7,a)') s, -99999.d0, trim(note)         
+               write(pd(1)%fun,'(i10,2x,i10,a)')   s, -99999, trim(note)
+               write(pd(2)%fun,'(i10,2x,f15.7,a)') s, -99999.d0, trim(note)
                write(pd(3)%fun,'(i10,2x,f15.7,a)') s, -99999.d0, trim(note)
-               note = ''                  
+               note = ''
             else
                write(pd(1)%fun,'(i10,2x,i10,a)')   s, peakParticleCount(s)
                write(pd(2)%fun,'(i10,2x,f15.7,a)') s, peakParticlesPerArea(s)
                write(pd(3)%fun,'(i10,2x,f15.7,a)') s, peakParticlesPerVolume(s)
-            endif                    
+            endif
             !write(*,*) 's=',s,'stationStart=',stationStart,' stationEnd=',stationEnd,'particleCount(s)=',particleCount(s)
          end do
       endif
@@ -582,9 +609,9 @@ if (ft%dataFileCategory.eq.MAUREPT) then
             note = ' ! warning: this station is actually outside the mesh'
             do f=1,3
                write(pd(f)%fun,'(i10,2x,f15.7,a)') j, -99999.d0, trim(note)
-            end do         
-            note = ''        
-         else  
+            end do
+            note = ''
+         else
             if (duration.eqv..true.) then
                if ((durationStart(j).ne.-1.d0).and.(durationEnd(j).eq.-1.d0)) then
                   durationEnd(j) = snapR
@@ -599,10 +626,10 @@ if (ft%dataFileCategory.eq.MAUREPT) then
                write(pd(f)%fun,'(i10,2x,f15.7,a)') j, tempR1, trim(note)
             end do
          endif
-      end do         
+      end do
     endif
     ! close files
-    do f=1,3 
+    do f=1,3
       close(pd(f)%fun)
     end do
     ! end here
@@ -610,9 +637,9 @@ if (ft%dataFileCategory.eq.MAUREPT) then
 endif
 !
 !------------------------------------------------------------------------
-!           A D C I R C 
+!           A D C I R C
 !      S T A T I O N  D A T A
-!------------------------------------------------------------------------ 
+!------------------------------------------------------------------------
 ! open the text file for writing time series adcirc station data
 fs%fun = availableUnitNumber()
 open(unit=fs%fun,file=trim(fs%dataFileName),status='replace',action='write')
@@ -632,10 +659,10 @@ case(ASCIIG)
    ds=1  ! jgf: initialize the dataset counter
    !
    ! jgf: loop until we run out of data
-   do    
+   do
       write(6,'(i0,1x)',advance='no') ds    ! update progress bar
       read(ft%fun,'(a80)',END=123,ERR=123) dataSetHeaderLine
-      ! jgfdebug 
+      ! jgfdebug
       ! write(*,*) 'dataSetHeaderLine is ',trim(dataSetHeaderLine)
       read(dataSetHeaderLine,*) SnapR, SnapI
       read(dataSetHeaderLine,*,ERR=907,END=907) SnapR, SnapI, numNodesNonDefault, ft%defaultValue
@@ -656,7 +683,7 @@ case(ASCIIG)
             read(ft%fun,*) j, temp1, temp2
             adcirc_data(j,1) = temp1
             adcirc_data(j,2) = temp2
-         end do     
+         end do
       end select
       ! add dataset header
       write(fs%fun,*) snapR, snapI
@@ -672,11 +699,11 @@ case(ASCIIG)
          do k=1, numNodeStations
             call writeNodalValue(adcirc_data, m%np, ft%irtype, nodeStations(k), isNodeStationInMesh(k), (k+s), useGivenNodeNumber, fs%fun)
          end do
-      endif              
+      endif
       ds = ds + 1
    end do
 123 close(ft%fun) ! jgf: When we've run out of datasets in the current file,
-                  ! we jump to here.     
+                  ! we jump to here.
 case(NETCDFG)
    call determineNetCDFFileCharacteristics(ft, m, n)
    headerLineOne = trim(rundes) // ' ' // trim(runid) // ' ' // trim(m%agrid)
@@ -685,14 +712,14 @@ case(NETCDFG)
    write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, (numStations+numNodeStations), ft%time_increment, ft%nspool, ft%irtype
 
    ! open the netcdf file
-   call check(nf90_open(trim(ft%dataFileName), NF90_NOWRITE, ft%nc_id))   
-   ! get netcdf variable IDs for the the data 
+   call check(nf90_open(trim(ft%dataFileName), NF90_NOWRITE, ft%nc_id))
+   ! get netcdf variable IDs for the the data
    do j=1,ft%irtype
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
       call check(nf90_inq_varid(ft%nc_id, trim(adjustl(ft%ncds(j)%varNameNetCDF)), ft%ncds(j)%nc_varid))
-   end do   
+   end do
    write(6,'(a)') 'INFO: Compiling a record of station values across all data sets.'
-   ! loop over datasets   
+   ! loop over datasets
    do i=1,ft%nSnaps
       write(6,advance='no',fmt='(i0,1x)') i  ! update progress bar
       !
@@ -706,8 +733,8 @@ case(NETCDFG)
       write(fs%fun,*) ft%timesec(i), ft%it(i)
       s=0
       ! write station values (if any) for this dataset
-      if ( numStations.ne.0 ) then            
-         do s=stationStart, stationEnd   
+      if ( numStations.ne.0 ) then
+         do s=stationStart, stationEnd
             call writeStationValue(adcirc_data, m, ft%numValuesPerDataSet, ft%irtype, stations(s), s, fs%fun)
          end do
       endif
@@ -716,7 +743,7 @@ case(NETCDFG)
          do k=1, numNodeStations
             call writeNodalValue(adcirc_data, m%np, ft%irtype, nodeStations(k), isNodeStationInMesh(k), (k+s), useGivenNodeNumber, fs%fun)
          end do
-      endif              
+      endif
    end do
    close(fs%fun)
    if (ft%dataFileCategory.eq.MINMAX) then
@@ -730,12 +757,12 @@ case(NETCDFG)
       nc_count = (/ m%np, 1 /)
       ! get data
       call check(nf90_inq_varid(ft%nc_id, trim('time_of_' // adjustl(ft%ncds(1)%varNameNetCDF)), ft%ncds(1)%nc_varid))
-      call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varID,adcirc_data(:,1),nc_start,nc_count))     
-      write(fs%fun,*) ft%timesec(1), ft%it(1)      
+      call check(nf90_get_var(ft%nc_id,ft%ncds(j)%nc_varID,adcirc_data(:,1),nc_start,nc_count))
+      write(fs%fun,*) ft%timesec(1), ft%it(1)
       s=0
       ! write station values (if any) for this dataset
-      if ( numStations.ne.0 ) then            
-         do s=stationStart, stationEnd   
+      if ( numStations.ne.0 ) then
+         do s=stationStart, stationEnd
             call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
          end do
       endif
@@ -745,7 +772,7 @@ case(NETCDFG)
          do k=1, numNodeStations
             call writeNodalValue(adcirc_data, m%np, ft%irtype, nodeStations(k), isNodeStationInMesh(k), (k+s), useGivenNodeNumber, fs%fun)
          end do
-      endif                    
+      endif
    endif
    call check(nf90_close(ft%nc_id))
 case default
@@ -759,7 +786,7 @@ end program pullStationTimeSeries
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!    S U B R O U T I N E     W R I T E   S T A T I O N   V A L U E 
+!    S U B R O U T I N E     W R I T E   S T A T I O N   V A L U E
 !-----------------------------------------------------------------------
 ! Writes the interpolated time series value at the station location,
 ! or -99999 if the station is outside the mesh.
@@ -770,7 +797,7 @@ implicit none
 real(8), intent(in) :: adcirc_data(numValuesPerDataSet,irtype)
 integer, intent(in) :: irtype ! number of vector components, 1 is scalar etc
 integer, intent(in) :: numValuesPerDataSet ! number of values in a sparse dataset?
-type(mesh_t), intent(inout) :: m 
+type(mesh_t), intent(inout) :: m
 type(station_t), intent(in) :: station
 integer, intent(in) :: s    ! station index
 integer, intent(in) :: slun ! logical unit number to write to
@@ -797,9 +824,9 @@ if (irtype.eq.1) then
    else
       stationVal = adcirc_data(m%nm(station%elementIndex,1),1) * station%w(1) &
                  + adcirc_data(m%nm(station%elementIndex,2),1) * station%w(2) &
-                 + adcirc_data(m%nm(station%elementIndex,3),1) * station%w(3) 
+                 + adcirc_data(m%nm(station%elementIndex,3),1) * station%w(3)
    endif
-   write(slun,'(i10,2x,e17.10,a)') s, stationVal, trim(note) 
+   write(slun,'(i10,2x,e17.10,a)') s, stationVal, trim(note)
 else
    if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
       temp1 = -99999.0
@@ -807,10 +834,10 @@ else
    else
       temp1 = adcirc_data(m%nm(station%elementIndex,1),1) * station%w(1) &
             + adcirc_data(m%nm(station%elementIndex,2),1) * station%w(2) &
-            + adcirc_data(m%nm(station%elementIndex,3),1) * station%w(3) 
+            + adcirc_data(m%nm(station%elementIndex,3),1) * station%w(3)
       temp2 = adcirc_data(m%nm(station%elementIndex,1),2) * station%w(1) &
             + adcirc_data(m%nm(station%elementIndex,2),2) * station%w(2) &
-            + adcirc_data(m%nm(station%elementIndex,3),2) * station%w(3) 
+            + adcirc_data(m%nm(station%elementIndex,3),2) * station%w(3)
    endif
    write(slun,'(i10,2(2x,e17.10),a)') s, temp1, temp2, trim(note)
 endif
@@ -819,7 +846,7 @@ end subroutine writeStationValue
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!    S U B R O U T I N E     W R I T E   N O D A L   V A L U E 
+!    S U B R O U T I N E     W R I T E   N O D A L   V A L U E
 !-----------------------------------------------------------------------
 ! Writes the time series value at the node, or -99999 if the node number
 ! is not within the range 1:m%np.
@@ -843,22 +870,22 @@ if (ugnn.eqv..true.) then
 endif
 
 if (irtype.eq.1) then
-   if (found.eqv..true.) then 
+   if (found.eqv..true.) then
       write(slun,'(i10,2x,e17.10,a,i0)') &
          i, adcirc_data(node,1), ' ! node ',node
    else
       write(slun,'(i10,2x,e17.10,a,i0,a)') &
-         i, -99999.0, ' ! warning: node ',node,' was not found in the mesh. '               
+         i, -99999.0, ' ! warning: node ',node,' was not found in the mesh. '
    endif
 endif
 
 if (irtype.eq.2) then
-   if (found.eqv..true.) then 
+   if (found.eqv..true.) then
       write(slun,'(i10,2(2x,e17.10),a,i0)') &
          i, adcirc_data(node,1), adcirc_data(node,2),' ! node ',node
    else
       write(slun,'(i10,2(2x,e17.10),a,i0,a)') &
-         i, -99999.0, -99999.0,' ! warning: node ',node,' was not found in the mesh. '               
+         i, -99999.0, -99999.0,' ! warning: node ',node,' was not found in the mesh. '
    endif
 endif
 !-----------------------------------------------------------------------
