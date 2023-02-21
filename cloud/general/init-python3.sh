@@ -53,7 +53,6 @@ make install
 # upgrade pip3 and install things we need
 python3.7 -m pip install --upgrade pip
 pip3 install netCDF4
-pip3 install pika
 
 # no errors, so clean up
 if [ "$?" == 0 ]; then
