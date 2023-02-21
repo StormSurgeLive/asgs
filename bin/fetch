@@ -15,7 +15,7 @@ W="(!! warning)"
 case "${ITEM}" in
   all)
     fetch configs
-    fetch cera-asgs
+    fetch cera
     fetch docs
     fetch storm-archive
     fetch adcirc-testsuite
@@ -42,15 +42,15 @@ case "${ITEM}" in
     git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
     popd > /dev/null 2>&1 
     ;;
-  cera-asgs)
+  cera)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
-    if [ -d ./cera-asgs-environment ]; then
-      echo "${W} $SCRIPTDIR/git/cera-asgs-environment exists ... nothing done"
+    if [ -d ./cera-local-asgs-assets ]; then
+      echo "${W} $SCRIPTDIR/git/cera-local-asgs-assets exists ... nothing done"
       popd > /dev/null 2>&1 
       exit 1
     fi
-    git clone git@github.com:CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
+    git clone git@github.com:CERA-GROUP/local-asgs-assets.git $SCRIPTDIR/git/cera-local-asgs-assets
     popd > /dev/null 2>&1 
     ;;
   storm-archive)
@@ -81,11 +81,12 @@ case "${ITEM}" in
 '$ITEM' not supported via ASGS' "fetch" command
 
  Supported:
+  * adcirc-testsuite - git clones ADCIRC's test-suite        (public)
+  * cera             - git clones CERA local-asgs-assets     (private)
   * configs          - git clones ASGS asgs-config           (public)
-  * cera-asgs        - git clones CERA cera-asgs-environment (private)
   * docs             - git clones ASGS asgs.wiki             (public)
   * storm-archive    - git clones ASGS storm-archive         (public)
-  * adcirc-testsuite - git clones ADCIRC's test-suite        (public)
+  --                 ---
   * all              - attempts all of the above
 
  Example, checkout ASGS configs into, "$SCRIPTDIR/git/asgs-configs":
