@@ -75,34 +75,68 @@ checkFileExistence()
   if [[ -z $FNAME ]]; then
      fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
   fi
-  success=no
+  local success=no
   if [ $FNAME ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
      else
-        # if this is a mesh (fort.14), nodal attributes (fort.13), static water level correction,
-        # or self attracting / earth load tide (fort.24) file, attempt to download and uncompress it
-        if [[ $FTYPE == "ADCIRC mesh file"  ]]; then
-           logMessage "Downloading $FTYPE from ${MESHURL}/${FNAME}.xz."
-           curl --version >> $SYSLOG
-           curl ${MESHURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download mesh from ${MESHURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        # If this is a mesh (fort.14), nodal attributes (fort.13), static water level correction,
+        # or self attracting / earth load tide (fort.24) file, attempt to download and uncompress it.
+        # If the URL starts with "scp://" then the Operator's ssh configuration must support
+        # public key authentication with the host that the files will be downloaded from.
+        # The URLs used here have their default values set in config/mesh_defaults.sh and these
+        # URL values can be overridden in the Operator's ~/.asgsh_profile file or in the
+        # configuration file for the ASGS instance.
+        # If scp is to be used to download files, this function expects URLs to be in the form
+        #    scp://tacc_tds3/meshes
+        # where the directory ("meshes" in the above case) is assumed by scp to be relative
+        # to the Operator's home directory on the remote machine unless the path starts with
+        # a forward slash:
+        #    scp://tacc_tds3//meshes
+        # In which case it is treated as a full path.
+        local URL
+        case $FTYPE in
+           "ADCIRC mesh file")
+              URL=$MESHURL
+              ;;
+           "ADCIRC nodal attributes (fort.13) file")
+              URL=$NODALATTRIBUTESURL
+              ;;
+           "ADCIRC static water level offset data file")
+              URL=$OFFSETURL
+              ;;
+           "ADCIRC self attracting earth load tide file")
+              URL=$LOADTIDEURL
+              ;;
+           *)
+              warn "$THIS: Unrecognized file type to download: '$FTYPE'."
+              URL="unknown"
+              ;;
+        esac
+        local downloadCMD
+        if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
+           logMessage "$THIS: The curl version is $(curl --version)"
+           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
+        elif [[ $URL =~ "scp://" ]]; then
+           URL=${URL:6}     # remove the scp://
+           URL=${URL/\//:}  # replace the / between the host and the path with a :
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+        else
+           warn "$THIS: Unrecognized protocol in URL: '$URL'."
+           downloadCMD="unknown"
         fi
-        if [[ $FTYPE == "ADCIRC nodal attributes (fort.13) file" ]]; then
-           logMessage "Attempting to download $FTYPE from ${NODALATTRIBUTESURL}/${FNAME}.xz."
-           curl ${NODALATTRIBUTESURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download nodal attributes file from ${NODALATTRIBUTESURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        # attempt to download the file
+        logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
+        $downloadCMD 2> errmsg
+        local err=$?
+        if [[ $err == 0 ]]; then
+           logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
+           xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
+           [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
+        else
+           warn "$THIS: Failed to download $FTYPE from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
-        if [[ $FTYPE == "ADCIRC static water level offset data file" ]]; then
-           logMessage "Attempting to download $FTYPE from ${OFFSETURL}/${FNAME}.xz."
-           curl ${OFFSETURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download file from ${OFFSETURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
-        fi
-        if [[ $FTYPE == "ADCIRC self attracting earth load tide file" ]]; then
-           logMessage "Attempting to download $FTYPE from ${LOADTIDEURL}/${FNAME}.xz."
-            curl ${LOADTIDEURL}/${FNAME}.xz > ${FPATH}/${FNAME}.xz 2> errmsg || warn "$THIS: Failed to download file from ${LOADTIDEURL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
-        fi
-        logMessage "THIS: Uncompressing ${FPATH}/${FNAME}.xz."
-        xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
-        [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
      fi
   fi
   if [[ $success == no ]]; then
