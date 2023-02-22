@@ -1806,16 +1806,24 @@ hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
 hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
+hotstartDownloadExecutable="curl"
+hotstartDownloadRedirect="--output"
 if [[ $HOTORCOLD = hotstart ]]; then
    consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
-   urlCheck=$(expr match "$LASTSUBDIR" 'http')
-   if [[ $urlCheck -eq 4 ]]; then
+   if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from
       # a fort.68 file and always writes a fort.67 file
       hotstartURL=$LASTSUBDIR
+      # If scp is to be used, the host where the hotstart (and run.properties) files
+      # are downloaded from must support public key authentication. The URL is expected
+      # to be in the form scp://tacc_tds3//full/path/to/hotstart/file
+      if [[ $LASTSUBDIR =~ "scp://" ]]; then
+         hotstartDownloadExecutable="scp"
+         hotstartDownloadRedirect=""
+      fi
    else
       # we are reading the hotstart file from the local filesystem, determine
       # whether it is from a nowcast or hindcast
@@ -1841,7 +1849,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       debugMessage "The run directory is ${RUNDIR}."
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
       # get cold start time from the run.properties file
-      curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
+      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect $RUNDIR/from.run.properties
       logMessage "$THIS: Detecting cold start date from $RUNDIR/from.run.properties."
       COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
       logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
@@ -1849,17 +1857,17 @@ if [[ $HOTORCOLD = hotstart ]]; then
       # is what the rest of asgs_main.sh is expecting
       if [[ $HOTSTARTFORMAT = "binary" ]]; then
          mkdir -p $RUNDIR/PE0000 2>> $SYSLOG
-         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/PE0000/${hotstartFile}
+         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/PE0000/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/PE0000/${hotstartFile}."
       else
-         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/${hotstartFile}
+         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/${hotstartFile}."
       fi
 
       logMessage "Now checking hotstart file content."
       checkHotstart $RUNDIR $HOTSTARTFORMAT 67
       # get cold start time from the run.properties file
-      curl $hotstartURL/run.properties > from.run.properties
+      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect from.run.properties
    else
       # starting from a hotstart file on the local filesystem, not from a URL
       checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
