@@ -127,7 +127,8 @@ checkFileExistence()
         # attempt to download the file
         logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
         $downloadCMD 2> errmsg
-        if [[ $? == 0 ]]; then
+        local err=$?
+        if [[ $err == 0 ]]; then
            logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
            xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
