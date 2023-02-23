@@ -5,9 +5,6 @@ if [ -z "$_ASGSH_PID" ]; then
   exit 1;
 fi
 
-I="(info)"
-W="(!! warning)"
-
 # prints value of provided variable name
 _show() {
   if [ -z "${1}" ]; then
