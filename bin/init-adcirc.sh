@@ -25,9 +25,6 @@
 # before running 'build adcirc' in asgsh
 #
 
-I="(info)"
-W="(!! warning)"
-
 if [ "${1}" = "clean" ]; then
   echo "'clean' not implemented for optional ADCIRC/SWAN step at this time, clean up for ADCIRC and SWAN must be done manually."
   exit 0

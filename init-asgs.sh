@@ -21,8 +21,19 @@
 # See ./platforms/README
 #
 
-I="(info)"
-W="(!! warning)"
+BK=$(tput setaf 0)
+RD=$(tput setaf 1)
+GR=$(tput setaf 2)
+YW=$(tput setaf 3)
+BL=$(tput setaf 4)
+MG=$(tput setaf 5)
+CY=$(tput setaf 6)
+WH=$(tput setaf 6)
+R=$(tput sgr0)
+B=$(tput bold)
+
+export I="(${CY}info${R})"
+export W="(${B}${RD}!! warning${R})"
 
 # preflight checkes and warnings
 if [ -n "$_ASGSH_PID" ]; then
