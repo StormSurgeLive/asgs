@@ -29,8 +29,19 @@
 # impact can't be offloaded to the child process that is invoked when
 # running external scripts.
 
-I="(info)"
-W="(!! warning)"
+BK=$(tput setaf 0)
+RD=$(tput setaf 1)
+GR=$(tput setaf 2)
+YW=$(tput setaf 3)
+BL=$(tput setaf 4)
+MG=$(tput setaf 5)
+CY=$(tput setaf 6)
+WH=$(tput setaf 6)
+R=$(tput sgr0)
+B=$(tput bold)
+
+export I="(${CY}info${R})"
+export W="(${B}${RD}!! warning${R})"
 
 asgsh() {  # disable
   echo "The nesting of \"asgsh\" inside of asgsh (you're in it now, pid: $_ASGSH_PID) is not allowed."
@@ -249,7 +260,6 @@ load() {
         export _ASGSH_CURRENT_PROFILE="$NAME"
         _reset_ephemeral_envars
        source "$ASGS_META_DIR/$NAME"
-        export PS1="asgs ($_ASGSH_CURRENT_PROFILE)> "
         echo "${I} loaded '$NAME' into current profile"
         if [ -e "$ASGS_CONFIG" ]; then
           # extracts info such as 'instancename' so we can derive the location of
@@ -373,7 +383,6 @@ save() {
 
   # update prompt so that it's easy to tell at first glance what's loaded
   export _ASGSH_CURRENT_PROFILE=$NAME
-  export PS1="asgs (${_ASGSH_CURRENT_PROFILE})> "
 
   if [ 1 -eq "$DO_RELOAD" ]; then
     load profile $_ASGSH_CURRENT_PROFILE
@@ -772,21 +781,7 @@ else
 fi
 
 # initialization, do after bash functions have been loaded
-export PS1='asgs (none)>'
-if [ -n "$_asgsh_splash" ]; then
-echo
-echo "Quick start:"
-echo "  'build adcirc' to build and local register versions of ADCIRC"
-echo "  'list profiles' to see what scenario package profiles exist"
-echo "  'load profile <profile_name>' to load saved profile"
-echo "  'list adcirc' to see what builds of ADCIRC exist"
-echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
-echo "  'run' to initiated ASGS for loaded profile"
-echo "  'help' for full list of options and features"
-echo "  'verify' the current ASGS Shell Environment is set up properly"
-echo "  'exit' to return to the login shell"
-echo
-fi
+source $SCRIPTDIR/etc/PS1.sh
 
 # 'build' is basically ASGS Shell Environment's "package manager"
 # these are the "optional" installs - from individual utilities
@@ -900,7 +895,21 @@ show workdir
 show machinename
 show platform_init
 show adcirccompiler
+
+if [ -n "$_asgsh_splash" ]; then
 echo
+echo "${YW}${B}Quick start:${R}"
+echo "  'build adcirc' to build and local register versions of ADCIRC"
+echo "  'list profiles' to see what scenario package profiles exist"
+echo "  'load profile <profile_name>' to load saved profile"
+echo "  'list adcirc' to see what builds of ADCIRC exist"
+echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
+echo "  'run' to initiated ASGS for loaded profile"
+echo "  'help' for full list of options and features"
+echo "  'verify' the current ASGS Shell Environment is set up properly"
+echo "  'exit' to return to the login shell"
+echo
+fi
 
 # construct to handle "autorun" options
 case "$_asgsh_flag_do" in

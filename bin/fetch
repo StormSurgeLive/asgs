@@ -9,8 +9,6 @@ fi
 # point
 
 ITEM=${1}
-I="(info)"
-W="(!! warning)"
 
 case "${ITEM}" in
   all)
