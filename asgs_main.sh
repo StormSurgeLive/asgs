@@ -117,7 +117,7 @@ checkFileExistence()
         local downloadCMD
         if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
            logMessage "$THIS: The curl version is $(curl --version)"
-           downloadCMD="curl ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
+           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
         elif [[ $URL =~ "scp://" ]]; then
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         else
