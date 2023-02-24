@@ -119,6 +119,8 @@ checkFileExistence()
            logMessage "$THIS: The curl version is $(curl --version)"
            downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
         elif [[ $URL =~ "scp://" ]]; then
+           URL=${URL:6}     # remove the scp://
+           URL=${URL/\//:}  # replace the / between the host and the path with a :
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         else
            warn "$THIS: Unrecognized protocol in URL: '$URL'."
