@@ -1745,7 +1745,7 @@ hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
 hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
-hotstartDownloadExecutable="curl"
+hotstartDownloadExecutable="curl --insecure"
 hotstartDownloadRedirect="--output"
 if [[ $HOTORCOLD = hotstart ]]; then
    # check to see if the LASTSUBDIR is actually a URL
@@ -1761,6 +1761,8 @@ if [[ $HOTORCOLD = hotstart ]]; then
       if [[ $LASTSUBDIR =~ "scp://" ]]; then
          hotstartDownloadExecutable="scp"
          hotstartDownloadRedirect=""
+         hotstartURL=${hotstartURL:6}     # remove leading scp://
+         hotstartURL=${hotstartURL/\//:}  # replace / between host and path with :
       fi
    else
       # we are reading the hotstart file from the local filesystem, determine
