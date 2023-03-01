@@ -7,7 +7,7 @@
 ! These coordinates are useful for visualization.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012--2022 Jason Fleming
+! Copyright(C) 2012--2023 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -27,12 +27,14 @@
 program generateCPP
 use netcdf
 use adcmesh
+use nodalattr
 use asgsio
 use ioutil
 use logging
 implicit none
 type(mesh_t) :: m
 type(meshNetCDF_t) :: n
+type(nodalAttrFile_t) :: naFile
 integer :: NC_Count(2)
 integer :: NC_Start(2)
 character(len=NF90_MAX_NAME) :: varname
@@ -86,7 +88,7 @@ end if
 ! Check to see if file exists
 call checkFileExistence(fn%dataFileName, errorIO)
 ! netcdf file exists
-call determineNetCDFFileCharacteristics(fn, m, n)
+call determineNetCDFFileCharacteristics(fn, m, n, naFile)
 m%meshFileName = trim(adjustl(fn%dataFileName))
 fn%dataFileFormat = NETCDF4
 call findMeshDimsNetCDF(m, n)

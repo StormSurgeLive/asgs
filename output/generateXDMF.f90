@@ -4,7 +4,7 @@
 ! A program to generate XDMF xml for NetCDF4 formatted ADCIRC files.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2012--2019 Jason Fleming
+! Copyright(C) 2012--2023 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -37,6 +37,7 @@ logical :: setLogLevel = .false.
 !
 type(mesh_t) :: m
 type(meshNetCDF_t) :: n
+type(nodalAttrFile_t) :: naFile
 !
 #ifdef OLDGFORTRAN
 ! gfortran v4.6.3 (2011) chokes on an allocatable array of fileMetaData_t
@@ -138,6 +139,7 @@ if (argcount.gt.0) then
    allocate(fileMetaData(numFiles))
 #endif
    fileMetaData(:) % useCPP = .false.
+   fileMetaData(:) % useCartesianSphere = .false.
    fileMetaData(:) % initialized = .false.
    i=0
    fi=1  ! file index
@@ -200,6 +202,9 @@ if (argcount.gt.0) then
             fileMetaData(:) % useCPP = .true.
             write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
             call allMessage(INFO,scratchMessage)
+         case("--use-cartesian-sphere")
+            write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
+            fileMetaData(:) % useCartesianSphere = .true.
          case("--getNodeIndices")
             getNodeIndices = .true.
             write(scratchMessage,'(a,a,a)') 'Processing ',trim(cmdlineopt),'.'
@@ -226,7 +231,7 @@ do fi=1,numFiles
       stop
    endif
    if (fileMetaData(fi)%dataFileFormat.eq.NETCDFG) then
-      call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n)
+      call determineNetCDFFileCharacteristics(fileMetaData(fi), m, n, naFile)
        ! netcdf file exists; open it
       call check(nf90_open(trim(fileMetaData(fi)%dataFileName), NF90_NOWRITE, fileMetaData(fi)%nc_id))
       !
@@ -542,7 +547,7 @@ end program generateXDMF
 !----------------------------------------------------------------------
 !  S U B R O U T I N E     I N I T   N A M E S   X D M F
 !----------------------------------------------------------------------
-! Initialize the names of the variables in the XMDF files to reasonable
+! Initialize the names of the variables in the XDMF files to reasonable
 ! names (that will be renamed, at least in the case of vector data,
 ! in the calling routine).
 ! Added the initialization of the data type.
@@ -551,10 +556,10 @@ subroutine initNamesXDMF(fmd)
 use netcdf
 use asgsio, only : fileMetaData_t
 use logging, only : allMessage, ERROR
-use ioutil, only : check, HOTSTART
+use ioutil, only : check, HOTSTART, NODALATTRIBF
 implicit none
 type(fileMetaData_t) :: fmd
-integer :: i, j
+integer :: i, j, q
 !
 ! netcdf file exists; open it
 call check(nf90_open(trim(fmd%dataFileName), NF90_NOWRITE, fmd%nc_id))
@@ -568,10 +573,14 @@ i=1 ! netcdf variable counter
 j=1 ! xdmf variable counter
 do
    ! for vector data, the name will be replaced in the calling routine anyway
+   ! the standard_name attribute is missing for noff in some netcdf hotstart files
    if (trim(fmd%ncds(i)%varNameNetCDF).ne."noff") then
-      !write(6,'(a,a)') 'DEBUG: generateXDMF: seeking NetCDF variable ID for ',trim(fmd%varNameNetCDF(i))
-      ! the standard_name attribute is missing for noff in some netcdf hotstart files
-      call check(nf90_get_att(fmd%nc_id, fmd%ncds(i)%nc_varID, 'standard_name', fmd%xds(j)%varNameXDMF))
+      ! multicomponent nodal attributes will already have their XDMF names
+      if (((fmd%dataFileCategory.eq.NODALATTRIBF).and.(abs(fmd%xds(j)%numComponents).gt.1)).eqv..false.) then
+         ! set the name of the XDMF var in the common case that this is not a multicomponent
+         ! nodal attribute
+         call check(nf90_get_att(fmd%nc_id, fmd%ncds(i)%nc_varID, 'standard_name', fmd%xds(j)%varNameXDMF))
+      endif
    endif
    !
    ! Apply a fix for old versions of ADCIRC that misnamed nodecode and
@@ -600,16 +609,44 @@ do
    if ( fmd % ncds(i)%isElemental .eqv. .true. ) then   ! noff<---element/cell centered
       fmd%xds(j)%dataCenter="Cell"
    endif
-   write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF)
-   write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)
-   write(6,'(a,i0,a,i0)') 'DEBUG: generateXDMF: nc_varType(',i,')=',fmd%ncds(i)%nc_varType
-   if ( fmd%dataFileCategory.eq.HOTSTART ) then ! hotstart files don't have irtype
+   !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF)
+   !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)
+   !write(6,'(a,i0,a,i0)') 'DEBUG: generateXDMF: nc_varType(',i,')=',fmd%ncds(i)%nc_varType
+   select case(fmd%dataFileCategory)
+   case(HOTSTART) ! hotstart files don't have irtype
       i = i + fmd % xds(j) % numComponents
-   else
+   case(NODALATTRIBF)
+      if (abs(fmd%xds(j)%numComponents).gt.1) then
+         do q=1,abs(fmd%xds(j)%numComponents)
+            select case(fmd%ncds(i)%nc_varType)
+            case(NF90_INT)
+               fmd%xds(j)%numberType = "Int"
+               fmd%xds(j)%numberPrecision = 4
+            case(NF90_FLOAT)
+               fmd%xds(j)%numberType = "Float"
+               fmd%xds(j)%numberPrecision = 4
+            case(NF90_DOUBLE)
+               fmd%xds(j)%numberType = "Float"
+               fmd%xds(j)%numberPrecision = 8
+            case default
+               call allMessage(ERROR,'The netCDF variable '//trim(fmd%ncds(i)%varNameNetCDF)//' uses an unknown data type.')
+               stop
+            end select
+            !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF)
+            !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)
+            if (q.lt.abs(fmd%xds(j)%numComponents)) then
+               j = j + 1
+            endif
+         end do
+      endif
+      i = i + 1
+   case default
       i = i + fmd % irtype ! multi component (vector) data only need 1 name
-   endif
+   end select
    j = j + 1
-   if (j.gt.fmd % numVarXDMF) exit
+   if ((i.gt.fmd%numVarNetCDF).or.(j.gt.fmd%numVarXDMF)) then
+      exit
+   endif
 end do
 ! close netcdf file
 call check(nf90_close(fmd%nc_id))
@@ -655,6 +692,8 @@ write(olun,'('//ind('|')//',A)')      '   NumberType="Float"'
 write(olun,'('//ind('|')//',A)')      '   Precision="8"'
 if (fmd%useCPP.eqv..true.) then
    write(olun,'('//ind('|')//',A)')   '   Format="HDF">'//trim(fmd%dataFileName)//':/x_cpp'
+else if (fmd%useCartesianSphere.eqv..true.) then
+   write(olun,'('//ind('|')//',A)')   '   Format="HDF">'//trim(fmd%dataFileName)//':/x-cartesian-sphere'
 else
    write(olun,'('//ind('|')//',A)')   '   Format="HDF">'//trim(fmd%dataFileName)//':/x'
 endif
@@ -664,10 +703,19 @@ write(olun,'('//ind('|')//',A)')      '  NumberType="Float"'
 write(olun,'('//ind('|')//',A)')      '  Precision="8"'
 if (fmd%useCPP.eqv..true.) then
    write(olun,'('//ind('|')//',A)')   '  Format="HDF">'//trim(fmd%dataFileName)//':/y_cpp'
+else if (fmd%useCartesianSphere.eqv..true.) then
+   write(olun,'('//ind('|')//',A)')   '   Format="HDF">'//trim(fmd%dataFileName)//':/y-cartesian-sphere'
 else
    write(olun,'('//ind('|')//',A)')   '  Format="HDF">'//trim(fmd%dataFileName)//':/y'
 endif
 write(olun,'('//ind('|')//',A)')      '</DataItem>'
+if (fmd%useCartesianSphere.eqv..true.) then
+   write(olun,'('//ind('|')//',A,i0,A)') '<DataItem Dimensions="',m%np,'"'
+   write(olun,'('//ind('|')//',A)')      '   NumberType="Float"'
+   write(olun,'('//ind('|')//',A)')      '   Precision="8"'
+   write(olun,'('//ind('|')//',A)')      '   Format="HDF">'//trim(fmd%dataFileName)//':/z-cartesian-sphere'
+   write(olun,'('//ind('|')//',A)')      '</DataItem>'
+endif
 write(olun,'('//ind('-')//',A)')   '</Geometry>'
 write(olun,'('//ind('|')//',A)')   '<Attribute Name="BathymetricDepth"'
 write(olun,'('//ind('|')//',A)')   '  AttributeType="Scalar"'
@@ -938,9 +986,6 @@ do
    if (trim(fmd%xds(j)%dataCenter).eq."Cell") then
       domainExtent = m%ne
    endif
-   !@jasonflemingdebug
-   !write(6,*) trim(fmd%xds(j)%varNameXDMF), fmd%xds(j)%numComponents, trim(attributeType)
-   !
    write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%xds(j)%varNameXDMF)//'"'
    write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
    write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'

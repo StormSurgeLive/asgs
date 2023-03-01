@@ -1,19 +1,39 @@
 !-----------------------------------------------------------------------
-!               M O D U L E    N O D A L   A T T R 
+!               M O D U L E    N O D A L   A T T R
 !-----------------------------------------------------------------------
 ! jgf: Module for handling nodal attribute data.
+!-----------------------------------------------------------------------
+! Copyright(C) 2017--2023 Jason Fleming
+!
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
+!
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------
 module nodalattr
 !-----------------------------------------------------------------------
 !
+use ioutil, only : characterVector1D_t, initC1D, appendC1D, freeC1D
+implicit none
+!
 type nodalAttr_t
-   character(len=1024) :: attrName ! name of the nodal attr 
+   character(len=1024) :: attrName ! name of the nodal attr
    character(len=1024) :: units    ! physical units of the nodal attr
    integer :: numVals  ! number of values at each node for this nodal attr
    integer :: numNodesNotDefault ! number of nodes with values different from the default
-   real(8), allocatable :: fillValue(:)  ! missing data value for each nodal attr 
-   real(8), allocatable :: defaultVals(:) ! default value(s) for real valued attributes 
-   real(8), allocatable :: nonDefaultVals(:,:) ! nondefault vals (numVals x numNodesNotDefault) 
+   real(8), allocatable :: fillValue(:)  ! missing data value for each nodal attr
+   real(8), allocatable :: defaultVals(:) ! default value(s) for real valued attributes
+   real(8), allocatable :: nonDefaultVals(:,:) ! nondefault vals (numVals x numNodesNotDefault)
    integer, allocatable :: nonDefaultNodes(:) ! node numbers where nondefault vals occur
    ! xdmf related
    real(8), allocatable :: xdmfArray(:)
@@ -23,7 +43,7 @@ type nodalAttr_t
    integer :: nc_dimid_values_per_node ! dimensions of default values
    integer :: nc_varid    ! full nodal attribute variable id (numNodes x numVals)
    integer :: nc_varid_defaults ! just default values
-   real(8), allocatable :: ncData(:,:)  ! full array of values in netcdf file   
+   real(8), allocatable :: ncData(:,:)  ! full array of values in netcdf file
 end type nodalAttr_t
 !
 type nodalAttrFile_t
@@ -35,16 +55,49 @@ type nodalAttrFile_t
    ! variable capable of holding all nodal attributes in the file
    type(nodalAttr_t), allocatable :: na(:)
 end type nodalAttrFile_t
+
+type(characterVector1D_t) :: nodalAttributeNames
 !
 !---------
 contains
 !---------
 !
 !-----------------------------------------------------------------------
-!  S U B R O U T I N E    L O A D   N O D A L    A T T R I B U T E 
+!                        S U B R O U T I N E
+!       I N I T    N O D A L    A T T R I B U T E   N A M E S
 !-----------------------------------------------------------------------
-! jgf: Loads up a single nodal attribute from an ascii nodal attributes 
-! file. 
+! jgf: Sets the names of the supported nodal attributes
+!-----------------------------------------------------------------------
+subroutine initNodalAttributeNames()
+implicit none
+call nodalAttributeNames%init()
+nodalAttributeNames%v = [ character(len=2000) ::                &
+   'mannings_n_at_sea_floor',                                   &
+   'subgrid_barrier',                                           &
+   'average_horizontal_eddy_viscosity_in_sea_water_wrt_depth',  &
+   'min_and_max_primitive_weighting_in_continuity_equation',    &
+   'surface_directional_effective_roughness_length',            &
+   'advection_state',                                           &
+   'primitive_weighting_in_continuity_equation',                &
+   'elemental_slope_limiter',                                   &
+   'surface_canopy_coefficient',                                &
+   'surface_submergence_state',                                 &
+   'quadratic_friction_coefficient_at_sea_floor',               &
+   'bottom_roughness_length',                                   &
+   'internal_tide_friction',                                    &
+   'sponge_generator_layer',                                    &
+   'chezy_friction_coefficient_at_sea_floor',                   &
+   'initial_river_elevation'                                    ]
+nodalAttributeNames%n = 16
+!-----------------------------------------------------------------------
+end subroutine initNodalAttributeNames
+!-----------------------------------------------------------------------
+!
+!-----------------------------------------------------------------------
+!  S U B R O U T I N E    L O A D   N O D A L    A T T R I B U T E
+!-----------------------------------------------------------------------
+! jgf: Loads up a single nodal attribute from an ascii nodal attributes
+! file.
 !-----------------------------------------------------------------------
 subroutine loadNodalAttribute(naName,naFile)
 use ioutil, only : openFileForRead
@@ -66,34 +119,34 @@ write(6,*) 'INFO: Reading nodal attribute.'
 call openFileForRead(13,naFile%nodalAttributesFileName, errorIO)
 read(13,'(a)') naFile%nodalAttributesComment
 read(13,*) naFile%numMeshNodes
-write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes 
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes
 read(13,*) naFile%numNodalAttributes
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes 
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes
 ! read remainder of header
 do i=1,naFile%numNodalAttributes
    read(13,*) line
-   ! see if this is the one we are interested in, and if so, load 
+   ! see if this is the one we are interested in, and if so, load
    ! up the relevant data; otherwise, skip past it
    if (trim(adjustl(line)).eq.trim(adjustl(naName))) then
       foundIt = .true.
       read(13,*) naFile%na(1)%units
       read(13,*) naFile%na(1)%numVals
       allocate(naFile%na(1)%fillValue(naFile%na(1)%numVals))
-      naFile%na(1)%fillValue(:) = -99999.d0      
+      naFile%na(1)%fillValue(:) = -99999.d0
       ! allocate memory for the default values and read them
       allocate(naFile%na(1)%defaultVals(naFile%na(1)%numVals))
       read(13,*) (naFile%na(1)%defaultVals(j), j=1,naFile%na(1)%numVals)
    else
       read(13,*) line ! units (skip it)
       read(13,*) line ! numVals (skip it)
-      read(13,*) line ! default val (skip it)     
+      read(13,*) line ! default val (skip it)
    endif
 end do
 if (foundIt.eqv..false.) then
    write(6,*) 'ERROR: The nodal attribute "',trim(naName),'" was not found in the file "',trim(naFile%nodalAttributesFileName),'".'
    close(13)
-!nld   error stop 1 
-   stop 1 
+!nld   error stop 1
+   stop 1
 endif
 ! finished reading header
 !
@@ -101,11 +154,11 @@ endif
 ! n.a. data
 do i=1,naFile%numNodalAttributes
    read(13,*) line
-   ! see if this is the one we are interested in, and if so, load 
+   ! see if this is the one we are interested in, and if so, load
    ! up the relevant data; otherwise, skip past it
    if (trim(adjustl(line)).eq.trim(adjustl(naName))) then
       read(13,*) naFile%na(1)%numNodesNotDefault
-      write(6,'("INFO: There are ",i0," nodes with non-default values.")') naFile%na(1)%numNodesNotDefault 
+      write(6,'("INFO: There are ",i0," nodes with non-default values.")') naFile%na(1)%numNodesNotDefault
       ! allocate memory for the node numbers
       allocate(naFile%na(1)%nonDefaultNodes(naFile%na(1)%numNodesNotDefault))
       ! allocate memory for the floating point data and then read it
@@ -129,8 +182,8 @@ end subroutine loadNodalAttribute
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!                   S U B R O U T I N E   
-!   S E T   N O D A L   A T T R I B U T E S   F I L E   N A M E  
+!                   S U B R O U T I N E
+!   S E T   N O D A L   A T T R I B U T E S   F I L E   N A M E
 !-----------------------------------------------------------------------
 subroutine setNodalAttributesFileName(asciiFile,naFile)
 implicit none
@@ -142,11 +195,11 @@ end subroutine setNodalAttributesFileName
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!                    S U B R O U T I N E    
-!    R E A D   N O D A L   A T T R I B U T E S   F I L E 
+!                    S U B R O U T I N E
+!    R E A D   N O D A L   A T T R I B U T E S   F I L E
 !-----------------------------------------------------------------------
 ! jgf: Reads all the nodal attribute data from an ascii adcirc nodal
-! attributes file. 
+! attributes file.
 !-----------------------------------------------------------------------
 subroutine readNodalAttributesFile(naFile)
 use ioutil, only : openFileForRead
@@ -164,9 +217,9 @@ write(6,'(a)') 'INFO: Reading nodal attributes from "' // trim(naFile%nodalAttri
 call openFileForRead(13,naFile%nodalAttributesFileName, errorIO)
 read(13,*) naFile%nodalAttributesComment
 read(13,*) naFile%numMeshNodes
-write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes 
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes
 read(13,*) naFile%numNodalAttributes
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes 
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes
 allocate(naFile%na(naFile%numNodalAttributes))
 ! read remainder of header
 do i=1,naFile%numNodalAttributes
@@ -190,7 +243,7 @@ do i=1,naFile%numNodalAttributes
    ! the nodal attributes can be listed in the body of the ascii file in
    ! a different order than they were provided in the header; so we need
    ! to first figure out which of the attributes in the header correspond
-   ! to these data 
+   ! to these data
    foundIt = .false.
    do j=1,naFile%numNodalAttributes
       if (trim(adjustl(line)).eq.trim(adjustl(naFile%na(j)%attrName))) then
@@ -203,7 +256,7 @@ do i=1,naFile%numNodalAttributes
       !write(6,'(a)') 'ERROR: The nodal attribute ',trim(adjustl(line)), &
       !' was found in the body of the file but not the header. This file is not ' &
       !'properly formatted.'
-      stop 
+      stop
    endif
    call allMessage(INFO,'Reading nodal attribute data for '//trim(adjustl(line))//'.')
    ! read the number of nondefault nodes
@@ -224,11 +277,11 @@ end subroutine readNodalAttributesFile
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!                    S U B R O U T I N E    
-!    W R I T E   N O D A L   A T T R I B U T E S   F I L E 
+!                    S U B R O U T I N E
+!    W R I T E   N O D A L   A T T R I B U T E S   F I L E
 !-----------------------------------------------------------------------
 ! jgf: Writes all the nodal attribute data to an ascii adcirc nodal
-! attributes file. 
+! attributes file.
 !-----------------------------------------------------------------------
 subroutine writeNodalAttributesFile(naFile)
 implicit none
@@ -239,9 +292,9 @@ write(6,'(a)') 'INFO: Writing nodal attributes to "'//trim(naFile%nodalAttribute
 open(unit=13,file=trim(adjustl(naFile%nodalAttributesFileName)),status='replace',action='write')
 write(13,'(a)') trim(adjustl(naFile%nodalAttributesComment))
 write(13,'(i0)') naFile%numMeshNodes
-write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes 
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') naFile%numMeshNodes
 write(13,'(i0)') naFile%numNodalAttributes
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes 
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes
 ! write remainder of header
 do i=1,naFile%numNodalAttributes
    write(13,'(a)') trim(adjustl(naFile%na(i)%attrName))
@@ -299,7 +352,7 @@ end do
 write(6,'(a)') 'INFO: Writing nodal attribute.'
 open(63,file=trim(fort63),status='replace',action='write')
 ! RUNDES, RUNID, AGRID
-write(63,*) trim(naFile%nodalAttributesComment) // " " // trim(naName) 
+write(63,*) trim(naFile%nodalAttributesComment) // " " // trim(naName)
 ! NDSETSE, NP, DTDP*NSPOOLGE, NSPOOLGE, IRTYPE
 write(63,'(i0," ",i0," ",f3.1," ",i0," ",i0)') naFile%na(w)%numVals, naFile%numMeshNodes, 1.0, 1, 1
 do i=1,naFile%na(w)%numVals
@@ -308,15 +361,13 @@ do i=1,naFile%na(w)%numVals
    m=1
    do j=1,naFile%numMeshNodes
       ! check to see if this node has a non default value
-      if (j.eq.naFile%na(w)%nonDefaultNodes(m)) then        
-         !write(*,*) 'node ',j,' has nondefault value ',na(w)%nonDefaultVals(1,m)
+      if (j.eq.naFile%na(w)%nonDefaultNodes(m)) then
          write(63,'(i0,99(" ",f15.7))') j, naFile%na(w)%nonDefaultVals(i,m)
          if (m.lt.naFile%na(w)%numNodesNotDefault) then
             m = m + 1
          endif
       else
          ! if it doesn't then write the default value
-         !write(*,*) 'node ',j,' has default value ',na(w)%defaultVals(1)
           write(63,'(i0,99(" ",f15.7))') j, naFile%na(w)%defaultVals(i)
       endif
    end do
@@ -328,8 +379,8 @@ end subroutine writeNodalAttribute63
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
-!                    S U B R O U T I N E    
-!   W R I T E   N O D A L   A T T R I B U T E S   F I L E   N E T C D F 
+!                    S U B R O U T I N E
+!   W R I T E   N O D A L   A T T R I B U T E S   F I L E   N E T C D F
 !-----------------------------------------------------------------------
 ! jgf: Writes all the nodal attribute data to a netcdf file.
 !-----------------------------------------------------------------------
@@ -342,7 +393,7 @@ type(nodalAttrFile_t), intent(inout) :: naFile ! file struct where nodal attribu
 integer, intent(in) :: ncid ! netcdf id of the file to write
 type(mesh_t), intent(inout) :: m ! mesh to operate on
 type(meshNetCDF_t), intent(inout) :: n ! netcdf IDs for mesh
-logical, intent(in) :: deflate ! turns on compression if compiled w/suitable libs 
+logical, intent(in) :: deflate ! turns on compression if compiled w/suitable libs
 integer :: nc_start(2) ! element of array where writing begins (each dimension)
 integer :: nc_count(2) ! number of elements of array to write (each dimension)
 character(len=2048) :: nameStr
@@ -350,8 +401,8 @@ integer :: i, j, k
 !
 write(6,'(a)') 'INFO: Writing nodal attributes to netCDF.'
 call check(nf90_put_att(ncid,nf90_global,'nodalAttributesComment',trim(adjustl(naFile%nodalAttributesComment))))
-write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') m%np 
-write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes 
+write(6,'("INFO: There are ",i0," nodes in the corresponding mesh.")') m%np
+write(6,'("INFO: There are ",i0," nodal attributes in the file.")') naFile%numNodalAttributes
 !
 ! define dimensions, variables, and metadata for each nodal attribute
 do i=1,naFile%numNodalAttributes
@@ -363,7 +414,7 @@ do i=1,naFile%numNodalAttributes
    call check(nf90_def_var(ncid,trim(nameStr),nf90_double,naFile%na(i)%nc_dimid_values_per_node,naFile%na(i)%nc_varid_defaults))
    ! nodal values : dimensions
    naFile%na(i)%nc_dimid(1) = n%nc_dimid_node
-   naFile%na(i)%nc_dimid(2) = naFile%na(i)%nc_dimid_values_per_node  
+   naFile%na(i)%nc_dimid(2) = naFile%na(i)%nc_dimid_values_per_node
    ! nodal values : variable definition
    !jgfdebug
    call check(nf90_def_var(ncid,trim(adjustl(naFile%na(i)%attrName)),nf90_double,naFile%na(i)%nc_dimid,naFile%na(i)%nc_varid))
@@ -401,10 +452,10 @@ do i=1,naFile%numNodalAttributes
    do j=1,m%np
       naFile%na(i)%ncData(j,:) = naFile%na(i)%defaultVals(:)
    end do
-   ! selectively set nondefault values    
+   ! selectively set nondefault values
    do j=1,naFile%na(i)%numNodesNotDefault
       do k=1,naFile%na(i)%numVals
-         naFile%na(i)%ncData(naFile%na(i)%nonDefaultNodes(j),k ) = naFile%na(i)%nonDefaultVals(k,j) 
+         naFile%na(i)%ncData(naFile%na(i)%nonDefaultNodes(j),k ) = naFile%na(i)%nonDefaultVals(k,j)
       end do
    end do
    nc_start = (/ 1, 1 /)
