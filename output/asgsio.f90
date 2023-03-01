@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading
 ! ADCIRC files in ascii and netcdf format.
 !--------------------------------------------------------------------------
-! Copyright(C) 2014--2019 Jason Fleming
+! Copyright(C) 2014--2023 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -163,6 +163,7 @@ type fileMetaData_t
    ! data characteristics and metadata
    logical :: timeVarying   ! .true. if we have datasets at different times
    logical :: useCPP        ! .true. if metadata should refer to CPP coordinates
+   logical :: useCartesianSphere       ! .true. if metadata should refer to 3D cartesian unit sphere
    real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
    logical :: allDataSetsHaveBeenRead  ! true if dataset counter exceeds number of datasets
 end type fileMetaData_t
@@ -176,30 +177,6 @@ type netCDFMetaDataFromExternalFile_t
    character(len=120) :: datenum ! e.g. seconds since 2008-07-31 12:00:00 +00:00
    integer :: numValuesPerDataset ! for ascii files, should equal np in associated mesh file
 end type netCDFMetaDataFromExternalFile_t
-
-type realVector1D_t
-   integer :: n    ! current number of elements
-   integer :: s    ! total number of memory slots to hold elements
-   integer :: ninc ! number of elements to add when more memory is needed
-   real(8), allocatable :: v(:) ! array of values in the vector
-   real(8), allocatable :: vtemp(:) ! temp array of values during reallocation
-end type realVector1D_t
-
-type integerVector1D_t
-   integer :: n    ! current number of elements
-   integer :: s    ! total number of memory slots to hold elements
-   integer :: ninc ! number of elements to add when more memory is needed
-   integer, allocatable :: v(:) ! array of values in the vector
-   integer, allocatable :: vtemp(:) ! temp array of values during reallocation
-end type integerVector1D_t
-
-type characterVector1D_t
-   integer :: n    ! current number of elements
-   integer :: s    ! total number of memory slots to hold elements
-   integer :: ninc ! number of elements to add when more memory is needed
-   character(len=2000), allocatable :: v(:) ! array of values in the vector
-   character(len=2000), allocatable :: vtemp(:) ! temp array of values during reallocation
-end type characterVector1D_t
 
 character(len=80) :: rundes  ! 1st line in adcirc fort.15 input file
 character(len=80) :: runid   ! 2nd line in adcirc fort.15 input file
@@ -269,7 +246,7 @@ end subroutine allocateDatasetMemory
 !----------------------------------------------------------------------
 ! jgf: Determine type and contents of adcirc data (output) files.
 !----------------------------------------------------------------------
-subroutine determineNetCDFFileCharacteristics(f, m, n)
+subroutine determineNetCDFFileCharacteristics(f, m, n, naFile)
 use adcmesh
 use logging
 use ioutil
@@ -278,11 +255,10 @@ implicit none
 type(fileMetaData_t), intent(inout) :: f
 type(mesh_t), intent(inout) :: m
 type(meshNetCDF_t), intent(inout) :: n
+type(nodalAttrFile_t), optional, intent(inout) :: naFile
 character(len=NF90_MAX_NAME) :: thisVarName
 character(len=NF90_MAX_NAME) :: componentName
-character(len=NF90_MAX_NAME) :: nodalAttributesComment ! locally declare this here to avoid dependency on nodalattr module
-integer :: numNodalAttributes  ! locally declare this here to avoid dependency on nodalattr module
-integer :: i, j, k, p, q
+integer :: i, j, k, p, q, idx
 integer :: errorIO
 logical :: exists ! true if the file exists
 
@@ -320,12 +296,12 @@ if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
    if (f%nc_dimid_time.lt.0) then
       f%timeVarying = .false.
 	   ! check to see if it is a nodal attributes file
-	   errorIO = nf90_get_att(f%nc_id,nf90_global,'nodalAttributesComment',nodalAttributesComment)
+	   errorIO = nf90_get_att(f%nc_id,nf90_global,'nodalAttributesComment',naFile%nodalAttributesComment)
 	   if (errorIO.eq.0) then
          call allMessage(INFO,'The netcdf file '//trim(f%dataFileName)//' is a nodal attributes file.')
 	      f%defaultFileName = 'fort.13'
 	      f%dataFileCategory = NODALATTRIBF
-	      f%fileTypeDesc = 'an ADCIRC nodal attributes ('//trim(f%defaultFileName)//') file.'
+	      f%fileTypeDesc = 'an ADCIRC nodal attributes ('//trim(f%defaultFileName)//')'
           call allMessage(INFO,'Examining '//trim(f%fileTypeDesc)//' file.')
 	   else
           errorIO = nf90_inquire_dimension(f%nc_id,f%nc_dimid_time,len=f%nSnaps)
@@ -391,60 +367,53 @@ endif
 do i=1,f%nvar
    if ( f%dataFileCategory.eq.NODALATTRIBF ) then
       f%timeVarying = .false.
-      numNodalAttributes = 0
+      naFile%numNodalAttributes = 0
+      ! create the vector of supported nodal attribute names
+      call initNodalAttributeNames()
       ! count the number of nodal attributes
       do j=1, f%nvar
          call check(nf90_inquire_variable(f%nc_id, j, thisVarName))
-         select case(trim(thisVarName))
-         case('mannings_n_at_sea_floor')
-            numNodalAttributes = numNodalAttributes + 1
-            f%numVarNetCDF = f%numVarNetCDF + 1
-            f%numVarXDMF = f%numVarXDMF + 1
-         case('primitive_weighting_in_continuity_equation')
-            numNodalAttributes = numNodalAttributes + 1
-            f%numVarNetCDF = f%numVarNetCDF + 1
-            f%numVarXDMF = f%numVarXDMF + 1
-         case('surface_canopy_coefficient')
-            numNodalAttributes = numNodalAttributes + 1
-            f%numVarNetCDF = f%numVarNetCDF + 1
-            f%numVarXDMF = f%numVarXDMF + 1
-         case('surface_directional_effective_roughness_length')
-            numNodalAttributes = numNodalAttributes + 1
-            f%numVarNetCDF = f%numVarNetCDF + 1
-            f%numVarXDMF = f%numVarXDMF + 12 ! hardcoded to 12
-         case('surface_submergence_state')
-            numNodalAttributes = numNodalAttributes + 1
-            f%numVarNetCDF = f%numVarNetCDF + 1
-            f%numVarXDMF = f%numVarXDMF + 1
-         case default
-            ! something other than a nodal attribute
-         end select
+         call nodalAttributeNames%find(thisVarName, idx)
+         if (idx.ne.-1) then
+            naFile%numNodalAttributes = naFile%numNodalAttributes + 1
+            ! determine the number of values per node
+            call check(nf90_inq_dimid(f%nc_id, trim(thisVarName)//'_valuesPerNode', p))
+            call check(nf90_inquire_dimension(f%nc_id, p, len=q))
+            f%numVarXDMF = f%numVarXDMF + q
+         endif
       end do
-      ! allocate space to hold the metadata for all the nodal attributes
+      f%numVarNetCDF = naFile%numNodalAttributes
       call initFileMetaData(f, thisVarName, f%numVarNetCDF, f%numVarXDMF)
-      k=1
-      p=1
+      allocate(naFile%na(naFile%numNodalAttributes))
+      ! extract the names of the nodal attributes and the number of
+      ! values at each node
+      k=1  ! netcdf dataset counter
+      p=1  ! XDMF name counter
       do j=1, f%nvar
          call check(nf90_inquire_variable(f%nc_id, j, thisVarName))
-         select case(trim(thisVarName))
-         case('mannings_n_at_sea_floor','primitive_weighting_in_continuity_equation','surface_canopy_coefficient','surface_submergence_state')
-            f%ncds(k)%varNameNetCDF = trim(thisVarName)
-            k = k + 1
-            f%xds(p)%varNameXDMF = trim(thisVarName)
-            p = p + 1
-         case('surface_directional_effective_roughness_length')
-            f%ncds(k)%varNameNetCDF = trim(thisVarName)
-            k = k + 1
-            do q=1,12 ! hardcoded to 12
-               ! form component name
-               write(componentName,'(a,"[",i2.2,"]")') trim(thisVarName), q
-               f%xds(p)%varNameXDMF = trim(componentName)
-               f%xds(p)%numComponents = -12  ! negative indicates hyperslab, not vector
+         call nodalAttributeNames%find(trim(thisVarName), idx)
+         if (idx.ne.-1) then
+            naFile%na(k)%attrName = trim(thisVarName)
+            ! determine the number of values per node
+            call check(nf90_inq_dimid(f%nc_id, trim(naFile%na(k)%attrName)//'_valuesPerNode',q))
+            call check(nf90_inquire_dimension(f%nc_id, q, len=naFile%na(k)%numVals))
+            f%ncds(k)%varNameNetCDF = trim(naFile%na(k)%attrName)
+            f%xds(p)%varNameXDMF = trim(naFile%na(k)%attrName) ! this will be overwritten for multicomponent nodal attributes
+            if (naFile%na(k)%numVals.gt.1) then
+               do q=1,naFile%na(k)%numVals
+                  ! form component name
+                  write(componentName,'(a,"[",i2.2,"]")') trim(naFile%na(k)%attrName), q
+                  f%xds(p)%varNameXDMF = trim(componentName)
+                  f%xds(p)%numComponents = -naFile%na(k)%numVals  ! negative indicates hyperslab, not vector
+                  !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',p,')='//trim(f%xds(p)%varNameXDMF)
+                  p = p + 1
+               end do
+            else
+               !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',p,')='//trim(f%xds(p)%varNameXDMF)
                p = p + 1
-            end do
-         case default
-            ! something other than a nodal attribute
-         end select
+            endif
+            k = k + 1
+         endif
       end do
       exit
    endif
@@ -838,11 +807,9 @@ do i=1, f%natt
    call check(nf90_inq_attname(f%nc_id, nf90_global, i, f%nc_attName(i)))
    if (trim(f%nc_attName(i)).eq.'rundes') then
       call check(nf90_get_att(f%nc_id, nf90_global, f%nc_attName(i), rundes))
-      !write(*,*) trim(rundes)
    endif
    if (trim(f%nc_attName(i)).eq.'runid') then
       call check(nf90_get_att(f%nc_id, nf90_global, f%nc_attName(i), runid))
-      !write(*,*) trim(runid)
    endif
    call check(nf90_inquire_attribute(f%nc_id, nf90_global, f%nc_attName(i), f%nc_attType(i)))
 end do
@@ -1892,11 +1859,6 @@ case(ASCII,ASCIIG)
       else
          ! non-sparse and non-fort.88
          if (f%dataFileCategory.ne.INITRIVER) then
-
-                  ! jgfdebug
-         !read(unit=f%fun,fmt=*,end=246,err=248,iostat=errorio) line
-         !write(*,*) trim(adjustl(line))
-
             read(f%fun,fmt=*,end=246,err=248,iostat=errorio) SnapR, SnapI
             numNodesNonDefault = f%numValuesPerDataSet
             l = l + 1
@@ -2077,8 +2039,6 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
          !
             write(f%fun,2120) snapr, snapi
             ! write full dataset
-            !jgfdebug
-            !write(*,*) f%numValuesPerDataset
             if (allocated(f%rdata).eqv..true.) then
                do h=1,f%numValuesPerDataset       ! came from ascii
                   write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
@@ -2258,131 +2218,6 @@ endif
 end subroutine checkErrOWI
 !-----------------------------------------------------------------------
 
-!-----------------------------------------------------------------------
-! Initialize a 1D vector of real numbers
-!-----------------------------------------------------------------------
-subroutine initR1D(vec)
-implicit none
-type(realVector1D_t), intent(inout) :: vec
-vec%n = 0
-vec%ninc = 100
-vec%s = vec%ninc
-allocate(vec%v(0:vec%s+1))
-vec%v(:)=-99999.d0
-!-----------------------------------------------------------------------
-end subroutine initR1D
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-! Append a real number to a 1D vector of real numbers.
-!-----------------------------------------------------------------------
-subroutine appendR1D(vec, rval)
-implicit none
-type(realVector1D_t), intent(inout) :: vec
-real(8), intent(in) :: rval
-! allocate more memory if necessary
-if (vec%n.eq.vec%s) then
-   ! create temp variable
-   allocate(vec%vtemp(vec%n))
-   ! copy array values to temp space
-   vec%vtemp(1:vec%n) = vec%v(1:vec%n)
-   deallocate(vec%v)
-   ! increase size of array by the given increment
-   vec%s = vec%n + vec%ninc
-   allocate(vec%v(vec%s))
-   ! copy the values back from the temp array
-   vec%v(1:vec%n) = vec%vtemp(1:vec%n)
-   deallocate(vec%vtemp)
-endif
-vec%v(vec%n+1) = rval
-vec%n = vec%n + 1
-!-----------------------------------------------------------------------
-end subroutine appendR1D
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-! Initialize a 1D vector of integers.
-!-----------------------------------------------------------------------
-subroutine initI1D(vec)
-implicit none
-type(integerVector1D_t), intent(inout) :: vec
-vec%n = 0
-vec%ninc = 100
-vec%s = vec%ninc
-allocate(vec%v(0:vec%s+1))
-vec%v(:)=-99999
-!-----------------------------------------------------------------------
-end subroutine initI1D
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-! Append an integer to a 1D vector of integers.
-!-----------------------------------------------------------------------
-subroutine appendI1D(vec, ival)
-implicit none
-type(integerVector1D_t), intent(inout) :: vec
-integer, intent(in) :: ival
-! allocate more memory if necessary
-if (vec%n.eq.vec%s) then
-   ! create temp variable
-   allocate(vec%vtemp(vec%n))
-   ! copy array values to temp space
-   vec%vtemp(1:vec%n) = vec%v(1:vec%n)
-   deallocate(vec%v)
-   ! increase size of array by the given increment
-   vec%s = vec%n + vec%ninc
-   allocate(vec%v(vec%s))
-   ! copy the values back from the temp array
-   vec%v(1:vec%n) = vec%vtemp(1:vec%n)
-   deallocate(vec%vtemp)
-endif
-vec%v(vec%n+1) = ival
-vec%n = vec%n + 1
-!-----------------------------------------------------------------------
-end subroutine appendI1D
-!-----------------------------------------------------------------------
-
-
-!-----------------------------------------------------------------------
-! Initialize a 1D vector of character strings.
-!-----------------------------------------------------------------------
-subroutine initC1D(vec)
-implicit none
-type(characterVector1D_t), intent(inout) :: vec
-vec%n = 0
-vec%ninc = 100
-vec%s = vec%ninc
-allocate(vec%v(0:vec%s+1))
-!-----------------------------------------------------------------------
-end subroutine initC1D
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-! Append an integer to a 1D vector of character strings.
-!-----------------------------------------------------------------------
-subroutine appendC1D(vec, cstr)
-implicit none
-type(characterVector1D_t), intent(inout) :: vec
-character(len=2000), intent(in) :: cstr
-! allocate more memory if necessary
-if (vec%n.eq.vec%s) then
-   ! create temp variable
-   allocate(vec%vtemp(vec%n))
-   ! copy array values to temp space
-   vec%vtemp(1:vec%n) = vec%v(1:vec%n)
-   deallocate(vec%v)
-   ! increase size of array by the given increment
-   vec%s = vec%n + vec%ninc
-   allocate(vec%v(vec%s))
-   ! copy the values back from the temp array
-   vec%v(1:vec%n) = vec%vtemp(1:vec%n)
-   deallocate(vec%vtemp)
-endif
-vec%v(vec%n+1) = cstr
-vec%n = vec%n + 1
-!-----------------------------------------------------------------------
-end subroutine appendC1D
-!-----------------------------------------------------------------------
 
 
 !-----------------------------------------------------------------------

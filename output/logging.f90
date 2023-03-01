@@ -5,7 +5,7 @@
 ! A module for writing log messages from fortran utility programs.
 !
 !--------------------------------------------------------------------------
-! Copyright(C) 2017 Jason Fleming
+! Copyright(C) 2017--2023 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -251,11 +251,204 @@ integer, parameter :: OWI = 7       ! fort.221, fort.222, fort.223, fort.224
 integer, parameter :: ESLNODES = 8 ! ESLNodes.63
 integer, parameter :: MAUREPT = 108 ! output from maureparticle
 
+type realVector1D_t
+   integer :: n    ! current number of elements
+   integer :: s    ! total number of memory slots to hold elements
+   integer :: ninc ! number of elements to add when more memory is needed
+   real(8), allocatable :: v(:) ! array of values in the vector
+   real(8), allocatable :: vtemp(:) ! temp array of values during reallocation
+
+end type realVector1D_t
+
+type integerVector1D_t
+   integer :: n    ! current number of elements
+   integer :: s    ! total number of memory slots to hold elements
+   integer :: ninc ! number of elements to add when more memory is needed
+   integer, allocatable :: v(:) ! array of values in the vector
+   integer, allocatable :: vtemp(:) ! temp array of values during reallocation
+end type integerVector1D_t
+
+type characterVector1D_t
+   integer :: n    ! current number of elements
+   integer :: s    ! total number of memory slots to hold elements
+   integer :: ninc ! number of elements to add when more memory is needed
+   character(len=2000), allocatable :: v(:) ! array of values in the vector
+   character(len=2000), allocatable :: vtemp(:) ! temp array of values during reallocation
+   contains
+   procedure :: init =>   initC1D
+   procedure :: append => appendC1D
+   procedure :: find =>   findC1D
+   procedure :: free =>   freeC1D
+end type characterVector1D_t
+
 !-----------
 !-----------
 contains
 !-----------
 !-----------
+
+!-----------------------------------------------------------------------
+! Initialize a 1D vector of real numbers
+!-----------------------------------------------------------------------
+subroutine initR1D(vec)
+   implicit none
+   type(realVector1D_t), intent(inout) :: vec
+   vec%n = 0
+   vec%ninc = 100
+   vec%s = vec%ninc
+   allocate(vec%v(0:vec%s+1))
+   vec%v(:)=-99999.d0
+   !-----------------------------------------------------------------------
+   end subroutine initR1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Append a real number to a 1D vector of real numbers.
+   !-----------------------------------------------------------------------
+   subroutine appendR1D(vec, rval)
+   implicit none
+   type(realVector1D_t), intent(inout) :: vec
+   real(8), intent(in) :: rval
+   ! allocate more memory if necessary
+   if (vec%n.eq.vec%s) then
+      ! create temp variable
+      allocate(vec%vtemp(vec%n))
+      ! copy array values to temp space
+      vec%vtemp(1:vec%n) = vec%v(1:vec%n)
+      deallocate(vec%v)
+      ! increase size of array by the given increment
+      vec%s = vec%n + vec%ninc
+      allocate(vec%v(vec%s))
+      ! copy the values back from the temp array
+      vec%v(1:vec%n) = vec%vtemp(1:vec%n)
+      deallocate(vec%vtemp)
+   endif
+   vec%v(vec%n+1) = rval
+   vec%n = vec%n + 1
+   !-----------------------------------------------------------------------
+   end subroutine appendR1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Initialize a 1D vector of integers.
+   !-----------------------------------------------------------------------
+   subroutine initI1D(vec)
+   implicit none
+   type(integerVector1D_t), intent(inout) :: vec
+   vec%n = 0
+   vec%ninc = 100
+   vec%s = vec%ninc
+   allocate(vec%v(0:vec%s+1))
+   vec%v(:)=-99999
+   !-----------------------------------------------------------------------
+   end subroutine initI1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Append an integer to a 1D vector of integers.
+   !-----------------------------------------------------------------------
+   subroutine appendI1D(vec, ival)
+   implicit none
+   type(integerVector1D_t), intent(inout) :: vec
+   integer, intent(in) :: ival
+   ! allocate more memory if necessary
+   if (vec%n.eq.vec%s) then
+      ! create temp variable
+      allocate(vec%vtemp(vec%n))
+      ! copy array values to temp space
+      vec%vtemp(1:vec%n) = vec%v(1:vec%n)
+      deallocate(vec%v)
+      ! increase size of array by the given increment
+      vec%s = vec%n + vec%ninc
+      allocate(vec%v(vec%s))
+      ! copy the values back from the temp array
+      vec%v(1:vec%n) = vec%vtemp(1:vec%n)
+      deallocate(vec%vtemp)
+   endif
+   vec%v(vec%n+1) = ival
+   vec%n = vec%n + 1
+   !-----------------------------------------------------------------------
+   end subroutine appendI1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Initialize a 1D vector of character strings.
+   !-----------------------------------------------------------------------
+   subroutine initC1D(vec)
+   implicit none
+   class(characterVector1D_t), intent(inout) :: vec
+   vec%n = 0
+   vec%ninc = 100
+   vec%s = vec%ninc
+   allocate(vec%v(0:vec%s+1))
+   !-----------------------------------------------------------------------
+   end subroutine initC1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Append an integer to a 1D vector of character strings.
+   !-----------------------------------------------------------------------
+   subroutine appendC1D(vec, cstr)
+   implicit none
+   class(characterVector1D_t), intent(inout) :: vec
+   character(len=*), intent(in) :: cstr
+   ! allocate more memory if necessary
+   if (vec%n.eq.vec%s) then
+      ! create temp variable
+      allocate(vec%vtemp(vec%n))
+      ! copy array values to temp space
+      vec%vtemp(1:vec%n) = vec%v(1:vec%n)
+      deallocate(vec%v)
+      ! increase size of array by the given increment
+      vec%s = vec%n + vec%ninc
+      allocate(vec%v(vec%s))
+      ! copy the values back from the temp array
+      vec%v(1:vec%n) = vec%vtemp(1:vec%n)
+      deallocate(vec%vtemp)
+   endif
+   vec%v(vec%n+1) = cstr
+   vec%n = vec%n + 1
+   !-----------------------------------------------------------------------
+   end subroutine appendC1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Find the index of a character array within a 1D vector.
+   ! If there is more than one occurrence of the character array, then the
+   ! first index of occurrence is returned.
+   ! If the character array is not found, the value -1 is returned.
+   !-----------------------------------------------------------------------
+   subroutine findC1D(vec, cstr, idx)
+   implicit none
+   class(characterVector1D_t), intent(inout) :: vec
+   character(len=*), intent(in) :: cstr
+   integer, intent(out)         :: idx
+   integer                      :: i
+   idx = -1
+   do i=1,vec%n
+      if (trim(cstr).eq.trim(vec%v(i))) then
+         idx = i
+         exit
+      endif
+   end do
+   !-----------------------------------------------------------------------
+   end subroutine findC1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
+   ! Deallocate a 1D vector of character strings.
+   !-----------------------------------------------------------------------
+   subroutine freeC1D(vec)
+   implicit none
+   class(characterVector1D_t), intent(inout) :: vec
+   deallocate(vec%v)
+   vec%n = 0
+   vec%s = vec%ninc
+   !-----------------------------------------------------------------------
+   end subroutine freeC1D
+   !-----------------------------------------------------------------------
+
+
 !-----------------------------------------------------------------------
 !     S U B R O U T I N E   O P E N  F I L E  F O R  R E A D
 !-----------------------------------------------------------------------
