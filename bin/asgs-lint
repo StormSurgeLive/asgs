@@ -33,6 +33,7 @@ my $assert_checks = {
     fatal_configcheck_SCENARIOPACKAGESIZE_if_TROPICALCYCLONE_DEFINED => 30,    # sanity check for scenerio package definition, so op doesn't mismatch SCENERIOPACKAGESIZE
     fatal_bincheck_ADCIRC                                            => 35,    # ensures ADCIRC bins are available via PATH
     fatal_configcheck_WAVES_if_on                                    => 40,    # ensures SWAN bins are in PATH no-op if WAVES=off
+    fatal_configcheck_get_atcf                                       => 45,    # ensures that TRIGGER and FTPSITE are compatible
 };
 
 # N O T E S
@@ -53,22 +54,22 @@ my $assert_checks = {
 #    QUEUESYS must be serial, mpiexec, SLURM, or PBS.
 #    VORTEXMODEL parameter set to something other than GAHM when BACKGROUNDMET set to namBlend.
 #    if VARFLUX=on or VARFLUX=default for any ADCIRC version,
-#    If WAVES=on and SWANDT is sent in config, it must be in the range, 300 to 1200
-#    If WAVES=on and REINITIALIZESWAN is set in config, it must be either 'on' or 'off'
-#    If WAVES=on, adcswan and padcswan executables must be available via ADCIRCDIR (exported to environment via ADCIRC config)
-#    If WAVES=on, unhcat.exe executables must be available via SWANDIR (exported to environment via ADCIRC config)
-#    If WAVES=on, swaninit.template and $SWANTEMPLATE files exist in input/meshes/common/swan under either $SCRIPTDIR
+#    if WAVES=on and SWANDT is sent in config, it must be in the range, 300 to 1200
+#    if WAVES=on and REINITIALIZESWAN is set in config, it must be either 'on' or 'off'
+#    if WAVES=on, adcswan and padcswan executables must be available via ADCIRCDIR (exported to environment via ADCIRC config)
+#    if WAVES=on, unhcat.exe executables must be available via SWANDIR (exported to environment via ADCIRC config)
+#    if WAVES=on, swaninit.template and $SWANTEMPLATE files exist in input/meshes/common/swan under either $SCRIPTDIR
 #    ADCIRC ENV checks
 #    if TROPICALCYCLONE=on, SCENARIOPACKAGESIZE is checked and some sanity checks on the case/esac structure are done
-#
-#TODO
-#    If VARFLUX=default then verify that the file $INPUTDIR/$RIVERFLUX exists and has nonzero length
-#    if VARFLUX=on or VARFLUX=default and the ADCIRC version is less than v53, then verify that the file $INPUTDIR/$RIVERINIT exists and has nonzero length
-#    If VARFLUX=on and USERIVERFILEONLY=no then verify that
 #    RIVERDATAPROTOCOL is set to one of scp, ftp, or filesystem
+#    FTPSITE=filesystem and TRIGGER=ftp is a fatal warning
+#
+#TODO - COMPLEXT BUT VERY POSSIBLE
+#    if VARFLUX=default then verify that the file $INPUTDIR/$RIVERFLUX exists and has nonzero length
+#    if VARFLUX=on or VARFLUX=default and the ADCIRC version is less than v53, then verify that the file $INPUTDIR/$RIVERINIT exists and has nonzero length
+#    if VARFLUX=on and USERIVERFILEONLY=no then verify that
 #    if RIVERDATAPROTOCOL=scp then verify that the ssh server $RIVERSITE is reachable as the user $RIVERUSER and that the directory $RIVERDIR exists and is readable
-#    if VARFLUX=on or VARFLUX=default for any ADCIRC version,
-#    verify that the file $INPUTDIR/$HINDCASTRIVERFLUX exists and has nonzero length
+#    if VARFLUX=on or VARFLUX=default for any ADCIRC version, verify that the file $INPUTDIR/$HINDCASTRIVERFLUX exists and has nonzero length
 #--
 
 my $CONFIG_VARS = {
@@ -138,6 +139,18 @@ my $CONFIG_VARS = {
         req   => 0,
         check => [ sub { _IN( @_, qw/ftp rss rssembedded atcf/ ) } ],
         hint  => q{Must be: 'ftp', 'rss', 'rssembedded', or 'atcf'},
+    },
+    FTPSITE => {
+        ord   => 56,
+        req   => 0,
+        check => [ sub { \&_DEFER_CHECK } ],
+        hint  => q{},
+    },
+    RSSSITE => {
+        ord   => 57,
+        req   => 0,
+        check => [ sub { \&_DEFER_CHECK } ],
+        hint  => q{},
     },
     WAVES => {
         ord   => 60,
@@ -253,6 +266,13 @@ my $CONFIG_VARS = {
         check => [ sub { _IN( @_, qw/yes no/ ) } ],
         hint  => q{must be: 'yes' or 'no'; important for reliably controlling emails sent by POSTPROCESS hook scripts.},
     },
+    RIVERDATAPROTOCOL => {
+        ord   => 150,
+        req   => 0,
+        check => [ sub { _IN( @_, qw/scp ftp filesystem/ ) } ],
+        hint  => q{must be: 'scp', 'ftp', or 'filesystem' if defined.},
+    },
+
 };
 
 # NONE of these variables should ever appear in a configuration file
@@ -359,6 +379,7 @@ sub fatal_configcheck_CPUs {
     ( $var_found, my $NUMWRITERS )   = $self->_extract_from_config(q{NUMWRITERS});
     ( $var_found, my $NCPUCAPACITY ) = $self->_extract_from_config(q{NCPUCAPACITY});
 
+    #asgswisdom: NCPU+NUMWRITER can't exceed NCPUCAPACITY.
     assert_FATAL(
         sprintf qq{NCPU+NUMWRITER exceeds NCPUCAPACITY in '%s'},
         $ENV{ASGS_CONFIG}
@@ -657,6 +678,21 @@ sub fatal_configcheck_WAVES_if_on {
             or not -e sprintf( q{%s/%s}, $ENV{SCRIPTDIR}, $SWANTEMPLATE ) )
     ) {
         assert_FATAL( $CONFIG_VARS->{SWANTEMPLATE}->{hint} );
+    }
+
+    return 1;
+}
+
+sub fatal_configcheck_get_atcf {
+    my ( $self, $o ) = @_;
+
+    my $var_found;
+    ( $var_found, my $TRIGGER ) = $self->_extract_from_config(q{TRIGGER});
+    ( $var_found, my $FTPSITE ) = $self->_extract_from_config(q{FTPSITE});
+
+    #asgswisdom: FTPSITE can't be 'filesystem' when TRIGGER=ftp
+    if ($FTPSITE and $TRIGGER and $FTPSITE eq q{filesystem} and $TRIGGER eq q{ftp}) { 
+      assert_FATAL( qq{'TRIGGER=ftp' is not compatible with 'FTPSITE=filesystem'.} );
     }
 
     return 1;
