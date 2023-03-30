@@ -552,7 +552,6 @@ env_dispatch() {
   esac
 
   # support arbitrarily $USER customizations after platforms.sh has been utilized
-  # this file will also be replacing config/operator_defaults.sh in the near future
   if [ -e $HOME/.asgsh_profile ]; then
     source $HOME/.asgsh_profile
   fi
