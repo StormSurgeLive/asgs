@@ -16,12 +16,14 @@ use constant {
 };
 
 # Expected variables in %ENV
-my $SCRIPTDIR     = $ENV{SCRIPTDIR};
-my $ASGS_CONFIG   = $ENV{ASGS_CONFIG};
-my $ADCIRCDIR     = $ENV{ADCIRCDIR};
-my $ADCIRC_BINS   = $ENV{ADCIRC_BINS};
-my $STATEFILE     = $ENV{STATEFILE};
-my $SWANDIR       = $ENV{SWANDIR};
+my $SCRIPTDIR           = $ENV{SCRIPTDIR};
+my $ASGS_CONFIG         = $ENV{ASGS_CONFIG};
+my $ADCIRCDIR           = $ENV{ADCIRCDIR};
+my $ADCIRC_BINS         = $ENV{ADCIRC_BINS};
+my $STATEFILE           = $ENV{STATEFILE};
+my $SWANDIR             = $ENV{SWANDIR};
+my $MESH_DEFAULTS       = $ENV{ASGS_MESH_DEFAULTS};
+my $LOCAL_MESH_DEFAULTS = ($ENV{ASGS_LOCAL_DIR}) ? sprintf(qq{%s/config/mesh_defaults.sh}, $ENV{ASGS_LOCAL_DIR}) : int rand 1_000_000; # security hedge if ASGS_LOCAL_DIR is not defined
 
 # C H E C K  S C H E D U L E R
 #
@@ -34,7 +36,8 @@ my $SWANDIR       = $ENV{SWANDIR};
 my $assert_checks = {
     fatal_filecheck_ASGS_CONFIG                                      => 1,     # ensures $ASGS_CONFIG exists
     fatal_configcheck_asgsh_vars                                     => 3,     # fatal if any of these exist in config since they are tracked by the profile
-    maybe_fatal_configcheck_missing                                  => 5,     # checks $ASGS_CONFIG/ENV for required variables
+    fatal_configcheck_GRIDNAME                                       => 5,     # fatal if GRIDNAME doesn't exist 
+    maybe_fatal_configcheck_missing                                  => 8,     # checks $ASGS_CONFIG/ENV for required variables
     fatal_configcheck_FORCINGS                                       => 10,    # sanity check on TROPICALCYCLONE
     fatal_configcheck_CPUs                                           => 15,    # sanity check on requests CPUs
     fatal_configcheck_HOTORCOLD                                      => 20,    # sanity check for configured hotstarts, inspects STATEFILE if exists
@@ -43,6 +46,7 @@ my $assert_checks = {
     fatal_bincheck_ADCIRC                                            => 35,    # ensures ADCIRC bins are available via PATH
     fatal_configcheck_WAVES_if_on                                    => 40,    # ensures SWAN bins are in PATH no-op if WAVES=off
     fatal_configcheck_get_atcf                                       => 45,    # ensures that TRIGGER and FTPSITE are compatible
+    fatal_configcheck_VARFLUX                                        => 50,    # check conditions surrounding river forcing parameter, VARFLUX
 };
 
 # N O T E S
@@ -284,6 +288,18 @@ my $CONFIG_VARS = {
         check => [ sub { _IN( @_, qw/scp ftp filesystem/ ) } ],
         hint  => q{must be: 'scp', 'ftp', or 'filesystem' if defined.},
     },
+    RIVERSITE => {
+        ord   => 151,
+        req   => 0,
+        check => [ sub { _LOOKS_LIKE_REMOTE_HOST( @_ ) } ],
+        hint  => q{If VARFLUX=on, RIVERSITE may be used to define the server from which river boundary data may be gotten as a fort.20.},
+    },
+    RIVERDIR => {
+        ord   => 152,
+        req   => 0,
+        check => [ \&_DEFER_CHECK ],
+        hint  => q{If VARFLUX=on, RIVERDIR may be used to define the directory on RIVERSITE from which river boundary data may be gotten as a fort.20.},
+    },
     ARCHIVE => {
         ord   => 155,
         req   => 0,
@@ -306,7 +322,7 @@ my $CONFIG_VARS = {
 };
 
 # NONE of these variables should ever appear in a configuration file
-my $CONFIG_DISALLOWED = [qw/PERL5LIB LDFLAGS LD_LIBRARY_PATH HDF5_LIBDIR PERLBREW_HOME HDF5_INCDIR ASGS_MESH_DEFAULTS CPPFLAGS PATH LIBRARY_PATH SCRIPTDIR NETCDF4_DIR ASGS_PLATFORMS ADCIRCDIR SCRATCH ASGS_BREW_FLAGS PERLBREW_PERL NETCDFHOME ASGS_INSTALL_PATH WORK PERLBREW_PATH PERLBREW_MANPATH MAGICK_HOME HDF5_DIR ADCIRC_META_DIR ADCIRC_GIT_REPO ASGS_META_DIR LD_RUN_PATH ADCIRC_PROFILE_NAME PERLBREW_ROOT LD_INCLUDE_PATH SWANDIR ASGS_HOME ADCIRC_GIT_BRANCH ASGS_MACHINE_NAME ADCIRC_GIT_URL ADCIRCBASE ASGS_MAKEJOBS PERL_CPANM_HOME NETCDF4_LIBDIR NETCDF4_INCDIR ASGS_TMPDIR ASGS_COMPILER ADCIRC_COMPILER _ASGS_EXPORTED_VARS _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS ADCIRC_BUILD_INFO/];
+my $CONFIG_DISALLOWED = [qw/PERL5LIB LDFLAGS LD_LIBRARY_PATH HDF5_LIBDIR PERLBREW_HOME HDF5_INCDIR ASGS_MESH_DEFAULTS CPPFLAGS PATH LIBRARY_PATH SCRIPTDIR NETCDF4_DIR ASGS_PLATFORMS ADCIRCDIR SCRATCH ASGS_BREW_FLAGS PERLBREW_PERL NETCDFHOME ASGS_INSTALL_PATH WORK PERLBREW_PATH PERLBREW_MANPATH MAGICK_HOME HDF5_DIR ADCIRC_META_DIR ADCIRC_GIT_REPO ASGS_META_DIR LD_RUN_PATH ADCIRC_PROFILE_NAME PERLBREW_ROOT LD_INCLUDE_PATH SWANDIR ASGS_HOME ADCIRC_GIT_BRANCH ASGS_MACHINE_NAME ADCIRC_GIT_URL ADCIRCBASE ASGS_MAKEJOBS PERL_CPANM_HOME NETCDF4_LIBDIR NETCDF4_INCDIR ASGS_TMPDIR ASGS_COMPILER ADCIRC_COMPILER _ASGS_EXPORTED_VARS _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE RUNDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS ADCIRC_BUILD_INFO ASGS_LOCAL_DIR/];
 
 #
 # C H E C K  R O U T I N E S
@@ -607,11 +623,51 @@ sub fatal_configcheck_SCENARIOPACKAGESIZE_if_TROPICALCYCLONE_DEFINED {
     return 1;
 }
 
-sub _extract_scenarios_from_config {
-    my ( $self, $varname ) = @_;
+#  if necessary
+sub _extract_mesh_info {
+    my ( $self, $cases, $file ) = @_;
 
-    # get value of $SCENARIOPACKAGESIZE
-    my ( $var_found, $SCENARIOPACKAGESIZE ) = $self->_extract_from_config(q{SCENARIOPACKAGESIZE});
+    # return without fuss to make it easier to handle when $LOCAL_MESH_DEFAULTS doesn't exist 
+    return $cases if not -e $file;
+
+    local $/;
+    open my $FH, q{<}, $file || die $!;
+    my $config = <$FH>;
+
+    my $START  = 0;
+    my @cases  = ();
+    my @names  = ();
+
+  LINE:
+    foreach my $line ( split /\n/, $config ) {
+        last LINE if ( $line =~ m/^esac/ );
+        ++$START  if ( $line =~ m/^case/ );
+        next LINE unless  $START > 0;
+        if ( $line =~ m/^ *([0-9a-zA-Z"_-|*]+)\)/ ) {
+            my $case = $1;                   # get capture
+            $case =~ s/["']//g;              # remove quotes
+            @names = split / *\| */, $case;  # split cases that have multiple names
+            next LINE;
+        }
+        next LINE if not @names;
+
+        # add an entry for each name at the expense space
+        foreach my $case (@names) {
+          push @{ $cases->{$case} }, $line;
+        }
+
+        # detect line 
+        if ( $line =~ m/;;/ ) {
+            @names = ();
+        }
+    }
+
+    close $FH;
+    return $cases;
+}
+
+sub _extract_scenarios_from_config {
+    my ( $self ) = @_;
 
     local $/;
     open my $FH, q{<}, $ASGS_CONFIG || die $!;
@@ -722,6 +778,62 @@ sub fatal_configcheck_get_atcf {
     #asgswisdom: FTPSITE can't be 'filesystem' when TRIGGER=ftp
     if ($FTPSITE and $TRIGGER and $FTPSITE eq q{filesystem} and $TRIGGER eq q{ftp}) { 
       assert_FATAL( qq{'TRIGGER=ftp' is not compatible with 'FTPSITE=filesystem'.} );
+    }
+
+    return 1;
+}
+
+# extracts information out of the mesh_default's file based on GRIDNAME
+sub _get_grid_info {
+  my ($self, $GRIDNAME) = @_;
+
+  my $meshes = __PACKAGE__->_extract_mesh_info( {}, $MESH_DEFAULTS);
+  $meshes    = __PACKAGE__->_extract_mesh_info( $meshes, $LOCAL_MESH_DEFAULTS);
+
+  $meshes->{$GRIDNAME} //= [];
+
+  my $block  = join qq{\n}, @{$meshes->{$GRIDNAME}};
+
+  return $block;
+}
+
+sub fatal_configcheck_GRIDNAME {
+    my ( $self, $o ) = @_;
+    my $var_found;
+    ( $var_found, my $GRIDNAME) = $self->_extract_from_config(q{GRIDNAME});
+    my $grid_info               = $self->_get_grid_info($GRIDNAME);
+
+    if ( not $grid_info )  {
+      assert_FATAL( sprintf qq{GRIDNAME '%s' can't be found.}, $GRIDNAME );
+    }
+
+    return 1;
+}
+
+#    if VARFLUX=default then verify that the file $INPUTDIR/$RIVERFLUX exists and has nonzero length
+#    if VARFLUX=on or VARFLUX=default and the ADCIRC version is less than v53, then verify that the file $INPUTDIR/$RIVERINIT exists and has nonzero length
+#    if VARFLUX=on and USERIVERFILEONLY=no then verify that
+#    if RIVERDATAPROTOCOL=scp then verify that the ssh server $RIVERSITE is reachable as the user $RIVERUSER and that the directory $RIVERDIR exists and is readable
+#    if VARFLUX=on or VARFLUX=default for any ADCIRC version, verify that the file $INPUTDIR/$HINDCASTRIVERFLUX exists and has nonzero length
+
+sub fatal_configcheck_VARFLUX {
+    my ( $self, $o ) = @_;
+
+    my $var_found;
+    ( $var_found, my $GRIDNAME)          = $self->_extract_from_config(q{GRIDNAME});
+    ( $var_found, my $VARFLUX)           = $self->_extract_from_config(q{VARFLUX});
+    ( $var_found, my $INPUTDIR)          = $self->_extract_from_config(q{INPUTDIR});
+    ( $var_found, my $RIVERFLUX)         = $self->_extract_from_config(q{RIVERFLUX});
+    ( $var_found, my $USERIVERFILEONLY)  = $self->_extract_from_config(q{USERIVERFILEONLY});
+    ( $var_found, my $RIVERDATAPROTOCOL) = $self->_extract_from_config(q{RIVERDATAPROTOCOL});
+    ( $var_found, my $RIVERUSER)         = $self->_extract_from_config(q{RIVERUSER});
+    ( $var_found, my $RIVERDIR)          = $self->_extract_from_config(q{RIVERDIR});
+    ( $var_found, my $HINDCASTRIVERFLUX) = $self->_extract_from_config(q{HINDCASTRIVERFLUX});
+
+    my $grid_info = $self->_get_grid_info($GRIDNAME);
+
+    if ( $VARFLUX eq q{default} ) {
+
     }
 
     return 1;
@@ -855,6 +967,19 @@ sub _IS_ABSOLUTE_PATH {
     my $var_found;
     ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
     if ( not $CFG_VALUE =~ m/^\// ) {
+      return undef;
+    }
+    return 1;
+}
+
+sub _LOOKS_LIKE_REMOTE_HOST {
+    my ( $self, $o, $var ) = @_; 
+    my $var_found;
+    ( $var_found, my $CFG_VALUE ) = $self->_extract_from_config($var);
+
+    # fails if $CFG_VALUE is not a valid hostname or IPv4 IP address
+    if ( not $CFG_VALUE =~ m/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+         and not $CFG_VALUE =~ m/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/) {
       return undef;
     }
     return 1;
