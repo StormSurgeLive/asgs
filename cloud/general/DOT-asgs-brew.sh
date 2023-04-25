@@ -392,13 +392,16 @@ save() {
 rebuild() {
   case "${1}" in
     profile)
+      _config=${2}
       _default_base_profile=${_ASGSH_CURRENT_PROFILE:-default}
       read -p "Base profile [$_default_base_profile]? " _base_profile
       if [ -z "$_base_profile" ]; then
         _base_profile=$_default_base_profile
       fi
       load profile $_base_profile
-      read -p "Path to ASGS configuration file: " _config
+      if [ -z "$_config" ]; then
+        read -p "Path to ASGS configuration file: " _config
+      fi
       if [[ -z "$_config" || ! -e "$_config" ]]; then
         echo "'rebuild profile' requires an existing ASGS configuration file."
         return
