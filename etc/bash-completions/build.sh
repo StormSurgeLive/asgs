@@ -8,7 +8,14 @@ _build_completion()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     
-    COMPREPLY=( $(compgen -W "adcirc jq pdl perl-dev replaycli " -- $cur) )
+    case $prev in
+      adcirc|jq|pdl|perl-dev|replaycli)
+        COMPREPLY=""
+        ;;
+      *)
+        COMPREPLY=( $(compgen -W "adcirc jq pdl perl-dev replaycli " -- $cur) )
+	;;
+    esac
     return 0
 } &&
   complete -F _build_completion build
