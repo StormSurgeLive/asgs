@@ -18,6 +18,11 @@ _define_completion()
         COMPREPLY=( $(compgen -W "vim nano vi" -- $cur) )
 	compopt -o nospace 
 	;;
+      adcircdir|adcircbranch|adcircremote|scriptdir|scratchdir|workdir)
+	;;
+      *)
+        COMPREPLY=( $(compgen -W "adcircdir adcircbranch adcircremote config editor scriptdir scratchdir workdir" -- $cur) )
+	;;
     esac
     return 0
 } &&

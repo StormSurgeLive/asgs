@@ -1,7 +1,7 @@
-# START ASGS "rebuild" completion
+# START ASGS "clone" completion
 # This file is in the public domain
 
-_rebuild_completion() 
+_clone_completion() 
 {
     local cur prev files 
     COMPREPLY=()
@@ -10,16 +10,14 @@ _rebuild_completion()
 
     case $prev in
       profile)
-        COMPREPLY=( $(compgen -d -- $cur) )
-        COMPREPLY=( $(compgen -f -- $cur) )
-        compopt -o filenames 
+        COMPREPLY=""
         ;;
       *)
         COMPREPLY=( $(compgen -W "profile " -- $cur) )
-	;;
+        ;;
     esac
     return 0
 } &&
-  complete -F _rebuild_completion rebuild
+  complete -F _clone_completion clone
 
-# END rebuild completion
+# END clone completion
