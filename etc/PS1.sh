@@ -1,11 +1,11 @@
 function pc {
   git branch > /dev/null 2>&1
   if [ $? != 0 ]; then
-    echo -n ${RD}outside repo${R}
+    echo -n outside repo
     return
   fi
   local branch=$(git branch | grep '*' | awk '{print $2}');
-  echo -n ${GR}$branch${R}
+  echo -n $branch
 }
 
 function sd {
@@ -13,7 +13,11 @@ function sd {
 }
 
 function profile {
-  echo -n "${CY}${B}$_ASGSH_CURRENT_PROFILE${R}"
+  echo -n "$_ASGSH_CURRENT_PROFILE"
 }
 
-export PS1='${B}${MG}A.S.G.S.${R}|$(pc)|${B}${YW}\H${R}:./\W${R}|@$(profile) > '
+function host {
+  echo -n "$HPCENVSHORT"
+}
+
+export PS1='[\[${MG}\]ASGS\[${R}\] (\[${B}${CY}\]$(pc)\[${R}\])] \[${B}${YW}\]$(host)\[${R}\]\[${R}\]@\[${B}${GR}\]$(profile)\[${R}\]> '
