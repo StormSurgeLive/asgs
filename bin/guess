@@ -15,7 +15,7 @@ _guess_platform()
 
   if [ "$USER" = vagrant ]; then
     default_platform=vagrant
-  elif [ -e /etc/debian_version = "debian" ]; then
+  elif [ -e /etc/debian_version ]; then
     default_platform=debian
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qb1) ]; then
     default_platform=queenbee
