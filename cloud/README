@@ -6,7 +6,7 @@ There will be multiple Dockerfiles in cloud/Dockerfiles to support various
 container compositions. Please consult each Dockerfile to determine which
 one is dresired for your situation.
 
-Vagrant (deprecating in favor of Docker)
+Vagrant (alternate, but currently we favor the Docker approach)
 
 Assumption: You're on a Linux or MacOS as the HOST machine and in a terminal
 window. You also have access to the `git` utility.  These instructions do not

@@ -1,4 +1,0 @@
-FROM nginx
-
-# this Dockerfile is just to add in SSL bits to the config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
