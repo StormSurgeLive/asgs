@@ -74,18 +74,20 @@ echo $ASGS_LOCAL_DIR
 ASGS_HOME=${ASGS_HOME:-$(pwd)}
 ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
-# DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
-echo "queenbee       - Queenbee (LONI)"     # qb2
-echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
-echo "supermic       - SuperMIC (LSU HPC)"  # smic
-echo "lonestar5      - Lonestar (TACC)"     # ls5
-echo "stampede2      - Stampede2 (TACC)"    # stampede2
-echo "frontera       - Frontera (TACC)"     # frontera
-echo "desktop        - desktop"
-echo "desktop-serial - desktop-serial"
-echo "poseidon       - Poseidon"
-echo "debian         - Debian container environment"
-echo "vagrant        - vagrant/virtual box (local workstation)"
+if [ -z "$BATCH" ]; then
+  # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
+  echo "queenbee       - Queenbee (LONI)"     # qb2
+  echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
+  echo "supermic       - SuperMIC (LSU HPC)"  # smic
+  echo "lonestar5      - Lonestar (TACC)"     # ls5
+  echo "stampede2      - Stampede2 (TACC)"    # stampede2
+  echo "frontera       - Frontera (TACC)"     # frontera
+  echo "desktop        - desktop"
+  echo "desktop-serial - desktop-serial"
+  echo "poseidon       - Poseidon"
+  echo "debian         - Debian container environment"
+  echo "vagrant        - vagrant/virtual box (local workstation)"
+fi
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
 # See ./platforms/README
@@ -134,9 +136,10 @@ fi
 if [ -z "$BATCH" ]; then
   echo
   read -p "Which platform environment would you like to use for ASGS bootstrapping?$_default_platform " platform
-fi
-
-if [ -z "$platform" ]; then
+  if [ -z "$platform" ]; then
+    platform=$default_platform
+  fi
+else
   platform=$default_platform
 fi
 
@@ -199,16 +202,17 @@ if [ -n "$PLATFORM_INIT" ]; then
   echo "Platform Init       : $PLATFORM_INIT"
   PLATFORM_INIT_OPT="--platform-init $PLATFORM_INIT"
 fi
-echo "SCRIPTDIR           : $(pwd)"
-echo "ASGS HOME           : $ASGS_HOME"
-echo "WORK                : $WORK"
-echo "SCRATCH             : $SCRATCH"
-echo "ASGS Build directory: $ASGS_TMPDIR"
-echo "Default Compiler    : $DEFAULT_COMPILER"
-echo
 
 # Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
 if [ -z "$BATCH" ]; then
+  echo "SCRIPTDIR           : $(pwd)"
+  echo "ASGS HOME           : $ASGS_HOME"
+  echo "WORK                : $WORK"
+  echo "SCRATCH             : $SCRATCH"
+  echo "ASGS Build directory: $ASGS_TMPDIR"
+  echo "Default Compiler    : $DEFAULT_COMPILER"
+  echo
+
   read -p "Does the above system information look correct? [Y/n] " _looks_correct
   if [[ -n "$_looks_correct" && "${_looks_correct^^}" != Y ]]; then
     echo Set up aborted. Ensure platform is supported, then try again. exiting...
