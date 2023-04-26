@@ -84,7 +84,7 @@ echo "frontera       - Frontera (TACC)"     # frontera
 echo "desktop        - desktop"
 echo "desktop-serial - desktop-serial"
 echo "poseidon       - Poseidon"
-echo "docker         - Docker container environment"
+echo "debian         - Debian container environment"
 echo "vagrant        - vagrant/virtual box (local workstation)"
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
@@ -149,7 +149,7 @@ case "$platform" in
     SCRATCH=${SCRATCH:-$ASGS_HOME}
     DEFAULT_COMPILER=gfortran
     ;;
-  docker)
+  debian)
     WORK=${WORK:-/work}
     SCRATCH=${SCRATCH:-/scratch}
     DEFAULT_COMPILER=gfortran
