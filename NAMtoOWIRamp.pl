@@ -201,7 +201,7 @@ close($OF);
 unless ( open( $OF, '>', "$presFile" ) ) {
    ASGSUtil::stderrMessage(
              "INFO",
-             "Could not open wind file '$wndFile': $!");
+             "Could not open pressure file '$presFile': $!");
    die;
 }
 foreach my $line (@OWI_pres) {
@@ -212,8 +212,8 @@ ASGSUtil::stderrMessage(
           "INFO",
           "Done processing NAM data." );
 
-# write json response to file
-ASGSUtil::writeJSON($jshash_ref);
+# do not need to write json response to file
+#ASGSUtil::writeJSON($jshash_ref);
 # write json response to STDOUT
 printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 1;

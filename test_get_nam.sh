@@ -77,7 +77,7 @@ if [[ $? != 0 ]]; then
     exit
 fi
 echo $thisCycle
-# for converting to ascii win/pre (owi) format
+# for extracting the grib2 and converting to ascii win/pre (owi) format
 SCENARIO=nowcast
 SCENARIODIR=$RUNDIR/nowcast
 if [[ ! -d $SCENARIODIR ]]; then mkdir $SCENARIODIR ; fi
@@ -87,6 +87,8 @@ VELOCITYMULTIPLIER=1.0
 boolApplyRamp=true
 ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
 escPtFilePath=${ptFilePath////'\/'}
+# NAMtoOWIRamp.pl writes the ascii OWI WIN/PRE files to
+# the scenario directories
 sed -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
     -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
     -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
@@ -96,22 +98,17 @@ sed -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
     -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
     -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
      < get_nam_data.pl.json \
-     | $SCRIPTDIR/NAMtoOWIRamp.pl > /dev/null
+     | $SCRIPTDIR/NAMtoOWIRamp.pl > NAMtoOWIRamp.pl.json
 preFile=$($SCRIPTDIR/bin/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
 winFile=$($SCRIPTDIR/bin/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
-mv $winFile $preFile fort.22 $SCENARIODIR
-mv get_nam_data.pl.* NAMtoOWIRamp.pl.* $SCENARIODIR
+mv fort.22 $SCENARIODIR
+cp get_nam_data.pl.* NAMtoOWIRamp.pl.* get_nam_status.pl.* asgs_main.sh_get_nam_status.json rotatedNAM.txt select_nam_nowcast.pl.json reproject.log lambert_diag.out $SCENARIODIR
 #  f o r e c a s t
 stage=FORECAST
 SCENARIO=namforecast
 SCENARIODIR=$RUNDIR/namforecast
 if [[ ! -d $SCENARIODIR ]]; then mkdir $SCENARIODIR ; fi
 escSCENARIODIR=${SCENARIODIR////'\/'}
-SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
-VELOCITYMULTIPLIER=1.0
-boolApplyRamp=true
-ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
-escPtFilePath=${ptFilePath////'\/'}
 sed "s/NOWCAST/FORECAST/" < get_nam_data.pl.json > get_nam_forecast.json
 if [[ $? != 0 ]]; then
     echo "ERROR: Failed to replace NOWCAST with FORECAST in select_nam_nowcast.pl.json with sed."
@@ -123,6 +120,8 @@ if [[ $? != 0 ]]; then
     echo "ERROR: Failed to download NAM forecast data with get_nam_data.pl."
     exit
 fi
+# NAMtoOWIRamp.pl writes the ascii OWI WIN/PRE files to
+# the scenario directories
 sed -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
     -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
     -e "s/\"%NULLNAMAWIPGRID%\"/218/" \
@@ -132,8 +131,8 @@ sed -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
     -e "s/\"%NULLAPPLYRAMP%\"/$boolApplyRamp/" \
     -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
      < get_nam_data.pl.json \
-     | $SCRIPTDIR/NAMtoOWIRamp.pl > /dev/null
+     | $SCRIPTDIR/NAMtoOWIRamp.pl > NAMtoOWIRamp.pl.json
 preFile=$($SCRIPTDIR/bin/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
 winFile=$($SCRIPTDIR/bin/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
-mv $winFile $preFile fort.22 $SCENARIODIR
-mv get_nam_data.pl.* NAMtoOWIRamp.pl.* $SCENARIODIR
+mv fort.22 $SCENARIODIR
+mv get_nam_forecast.json get_nam_data.pl.* NAMtoOWIRamp.pl.* get_nam_status.pl.* asgs_main.sh_get_nam_status.json rotatedNAM.txt select_nam_nowcast.pl.json reproject.log lambert_diag.out forecast.properties $SCENARIODIR

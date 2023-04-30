@@ -2328,7 +2328,7 @@ while [ true ]; do
             -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
              < get_nam_data.pl.json \
              | $SCRIPTDIR/NAMtoOWIRamp.pl \
-             > /dev/null
+             > NAMtoOWIRamp.pl.json
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
@@ -2396,7 +2396,7 @@ while [ true ]; do
             -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
              < get_nam_data.pl.json \
              | $SCRIPTDIR/NAMtoOWIRamp.pl \
-             > /dev/null
+             > NAMtoOWIRamp.pl.json
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
@@ -2976,7 +2976,7 @@ while [ true ]; do
                -e "s/\"%NULLRAMPDIST%\"/$SPATIALEXTRAPOLATIONRAMPDISTANCE/" \
                < get_nam_data.pl.json \
                | $SCRIPTDIR/NAMtoOWIRamp.pl \
-               > /dev/null
+               > NAMtoOWIRamp.pl.json
             2>> $SYSLOG
             preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
             winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
