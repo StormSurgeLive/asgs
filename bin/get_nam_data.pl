@@ -120,7 +120,15 @@ if ( $backsite eq "filesystem" ) {
       # $backdir/erl.220123/nam.t18z.awip1200.tm00.grib2
       my $file = "$backdir/erl.$2/nam.t$3z.awip1200.tm00.grib2";
       if ( -e $file ) {
-         copy($file,"$namdatadir/erl.$2");
+         ASGSUtil::appMessage( "INFO", "The file $file was found.");
+         if ( ! -d "$namdatadir/erl.$2" ) {
+            make_path("$namdatadir/erl.$2")
+               || ASGSUtil::appMessage("ERROR", "Could not create the path $namdatadir/erl.$2 : $!")
+               && die;
+         }
+         copy($file,"$namdatadir/erl.$2/nam.t$3z.awip1200.tm00.grib2")
+            || ASGSUtil::appMessage("ERROR", "Could not copy grib2 files: $!")
+            && die;
       } else {
          ASGSUtil::appMessage( "ERROR", "The file $file was not found.");
          die;
