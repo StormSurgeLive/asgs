@@ -1,5 +1,8 @@
+build-1111:
+	docker build --build-arg _ASGS_BRANCH=master -t asgs:debian -f ./Dockerfile.debian .
+
 build:
-	docker build -t asgs:debian -f ./Dockerfile.debian .
+	docker build --build-arg _ASGS_BRANCH=master -t asgs:debian -f ./Dockerfile.debian .
 
 start:
 	docker-compose up -d asgs-debian
