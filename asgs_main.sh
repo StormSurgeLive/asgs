@@ -2731,12 +2731,22 @@ while [ true ]; do
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file
-
       writeProperties $RUNDIR 2>> $SYSLOG
       if [[ $TROPICALCYCLONE = on ]]; then
          writeTropicalCycloneProperties $RUNDIR
       fi
       if [[ $BACKGROUNDMET != off ]]; then
+         if [[ $BACKSITE == "filesystem" ]]; then
+            logMessage "$ENSTORM: $THIS: BACKGROUNDMET is set to '$BACKGROUNDMET' but BACKSITE is set to '$BACKSITE'."
+            logMessage "$ENSTORM: $THIS: The ASGS does not support the construction of forecast scenarios from gridded meteorology stored on the local filesystem."
+            si=$[$si + 1]
+            if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
+               logMessage "$ENSTORM: $THIS: This is the last forecast scenario for this cycle. Proceeding to the next nowcast cycle."
+            else
+               logMessage "$ENSTORM: $THIS: Skipping this forecast scenario and proceeding to the next one."
+            fi
+            continue
+         fi
          case $BACKGROUNDMET in
             "on"|"NAM")
                writeNAMProperties $RUNDIR
@@ -2964,7 +2974,7 @@ while [ true ]; do
             ptFilePath=${SCRIPTDIR}/input/ptFile_oneEighth.txt
             escPtFilePath=${ptFilePath////'\/'}
             escSCENARIODIR=${SCENARIODIR////'\/'}
-            mv $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
+            cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
             sed \
                -e "s/%NULLNAMWINPREDATAPATH%/$escSCENARIODIR/" \
                -e "s/%NULLNAMWINPREGRID%/$escPtFilePath/" \
