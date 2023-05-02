@@ -3,7 +3,7 @@
 # get_nam_status.pl: determines the latest available cycle(s)
 # from NCEP NAM for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
-# Copyright(C) 2022 Jason Fleming
+# Copyright(C) 2022--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -54,8 +54,57 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # also set reasonable defaults
 ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "ftp.ncep.noaa.gov");
 ASGSUtil::setParameter( $jshash_ref, \$backdir,   "siteDir",  "/pub/data/nccf/com/nam/prod");
+# use values from JSON if they were provided
 $jshash_ref->{"siteHost"} = $backsite;
 $jshash_ref->{"siteDir"} = $backdir;
+#
+#  N O W C A S T   F R O M   F I L E S Y S T E M
+#
+if ( $backsite eq "filesystem" ) {
+   ASGSUtil::appMessage( "INFO", "Constructing nowcast from grib2 files found in $backdir.");
+   # check to see if the Operator-supplied directory exists
+   if ( -d $backdir ) {
+      ASGSUtil::appMessage( "INFO", "The directory $backdir was found.");
+   } else {
+      my $msg = qq{"The directory $backdir was not found."};
+      ASGSUtil::appMessage( "INFO", $msg );
+      die $msg;
+   }
+   my @grib2Files;
+   my @grib2Dirs = glob( $backdir . "/erl.*" );
+   my $numGrib2Dirs = @grib2Dirs;
+   ASGSUtil::appMessage("INFO","There is/are $numGrib2Dirs directories to process." );
+   if ( $numGrib2Dirs == 0 ) {
+      my $msg = qq{There are no erl.* directories in $backdir.};
+      ASGSUtil::appMessage( "ERROR", $msg );
+      die $msg;
+   }
+   foreach my $dir (@grib2Dirs) {
+      # e.g.:
+      # $dataDir/erl.220123/nam.t18z.awip1200.tm00.grib2
+      # $dataDir/erl.220124/nam.t00z.awip1200.tm00.grib2
+      # $dataDir/erl.220124/nam.t06z.awip1200.tm00.grib2
+      my @thisDirFiles = glob( $dir . "/nam.*awip1200*.grib2");
+      push( @grib2Files, @thisDirFiles );
+      my $numThisDirFiles = @thisDirFiles;
+      ASGSUtil::appMessage("DEBUG","Found $numThisDirFiles grib2 file(s) in $dir." );
+   }
+   # make a list of the cycletimes associated with these files
+   my @cyclesInRange;
+   foreach my $file (@grib2Files) {
+      $file =~ /erl.(\d{6})\/nam.t(\d{2})/;
+      my $cycletime = "20$1$2";
+      push( @cyclesInRange, $cycletime );
+   }
+   # add the parameters and the cycle list to the hash
+   $jshash_ref->{"status"} = basename($0).".json";
+   $jshash_ref->{"cyclelist"} = \@cyclesInRange;
+   ASGSUtil::timestampJSON($jshash_ref);
+   print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
+   exit;   # exit successfully
+}
+#
+#  N O W C A S T   F R O M   N C E P
 #
 # if the startcycle was not provided, the script
 # will return a list of all the cycles available
