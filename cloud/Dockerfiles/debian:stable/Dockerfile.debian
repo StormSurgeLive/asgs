@@ -3,15 +3,29 @@ FROM debian:stretch-slim
 # Dockerfile for Debian - useful for building an image or
 # as reference for installing directly on a Debian host
 
+ENV TERM=xterm-256color
+ENV GIT_TRACE_PACKET=1
+ENV GIT_TRACE=1
+ENV GIT_CURL_VERBOSE=1
+ENV WORK=/work/asgsuser
+ENV SCRATCH=/scratch/asgsuser
+ENV USER=asgsuser
+
+RUN echo "deb http://archive.debian.org/debian stretch main contrib non-free" > /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get install -y apt-utils build-essential checkinstall
-RUN apt-get install -y zlib1g-dev libssl-dev libexpat1-dev
+RUN apt-get install -y build-essential checkinstall
+RUN apt-get install -y libssl-dev libexpat1-dev
 RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo bc
 RUN apt-get install -y zip flex gawk procps
-RUN apt-get install -y libopenmpi-dev openmpi-common openmpi-bin
+RUN apt-get install -y --allow-downgrades zlib1g=1:1.2.8.dfsg-5
+RUN apt-get install -y zlib1g-dev
 
 # symlink for /bin/env
 RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env
+
+# symlink fortran because fortran-10 breaks OpenMPI 1.8, which we use to
+# compile ADCIRC
+#RUN  ln -s /usr/bin/gfortran-9 /usr/bin/gfortran
 
 # asgsuser
 RUN useradd -ms /bin/bash asgsuser
@@ -23,8 +37,7 @@ RUN su -c 'cd /home/asgsuser && git clone https://github.com/StormSurgeLive/asgs
 RUN su -c 'cd /home/asgsuser/asgs && git config --global user.email "asgsuser@noemail" && git config --global user.name "asgsuser"'
 
 # persist env in .bash_profile
-RUN su -c 'echo "export _ASGS_CONTAINER=docker" >> /home/asgsuser/.bash_profile' - asgsuser
-RUN su -c 'echo "export PATH=${PATH}:/home/asgsuser/bin" >> /home/asgsuser/.bashrc' - asgsuser
+RUN su -c 'echo "export PATH=${PATH}:/home/asgsuser/bin:/home/asgsuser/asgs" >> /home/asgsuser/.bashrc' - asgsuser
 
 WORKDIR /home/asgsuser
 
@@ -35,7 +48,6 @@ RUN chown asgsuser:asgsuser /home/asgsuser/bin
 COPY docker-entrypoint.sh bin/docker-entrypoint.sh
 RUN chown asgsuser:asgsuser bin/docker-entrypoint.sh
 RUN chmod 700 bin/docker-entrypoint.sh
-
 
 # NOTE: stuff related to $WORK and $SCRATCH happens in the docker-compose.yml file
 #  and is treated as a runtime environmental variable and mounted volumes
@@ -56,15 +68,48 @@ RUN chmod 777 /work /scratch
 USER asgsuser
 
 # set env - required for asgs/init-asgs.sh to know it's in a docker environment
-ENV _ASGS_CONTAINER="docker"
-ENV WORK=/work/asgsuser
-ENV SCRATCH=/scratch/asgsuser
-ENV USER=asgsuser
+ARG _ASGS_BRANCH=master
 
 # actually build all of ASGS
-RUN export _ASGS_CONTAINER=docker && \
-      cd /home/asgsuser/asgs      && \
-      ./init-asgs.sh doit         || \
-      echo something went wonky but preserving docker image
+RUN cd /home/asgsuser/asgs      && \
+      git fetch --all             && \
+        git checkout $_ASGS_BRANCH
+
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps openmpi"         || echo openmpi         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps hdf5"            || echo hdf5            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps netcdf4"         || echo netcdf4         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps wgrib2"          || echo wgrib2          - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps cpra-postproc"   || echo cpra-postproc   - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps output"          || echo output          - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps util"            || echo util            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps input-mesh"      || echo input-mesh      - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps input-nodalattr" || echo input-nodalattr - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps perl"            || echo perl            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps perl-modules"    || echo perl-modules    - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps image-magick"    || echo image-magick    - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps python3"         || echo python3         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps ffmpeg"          || echo ffmpeg          - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps gnuplot"         || echo gnuplot         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps units"           || echo units           - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps nco"             || echo nco             - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps pigz"             || echo pigz             - something went wonky but preserving docker image
 
 ENTRYPOINT ["/home/asgsuser/bin/docker-entrypoint.sh"]
