@@ -79,6 +79,9 @@ downloadBackgroundMet()
     #
     # N O W C A S T
     if [[ $stage == "NOWCAST" ]]; then
+        if [[ $BACKSITE == "filesystem" ]]; then
+           logMessage "$ENSTORM: $THIS: NAM nowcast data will be loaded from the $BACKDIR directory on the local filesystem."
+        fi
         # determine the cycle time corresponding to the current state of the simulation
         csEpochSeconds=$(TZ=UTC date -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s")
         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
@@ -166,7 +169,7 @@ downloadBackgroundMet()
         # download forecast data
         sed "s/NOWCAST/FORECAST/" < get_nam_data.pl.json > get_nam_forecast.json 2>> $SYSLOG
         if [[ $? != 0 ]]; then
-            warn "$THIS: Failed to replace NOWCAST with FORECAST in select_nam_nowcast.pl.json with sed."
+            warn "$THIS: Failed to replace NOWCAST with FORECAST in get_nam_data.pl.json with sed."
         fi
         # download the forecast data
         while [[ 1 ]]; do
