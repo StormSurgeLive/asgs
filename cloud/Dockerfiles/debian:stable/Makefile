@@ -4,6 +4,12 @@ build-1111:
 build:
 	docker build --build-arg _ASGS_BRANCH=master -t asgs:debian -f ./Dockerfile.debian .
 
+clean-build-1111:
+	docker build --no-cache --build-arg _ASGS_BRANCH=issue-1111 -t asgs:debian -f ./Dockerfile.debian .
+
+clean-build:
+	docker build --no-cache -t asgs:debian -f ./Dockerfile.debian .
+
 start:
 	docker-compose up -d asgs-debian
 
@@ -23,7 +29,7 @@ shell:
 	docker exec -it asgs-debian bash 
 
 asgsh:
-	docker exec -it asgs-debian bin/asgsh
+	docker exec -it asgs-debian asgs/asgsh
 
 stop:
 	docker-compose down
