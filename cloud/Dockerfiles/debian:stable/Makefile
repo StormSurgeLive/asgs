@@ -1,9 +1,6 @@
 build:
 	docker build -t asgs:debian -f ./Dockerfile.debian .
 
-clean-build:
-	docker build --no-cache -t asgs:debian -f ./Dockerfile.debian .
-
 start:
 	docker-compose up -d asgs-debian
 
@@ -23,7 +20,7 @@ shell:
 	docker exec -it asgs-debian bash 
 
 asgsh:
-	docker exec -it asgs-debian asgs/asgsh
+	docker exec -it asgs-debian bin/asgsh
 
 stop:
 	docker-compose down
