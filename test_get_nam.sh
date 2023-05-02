@@ -144,12 +144,15 @@ mv get_nam_forecast.json get_nam_data.pl.* NAMtoOWIRamp.pl.* rotatedNAM.txt repr
 # on the filesystem
 # set variables to be used in json template
 RUNDIR=$PWD
-if [[ -d $RUNDIR/nam-filesystem ]]; then
-    rm -rf $RUNDIR/nam-filesystem
+namArchiveDir=$RUNDIR/nam-filesystem
+if [[ -d $namArchiveDir ]]; then
+    rm -rf $namArchiveDir
 fi
-cp -a $RUNDIR/nam $RUNDIR/nam-filesystem
+# use the files already downloaded to construct a nowcast
+# from the filesystem
+mv $instanceNamDir $namArchiveDir
 BACKSITE=filesystem          # <--
-BACKDIR=$PWD/nam-filesystem  # <--
+BACKDIR=$namArchiveDir       # <--
 FORECASTCYCLE="00,18"
 DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
 THIS=cmd_line_test
@@ -243,3 +246,7 @@ preFile=$($SCRIPTDIR/bin/bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.
 winFile=$($SCRIPTDIR/bin/bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
 mv fort.22 $SCENARIODIR
 mv get_nam_data.pl.* NAMtoOWIRamp.pl.* get_nam_status.pl.* asgs_main.sh_get_nam_status.json rotatedNAM.txt select_nam_nowcast.pl.json reproject.log lambert_diag.out $SCENARIODIR
+# move the files already downloaded back to where they
+# can be used to run this test again (for use as a cache to
+# avoid having to download them again)
+mv $namArchiveDir $instanceNamDir

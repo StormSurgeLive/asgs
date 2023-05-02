@@ -3,7 +3,7 @@
 # NAMtoOWIRamp.pl
 #--------------------------------------------------------------------------
 # Copyright(C) 2019 Brett Estrade
-# Copyright(C) 2011--2022 Jason Fleming
+# Copyright(C) 2011--2023 Jason Fleming
 # Copyright(C) 2010--2011 Eve-Marie Devaliere
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -144,7 +144,7 @@ $jshash_ref->{"winPreVelocityFile"} = $wndFile;
 $jshash_ref->{"winPrePressureFile"} = $presFile;
 my $wtiminc = $timeStep * 3600;    # ts in seconds
 $jshash_ref->{"winPreWtimincSeconds"} = ($wtiminc * 1.0);
-ASGSUtil::writeJSON($jshash_ref,);
+ASGSUtil::writeJSON($jshash_ref);
 # have to add the meteorology time increment to fort.22
 ASGSUtil::stderrMessage("INFO",
               "Adding WTIMINC value to fort.22 as a comment line." );
@@ -212,8 +212,6 @@ ASGSUtil::stderrMessage(
           "INFO",
           "Done processing NAM data." );
 
-# do not need to write json response to file
-#ASGSUtil::writeJSON($jshash_ref);
 # write json response to STDOUT
 printf JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 1;
