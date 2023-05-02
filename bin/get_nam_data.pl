@@ -3,7 +3,7 @@
 # get_nam_data.pl: downloads background meteorology data from NCEP
 # for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
-# Copyright(C) 2022 Jason Fleming
+# Copyright(C) 2022--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -29,7 +29,7 @@ use JSON::PP;
 use Getopt::Long;
 use Date::Calc;
 use File::Basename;
-use File::Copy 'move';
+use File::Copy qw/move copy/;
 use File::Path 'make_path';
 use Cwd;
 use ASGSUtil;
@@ -100,7 +100,48 @@ if ( $startcycle eq "null" ) {
       die;
    }
 }
-
+#
+#  N O W C A S T   D A T A   F R O M   F I L E S Y S T E M
+#
+if ( $backsite eq "filesystem" ) {
+   ASGSUtil::appMessage( "INFO", "Copying nowcast grib2 files found in $backdir.");
+   # check to see if the Operator-supplied directory exists
+   if ( -d $backdir ) {
+      ASGSUtil::appMessage( "INFO", "The directory $backdir was found.");
+   } else {
+      ASGSUtil::appMessage( "ERROR", "The directory $backdir was not found.");
+      die;
+   }
+   foreach my $cycle (@json_cyclelist) {
+      $cycle =~ /(\d{2})(\d{6})(\d{2})/; # 20 230429 00
+      ASGSUtil::appMessage( "DEBUG", "$cycle $1 $2 $3");
+      # e.g.:
+      # $backdir/erl.220123/nam.t18z.awip1200.tm00.grib2
+      my $file = "$backdir/erl.$2/nam.t$3z.awip1200.tm00.grib2";
+      if ( -e $file ) {
+         ASGSUtil::appMessage( "INFO", "The file $file was found.");
+         if ( ! -d "$namdatadir/erl.$2" ) {
+            make_path("$namdatadir/erl.$2")
+               || ASGSUtil::appMessage("ERROR", "Could not create the path $namdatadir/erl.$2 : $!")
+               && die;
+         }
+         copy($file,"$namdatadir/erl.$2/nam.t$3z.awip1200.tm00.grib2")
+            || ASGSUtil::appMessage("ERROR", "Could not copy grib2 files: $!")
+            && die;
+      } else {
+         ASGSUtil::appMessage( "ERROR", "The file $file was not found.");
+         die;
+      }
+   }
+   # add the parameters and the cycle list to the hash
+   $jshash_ref->{"status"} = basename($0).".json";
+   ASGSUtil::timestampJSON($jshash_ref);
+   print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
+   exit;   # exit successfully
+}
+#
+#  N O W C A S T   D A T A   F R O M   N C E P
+#
 # establish connection to the ftp site
 ASGSUtil::appMessage(
           "DEBUG",
