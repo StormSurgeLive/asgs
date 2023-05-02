@@ -1,5 +1,5 @@
 build-1111:
-	docker build --build-arg _ASGS_BRANCH=master -t asgs:debian -f ./Dockerfile.debian .
+	docker build --build-arg _ASGS_BRANCH=issue-1111 -t asgs:debian -f ./Dockerfile.debian .
 
 build:
 	docker build --build-arg _ASGS_BRANCH=master -t asgs:debian -f ./Dockerfile.debian .
