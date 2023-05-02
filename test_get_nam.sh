@@ -49,32 +49,37 @@ sed \
         > $filledNamTemplateName \
 # getting nam status
 get_nam_status.pl < $filledNamTemplateName > get_nam_status.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to get status of NAM cycles with get_nam_status.pl."
-    exit
+    exit $err
 fi
 latest.pl < get_nam_status.pl.json > latestCycle
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to extract the latest NAM cycle from get_nam_status.pl.json with latest.pl"
-    exit
+    exit $err
 fi
 latestCycle=$(<"latestCycle")
 # refine the list of NAM cycles to end the nowcast on the correct cycle
 select_nam_nowcast.pl < get_nam_status.pl.json > select_nam_nowcast.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to select the proper NAM cycle to end the nowcast with select_nam_nowcast.pl."
-    exit
+    exit $err
 fi
 # then download the actual nowcast data for the time range of interest
 get_nam_data.pl < select_nam_nowcast.pl.json > get_nam_data.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to download NAM nowcast data with get_nam_data.pl.json."
-    exit
+    exit $err
 fi
 thisCycle=$(latest.pl < select_nam_nowcast.pl.json)
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to get the latest cycle from select_nam_nowcast.pl.json."
-    exit
+    exit $err
 fi
 echo $thisCycle
 # for extracting the grib2 and converting to ascii win/pre (owi) format
@@ -111,15 +116,17 @@ SCENARIODIR=$RUNDIR/namforecast
 if [[ ! -d $SCENARIODIR ]]; then mkdir $SCENARIODIR ; fi
 escSCENARIODIR=${SCENARIODIR////'\/'}
 sed "s/NOWCAST/FORECAST/" < get_nam_data.pl.json > get_nam_forecast.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to replace NOWCAST with FORECAST in select_nam_nowcast.pl.json with sed."
-    exit
+    exit $err
 fi
 # download the forecast data
 get_nam_data.pl < get_nam_forecast.json > get_nam_data.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to download NAM forecast data with get_nam_data.pl."
-    exit
+    exit $err
 fi
 # NAMtoOWIRamp.pl writes the ascii OWI WIN/PRE files to
 # the scenario directories
@@ -193,32 +200,37 @@ sed \
         > $filledNamTemplateName \
 # getting nam status
 get_nam_status.pl < $filledNamTemplateName > get_nam_status.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to get status of NAM cycles with get_nam_status.pl."
-    exit
+    exit $err
 fi
 latest.pl < get_nam_status.pl.json > latestCycle
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to extract the latest NAM cycle from get_nam_status.pl.json with latest.pl"
-    exit
+    exit $err
 fi
 latestCycle=$(<"latestCycle")
 # refine the list of NAM cycles to end the nowcast on the correct cycle
 select_nam_nowcast.pl < get_nam_status.pl.json > select_nam_nowcast.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to select the proper NAM cycle to end the nowcast with select_nam_nowcast.pl."
-    exit
+    exit $err
 fi
 # then download the actual nowcast data for the time range of interest
 get_nam_data.pl < select_nam_nowcast.pl.json > get_nam_data.pl.json
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to download NAM nowcast data with get_nam_data.pl.json."
-    exit
+    exit $err
 fi
 thisCycle=$(latest.pl < select_nam_nowcast.pl.json)
-if [[ $? != 0 ]]; then
+err=$?
+if [[ $err != 0 ]]; then
     echo "ERROR: Failed to get the latest cycle from select_nam_nowcast.pl.json."
-    exit
+    exit $err
 fi
 # for extracting the grib2 and converting to ascii win/pre (owi) format
 SCENARIO=nowcast-filesystem

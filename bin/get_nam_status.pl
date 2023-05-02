@@ -66,16 +66,18 @@ if ( $backsite eq "filesystem" ) {
    if ( -d $backdir ) {
       ASGSUtil::appMessage( "INFO", "The directory $backdir was found.");
    } else {
-      ASGSUtil::appMessage( "INFO", "The directory $backdir was not found.");
-      die;
+      my $msg = qq{"The directory $backdir was not found."};
+      ASGSUtil::appMessage( "INFO", $msg );
+      die $msg;
    }
    my @grib2Files;
    my @grib2Dirs = glob( $backdir . "/erl.*" );
    my $numGrib2Dirs = @grib2Dirs;
    ASGSUtil::appMessage("INFO","There is/are $numGrib2Dirs directories to process." );
    if ( $numGrib2Dirs == 0 ) {
-      ASGSUtil::appMessage("ERROR","There are no erl.* directories in $backdir." );
-      die;
+      my $msg = qq{There are no erl.* directories in $backdir.};
+      ASGSUtil::appMessage( "ERROR", $msg );
+      die $msg;
    }
    foreach my $dir (@grib2Dirs) {
       # e.g.:

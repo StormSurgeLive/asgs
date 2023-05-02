@@ -94,7 +94,7 @@ CYCLES : for ( my $c=-1 ; ($c + $numcycles)>0 ; $c-- ) {
 # forecast we want to run ... unless we are nowcasting
 # from files on the filesystem, in which case we want
 # to keep all the files
-if ( $foundit == 1 && $jshash_ref->{"siteHost"} ne "filesystem" ) {
+if ( $foundit == 1 and $jshash_ref->{"siteHost"} ne "filesystem" ) {
     for ( my $i=0 ; $i<$numnotfound ; $i++ ) {
         pop(@cyclelist);
     }
