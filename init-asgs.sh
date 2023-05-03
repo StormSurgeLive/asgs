@@ -68,24 +68,24 @@ while getopts "bmp:x:" optname; do
    esac
 done
 
-echo $ASGS_LOCAL_DIR
-
 # can tweak ASGS_TMPDIR default if TMPDIR is set in the environment
 ASGS_HOME=${ASGS_HOME:-$(pwd)}
 ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
-# DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
-echo "queenbee       - Queenbee (LONI)"     # qb2
-echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
-echo "supermic       - SuperMIC (LSU HPC)"  # smic
-echo "lonestar5      - Lonestar (TACC)"     # ls5
-echo "stampede2      - Stampede2 (TACC)"    # stampede2
-echo "frontera       - Frontera (TACC)"     # frontera
-echo "desktop        - desktop"
-echo "desktop-serial - desktop-serial"
-echo "poseidon       - Poseidon"
-echo "docker         - Docker container environment"
-echo "vagrant        - vagrant/virtual box (local workstation)"
+if [ -z "$BATCH" ]; then
+  # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
+  echo "queenbee       - Queenbee (LONI)"     # qb2
+  echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
+  echo "supermic       - SuperMIC (LSU HPC)"  # smic
+  echo "lonestar5      - Lonestar (TACC)"     # ls5
+  echo "stampede2      - Stampede2 (TACC)"    # stampede2
+  echo "frontera       - Frontera (TACC)"     # frontera
+  echo "desktop        - desktop"
+  echo "desktop-serial - desktop-serial"
+  echo "poseidon       - Poseidon"
+  echo "debian         - Debian container environment"
+  echo "vagrant        - vagrant/virtual box (local workstation)"
+fi
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
 # See ./platforms/README
@@ -103,7 +103,9 @@ if [ -d "./platforms" ]; then
       if [ -e ./platforms/${platform}/about.txt ]; then
         about=$(cat ./platforms/${platform}/about.txt | sed 's/\n//g')
       fi
-      printf "% -14s - %s\n" "$platform" "$about"
+      if [ -z "$BATCH" ]; then
+        printf "% -14s - %s\n" "$platform" "$about"
+      fi
     fi
   done
   unset _PLATFORMS
@@ -134,9 +136,10 @@ fi
 if [ -z "$BATCH" ]; then
   echo
   read -p "Which platform environment would you like to use for ASGS bootstrapping?$_default_platform " platform
-fi
-
-if [ -z "$platform" ]; then
+  if [ -z "$platform" ]; then
+    platform=$default_platform
+  fi
+else
   platform=$default_platform
 fi
 
@@ -149,7 +152,7 @@ case "$platform" in
     SCRATCH=${SCRATCH:-$ASGS_HOME}
     DEFAULT_COMPILER=gfortran
     ;;
-  docker)
+  debian)
     WORK=${WORK:-/work}
     SCRATCH=${SCRATCH:-/scratch}
     DEFAULT_COMPILER=gfortran
@@ -189,26 +192,30 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
   platform=$default_platform
 fi
 
-echo
-echo "Platform name       : $platform"
-if [ -n "$ASGS_LOCAL_DIR" ]; then
-  echo "Local Site Dir      : $ASGS_LOCAL_DIR"
-fi
+_compiler=$DEFAULT_COMPILER
 PLATFORM_INIT_OPT=
 if [ -n "$PLATFORM_INIT" ]; then
-  echo "Platform Init       : $PLATFORM_INIT"
   PLATFORM_INIT_OPT="--platform-init $PLATFORM_INIT"
 fi
-echo "SCRIPTDIR           : $(pwd)"
-echo "ASGS HOME           : $ASGS_HOME"
-echo "WORK                : $WORK"
-echo "SCRATCH             : $SCRATCH"
-echo "ASGS Build directory: $ASGS_TMPDIR"
-echo "Default Compiler    : $DEFAULT_COMPILER"
-echo
 
 # Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
 if [ -z "$BATCH" ]; then
+  echo
+  echo "Platform name       : $platform"
+  if [ -n "$ASGS_LOCAL_DIR" ]; then
+    echo "Local Site Dir      : $ASGS_LOCAL_DIR"
+  fi
+  if [ -n "$PLATFORM_INIT" ]; then
+    echo "Platform Init       : $PLATFORM_INIT"
+  fi
+  echo "SCRIPTDIR           : $(pwd)"
+  echo "ASGS HOME           : $ASGS_HOME"
+  echo "WORK                : $WORK"
+  echo "SCRATCH             : $SCRATCH"
+  echo "ASGS Build directory: $ASGS_TMPDIR"
+  echo "Default Compiler    : $DEFAULT_COMPILER"
+  echo
+
   read -p "Does the above system information look correct? [Y/n] " _looks_correct
   if [[ -n "$_looks_correct" && "${_looks_correct^^}" != Y ]]; then
     echo Set up aborted. Ensure platform is supported, then try again. exiting...
@@ -236,16 +243,13 @@ if [ -z "$BATCH" ]; then
     echo
     echo "skipping 'git checkout', branch untouched ..."
   fi
-fi
-
-_compiler=$DEFAULT_COMPILER
-if [ -z "$BATCH" ]; then
   echo
   read -p "Which compiler 'family' would you like to use, 'gfortran' or 'intel'? [$_compiler] " compiler
-fi
-
-if [ -z "$compiler" ]; then
-  compiler=$_compiler
+  if [ -z "$compiler" ]; then
+    compiler=$_compiler
+  fi
+else
+  compiler=$_compiler # BATCH is set here
 fi
 
 if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
@@ -323,10 +327,10 @@ if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${PLATFORM_INIT_OPT}"
   full_command=$scriptdir/$base_cmd
   echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
-  echo "#!/usr/bin/env bash"                               > ./update-asgs
+  echo "#!/usr/bin/env bash"                             > ./update-asgs
   echo "#---automatically generated by $0 - rename if you don't wish to lose it next tim $0 is run---#" >> ./update-asgs
   if [ -n "$ASGS_LOCAL_DIR" ]; then
-    echo "export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR}"        >> ./update-asgs
+    echo "export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR}"      >> ./update-asgs
   fi
   if [ -n "$PLATFORM_INIT" ]; then
     echo "export PLATFORM_INIT=${PLATFORM_INIT}"        >> ./update-asgs
