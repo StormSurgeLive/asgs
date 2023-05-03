@@ -228,12 +228,12 @@ init_lonestar5()
   MAKEJOBS=8
 }
 
-# docker bootstrap
-init_docker()
+# debian bootstrap
+init_debian()
 {
-  local THIS="platforms.sh>env_dispatch()>init_docker()"
+  local THIS="platforms.sh>env_dispatch()>init_debian()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=docker.local
+  HPCENV=debian.local
   QUEUESYS=mpiexec
   QCHECKCMD="ps -aux | grep mpiexec "
   SUBMITSTRING="mpiexec "
@@ -457,9 +457,9 @@ set_hpc() {
       HPCENV=kitt.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi
-   if [[ "${ASGS_MACHINE_NAME}" = "docker" ]]; then
-      HPCENV=docker.local
-      HPCENVSHORT=docker
+   if [[ "${ASGS_MACHINE_NAME}" = "debian" ]]; then
+      HPCENV=debian.local
+      HPCENVSHORT=debian
    fi
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
@@ -531,17 +531,14 @@ env_dispatch() {
   "desktop-serial") consoleMessage "$THIS: desktop-serial configuration found."
           init_desktop-serial
           ;;
-  "docker") consoleMessage "$THIS: docker configuration found."
-          init_docker
+  "debian") consoleMessage "$THIS: debian configuration found."
+          init_debian
           ;;
   "poseidon") consoleMessage "$THIS: Poseidon configuration found."
           init_Poseidon
           ;;
   "vagrant") consoleMessage "$THIS: vagrant configuration found."
           init_vagrant
-          ;;
-  "docker") consoleMessage "$THIS: docker configuration found."
-          init_docker
           ;;
   "test") consoleMessage "$THIS: test environment (default) configuration found."
           init_test
