@@ -12,6 +12,15 @@ _tailf() {
     return 
   fi
   case "${1}" in
+    mail-log)
+      if [ !-e "$SCRIPTDIR/mail.log" ]; then
+        echo "warning: asgs-sendmail log file "$SCRIPTDIR/mail.log" does not exist!"
+        return
+      fi
+      echo "type 'ctrl-c' to end"
+      echo "tail -f $SCRIPTDIR/mail.log"
+      tail -f $SCRIPTDIR/mail.log
+      ;;
     syslog)
       if [ -z "$SYSLOG" ]; then
         echo "warning: log file "$SYSLOG" does not exist!"
@@ -22,7 +31,7 @@ _tailf() {
       tail -f $SYSLOG
       ;;
    *)
-      echo "'tailf' supports the following parameters: 'syslog'" 
+      echo "'tailf' supports the following parameters: 'syslog', 'mail-log'" 
     ;;
   esac
 }

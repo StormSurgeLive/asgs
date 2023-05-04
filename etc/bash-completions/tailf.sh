@@ -12,7 +12,7 @@ _tailf_completion()
       syslog)
 	;;
       *)
-        COMPREPLY=( $(compgen -W "syslog" -- $cur) )
+        COMPREPLY=( $(compgen -W "mail-log syslog" -- $cur) )
         ;;
     esac
     return 0

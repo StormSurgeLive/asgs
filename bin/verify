@@ -12,8 +12,8 @@ _verify() {
     adcirc)
      verify_adcirc
      ;;
-    email_config)
-     verify_email_config
+    email)
+     verify_email "${2}"
      ;;
     perl)
      verify_perl
@@ -33,7 +33,7 @@ _verify() {
      verify_adcirc
      verify_regressions
      verify_ssh_config
-     verify_email_config
+     verify_email
      ;;      
   esac
 }
@@ -127,7 +127,8 @@ verify_ssh_config() {
   done
 }
 
-verify_email_config() {
+verify_email() {
+  local TESTTO=${ASGSADMIN:-$1}
   echo +
   echo "++ Verifying email configuration (Note: for now just making sure config file is in place)"
   if [ -e $HOME/asgs-global.conf ]; then
@@ -143,6 +144,19 @@ verify_email_config() {
     echo "not ok, permissions for $HOME/asgs-global.conf are not set to 600 ... fixing"
     chmod 600 $HOME/asgs-global.conf && \
       echo "ok, permissions fixed for $HOME/asgs-global.conf"
+  fi
+  if [ -n "$TESTTO" ]; then
+    echo ++ Sending a test email to: $TESTTO
+    cat $(which asgs-sendmail) | asgs-sendmail --to $TESTTO --subject "ASGS email send verification test"
+    err=$?
+    if [ $? == 0 ]; then
+      echo "ok, no errors detected during send; check inbox for test email"
+    else
+      echo "not ok, sending email via asgs-sendmail resulted in an exit code of $err"
+    fi
+  else
+      echo "++ $W skipping email send test; the recipient's email not provided,"
+      echo "++ $W run again, specifying an email address to send test email to ..."
   fi
 }
 
