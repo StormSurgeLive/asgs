@@ -1,0 +1,115 @@
+FROM debian:stretch-slim
+
+# Dockerfile for Debian - useful for building an image or
+# as reference for installing directly on a Debian host
+
+#ENV GIT_TRACE_PACKET=1
+#ENV GIT_TRACE=1
+#ENV GIT_CURL_VERBOSE=1
+ENV TERM=xterm-256color
+ENV WORK=/work/asgsuser
+ENV SCRATCH=/scratch/asgsuser
+ENV USER=asgsuser
+
+RUN echo "deb http://archive.debian.org/debian stretch main contrib non-free" > /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y build-essential checkinstall
+RUN apt-get install -y libssl-dev libexpat1-dev
+RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo bc
+RUN apt-get install -y zip flex gawk procps
+RUN apt-get install -y --allow-downgrades zlib1g=1:1.2.8.dfsg-5
+RUN apt-get install -y zlib1g-dev
+
+# symlink for /bin/env
+RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env
+
+# asgsuser
+RUN useradd -ms /bin/bash asgsuser
+RUN echo "asgsuser ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# get git repo
+#RUN su -c 'cd /home/asgsuser && git clone git@github.com:StormSurgeLive/asgs.git && cd ./asgs && git checkout master' - asgsuser
+RUN su -c 'cd /home/asgsuser && git clone https://github.com/StormSurgeLive/asgs.git && cd ./asgs && git checkout master' - asgsuser
+RUN su -c 'cd /home/asgsuser/asgs && git config --global user.email "asgsuser@noemail" && git config --global user.name "asgsuser"'
+
+# persist env in .bash_profile
+RUN su -c 'echo "export PATH=${PATH}:/home/asgsuser/bin:/home/asgsuser/asgs" >> /home/asgsuser/.bashrc' - asgsuser
+
+WORKDIR /home/asgsuser
+
+RUN mkdir /home/asgsuser/bin
+RUN chown asgsuser:asgsuser /home/asgsuser/bin
+
+# move over docker-entrypoint.sh that's executed when the container is started
+COPY docker-entrypoint.sh bin/docker-entrypoint.sh
+RUN chown asgsuser:asgsuser bin/docker-entrypoint.sh
+RUN chmod 700 bin/docker-entrypoint.sh
+
+# NOTE: stuff related to $WORK and $SCRATCH happens in the docker-compose.yml file
+#  and is treated as a runtime environmental variable and mounted volumes
+# ensure directories are set up and essential default files are in place;
+COPY asgs-global.conf.sample /home/asgsuser/asgs-global.conf
+RUN mkdir /home/asgsuser/.ssh
+RUN chmod 700 /home/asgsuser/.ssh
+COPY ssh.config /home/asgsuser/.ssh/config
+RUN chmod 600 /home/asgsuser/.ssh/config
+RUN chown -R asgsuser:asgsuser /home/asgsuser/asgs-global.conf /home/asgsuser/.ssh
+
+#VOLUME ${HOME}/work /work
+#VOLUME ${HOME}/scratch /scratch
+RUN mkdir /work
+RUN mkdir /scratch
+RUN chmod 777 /work /scratch
+
+USER asgsuser
+
+# set env - required for asgs/init-asgs.sh to know it's in a docker environment
+ARG _ASGS_BRANCH=master
+
+# actually build all of ASGS
+RUN cd /home/asgsuser/asgs      && \
+      git fetch --all             && \
+        git checkout $_ASGS_BRANCH
+
+# init-asgs.sh is broken up to make debugging more efficient,
+# since normally it's just run as one command that installs each
+# stage in turn
+
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps openmpi"         || echo openmpi         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps hdf5"            || echo hdf5            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps netcdf4"         || echo netcdf4         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps wgrib2"          || echo wgrib2          - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps cpra-postproc"   || echo cpra-postproc   - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps output"          || echo output          - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps util"            || echo util            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps input-mesh"      || echo input-mesh      - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps input-nodalattr" || echo input-nodalattr - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps perl"            || echo perl            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps perl-modules"    || echo perl-modules    - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps image-magick"    || echo image-magick    - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps python3"         || echo python3         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps ffmpeg"          || echo ffmpeg          - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps gnuplot"         || echo gnuplot         - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps units"           || echo units           - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps nco"             || echo nco             - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps pigz"             || echo pigz             - something went wonky but preserving docker image
+
+ENTRYPOINT ["/home/asgsuser/bin/docker-entrypoint.sh"]
