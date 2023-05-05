@@ -201,6 +201,7 @@ declare -a COPYABLEHOSTS
 timeoutRetryLimit=${timeoutRetryLimit:-5} # FIXME: hardcoded to 5; make this more granular
 serverAliveInterval=${serverAliveInterval:-10}
 
+sendEmail_orig=$sendEmail
 for server in ${SERVERS[*]}; do
    if [[ $server = "(" || $server = ")" ]]; then
       continue
@@ -575,38 +576,39 @@ SSHCMD
          done
       fi
       for file in ${FILES[*]}; do
-         echo "Processing $file"
+         echo "Processing $file (sendEmail? $sendEmail)"
          # send opendap posting notification email early if directed
          if [[ $file == "sendNotification" ]]; then
             if [[ $sendEmail == "yes" ]]; then
                MSG="$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
                if [ "$MANUAL" == 1 ]; then
-               echo "$MSG"
+                 echo "$MSG"
                else
-               allMessage "$MSG" >> "$SYSLOG"
+                logMessage "$MSG"
                fi
                unset MSG
                # use asgs sendmail if Operator has set it up
-               MSG="asgs-sendmail --subject '$subject' --to '$OPENDAPNOTIFY' < ${SCENARIODIR}/opendap_results_notify_${server}.txt 2>> ${SYSLOG} 2>&1"
+               MSG="cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | tee -a ${SCENARIOLOG} | asgs-sendmail --subject \"$subject\" --to \"$OPENDAPNOTIFY\" 2>> ${SCENARIOLOG} 2>&1"
                if [ "$MANUAL" == 1 ]; then
-               echo "$MSG"
+                 echo "$MSG"
                else
-               allMessage "$MSG" >> "$SYSLOG"
+                logMessage "$MSG"
                fi
+               echo "$MSG"
                unset MSG
-
-               asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" < ${SCENARIODIR}/opendap_results_notify_${server}.txt >> ${SCENARIOLOG} 2>&1
+               cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | tee -a ${SCENARIOLOG} | asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" 2>> ${SCENARIOLOG} 2>&1
                ERR=$?
                if [[ $ERR != $EXIT_SUCCESS ]]; then
-               MSGS="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
-               if [ "$MANUAL" == 1 ]; then
-                  echo "$MSG"
+                 MSGS="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
+                 if [ "$MANUAL" == 1 ]; then
+                    echo "$MSG"
+                 else
+                    warn "$MSG"
+                 fi
+                 unset MSG
+                 sendEmail="error"
                else
-                  warn "$MSG"
-               fi
-               unset MSG
-               else
-               sendEmail="no"
+                 sendEmail="sent"
                fi
                continue
             else
@@ -620,7 +622,7 @@ SSHCMD
          if [ "$MANUAL" == 1 ]; then
            echo "$MSG"
          else
-           allMessage "$MSG" >> "$SYSLOG"
+           logMessage "$MSG"
          fi
          unset MSG
          retry=0
@@ -629,7 +631,7 @@ SSHCMD
             if [ "$MANUAL" == 1 ]; then
               echo "$MSG"
             else
-              allMessage "$MSG" >> "$SYSLOG"
+              logMessage "$MSG"
             fi
             unset MSG
             scp $file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
@@ -778,6 +780,7 @@ SSHCMD
          partialPath=`dirname $partialPath`
       done
       for file in ${FILES[*]}; do
+         echo "Processing $file (sendEmail? $sendEmail)"
          # send opendap posting notification email early if directed
          if [[ $file = "sendNotification"  && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
             allMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY."
@@ -869,6 +872,7 @@ SSHCMD
          ln -s $OPENDAPBASEDIR/$STORMNAMEPATH $OPENDAPBASEDIR/$ALTSTORMNAMEPATH 2>> $SYSLOG
       fi
       for file in ${FILES[*]}; do
+         echo "Processing $file (sendEmail? $sendEmail)"
          # send opendap posting notification email early if directed
          if [[ $file = "sendNotification" ]]; then
             if [[ $sendEmail == "yes" ]]; then
@@ -878,15 +882,16 @@ SSHCMD
                cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" 2>> ${SYSLOG} 2>&1
                ERR=$?
                if [[ $ERR != $EXIT_SUCCESS ]]; then
-               MSGS="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
-               if [ "$MANUAL" == 1 ]; then
-                  echo "$MSG"
+                 MSGS="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
+                 if [ "$MANUAL" == 1 ]; then
+                    echo "$MSG"
+                 else
+                    warn "$MSG"
+                 fi
+                 unset MSG
+                 sendEmail="error"
                else
-                  warn "$MSG"
-               fi
-               unset MSG
-               else
-               sendEmail="no"
+                 sendEmail="sent"
                fi
                continue
             else
@@ -950,7 +955,12 @@ SSHCMD
           warn "$MSG"
         fi
         unset MSG
+        sendEmail="error"
+      else
+        sendEmail="sent"
       fi
-      sendEmail="no"
    fi
+
+   # reset for next server (if there are more)
+   sendEmail=$sendEmail_orig
 done # end loop over opendap servers

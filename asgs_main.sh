@@ -1124,7 +1124,7 @@ monitorJobs()
       fi
 
       # check job run status
-      if [[ $(checkTimeLimit $startTime $WALLTIME) -eq 1 ]]; then
+      if [[ $(checkTimeLimit "$startTime" "$WALLTIME") -eq 1 ]]; then
          THIS="asgs_main.sh>monitorJobs()"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "[$DATETIME] $THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error  # <-OVERWRITE
@@ -2794,7 +2794,7 @@ while [ true ]; do
             # check to see if the deadline has passed for submitting
             # forecast jobs for this cycle.
             if [[ $forecastSelection = "latest" ]]; then
-               if [[ $(checkTimeLimit $cycleStartTime $CYCLETIMELIMIT) -eq 1 ]]; then
+               if [[ $(checkTimeLimit "$cycleStartTime" "$CYCLETIMELIMIT") -eq 1 ]]; then
                   THIS="asgs_main.sh"
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   warn "[${DATETIME}] $ENSTORM: $THIS: The deadline for submitting jobs ($CYCLETIMELIMIT) has passed for this cycle."

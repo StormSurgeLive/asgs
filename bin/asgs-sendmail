@@ -25,22 +25,23 @@ package bin::asgs_sendmail;
 use strict;
 use warnings;
 
-use Email::Sender::Simple qw(sendmail);  # main email capability (receives TLS obj)
-use Email::Sender::Transport::SMTP::TLS; # creates transport object
-use Email::Simple::Creator;  # generates message itself (converts header and body from hash to text email)
-use Config::Tiny; # reads ini format ... converts to a perl hash
-use Try::Tiny;    # exception handling (alternative to eval)
+use Email::Sender::Simple qw(sendmail);     # main email capability (receives TLS obj)
+use Email::Sender::Transport::SMTP::TLS;    # creates transport object
+use Email::Simple::Creator;                 # generates message itself (converts header and body from hash to text email)
+use Config::Tiny;                           # reads ini format ... converts to a perl hash
+use Try::Tiny;                              # exception handling (alternative to eval)
 use POSIX qw/strftime/;
 use Getopt::Long;
-use Util::H2O qw/h2o/;
+use Util::H2O::More qw/h2o ini2h2o/;
 use constant EXIT_SUCCESS => 0;
 
 my $subject     = q{no subject};
 my $HOME        = ( getpwuid($<) )[7];
 my $config_file = qq{$HOME/asgs-global.conf};
+
 # $logfile default, assumes asgsh env, which has $SCRIPTDIR defined
 # so ideal default $logfile is /path/to/asgs/mail.log
-my $logfile     = sprintf(qq{%s/mail.log}, $ENV{SCRIPTDIR} // $HOME);
+my $logfile = sprintf( qq{%s/mail.log}, $ENV{SCRIPTDIR} // $HOME );
 my $to;
 
 GetOptions(
@@ -57,10 +58,10 @@ die qq{a recipient is required to be defined via --to\n} unless defined $to;
 # make sure that $to is a comma delimited list of email addresses, accept a
 # space delimted list, but reform it to use commas
 
-$to =~ s/,/ /g;          # turn all commas to spaces
-$to =~ s/ +/ /g;         # reduce all contiguous spaces of 2 or more, down to 1 space
-my @to = split / /, $to; # split on single space
-$to = join q{,}, @to;    # recreate list of email addresses and delimit them by commas
+$to =~ s/,/ /g;             # turn all commas to spaces
+$to =~ s/ +/ /g;            # reduce all contiguous spaces of 2 or more, down to 1 space
+my @to = split / /, $to;    # split on single space
+$to = join q{,}, @to;       # recreate list of email addresses and delimit them by commas
 
 exit run();
 
@@ -68,6 +69,7 @@ sub run {
     my @content = <STDIN>;
     my $content;
     if (@content) {
+
         # don't need to add a newline between records since each already
         # ends in a newline
         $content = join( qq{}, @content );
@@ -76,34 +78,40 @@ sub run {
         $content = q{empty message};
     }
 
-    my $config = Config::Tiny->new();
-    $config = Config::Tiny->read($config_file);
+    my $config = ini2h2o $config_file;
 
     # create log message
-    my $logmsg = sprintf(qq{subject: "%s", to: "%s"}, $subject, $to);
+    my $logmsg = sprintf( qq{subject: "%s", to: "%s"}, $subject, $to );
 
     # WAL
-    logger( type => q{WAL}, file => $logfile, msg => $logmsg);
+    logger( type => q{WAL}, file => $logfile, msg => $logmsg );
 
     my $transport = try {
-      Email::Sender::Transport::SMTP::TLS->new(
-        host     => $config->{email}->{smtp_host},
-        port     => $config->{email}->{smtp_port} // 587,    # defaults to TLS if not set
-        username => $config->{email}->{smtp_username},
-        password => $config->{email}->{smtp_password},
-        helo     => 'HELO',
-      );
+        Email::Sender::Transport::SMTP::TLS->new(
+            host     => $config->email->smtp_host,
+            port     => $config->email->smtp_port // 587,    # defaults to TLS if not set
+            username => $config->email->smtp_username,
+            password => $config->email->smtp_password,
+            helo     => 'HELO',
+        );
     }
     catch {
-      logger($logfile, qq{(FAILED) $logmsg - $_});
-      logger( type => q{FAILED}, file => $logfile, msg => qq{$logmsg - $_});
-      die "Error sending email: $_";
+        logger( $logfile, qq{(FAILED) $logmsg - $_} );
+        logger( type => q{FAILED}, file => $logfile, msg => qq{$logmsg - $_} );
+        die "Error sending email: $_";
     };
+
+    # check for subjects > 78 characters, which is the max line length according to the
+    # email RFC
+    if ( length $subject > 99 ) {
+        warn qq{(asgs-sendmail) WARNING: Length of --subject is > 99 characters, truncating ...\n};
+        $subject = substr $subject, 0, 99;
+    }
 
     my $message = Email::Simple->create(
         header => [
-            'Reply-To' => $config->{email}->{reply_to_address} // $config->{email}->{from_address},
-            From       => $config->{email}->{from_address},
+            'Reply-To' => $config->email->reply_to_address // $config->email->from_address,
+            From       => $config->email->from_address,
             To         => $to,
             Subject    => $subject,
         ],
@@ -112,10 +120,10 @@ sub run {
 
     try {
         sendmail( $message, { transport => $transport } );
-        logger(type => q{OK}, file => $logfile, msg => $logmsg);
+        logger( type => q{OK}, file => $logfile, msg => $logmsg );
     }
     catch {
-        logger( type => q{FAIL}, file => $logfile, msg => qq{$logmsg - $_});
+        logger( type => q{FAIL}, file => $logfile, msg => qq{$logmsg - $_} );
         die "Error sending email: $_";
     };
     return EXIT_SUCCESS;
@@ -127,13 +135,13 @@ sub show_help {
 }
 
 sub logger {
-  my %opts = @_ ;
-  my $opts = h2o \%opts; # make accessors
-  if ( open my $fh, q{>>}, $opts->file ) {
-    my $timestamp = strftime( "%a %b %e %H:%M:%S %Y UTC", gmtime(time) );
-    printf $fh qq{%06d (%4s) [%s] %s\n}, $$, $opts->type, $timestamp, $opts->msg;
-    close $fh;
-  }
+    my %opts = @_;
+    my $opts = h2o \%opts;    # make accessors
+    if ( open my $fh, q{>>}, $opts->file ) {
+        my $timestamp = strftime( "%a %b %e %H:%M:%S %Y UTC", gmtime(time) );
+        printf $fh qq{%06d (%4s) [%s] %s\n}, $$, $opts->type, $timestamp, $opts->msg;
+        close $fh;
+    }
 }
 
 1;
@@ -196,6 +204,10 @@ not defined, then it default to C<$HOME/mail.log>.
 =item C<-s|--subject>
 
 Defines subject thread. There is a default, but it's meaningless.
+
+If the subject test is > 99 characters in length, the script issues a warning
+and truncates the subject text. This limit was determined through empiracle
+testing of what provided for the most reliable email delivery.
 
 =back
 
