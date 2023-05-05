@@ -49,62 +49,55 @@ asgsh() {  # disable
 
 help() {
   echo Command Line Options \(used when invoking asgsh from login shell\):
-  echo "   -d                          - debug mode, turns on 'set -x'"
-  echo "   -h                          - displays available asgsh command line flags, then exits"
-  echo "   -p     profile              - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists"
-  echo "   -v                          - run 'verify' command, then exist shell"
-  echo "   -x                          - skips loading of platforms.sh and properties.sh (could become default)"
+  echo "   -d                      - debug mode, turns on 'set -x'"
+  echo "   -h                      - displays available asgsh command line flags, then exits"
+  echo "   -p     profile          - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists"
+  echo "   -v                      - run 'verify' command, then exist shell"
+  echo "   -x                      - skips loading of platforms.sh and properties.sh (could become default)"
   echo
   echo ASGS Shell Commands:
-  echo "   build   adcirc              - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
-  echo "           jq                  - optionally installs “jq”, which is an awk like utility but for JSON data"
-  echo "           replaycli           - optionally installs Perl script that interacts with StormReplay.com service"
-  echo "   clone   profile             - launches guided process for cloning the current profile, including copying the configuratin file"
-  echo "   define  config              - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command"
-  echo "           editor              - defines default editor, (\$EDITOR)"
-  echo "           scratch             - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
-  echo "           scriptdir           - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
-  echo "           workdir             - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
-  echo "   delete  profile <name>      - deletes named profile"
-  echo "           adcirc  <name>      - deletes named ADCIRC profile"
-  echo "           config              - deletes configuration file for current profile, unsets 'config' var. Interactively confirms"
-  echo "           statefile           - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
-  echo "   dump    <param>             - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog"
-  echo "   edit    adcirc  <name>      - directly edit the named ADCIRC environment file"
-  echo "           config              - directly edit currently registered ASGS configuration file (used by asgs_main.sh)"
-  echo "           jobs                - if RUNDIR is defined and exists, lists all job Ids associated with the current profile"
-  echo "           meshes              - directly inspect or edit the list of supported meshes"
-  echo "           platforms           - directly inspect or edit the list of supported platforms"
-  echo "           profile <name>      - directly edit the named ASGSH Shell profile"
-  echo "           statefile           - open up STATEFILE (if set) in EDITOR for easier forensics"
-  echo "           syslog              - open up SYSLOG (if set) in EDITOR for easier forensics"
-  echo "   fetch   <thing>             - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
-  echo "   goto    <param>             - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
-  echo "   guess   platform            - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
-  echo "   inspect <option>            - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
-  echo "   list    <param>             - lists different things, please see the following options; type 'list options' to see currently supported options"
-  echo "   load    profile <name>      - loads a saved profile by name; use 'list profiles' to see what's available"
-  echo "           adcirc  <name>      - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
-  echo "   move    statefile           - moves statefile out of the way, safer and more future friendly than delete"
-  echo "   purge   <param>             - deletes specified file or directory"
-  echo "           rundir              - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
-  echo "   rebuild profile             - wizard for recreating an ASGS profile using an existing configuration file"
-  echo "   rl                          - reload current profile, equivalent to 'load profile <current-profile-name>'"
-  echo "   run                         - runs asgs using config file, requires that \$ASGS_CONFIG is set; most handy after 'load'ing a profile"
-  echo "   save    profile <name>      - saves an asgs named profile, '<name>' not required if a profile is loaded"
-  echo "   show    <param>             - shows specified profile variables, to see current list type 'show help'"
-  echo "           exported            - dumps all exported variables and provides a summary of what asgsh tracks"
-  echo "   sq                          - shortcut for \"squeue -u \$USER\" (if squeue is available)"
-  echo "   switch  <option>            - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
-  echo "   tailf   syslog              - executes 'tail -f' on ASGS instance's system log"
-  echo "   verify  [<option>]          - verfies the ASGSH installation"
-  echo "           adcirc              - verifies ADCIRC, if available"
-  echo "           email_config        - verifies email configuration is correct"
-  echo "           regressions         - runs regression test suite for previously solved issues"
-  echo "           perl                - verifies the Perl environment and modules"
-  echo "           python3             - verifies the Python 3.7 environment and modules"
-  echo "           ssh_config          - checks \$HOME/.ssh/config is set up properly"
-  echo "   exit                        - exits ASGS shell, returns \$USER to login shell"
+  echo "   build   adcirc          - interactive tool for building and local registering versions of ADCIRC for use with ASGS"
+  echo "           jq              - optionally installs “jq”, which is an awk like utility but for JSON data"
+  echo "           replaycli       - optionally installs Perl script that interacts with StormReplay.com service"
+  echo "   clone   profile         - launches guided process for cloning the current profile, including copying the configuratin file"
+  echo "   define  config          - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command"
+  echo "           editor          - defines default editor, (\$EDITOR)"
+  echo "           scratch         - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
+  echo "           scriptdir       - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
+  echo "           workdir         - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
+  echo "   delete  profile <NAME>  - deletes named profile"
+  echo "           adcirc  <NAME>  - deletes named ADCIRC profile"
+  echo "           config          - deletes configuration file for current profile, unsets 'config' var. Interactively confirms"
+  echo "           statefile       - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
+  echo "   dump    <param>         - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog"
+  echo "   edit    <thing>         - adcirc <NAME>, asgs-global, asgsh-profile, config, jobs, mail-log, meshes, platforms, profile, statefile, syslog"
+  echo "   fetch   <thing>         - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
+  echo "   goto    <param>         - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
+  echo "   guess   platform        - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
+  echo "   inspect <option>        - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
+  echo "   list    <param>         - lists different things, please see the following options; type 'list options' to see currently supported options"
+  echo "   load    profile <NAME>  - loads a saved profile by name; use 'list profiles' to see what's available"
+  echo "           adcirc  <NAME>  - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "   move    statefile       - moves statefile out of the way, safer and more future friendly than delete"
+  echo "   purge   <param>         - deletes specified file or directory"
+  echo "           rundir          - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
+  echo "   rebuild profile         - wizard for recreating an ASGS profile using an existing configuration file"
+  echo "   rl                      - reload current profile, equivalent to 'load profile <current-profile-name>'"
+  echo "   run                     - runs asgs using config file, requires that \$ASGS_CONFIG is set; most handy after 'load'ing a profile"
+  echo "   save    profile <NAME>  - saves an asgs named profile, '<NAME>' not required if a profile is loaded"
+  echo "   show    <param>         - shows specified profile variables, to see current list type 'show help'"
+  echo "           exported        - dumps all exported variables and provides a summary of what asgsh tracks"
+  echo "   sq                      - shortcut for \"squeue -u \$USER\" (if squeue is available)"
+  echo "   switch  <option>        - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
+  echo "   tailf   syslog          - executes 'tail -f' on ASGS instance's system log"
+  echo "   verify  [<option>]      - verfies the ASGSH installation"
+  echo "           adcirc          - verifies ADCIRC, if available"
+  echo "           email <EM@IL>   - verifies email configuration is correct, will test send email if provided an address"
+  echo "           regressions     - runs regression test suite for previously solved issues"
+  echo "           perl            - verifies the Perl environment and modules"
+  echo "           python3         - verifies the Python 3.7 environment and modules"
+  echo "           ssh_config      - checks \$HOME/.ssh/config is set up properly"
+  echo "   exit                    - exits ASGS shell, returns \$USER to login shell"
 }
 
 _is_a_num()
@@ -556,17 +549,31 @@ edit() {
   adcirc)
     BRANCH=${2}
     if [ ! -e "$ADCIRC_META_DIR/$BRANCH" ]; then
-      echo "An ADCIRC environment named '$BRANCH' doesn't exist"
+      echo "$I An ADCIRC environment named '$BRANCH' doesn't exist"
       return
     fi
     $EDITOR "$ADCIRC_META_DIR/$BRANCH"
     ;;
+  asgs-global)
+    if [ -e "$HOME/asgs-global.conf" ]; then
+      $EDITOR $HOME/asgs-global.conf
+    else
+      echo "$W $HOME/asgs-global.conf doesn't exist."
+    fi
+    ;;
+  asgsh-profile)
+    if [ -e "$HOME/.asgsh_profile" ]; then
+      $EDITOR $HOME/.asgsh_profile
+    else
+      echo "$I $HOME/.asgsh_profile doesn't exist, which is fine because it is an optional."
+    fi
+    ;;
   config)
     if [ -z "$ASGS_CONFIG" ]; then
-      echo "\$ASGS_CONFIG is not defined. Use 'define config' to specify an ASGS config file."
+      echo "$W \$ASGS_CONFIG is not defined. Use 'define config' to specify an ASGS config file."
       return
     elif [ ! -e "$ASGS_CONFIG" ]; then
-      echo "ASGS_CONFIG file, '$ASGS_FILE' doesn't exist"
+      echo "$I ASGS_CONFIG file, '$ASGS_FILE' doesn't exist"
       return
     fi
     $EDITOR $ASGS_CONFIG
@@ -575,8 +582,15 @@ edit() {
       if [[ -z "$reload" || "$reload" = "y" ]]; then
         rl
       else
-        echo "warning - profile '$ASGS_CONFIG' has been edited, but the profile has not been reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+        echo "$W profile '$ASGS_CONFIG' has been edited, but the profile has not been reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
       fi
+    fi
+    ;;
+  mail-log)
+    if [ -e "$SCRIPTDIR/mail.log" ]; then
+      $EDITOR $SCRIPTDIR/mail.log
+    else
+      echo $I "$SCRIPTDIR/mail.log doesn't exist yet because asgs-sendmail has not yet sent anything."
     fi
     ;;
   meshes)
@@ -588,7 +602,7 @@ edit() {
   profile)
     NAME=${2:-"$_ASGSH_CURRENT_PROFILE"}
     if [[ -z "$NAME" || ! -e "$ASGS_META_DIR/$NAME" ]]; then
-      echo "An ASGS profile named '$NAME' doesn't exist"
+      echo "$I An ASGS profile named '$NAME' doesn't exist"
       return
     fi
     $EDITOR "$ASGS_META_DIR/$NAME"
@@ -598,17 +612,17 @@ edit() {
       if [[ -z "$reload" || "$reload" = "y" ]]; then
         rl
       else
-        echo "warning - profile '$_ASGSH_CURRENT_PROFILE' has been edited, but not reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
+        echo "$W profile '$_ASGSH_CURRENT_PROFILE' has been edited, but not reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
       fi
     fi
     ;;
   statefile)
     if [ -z "$STATEFILE" ]; then
-      echo "STATEFILE is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
+      echo "$I STATEFILE is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
       _unset_statevars
       return
     elif [ ! -e "$STATEFILE" ]; then
-      echo "STATEFILE file, '$STATEFILE' doesn't exist"
+      echo "$I STATEFILE file, '$STATEFILE' doesn't exist."
       _unset_statevars
       return
     fi
@@ -618,18 +632,23 @@ edit() {
     if [ -z "$SYSLOG" ]; then
       echo "SYSLOG is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
     elif [ ! -e "$SYSLOG" ]; then
-      echo "Log file, '$SYSLOG' doesn't exist - did it get moved or deleted?"
+      echo "$I Log file, '$SYSLOG' doesn't exist - did it get moved or deleted?"
       return
     fi
     $EDITOR "$SYSLOG"
     ;;
   *)
     echo "Supported options:"
-    echo "adcirc <name>  - directly edit named ADCIRC environment file"
-    echo "config         - directly edit ASGS_CONFIG, if defined"
-    echo "profile <name> - directly edit named ASGS profile (should be followed up with the 'load profile' command"
-    echo "statefile      - open STATEFILE from a run in EDITOR for easier forensics"
-    echo "syslog         - open SYSLOG from a run in EDITOR for easier forensics"
+    echo "adcirc <NAME>  - named ADCIRC environment file"
+    echo "asgs-global    - global settings, including asgs-sendmail configuration information"
+    echo "asgsh-profile  - optional ASGS Shell customizations, ~/.asgsh_profile"
+    echo "config         - ASGS_CONFIG file, if defined"
+    echo "mail-log       - log created by asgs-sendmail"
+    echo "meshes         - mesh defaults file"
+    echo "platforms      - old platforms.sh file"
+    echo "profile <NAME> - named ASGS profile (should be followed up with the 'load profile' command"
+    echo "statefile      - STATEFILE from a run in EDITOR for easier forensics"
+    echo "syslog         - SYSLOG from a run in EDITOR for easier forensics"
     ;;
   esac
 }
