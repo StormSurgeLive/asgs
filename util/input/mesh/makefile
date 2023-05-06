@@ -83,8 +83,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o logging.o
-MODS := adcmesh.mod asgsio.mod logging.mod
+OBJ := adcmesh.o asgsio.o logging.o nodalattr.o
+MODS := adcmesh.mod asgsio.mod logging.mod nodalattr.mod
 #
 # targets
 all : boundaryFinder
