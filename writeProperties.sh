@@ -94,6 +94,7 @@ writeProperties()
    echo "notification.hpc.email.notifyuser : deprecated - do not use - will be removed in the future" >> $STORMDIR_RUN_PROPERTIES
    echo "notification.opendap.email.opendapnotify : $OPENDAPNOTIFY" >> $STORMDIR_RUN_PROPERTIES
    echo "notification.email.asgsadmin : $ASGSADMIN" >> $STORMDIR_RUN_PROPERTIES
+   echo "notification.email.asgsadmin_id : $ASGSADMIN_ID" >> $STORMDIR_RUN_PROPERTIES
    echo "monitoring.logging.file.syslog : $SYSLOG" >> $STORMDIR_RUN_PROPERTIES
    # post processing
    echo "post.intendedaudience : $INTENDEDAUDIENCE" >> $STORMDIR_RUN_PROPERTIES
