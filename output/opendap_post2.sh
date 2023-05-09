@@ -184,13 +184,21 @@ else
       sendEmail="yes"
    fi
 fi
+
 # load asgs operator email address
 ASGSADMIN=${properties["notification.email.asgsadmin"]}
+ASGSADMIN_ID=${properties["notification.email.asgsadmin_id"]}
 GRIDNAME=${properties["adcirc.gridname"]}
 INSTANCENAME=${properties["instancename"]}
 HPCENVSHORT=${properties["hpc.hpcenvshort"]}
 TROPICALCYCLONE=${properties["forcing.tropicalcyclone"]}
 BACKGROUNDMET=${properties["forcing.backgroundmet"]}
+
+# support UUID for email subject
+_ASGSADMIN_ID=$ASGSADMIN_ID
+if [[ -z "$_ASGSADMIN_ID" ||  "$_ASGSADMIN_ID" == "null" ]]; then
+  _ASGSADMIN_ID=$ASGSADMIN
+fi
 
 # get the scenario number
 SCENARIONUMBER=${properties["scenario.number"]} # this is used in the subject line of the email
@@ -222,6 +230,7 @@ for server in ${SERVERS[*]}; do
    DOWNLOADPREFIX=${properties["post.opendap.${server}.downloadprefix"]}
    CATALOGPREFIX=${properties["post.opendap.${server}.catalogprefix"]}
    OPENDAPBASEDIR=${properties["post.opendap.${server}.opendapbasedir"]}
+   OPENDAPINDEX=${properties["post.opendap.${server}.opendapindex"]}
    OPENDAPADDROOT=${properties["post.opendap.addroot"]}
    #
    #--------------------------------------------------------------------
@@ -363,15 +372,20 @@ for server in ${SERVERS[*]}; do
    if [[ $TROPICALCYCLONE == "on" ]]; then
       subject="${subject} (TC)"
    fi
-   subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $ASGSADMIN"
+   subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $_ASGSADMIN_ID"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
+   if [ "$OPENDAPINDEX" == "catalog.html" ]; then
+     POSTED_LINK=$CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
+   else
+     POSTED_LINK=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
+   fi
    if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
       subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
       echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
-The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
+The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
 
 The instance status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
 The hook status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
@@ -388,7 +402,7 @@ END
    else
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
-The results for cycle $CYCLE have been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/catalog.html
+The results for cycle $CYCLE have been posted to $POSTED_LINK
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 
@@ -925,17 +939,13 @@ SSHCMD
       unset MSG
       ;;
    esac
+
    #
    #-------------------------------------------------------------------
    #      S E N D   N O T I F I C A T I O N   E M A I L
    #-------------------------------------------------------------------
-   # jgf20160322: FIXME: post to opendap even if there was an error so we can
-   # see what the error is
    #
-   #if [[ threddsPostStatus != ok ]]; then
-   #   error "opendap_post.sh: A failure occurred when the ASGS instance $INSTANCENAME attempted to post data to the THREDDS Data Server ${server}. Downstream data consumers will not receive an email for these results. However, the opendap results notification will be sent to ${ASGSADMIN}."
-   #   cat ${SCENARIODIR}/opendap_results_notify.txt | asgs-sendmail --subject "$subject" --to "$ASGSADMIN" 2>> ${SYSLOG} 2>&1
-   #else
+
    if [[ $sendEmail == "yes" ]]; then
       MSG="$SCENARIO: $_THIS: Sending 'results available' email to the following addresses: $OPENDAPNOTIFY."
       if [ "$MANUAL" == 1 ]; then

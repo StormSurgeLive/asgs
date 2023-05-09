@@ -103,9 +103,9 @@ sub run {
 
     # check for subjects > 78 characters, which is the max line length according to the
     # email RFC
-    if ( length $subject > 99 ) {
-        warn qq{(asgs-sendmail) WARNING: Length of --subject is > 99 characters, truncating ...\n};
-        $subject = substr $subject, 0, 99;
+    if ( length $subject > 120 ) {
+        warn qq{(asgs-sendmail) WARNING: Length of --subject is > 120 characters, truncating ...\n};
+        $subject = substr $subject, 0, 120;
     }
 
     my $message = Email::Simple->create(
@@ -205,7 +205,7 @@ not defined, then it default to C<$HOME/mail.log>.
 
 Defines subject thread. There is a default, but it's meaningless.
 
-If the subject test is > 99 characters in length, the script issues a warning
+If the subject test is > 120 characters in length, the script issues a warning
 and truncates the subject text. This limit was determined through empiracle
 testing of what provided for the most reliable email delivery.
 
