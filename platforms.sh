@@ -332,6 +332,7 @@ writeTDSProperties()
    case $SERVER in
    "renci_tds")
       THREDDSHOST=tds.renci.org # WWW hostname for emailed links
+      OPENDAPINDEX=catalog.html
       OPENDAPHOST=renci_tds     # alias in $HOME/.ssh/config
       OPENDAPPORT=":80"
       OPENDAPPROTOCOL="http"
@@ -343,6 +344,7 @@ writeTDSProperties()
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
    "lsu_tds")
       THREDDSHOST=fortytwo.cct.lsu.edu
+      OPENDAPINDEX=""           # this is just a directory listing, no index file
       OPENDAPHOST=lsu_tds
       OPENDAPPORT=":443"
       OPENDAPPROTOCOL="https"
@@ -368,6 +370,7 @@ writeTDSProperties()
    # Advanced Computing Center (TACC)
    "tacc_tds")
       THREDDSHOST=adcircvis.tacc.utexas.edu # WWW hostname for emailed links
+      OPENDAPINDEX=catalog.html
       OPENDAPHOST=tacc_tds                  # alias in $HOME/.ssh/config
       OPENDAPPORT=":8080"
       OPENDAPPROTOCOL="http"
@@ -405,6 +408,7 @@ writeTDSProperties()
    echo "post.opendap.${SERVER}.downloadprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/fileServer$DOWNLOADPREFIX" >> $RUNPROPERTIES
    echo "post.opendap.${SERVER}.catalogprefix : $OPENDAPPROTOCOL://$THREDDSHOST$OPENDAPPORT/thredds/catalog$CATALOGPREFIX" >> $RUNPROPERTIES
    echo "post.opendap.${SERVER}.opendapbasedir : $OPENDAPBASEDIR" >> $RUNPROPERTIES
+   echo "post.opendap.${SERVER}.opendapindex : $OPENDAPINDEX" >> $RUNPROPERTIES
    # if the Operator has an asgs-global.conf file, assume that a perl mail client capability is
    # set up and ready to use
    echo "notification.opendap.email.opendapmailserver : aws" >> $RUNPROPERTIES
