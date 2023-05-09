@@ -76,3 +76,4 @@ THIS=$(basename -- $0)
    # to their email address in their ~/.asgsh_profile files
    # on each platform
    ASGSADMIN=null
+   ASGSADMIN_ID=null
