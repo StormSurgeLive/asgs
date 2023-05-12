@@ -72,7 +72,7 @@ help() {
   echo "   dump    <param>         - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog"
   echo "   edit    <thing>         - adcirc <NAME>, asgs-global, asgsh-profile, config, jobs, mail-log, meshes, platforms, profile, statefile, syslog"
   echo "   fetch   <thing>         - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
-  echo "   goto    <param>         - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
+  echo "   goto|g  <param>         - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform        - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
   echo "   inspect <option>        - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
   echo "   list    <param>         - lists different things, please see the following options; type 'list options' to see currently supported options"
@@ -91,11 +91,11 @@ help() {
   echo "   switch  <option>        - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
   echo "   tailf   syslog          - executes 'tail -f' on ASGS instance's system log"
   echo "   verify  [<option>]      - verfies the ASGSH installation"
-  echo "           adcirc          - verifies ADCIRC, if available"
-  echo "           email <EM@IL>   - verifies email configuration is correct, will test send email if provided an address"
-  echo "           regressions     - runs regression test suite for previously solved issues"
-  echo "           perl            - verifies the Perl environment and modules"
-  echo "           python3         - verifies the Python 3.7 environment and modules"
+  echo "           adcirc          - (alias: va) verifies ADCIRC, if available"
+  echo "           email <EM@IL>   - (alias: ve) verifies email configuration is correct, will test send email if provided an address"
+  echo "           regressions     - (alias: vr) runs regression test suite for previously solved issues"
+  echo "           perl            - (alias: vp) verifies the Perl environment and modules"
+  echo "           python3         - (alias: vpy) verifies the Python 3.7 environment and modules"
   echo "           ssh_config      - checks \$HOME/.ssh/config is set up properly"
   echo "   exit                    - exits ASGS shell, returns \$USER to login shell"
 }
@@ -140,6 +140,14 @@ goto() {
       _pwd
     else
       echo "ASGS_INSTALL_PATH not defined, which is concerning. Did you complete the installation of ASGS?"
+    fi
+    ;;
+  lastsubdir)
+    if [ -e "$LASTSUBDIR" ]; then
+      cd $LASTSUBDIR
+      _pwd
+    else
+      echo "LASTSUBDIR not yet defined"
     fi
     ;;
   rundir)
@@ -887,13 +895,16 @@ alias lm="list meshes"
 alias r="run"
 alias rd="goto rundir"
 alias sd="goto scriptdir"
+alias lsd="goto lastsubdir"
 alias s="goto scratchdir"
 alias t="tailf syslog"
 alias v="verify"
 alias va="verify adcirc"
+alias ve="verify email"
 alias vp="verify perl"
 alias vpy="verify python"
 alias vr="verify regressions"
+alias vs="verify ssh_config"
 
 if [ -n "$_asgsh_splash" ]; then
 # show important directories
