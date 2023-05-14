@@ -35,7 +35,7 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),jason-desktop)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
    endif
-   ifeq ($(MACHINENAME),vagrant)
+   ifeq ($(MACHINENAME),oracle)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
 endif

@@ -13,11 +13,7 @@ _guess_platform()
   default_platform=unknown
   HOSTNAME=$(hostname --fqdn)
 
-  if [ "$USER" = vagrant ]; then
-    default_platform=vagrant
-  elif [ -e /etc/debian_version ]; then
-    default_platform=debian
-  elif [ 1 -eq $(echo $HOSTNAME | grep -c qb1) ]; then
+  if [ 1 -eq $(echo $HOSTNAME | grep -c qb1) ]; then
     default_platform=queenbee
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qb2) ]; then
     default_platform=queenbee
@@ -33,6 +29,10 @@ _guess_platform()
     default_platform=frontera
   elif [ 1 -eq $(echo $HOSTNAME | grep -c soldier) ]; then
     default_platform=desktop
+  elif [ -e /etc/oracle-release ]; then
+    default_platform=oracle
+  elif [ -e /etc/debian_version ]; then
+    default_platform=debian
   fi
 
   # return if platform is not unknown 
