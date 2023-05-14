@@ -80,11 +80,8 @@ if [ -z "$BATCH" ]; then
   echo "lonestar5      - Lonestar (TACC)"     # ls5
   echo "stampede2      - Stampede2 (TACC)"    # stampede2
   echo "frontera       - Frontera (TACC)"     # frontera
-  echo "desktop        - desktop"
-  echo "desktop-serial - desktop-serial"
   echo "poseidon       - Poseidon"
   echo "debian         - Debian container environment"
-  echo "vagrant        - vagrant/virtual box (local workstation)"
 fi
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
@@ -147,7 +144,7 @@ fi
 # catch WORK and SCRATCH as early as possible
 DEFAULT_COMPILER=intel
 case "$platform" in
-  vagrant|desktop|desktop-serial)
+  oracle)
     WORK=${WORK:-$ASGS_HOME}
     SCRATCH=${SCRATCH:-$ASGS_HOME}
     DEFAULT_COMPILER=gfortran

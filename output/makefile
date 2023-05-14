@@ -60,10 +60,7 @@ ifeq ($(compiler),gfortran)
    ifeq ($(MACHINENAME),jason-desktop)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
-   ifeq ($(MACHINENAME),vagrant)
-      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
-   endif
-   ifeq ($(MACHINENAME),docker)
+   ifeq ($(MACHINENAME),oracle)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
    ifeq ($(DEBUG),trace)
