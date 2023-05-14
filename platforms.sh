@@ -245,49 +245,6 @@ init_debian()
   MAKEJOBS=2
 }
 
-# placeholder for vagrant bootstrap
-init_vagrant() {
-  MAKEJOBS=2
-}
-
-init_desktop()
-{
-  local THIS="platforms.sh>env_dispatch()>init_desktop()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=desktop.seahorsecoastal.com
-  QUEUESYS=mpiexec
-  QUEUENAME=mpiexec
-  SERQUEUE=cmd
-  QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec "
-  SCRATCH=/srv/asgs
-  ADCOPTIONS='compiler=gfortran MACHINENAME=desktop'
-  SWANMACROSINC=macros.inc.gfortran
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  TDS=()
-  MAKEJOBS=1
-}
-
-init_desktop_serial() # changed from init_desktop-serial due to bash complaints
-{
-  local THIS="platforms.sh>env_dispatch()>init_desktop-serial()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=desktop-serial
-  QUEUESYS=serial
-  QCHECKCMD="ps -aux | grep adcirc "
-  SUBMITSTRING="./"
-  SCRATCH=/srv/asgs
-  ADCOPTIONS='compiler=gfortran MACHINENAME=desktop-serial'
-  SWANMACROSINC=macros.inc.gfortran
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  TDS=(renci_tds)
-  MAKEJOBS=1
-}
-
 init_Poseidon()
 {
   HPCENV=poseidon.vsnet.gmu.edu
@@ -529,20 +486,11 @@ env_dispatch() {
   "frontera") consoleMessage "$THIS: Frontera (TACC) configuration found."
           init_frontera
           ;;
-  "desktop") consoleMessage "$THIS: desktop configuration found."
-          init_desktop
-          ;;
-  "desktop-serial") consoleMessage "$THIS: desktop-serial configuration found."
-          init_desktop-serial
-          ;;
   "debian") consoleMessage "$THIS: debian configuration found."
           init_debian
           ;;
   "poseidon") consoleMessage "$THIS: Poseidon configuration found."
           init_Poseidon
-          ;;
-  "vagrant") consoleMessage "$THIS: vagrant configuration found."
-          init_vagrant
           ;;
   "test") consoleMessage "$THIS: test environment (default) configuration found."
           init_test

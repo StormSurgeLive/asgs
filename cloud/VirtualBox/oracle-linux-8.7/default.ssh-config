@@ -1,0 +1,5 @@
+
+HOST adc2023_tds
+  Hostname To.Be.Deter.mined
+  User vagrant 
+  IdentityFile ~/.ssh/id_rsa

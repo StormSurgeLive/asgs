@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  config.vm.box = "oraclelinux/8"
+  config.disksize.size = '32GB'
+
+  config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
+
+  # as root
+  config.vm.provision "shell", inline: <<-SHELL
+    if [ -z "$(which vim)" ]; then
+      yum groupinstall -y 'Development Tools'
+      yum install -y gcc-gfortran openssl-devel.x86_64 tmux vim
+    fi
+  SHELL
+
+  # as vagrant user
+  config.vm.provision "shell", inline: <<-SHELL, privileged: false
+  SHELL
+
+  # as vagrant user
+  config.vm.provision "file", source: "./default.ssh-config", destination: "$HOME/.ssh/config"
+  config.vm.provision "file", source: "./default.asgs-global.conf", destination: "$HOME/asgs-global.conf"
+  config.vm.provision "shell", inline: <<-SHELL, privileged: false
+    # generate key pair
+    ssh-keygen -t rsa -N ''
+    # fix permissions
+    chmod 600 ~/asgs-global.conf
+    git clone https://github.com/StormSurgeLive/asgs.git || echo git clone went wonky .. moving along
+    cd "$HOME/asgs"
+    # minimal build to allow for ADCIRC to be compiled
+    ./init-asgs.sh -b -x "--run-steps openmpi,hdf5,netcdf4,perl,perl-modules"
+  SHELL
+
+  # mount shared directories (/work and /scratch) - contents persist on host even when VM is off or gone
+  config.vm.synced_folder "scratch/"      , "/scratch",           create: true
+  config.vm.synced_folder "work/"         , "/work",              create: true
+  config.vm.synced_folder "asgs-scriptdir", "/home/vagrant/asgs", create: true
+
+  # disable default share (comment out to enable"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+end

@@ -26,18 +26,9 @@ at a later time, but the general steps should still conceptually work.
 
   % cd $HOME
   % git clone https://github.com/StormSurgeLive/asgs.git
-  % cd $HOME/asgs/cloud/bento-ubuntu-18.10
-  % git checkout master 
+  % cd $HOME/asgs/cloud/VirtualBox/oracle-linux-8.7
   % vagrant up
   % vagrant ssh              # this will place you on the virtual machine as user "vagrant"
-
-NOTE: "bento" refers to official Vagrant base images found at
-
-  https://app.vagrantup.com/bento
-
-in this case we're using the image available at
-
-  https://app.vagrantup.com/bento/boxes/ubuntu-18.10
 
 4. ON GUEST machine (vm), initialize ASGS on the virtual machine, download
    and build padcirc, adcirc, adcprep, adcpost, padcswan, and adcswan

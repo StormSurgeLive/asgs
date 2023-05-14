@@ -1,0 +1,1 @@
+Oracle Linux 8.7 for VirtualBox (local workstation or OCI)
