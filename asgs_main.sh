@@ -1054,9 +1054,13 @@ downloadRiverFluxData()
 # See if a task has been running (or waiting) longer than a specified time limit
 checkTimeLimit()
 {
+   THIS="asgs_main.sh>checkTimeLimit()"
+   if [[ -z "$1" || -z "$2" ]]; then
+	   warn "$ENSTORM: $THIS: One or both parameters for checkTimeLimit() is empty. STARTTIME='$1', TIMELIMIT='$2'."
+     return 0
+   fi
    STARTTIME=$1
    TIMELIMIT=$2
-   THIS="asgs_main.sh>checkTimeLimit()"
    #
    # convert time limit to seconds, assuming it is in the format HH:MM:SS
    hours=${TIMELIMIT:0:2}   # requires leading zero! e.g., 05:00:00
@@ -1124,7 +1128,8 @@ monitorJobs()
       fi
 
       # check job run status
-      if [[ $(checkTimeLimit "$startTime" "$WALLTIME") -eq 1 ]]; then
+      check=$(checkTimeLimit "$startTime" "$WALLTIME")
+      if [[ "$check" -eq 1 ]]; then
          THIS="asgs_main.sh>monitorJobs()"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "[$DATETIME] $THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error  # <-OVERWRITE
@@ -2794,7 +2799,8 @@ while [ true ]; do
             # check to see if the deadline has passed for submitting
             # forecast jobs for this cycle.
             if [[ $forecastSelection = "latest" ]]; then
-               if [[ $(checkTimeLimit "$cycleStartTime" "$CYCLETIMELIMIT") -eq 1 ]]; then
+               check=$(checkTimeLimit "$cycleStartTime" "$CYCLETIMELIMIT")
+               if [[ "$check" -eq 1 ]]; then
                   THIS="asgs_main.sh"
                   DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
                   warn "[${DATETIME}] $ENSTORM: $THIS: The deadline for submitting jobs ($CYCLETIMELIMIT) has passed for this cycle."
