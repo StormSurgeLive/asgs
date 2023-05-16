@@ -7,16 +7,14 @@
 # you're doing.
 Vagrant.configure("2") do |config|
   config.vm.box = "oraclelinux/8"
-  config.disksize.size = '32GB'
+  config.disksize.size = '33GB'
 
   config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
 
   # as root
   config.vm.provision "shell", inline: <<-SHELL
-    if [ -z "$(which vim)" ]; then
-      yum groupinstall -y 'Development Tools'
-      yum install -y gcc-gfortran openssl-devel.x86_64 tmux vim
-    fi
+    yum groupinstall -y 'Development Tools'
+    yum install -y gcc-gfortran openssl-devel.x86_64 tmux vim
   SHELL
 
   # as vagrant user
