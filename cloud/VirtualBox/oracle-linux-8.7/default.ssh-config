@@ -1,5 +1,4 @@
-
-HOST adc2023_tds
-  Hostname To.Be.Deter.mined
+HOST test_tds
+  Hostname test_tds_tds.stormsurge.live 
   User vagrant 
-  IdentityFile ~/.ssh/id_rsa
+  IdentityFile ~/.ssh/id_rsa_test_tds
