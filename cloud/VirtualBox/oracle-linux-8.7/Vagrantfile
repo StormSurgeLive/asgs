@@ -5,19 +5,20 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-Vagrant.configure("2") do |config|
-  config.vm.box = "oraclelinux/8"
 
-  config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
+ENV["LC_ALL"] = "en_US.UTF-8"
+Vagrant.configure("2") do |config|
+  config.vm.box       = "oraclelinux/8"
+  config.vm.box_url   = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
 
   # as root
   config.vm.provision "shell", inline: <<-SHELL
     yum groupinstall -y 'Development Tools'
     yum install -y gcc-gfortran openssl-devel.x86_64 tmux vim
-  SHELL
-
-  # as vagrant user
-  config.vm.provision "shell", inline: <<-SHELL, privileged: false
+    passwd vagrant <<EOPASSWORD
+asgsnosecrets!
+asgsnosecrets!
+EOPASSWORD
   SHELL
 
   # as vagrant user
