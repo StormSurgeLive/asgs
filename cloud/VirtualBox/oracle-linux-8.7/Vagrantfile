@@ -11,6 +11,15 @@ Vagrant.configure("2") do |config|
   config.vm.box       = "oraclelinux/8"
   config.vm.box_url   = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
 
+  config.vm.provider "virtualbox" do |v|
+   v.customize ["modifyvm", :id, "--name", "ASGS in a VirtualBox"]
+   v.customize ["modifyvm", :id, "--description", "ASGS provides software infrastructure for automating coastal ocean modelling for real time decision support, and provides a variety of standalone command line tools for pre- and post-processing."]
+   v.customize ["modifyvm", :id, "--vram", "16"]
+   v.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+   v.customize ["modifyvm", :id, "--memory", "2048"]
+  end
+
+
   # as root
   config.vm.provision "shell", inline: <<-SHELL
     yum groupinstall -y 'Development Tools'
@@ -19,6 +28,9 @@ Vagrant.configure("2") do |config|
 asgsnosecrets!
 asgsnosecrets!
 EOPASSWORD
+    mkdir -p /work
+    mkdir -p /scratch
+    chown vagrant:vagrant /work /scratch
   SHELL
 
   # as vagrant user
@@ -53,9 +65,5 @@ EOPASSWORD
   SHELL
 
   # mount shared directories (/work and /scratch) - contents persist on host even when VM is off or gone
-  config.vm.synced_folder "scratch/"      , "/scratch", create: true
-  config.vm.synced_folder "work/"         , "/work",    create: true
-
-  # disable default share (comment out to enable"
   config.vm.synced_folder ".", "/vagrant", disabled: true
 end
