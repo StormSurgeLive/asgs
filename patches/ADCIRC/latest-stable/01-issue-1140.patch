@@ -4,7 +4,7 @@ index 9fdfc6e..527fbf3 100644
 +++ b/src/writer.F
 @@ -1121,11 +1121,16 @@ C-----------------------------------------------------------------------
        USE MESH, ONLY : NE, NP
-       USE GLOBAL_IO, ONLY: packOne, unpackOne, 
+       USE GLOBAL_IO, ONLY: packOne, unpackOne,
       &    packTwo, unpackTwo, HEADER_MAX
 +      USE MESSENGER
 +!
@@ -17,7 +17,7 @@ index 9fdfc6e..527fbf3 100644
        integer :: i
 -      integer :: ierr
 +c     integer :: ierr
- 
+
        REAL(8), intent(in) :: TimeLoc
        INTEGER, intent(in) :: IT
 diff --git a/thirdparty/swan/macros.inc.gfortran b/thirdparty/swan/macros.inc.gfortran
@@ -34,14 +34,14 @@ index da86f43..0958e02 100644
  FLAGS_SER =
  FLAGS_OMP = -fopenmp
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index dc28c5f..3ffb450 100644
+index dc28c5f..6a1869e 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,5 @@
  # SRCDIR is set in makefile or on the compile line
 -INCDIRS := -I. -I$(SRCDIR)/prep
 +INCDIRS := -I . -I $(SRCDIR)/prep
- 
+
  ########################################################################
  # Compiler flags for Linux operating system on 64bit x86 CPU
 @@ -90,12 +90,9 @@ ifeq ($(compiler),gnu)
@@ -97,7 +97,7 @@ index dc28c5f..3ffb450 100644
    FLIBS         :=
    ifeq ($(DEBUG),full)
 @@ -276,6 +265,16 @@ ifeq ($(compiler),intel)
-         FLIBS   := $(INCDIRS) -xCORE-AVX512 
+         FLIBS   := $(INCDIRS) -xCORE-AVX512
       endif
    endif
 +  ifeq ($(MACHINENAME),ls6)
@@ -113,18 +113,29 @@ index dc28c5f..3ffb450 100644
    ifeq ($(MACHINENAME),queenbee)
       FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
       CFLAGS  := $(INCDIRS) -O3 -DLINUX -xSSE4.2
-@@ -296,6 +295,27 @@ ifeq ($(compiler),intel)
+@@ -296,6 +295,38 @@ ifeq ($(compiler),intel)
          FLIBS   := $(INCDIRS) -xAVX
       endif
    endif
-+  ifeq ($(MACHINENAME),queenbeeC) 
++  ifeq ($(MACHINENAME),queenbeeC)
 +     FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xCORE-AVX512 -assume buffered_io
-+     CFLAGS  := $(INCDIRS) -O3 -DLINUX -xCORE-AVX512 
-+     FLIBS   := $(INCDIRS) -xCORE-AVX512 
++     CFLAGS  := $(INCDIRS) -O3 -DLINUX -xCORE-AVX512
++     FLIBS   := $(INCDIRS) -xCORE-AVX512
 +     ifeq ($(DEBUG),trace)
 +        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xCORE-AVX512 -assume buffered_io
-+        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xCORE-AVX512 
-+        FLIBS   := $(INCDIRS) -xCORE-AVX512 
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xCORE-AVX512
++        FLIBS   := $(INCDIRS) -xCORE-AVX512
++     endif
++  endif
++  ifeq ($(MACHINENAME),rostam)
++     PFC := mpiifort
++     FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xAVX -assume buffered_io
++     CFLAGS  := $(INCDIRS) -O3 -DLINUX -xAVX
++     FLIBS   := $(INCDIRS) -xAVX
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX -assume buffered_io
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
++        FLIBS   := $(INCDIRS) -xAVX
 +     endif
 +  endif
 +  ifeq ($(MACHINENAME),mike)
@@ -134,14 +145,14 @@ index dc28c5f..3ffb450 100644
 +     FLIBS   := $(INCDIRS) -xAVX
 +     ifeq ($(DEBUG),trace)
 +        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX -assume buffered_io
-+        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX 
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
 +        FLIBS   := $(INCDIRS) -xAVX
 +     endif
 +  endif
    #
    #@jasonfleming Added to fix bus error on hatteras@renci
    ifeq ($(HEAP_ARRAYS),fix)
-@@ -316,34 +336,27 @@ ifeq ($(compiler),intel)
+@@ -316,34 +347,30 @@ ifeq ($(compiler),intel)
    MSGLIBS       :=
    ifeq ($(NETCDF),enable)
       ifeq ($(MACHINENAME),hatteras)
@@ -180,12 +191,15 @@ index dc28c5f..3ffb450 100644
 -           FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 -        endif
 +     endif
++     ifeq ($(MACHINENAME),rostam)
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
++     endif
 +     ifeq ($(MACHINENAME),mike)
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
       endif
       ifeq ($(MACHINENAME),frontera)
          # specify NETCDFHOME on the command line or as an environment var
-@@ -352,42 +365,23 @@ ifeq ($(compiler),intel)
+@@ -352,42 +379,23 @@ ifeq ($(compiler),intel)
       # @jasonfleming: Added support for lonestar5 at tacc.utexas.edu;
       # load the following module: netcdf/4.3.3.1
       ifeq ($(MACHINENAME),lonestar5)
@@ -221,7 +235,7 @@ index dc28c5f..3ffb450 100644
 -# ------------
 -  ifeq ($(NETCDF),enable)
 -    ifeq ($(WDALTVAL),enable)
--       DP  := $(DP) -DWDVAL_NETCDF 
+-       DP  := $(DP) -DWDVAL_NETCDF
 -    endif
 -  endif
 -# -----------
@@ -231,7 +245,7 @@ index dc28c5f..3ffb450 100644
    $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
    ifneq ($(FOUND),TRUE)
       FOUND := TRUE
-@@ -395,22 +389,13 @@ ifeq ($(compiler),intel)
+@@ -395,22 +403,13 @@ ifeq ($(compiler),intel)
       MULTIPLE := TRUE
    endif
  endif
@@ -256,9 +270,9 @@ index dc28c5f..3ffb450 100644
    ifeq ($(DEBUG),full)
       FFLAGS1    :=  $(INCDIRS) -g -O0 -traceback -debug -check all -FI -assume byterecl -132 -DEBUG -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
    endif
-@@ -428,29 +413,21 @@ ifeq ($(compiler),intel-ND)
+@@ -428,29 +427,21 @@ ifeq ($(compiler),intel-ND)
    CFLAGS        := $(INCDIRS) -O3 -m64 -mcmodel=medium -DLINUX
-   FLIBS         := 
+   FLIBS         :=
    ifeq ($(DATETIME),enable)
 -     DATETIMEHOME  := /pontus/gling/ADCIRC_Codes/adcirc-cg-GLOBAL_WP_20200513/lib/datetime-fortran/
 +     DATETIMEHOME  := $(SRCDIR)/lib/datetime-fortran-master/build/
@@ -274,24 +288,24 @@ index dc28c5f..3ffb450 100644
    endif
    ifeq ($(NETCDF),enable)
 -     #HDF5HOME=/afs/crc.nd.edu/x86_64_linux/hdf/hdf5-1.8.6-linux-x86_64-static/lib
--     HDF5HOME=/opt/crc/n/netcdf/4.7.0/intel/18.0      
+-     HDF5HOME=/opt/crc/n/netcdf/4.7.0/intel/18.0
 +     HDF5HOME=/afs/crc.nd.edu/x86_64_linux/hdf/hdf5-1.8.6-linux-x86_64-static/lib
-+     #HDF5HOME=/opt/crc/h/hdf5/intel/18.0/build/lib/      
-      FLIBS      := $(FLIBS) -lnetcdff -L$(HDF5HOME) 
++     #HDF5HOME=/opt/crc/h/hdf5/intel/18.0/build/lib/
+      FLIBS      := $(FLIBS) -lnetcdff -L$(HDF5HOME)
 -  endif
 -# ------------
 -  ifeq ($(NETCDF),enable)
 -    ifeq ($(WDALTVAL),enable)
--       DP  := $(DP) -DWDVAL_NETCDF 
+-       DP  := $(DP) -DWDVAL_NETCDF
 -    endif
 -  endif
 -# -----------
 -
-+  endif   
++  endif
    CLIBS         :=
    MSGLIBS       :=
    $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
-@@ -459,15 +436,13 @@ ifeq ($(compiler),intel-ND)
+@@ -459,15 +450,13 @@ ifeq ($(compiler),intel-ND)
    else
       MULTIPLE := TRUE
    endif
@@ -308,7 +322,7 @@ index dc28c5f..3ffb450 100644
    CC            :=  icc -O2 -no-ipo
    CCBE          :=  icc -O2 -no-ipo
    FFLAGS1       :=  $(INCDIRS) -fixed -extend-source 132 -O2 -finline-limit=1000 -real-size 64 -no-ipo -assume buffered_io
-@@ -481,9 +456,6 @@ ifeq ($(compiler),intel-sgi)
+@@ -481,9 +470,6 @@ ifeq ($(compiler),intel-sgi)
    IMODS         :=  -module
    FLIBS         :=
    ifeq ($(NETCDF),enable)
@@ -318,7 +332,7 @@ index dc28c5f..3ffb450 100644
       ifeq ($(MACHINENAME),thunder)
          # add the following lines to ~/.personal.bashrc:
          # module load costinit
-@@ -525,7 +497,6 @@ ifeq ($(compiler),cray_xt3)
+@@ -525,7 +511,6 @@ ifeq ($(compiler),cray_xt3)
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
  # jgf20101102: on Sapphire,
@@ -326,7 +340,7 @@ index dc28c5f..3ffb450 100644
  #              HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.5-serial/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lz
-@@ -568,10 +539,8 @@ ifeq ($(compiler),cray_xt4)
+@@ -568,10 +553,8 @@ ifeq ($(compiler),cray_xt4)
  # be linked in, so the user must specify HDF5HOME on the command line.
  # On Jade, HDF5 was compiled with szip compression, so this library is
  # required as well.
@@ -337,7 +351,7 @@ index dc28c5f..3ffb450 100644
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -L$(SZIPHOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz
    endif
-@@ -604,7 +573,6 @@ ifeq ($(compiler),cray_xt5)
+@@ -604,7 +587,6 @@ ifeq ($(compiler),cray_xt5)
    FLIBS  	:=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -345,7 +359,7 @@ index dc28c5f..3ffb450 100644
  # jgf20090518: on Jade, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.2/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -638,7 +606,6 @@ ifeq ($(compiler),xtintel)
+@@ -638,7 +620,6 @@ ifeq ($(compiler),xtintel)
    FLIBS         :=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -353,7 +367,7 @@ index dc28c5f..3ffb450 100644
  # jgf20090518: on Jade, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.2/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -708,10 +675,8 @@ ifeq ($(compiler),utils)
+@@ -708,10 +689,8 @@ ifeq ($(compiler),utils)
  # be linked in, so the user must specify HDF5HOME on the command line.
  # On Jade, HDF5 was compiled with szip compression, so this library is
  # required as well.
@@ -364,7 +378,7 @@ index dc28c5f..3ffb450 100644
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -L$(SZIPHOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz
    endif
-@@ -783,7 +748,6 @@ ifeq ($(compiler),diamond)
+@@ -783,7 +762,6 @@ ifeq ($(compiler),diamond)
    LIBS          :=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -372,7 +386,7 @@ index dc28c5f..3ffb450 100644
  # jgf20101103: on Diamond, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.4-serial/lib
    ifeq ($(NETCDF),enable)
       NETCDFHOME     :=/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial
-@@ -827,7 +791,6 @@ ifeq ($(compiler),garnet)
+@@ -827,7 +805,6 @@ ifeq ($(compiler),garnet)
    endif
    IMODS		:=  -module
    FLIBS         :=
@@ -380,7 +394,7 @@ index dc28c5f..3ffb450 100644
  # jgf20110815: on Garnet, HDF5HOME=/opt/cray/hdf5/default/hdf5-pgi
  # jgf20130815: on Garnet, load module cray-netcdf, with the path to the
  #              installation being /opt/cray/netcdf/4.3.0
-@@ -949,7 +912,7 @@ endif
+@@ -949,7 +926,7 @@ endif
  ifeq ($(compiler),intel)
    PPFC	        :=  ifort -w
    FC	        :=  ifort -w
@@ -389,7 +403,7 @@ index dc28c5f..3ffb450 100644
    OPTLVL        := -O2
    ifeq ($(ADC_DEBUG),yes)
      OPTLVL        := -g
-@@ -1253,7 +1216,6 @@ ifeq ($(IBM),p6)
+@@ -1253,7 +1230,6 @@ ifeq ($(IBM),p6)
     MSGLIBS       := -lm
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -397,7 +411,7 @@ index dc28c5f..3ffb450 100644
  # yf20110301: on Cirrus/Stratus, HDF5HOME=/usrx/local/hdf5/lib
    HDF5HOME=/usrx/local/hdf5/lib
    ifeq ($(NETCDF),enable)
-@@ -1530,9 +1492,9 @@ ifneq (,$(findstring powerpc-darwin,$(MACHINE)-$(OS)))
+@@ -1530,9 +1506,9 @@ ifneq (,$(findstring powerpc-darwin,$(MACHINE)-$(OS)))
    PPFC	        := f90
    FC	        := f90
    PFC	        := mpif77
@@ -410,7 +424,7 @@ index dc28c5f..3ffb450 100644
    DA  	   	:=  -DREAL8 -DCSCA -DLINUX
    DP  	   	:=  -DREAL8 -DCSCA -DCMPI -DLINUX
    DPRE	   	:=  -DREAL8 -DLINUX
-@@ -1560,10 +1522,10 @@ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
+@@ -1560,10 +1536,10 @@ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
    PPFC	        := ifort
    FC	        := ifort
    PFC	        := mpif77
