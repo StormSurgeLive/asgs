@@ -36,6 +36,7 @@ EOPASSWORD
   # as vagrant user
   config.vm.provision "file", source: "./default.ssh-config", destination: "$HOME/.ssh/config"
   config.vm.provision "file", source: "./default.asgs-global.conf", destination: "$HOME/asgs-global.conf"
+  config.vm.provision "file", source: "./dot.tmux.conf", destination: "$HOME/.tmux.conf"
   config.vm.provision "shell", inline: <<-SHELL, privileged: false
     # fix permissions
     chmod 600 ~/asgs-global.conf
