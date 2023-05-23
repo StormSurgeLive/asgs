@@ -228,23 +228,6 @@ init_lonestar5()
   MAKEJOBS=8
 }
 
-# debian bootstrap
-init_debian()
-{
-  local THIS="platforms.sh>env_dispatch()>init_debian()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=debian.local
-  QUEUESYS=mpiexec
-  QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec "
-  SCRATCH=${SCRATCH:-/scratch/$USER}
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  TDS=()
-  MAKEJOBS=2
-}
-
 init_Poseidon()
 {
   HPCENV=poseidon.vsnet.gmu.edu
@@ -418,10 +401,6 @@ set_hpc() {
       HPCENV=kitt.seahorsecoastal.com
       HPCENVSHORT=desktop
    fi
-   if [[ "${ASGS_MACHINE_NAME}" = "debian" ]]; then
-      HPCENV=debian.local
-      HPCENVSHORT=debian
-   fi
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
       plat=$($SCRIPTDIR/bin/guess platform)
@@ -485,9 +464,6 @@ env_dispatch() {
           ;;
   "frontera") consoleMessage "$THIS: Frontera (TACC) configuration found."
           init_frontera
-          ;;
-  "debian") consoleMessage "$THIS: debian configuration found."
-          init_debian
           ;;
   "poseidon") consoleMessage "$THIS: Poseidon configuration found."
           init_Poseidon

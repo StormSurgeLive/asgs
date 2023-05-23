@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# prints value of provided variable name
+_genKey() {
+  local keyfile=${1:-"id_rsa"}
+  local email=${2}
+  keyfile=$HOME/.ssh/$keyfile
+  echo "${I} Generating ssh keypair, '$keyfile[,.pub]' ..."
+  echo "${I}  using 'ssh-keygen' (follow its dialog) ..." 
+  ssh-keygen -q -b 2048 -t rsa -f $keyfile
+  err=$?
+  if [[ $err == 0 ]]; then
+    if [[ -z "$email" ]]; then
+      read -p "Enter an email to send the new public key to, if desired [none]? " email
+    fi
+    if [[ -n "$email" ]]; then
+      local answer=
+      read -p "Send public key (${keyfile}.pub) to "$email" [Y/n]? " answer 
+      if [[ -z "$answer" || "$answer" == "Y" ]]; then
+        echo "${I} Sending email with asgs-sendmail ..."
+        cat ${keyfile}.pub | asgs-sendmail --subject "public ssh key from $USER" --to "$email"
+      else
+        echo "${I} no email not sent ..."
+      fi
+    else
+      echo "${I} no email not sent ..."
+    fi
+  elif [ $err != 0 ]; then
+    echo "${W} underlying call command failed with exit code $err: 'ssh-keygen -q -b 2048 -t rsa -f $keyfile'"
+    exit $err
+  fi
+  if [[ $err == 0 ]]; then
+    echo "${I} public key:"
+    cat $keyfile.pub
+  fi
+}
+
+_genKey $@
