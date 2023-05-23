@@ -37,3 +37,4 @@ profiles/
 .adcirc-meta/
 *.nc
 git/
+asgs_config*

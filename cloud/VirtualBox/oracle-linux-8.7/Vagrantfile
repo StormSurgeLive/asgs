@@ -16,17 +16,17 @@ Vagrant.configure("2") do |config|
    v.customize ["modifyvm", :id, "--description", "ASGS provides software infrastructure for automating coastal ocean modelling for real time decision support, and provides a variety of standalone command line tools for pre- and post-processing."]
    v.customize ["modifyvm", :id, "--vram", "16"]
    v.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
-   v.customize ["modifyvm", :id, "--memory", "2048"]
+   v.cpus             = 3
+   v.memory           = 2048
   end
-
 
   # as root
   config.vm.provision "shell", inline: <<-SHELL
     yum groupinstall -y 'Development Tools'
     yum install -y gcc-gfortran openssl-devel.x86_64 tmux vim
     passwd vagrant <<EOPASSWORD
-asgsnosecrets!
-asgsnosecrets!
+password
+password
 EOPASSWORD
     mkdir -p /work
     mkdir -p /scratch
@@ -43,6 +43,8 @@ EOPASSWORD
     chmod 600 ~/.ssh/config
     if [ ! -d "$HOME/asgs" ]; then
       git clone https://github.com/StormSurgeLive/asgs.git || echo git clone went wonky .. moving along
+      git checkout issue-1139
+echo change back to master before final PR
     fi
     cd "$HOME/asgs"
     ./init-asgs.sh -b -x "--run-steps openmpi"         || echo "openmpi         - something went wonky"
@@ -63,6 +65,12 @@ EOPASSWORD
     ./init-asgs.sh -b -x "--run-steps units"           || echo "units           - something went wonky"
     ./init-asgs.sh -b -x "--run-steps nco"             || echo "nco             - something went wonky"
     ./init-asgs.sh -b -x "--run-steps pigz"            || echo "pigz            - something went wonky"
+  SHELL
+
+  # as root, allow password authentication
+  config.vm.provision "shell", inline: <<-SHELL
+     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+     systemctl restart sshd.service
   SHELL
 
   # mount shared directories (/work and /scratch) - contents persist on host even when VM is off or gone
