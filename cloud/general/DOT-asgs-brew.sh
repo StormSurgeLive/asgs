@@ -74,6 +74,8 @@ help() {
   echo "   fetch   <thing>         - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
   echo "   goto|g  <param>         - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform        - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
+  echo "   init    config          - wizard for creating a starting point for a profile's configuration file"
+  echo "           keys            - wrapper around ssh-keygen that offers to send the public key to someone via asgs-sendmail"
   echo "   inspect <option>        - alias to 'edit' for better semantics; e.g., 'inspect syslog' or 'inspect statefile'"
   echo "   list    <param>         - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <NAME>  - loads a saved profile by name; use 'list profiles' to see what's available"
@@ -251,8 +253,10 @@ load() {
             NAME=$_SELECTION
           else
             echo "${W} A valid selection must be made to proceed."
+	    echo
             return
           fi
+	  echo
         fi
       else
         NAME=${2}
@@ -312,6 +316,7 @@ _parse_config() {
   # pull out var info the old fashion way...
   export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g')
   echo "${I} config file found, instance name is '$INSTANCENAME'"
+  echo
   export STATEFILE="$SCRATCH/${INSTANCENAME}.state"
   _load_state_file $STATEFILE
 }
@@ -323,7 +328,9 @@ _load_state_file() {
     stateScriptDir=$(egrep '^ *SCRIPTDIR=' "${1}" | sed 's/^ *SCRIPTDIR=//' | sed 's/ *#.*$//g')
     if [[ $SCRIPTDIR != $stateScriptDir ]]; then
       echo "${W} The state file '${1}' exists but has a different SCRIPTDIR than this ASGS installation."
+      echo
       echo "${W} '${1}' was not loaded and cannot be used with this ASGS instance."
+      echo
       _unset_statevars
       return
     else
@@ -331,7 +338,9 @@ _load_state_file() {
     fi
   else
     echo "${W} state file '${1}' does not exist."
+    echo
     echo "${I} no indication of first run yet?"
+    echo
     _unset_statevars
   fi
 
@@ -399,27 +408,34 @@ rebuild() {
       if [ -z "$_base_profile" ]; then
         _base_profile=$_default_base_profile
       fi
+      echo
+
       load profile $_base_profile
+
       if [ -z "$_config" ]; then
-        read -p "Path to ASGS configuration file: " _config
+        read -e -p "Path to ASGS configuration file: " _config
       fi
       if [[ -z "$_config" || ! -e "$_config" ]]; then
         echo "'rebuild profile' requires an existing ASGS configuration file."
         return
       fi
+      echo
       ABS_PATH=$(readlink -f "$_config")
       export ASGS_CONFIG=$ABS_PATH
       _parse_config $ASGS_CONFIG
+
       # default is $INSTANCENAME, grabbed from _parse_config when $ASGS_CONFIG
       # is parsed above
       read -p "New profile name [$INSTANCENAME]? " _profile_name
       if [ -z "$_profile_name" ]; then
         _profile_name=$INSTANCENAME
       fi
+      echo
+
       save profile $_profile_name
-    ;;
+      ;;
     *) echo "'clone' only applies to 'profile'"
-    ;;
+      ;;
   esac
 }
 
@@ -461,6 +477,285 @@ clone() {
   esac
 }
 
+init_config() {
+  local PNAME=
+  read -p "What would you like use as the base name for the profile? " PNAME
+  echo
+
+  local ASGSADMIN=
+  read -p "What's your email address, used for diagnostic messages and notifications? " ASGSADMIN
+  echo
+
+  local ASGSADMIN_ID=
+  read -p "Your initials (or some unique personal identifier) [${USER}$$]? " ASGSADMIN_ID
+  if [[ -z "$ASGSADMIN_ID" ]]; then
+    ASGSADMIN_ID=$ASGSADMIN
+  fi
+  echo
+
+  # mesh selection
+  local MESHES=()
+  local LISTNUM=1
+  for m in $(cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print $1}'); do
+    printf "% 2d. %s\n" $LISTNUM $m
+    LISTNUM=$(($LISTNUM+1))
+    MESHES+=($m)
+  done
+  # list locally defined meshes if they exist
+  local LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
+  if [[ -n "$ASGS_LOCAL_DIR" && -e "$LOCAL_MESH_DEFAULTS" ]]; then
+    for m in $(cat $LOCAL_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print $1}'); do
+      printf "% 2d. %s (** locally defined)\n" $LISTNUM $m
+      LISTNUM=$(($LISTNUM+1))
+      MESHES+=($m)
+    done
+  fi
+  printf "% 2d. %s\n" $LISTNUM "custom (edit configuration file after)" 
+  OTHERNUM=$(($LISTNUM))
+  MESHES+=(custom)
+  local select=
+  read -p "Select mesh to use [$OTHERNUM]? " select
+  if [[ -z "$select" ]]; then
+    select=$OTHERNUM
+  fi
+  select=$(($select-1))
+  if [ -z "${MESHES[$select]}" ]; then
+    select=$OTHERNUM
+  fi
+  local GRIDNAME=$(echo ${MESHES[$select]} | awk -F '|' '{print $1}')
+  echo
+  echo "'$GRIDNAME' has been selected ..."
+  echo
+
+  local STORM=99
+  local YEAR=$(date +%Y)
+  local FORCINGKIND=BACKGROUNDMET
+  local FORCING=
+  cat<<EOF
+Initial forcing to use:
+
+1. Current GAM  (BACKGROUNDMET=GAM)
+2. Current NAM  (BACKGROUNDMET=on)
+3. NHC Forecast (TROPICALCYCLONE=on)
+
+EOF
+
+read -p "Please choose (1-3) [1]? " FORCING
+  if [[ -z "$FORCING" || "$FORCING" == 1 ]]; then
+    BACKGROUNDMET=GFS
+    TROPICALCYCLONE=off
+  elif [[ "$FORCING" == 2 ]]; then
+    BACKGROUNDMET=on
+    TROPICALCYCLONE=off
+  elif [[ "$FORCING" == 3 ]]; then
+    BACKGROUNDMET=off
+    TROPICALCYCLONE=on
+    FORCINGKIND=TROPICALCYCLONE
+  else
+    echo "${W} Option '$FORCING' is not recognized, defaulting to 1"
+    BACKGROUNDMET=GFS
+    TROPICALCYCLONE=off
+  fi
+  echo
+
+  local NCPU=
+  read -p "How many total number of CPUs are you planning to run [3]? " NCPU
+  if [ -z "$NCPU" ]; then
+    NCPU=3
+  fi
+  echo
+
+  local COLDSTARTDATE=
+  local _COLDSTARTDATE=$(get-coldstart-date)
+  read -p "Set COLDSTARTDATE [$_COLDSTARTDATE]? " COLDSTARTDATE
+  if [[ -z "$COLDSTARTDATE" ]]; then
+    COLDSTARTDATE=$_COLDSTARTDATE 
+  fi
+  echo
+
+  local _INSTANCENAME=
+  local INSTANCENAME=${PNAME}_${GRIDNAME}_${ASGSADMIN_ID}
+  read -p "Use 'INSTANCENAME' [$INSTANCENAME]? " _INSTANCENAME
+  if [ -n "$_INSTANCENAME" ]; then
+    INSTANCENAME=$_INSTANCENAME
+  fi
+  echo
+
+  local SAVEDIR=
+  local _SAVEDIR=./
+  read -e -p "Directory to save in [$_SAVEDIR]? " SAVEDIR
+  if [ -z "$SAVEDIR" ]; then
+    SAVEDIR=$_SAVEDIR
+  fi
+  SAVEDIR=$(echo "$SAVEDIR/" | sed 's/\/\//\//g')
+  echo
+
+  local SAVEAS=
+  local _SAVEAS=asgs_config_${PNAME}_${ASGSADMIN_ID}.sh
+
+  read -p "Save file as $SAVEDIR[$_SAVEAS]? " SAVEAS
+  if [ -z "$SAVEAS" ]; then
+    SAVEAS=$_SAVEAS
+  fi
+  SAVEAS="${SAVEDIR}${SAVEAS}"
+  echo
+
+  if [ -e "$SAVEAS" ]; then
+    read -p "${W} exists! Proceed [y/N]? " proceed
+    echo
+    if [[ -z "$proceed" || "$proceed" == "N" || "$proceed" == "n" ]]; then
+      echo ${W} no configuration file written ...
+      exit 1
+    fi
+  fi
+
+  # dup out config
+cat <<EOCONFIG > $SAVEAS
+#!/bin/sh
+#
+#      Initially generated by the ASGS Configuration File Wizard in asgsh      #
+#
+#-------------------------------------------------------------------------------
+# config.sh: This file is read at the beginning of the execution of the ASGS to
+# set up the runs  that follow. It is reread at the beginning of every cycle,
+# every time it polls the datasource for a new advisory. This gives the user
+# the opportunity to edit this file mid-storm to change config parameters
+# (e.g., the name of the queue to submit to, the addresses on the mailing list,
+# etc)
+#-------------------------------------------------------------------------------
+
+# Fundamental
+INSTANCENAME=$INSTANCENAME
+GRIDNAME=$GRIDNAME
+ASGSADMIN=$ASGSADMIN
+ASGSADMIN_ID=$ASGSADMIN_ID
+
+# Input files and templates
+source $SCRIPTDIR/config/mesh_defaults.sh
+
+TIDEFAC=on
+HINDCASTLENGTH=20.0
+BACKGROUNDMET=$BACKGROUNDMET # on | off | GFS
+TROPICALCYCLONE=$TROPICALCYCLONE
+  STORM=$STORM  # only used if TROPICALCYCLONE=on
+  YEAR=$YEAR    # only used if TROPICALCYCLONE=on
+TRIGGER=rssembedded # required mode
+WAVES=off
+  REINITIALIZEDSWANT=no # only used if WAVES=on
+VARFLUX=off
+CYCLETIMELIMIT="99:00:00"
+
+# Computational Resources (related defaults set in platforms.sh)
+NCPU=$NCPU
+NCPUCAPACITY=9999 # larger limit of total number of CPUs to be using across all jobs
+NUMWRITERS=1
+
+# Post processing and publication
+EMAILNOTIFY=yes
+INTENDEDAUDIENCE="general" #| "developers-only" | "professional"
+OPENDAPPOST=opendap_post2.sh
+POSTPROCESS=( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh \$OPENDAPPOST )
+hooksScripts[FINISH_SPINUP_SCENARIO]=" output/createOPeNDAPFileList.sh output/\$OPENDAPPOST "
+hooksScripts[FINISH_NOWCAST_SCENARIO]=" output/createOPeNDAPFileList.sh output/\$OPENDAPPOST "
+TDS=()
+
+# Monitoring
+OPENDAPNOTIFY="\$ASGSADMIN"
+NOTIFY_SCRIPT=null_notify.sh
+# JSON based updates
+enablePostStatus="no"
+enableStatusNotify="no"
+statusNotify="null"
+
+
+# Initial state (overridden by STATEFILE after ASGS gets going)
+COLDSTARTDATE=$COLDSTARTDATE
+HOTORCOLD=coldstart
+LASTSUBDIR=null
+#
+# Scenario package
+#
+PERCENT=default
+SCENARIOPACKAGESIZE=2
+case \$si in
+   -2)
+       ENSTORM=hindcast
+       ;;
+   -1)
+       # do nothing ... this is not a forecast
+       ENSTORM=nowcast
+       ;;
+EOCONFIG
+
+if [ "$FORCINGKIND" == "BACKGROUNDMET" ]; then
+  cat <<EOCONFIG >> $SAVEAS
+    0)
+       ENSTORM=namforecastWind10m
+       ;;
+EOCONFIG
+else
+  cat <<EOCONFIG >> $SAVEAS
+    0)
+       ENSTORM=nhcConsensusWind10m
+       ;;
+EOCONFIG
+fi
+if [ "$FORCINGKIND" == "BACKGROUNDMET" ]; then
+cat <<EOCONFIG >> $SAVEAS
+    1)
+       ENSTORM=namforecast
+       ;;
+EOCONFIG
+else
+cat <<EOCONFIG >> $SAVEAS
+    1)
+       ENSTORM=nhcConsensus
+       ;;
+EOCONFIG
+fi
+cat <<EOCONFIG >> $SAVEAS
+    *)
+       echo "CONFIGRATION ERROR: Unknown ensemble member number: '\$si'."
+      ;;
+esac
+source $SCRIPTDIR/config/io_defaults.sh # sets met-only mode based on "Wind10m" suffix
+PREPPEDARCHIVE=prepped_\${GRIDNAME}_\${INSTANCENAME}_\${NCPU}.tar.gz
+HINDCASTARCHIVE=prepped_\${GRIDNAME}_hc_\${INSTANCENAME}_\${NCPU}.tar.gz
+
+# Common 'non-standard' configuration variables to define
+# check ~/.asgsh_profile for setting of "ACCOUNT"
+#QUEUENAME=normal  # best in ~/.asgsh_profile (may need to create)
+#SERQUEUE=normal   # best in ~/.asgsh_profile
+#postAdditionalFiles=( /path/to/file1.ext /path/to/file2.ext )         # additional files to POST
+#OPENDAPADDROOT=alt-root                                               # prepend alternate root for this set of runs
+EOCONFIG
+
+  local doRebuild=
+  read -p "Would you like to build a profile based on '$SAVEAS' [Y/n]? " doRebuild
+  echo
+  if [[ -z "$doRebuild" || "$doRebuild" == "Y" ]]; then
+    rebuild profile $SAVEAS
+  else
+    echo "The configuration file has been saved at '$SAVEAS'"
+    echo
+  fi
+}
+
+init() {
+  case "${1}" in
+    config)
+      shift
+      init_config $@ 
+      ;;
+    keys)
+      shift
+      init-keys $@
+      ;;
+   *)
+      echo "${W} '${1}' is not supported by 'init'"
+      ;;
+  esac
+}
 
 # reload current profile
 rl() {
@@ -716,7 +1011,7 @@ delete() {
        _unset_statevars
        return
      fi
-     read -p "This will delete the state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " DELETE_STATEFILE
+     read -p "Delete the state file, \"${STATEFILE}\". [y/N]? " DELETE_STATEFILE
      if [[ 'y' == "${DELETE_STATEFILE}" ]]; then
        rm -rvf "${STATEFILE}"
        _unset_statevars # also unsets STATEFILE
@@ -739,7 +1034,7 @@ move() {
        _unset_statevars
        return
      fi
-     read -p "This will the move state file, \"${STATEFILE}\". Type 'y' to proceed. [N] " MOVE_STATEFILE
+     read -p "Move state file, \"${STATEFILE}\" [y/N]? " MOVE_STATEFILE
      if [ 'y' == "${MOVE_STATEFILE}" ]; then
        _epoch=$(date +%s)
        mv -vf "${STATEFILE}" "${STATEFILE}.$$.${_epoch}"
@@ -761,7 +1056,7 @@ purge() {
   fi
   case "${1}" in
     rundir)
-     read -p "This will delete the current run directory, \"${RUNDIR}\". Type 'y' to proceed. [N] " DELETE_RUNDIR
+     read -p "Delete the current run directory, \"${RUNDIR}\" [y/N]? " DELETE_RUNDIR
      if [ 'y' == "${DELETE_RUNDIR}" ]; then
        rm -rvf "${RUNDIR}"
        _unset_statevars # unsets RUNDIR
@@ -770,7 +1065,7 @@ purge() {
      fi
     ;;
     scratchdir)
-     read -p "This will delete EVERYTHING in the SCRATCH directory, \"${SCRATCH}\". Type 'y' to proceed. [N]? " DELETE_SCRATCH
+     read -p "Delete EVERYTHING in the SCRATCH directory, \"${SCRATCH}\" [y/N]? " DELETE_SCRATCH
      if [ 'y' == "${DELETE_SCRATCH}" ]; then
        rm -rvf ${SCRATCH}/*
      else
@@ -869,12 +1164,12 @@ g() {
   goto $@
 }
 
-screen() { # disable
-  echo 'The use of the "screen" utility *inside* of asgsh is strongly discouraged.'
+tmux() {   # disable call tmux inside of asgsh
+  echo 'The use of the "tmux" utility *inside* of asgsh is strongly discouraged.'
 }
 
-tmux() {   # disable
-  echo 'The use of the "tmux" utility *inside* of asgsh is strongly discouraged.'
+screen() { # disable call tmux inside of asgsh
+  echo 'The use of the "screen" utility *inside* of asgsh is strongly discouraged.'
 }
 
 # common aliases users expect - if you see something missing, please create a github issue

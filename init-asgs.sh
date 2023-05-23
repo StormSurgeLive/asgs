@@ -78,10 +78,9 @@ if [ -z "$BATCH" ]; then
   echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
   echo "supermic       - SuperMIC (LSU HPC)"  # smic
   echo "lonestar5      - Lonestar (TACC)"     # ls5
-  echo "stampede2      - Stampede2 (TACC)"    # stampede2
+  echo "stampede2      - Stampede2 (TACC)"    # stampede2 (being decomissioned)
   echo "frontera       - Frontera (TACC)"     # frontera
-  echo "poseidon       - Poseidon"
-  echo "debian         - Debian container environment"
+  echo "poseidon       - Poseidon"            # delete this?
 fi
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
@@ -144,16 +143,6 @@ fi
 # catch WORK and SCRATCH as early as possible
 DEFAULT_COMPILER=intel
 case "$platform" in
-  oracle)
-    WORK=${WORK:-$ASGS_HOME}
-    SCRATCH=${SCRATCH:-$ASGS_HOME}
-    DEFAULT_COMPILER=gfortran
-    ;;
-  debian)
-    WORK=${WORK:-/work}
-    SCRATCH=${SCRATCH:-/scratch}
-    DEFAULT_COMPILER=gfortran
-    ;;
   queenbee|queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
     SCRATCH=${SCRATCH:-"/scratch/$USER"}
@@ -310,7 +299,7 @@ if [ -z "$BATCH" ]; then
   echo
   echo $cmd
   echo
-  read -p "Run command above, y/N? [N] " run
+  read -p "Run command above, [y/N]? " run
 fi
 
 rm -v $HOME/bin/asgsh       2> /dev/null
@@ -355,7 +344,7 @@ if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   echo "echo"                                             >> ./update-asgs
   echo "echo \"  $full_command \$@\""                     >> ./update-asgs
   echo "echo"                                             >> ./update-asgs
-  echo "read -p \"proceed? [y] \" run"                    >> ./update-asgs
+  echo "read -p \"proceed? [Y/n] \" run"                  >> ./update-asgs
   echo "if [[ -z "\$run" || \$run = \"y\" ]]; then"       >> ./update-asgs
   echo "  cd $scriptdir"                                  >> ./update-asgs
   echo "  $full_command \$@"                              >> ./update-asgs
