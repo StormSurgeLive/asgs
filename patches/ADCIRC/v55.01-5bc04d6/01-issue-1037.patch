@@ -50,12 +50,11 @@ index 50d4603..4ebfa10 100644
       FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xAVX -assume buffered_io
       CFLAGS  := $(INCDIRS) -O3 -DLINUX -xAVX
       FLIBS   := $(INCDIRS) -xAVX
-@@ -290,6 +280,50 @@ ifeq ($(compiler),intel)
+@@ -290,6 +280,49 @@ ifeq ($(compiler),intel)
          FLIBS   := $(INCDIRS) -xAVX
       endif
    endif
 +  ifeq ($(MACHINENAME),rostam)
-+     PFC     :=  mpiifort
 +     FFLAGS1 := $(INCDIRS) -O3 -FI -assume byterecl -132 -xAVX -assume buffered_io
 +     CFLAGS  := $(INCDIRS) -O3 -DLINUX -xAVX
 +     FLIBS   := $(INCDIRS) -xAVX
@@ -101,7 +100,7 @@ index 50d4603..4ebfa10 100644
    endif
    #
    #@jasonfleming Added to fix bus error on hatteras@renci
-@@ -311,34 +345,27 @@ ifeq ($(compiler),intel)
+@@ -311,34 +344,27 @@ ifeq ($(compiler),intel)
    MSGLIBS       :=
    ifeq ($(NETCDF),enable)
       ifeq ($(MACHINENAME),hatteras)
@@ -145,7 +144,7 @@ index 50d4603..4ebfa10 100644
       endif
       ifeq ($(MACHINENAME),frontera)
          # specify NETCDFHOME on the command line or as an environment var
-@@ -347,16 +374,18 @@ ifeq ($(compiler),intel)
+@@ -347,16 +373,18 @@ ifeq ($(compiler),intel)
       # @jasonfleming: Added support for lonestar5 at tacc.utexas.edu;
       # load the following module: netcdf/4.3.3.1
       ifeq ($(MACHINENAME),lonestar5)
@@ -168,7 +167,7 @@ index 50d4603..4ebfa10 100644
          FLIBS      := $(FLIBS) -L/app/wpostool/COST/netcdf-c-4.3.1.1/intel/lib -L$(NETCDFHOME)/lib -L/app/wpostool/COST/hdf5-mpi/1.8.12/intel/sgimpt/lib -lnetcdff -lnetcdf
       endif
       # jgf20150420 mike requires that the analyst add netcdf to the softenv
-@@ -364,16 +393,13 @@ ifeq ($(compiler),intel)
+@@ -364,16 +392,13 @@ ifeq ($(compiler),intel)
       # soft add +netcdf-4.1.3-Intel-13.0.0
       ifeq ($(MACHINENAME),mike)
          FLIBS       := $(FLIBS) -L/usr/local/packages/netcdf/4.1.3/Intel-13.0.0/lib -lnetcdff -lnetcdf
@@ -185,7 +184,7 @@ index 50d4603..4ebfa10 100644
    $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
    ifneq ($(FOUND),TRUE)
       FOUND := TRUE
-@@ -428,7 +454,6 @@ ifeq ($(compiler),intel-ND)
+@@ -428,7 +453,6 @@ ifeq ($(compiler),intel-ND)
    else
       MULTIPLE := TRUE
    endif
@@ -193,7 +192,7 @@ index 50d4603..4ebfa10 100644
  endif
  # SGI ICE X (e.g. topaz@ERDC) using Intel compilers, added by TCM
  # jgf: Added flags for Thunder@AFRL.
-@@ -449,9 +474,6 @@ ifeq ($(compiler),intel-sgi)
+@@ -449,9 +473,6 @@ ifeq ($(compiler),intel-sgi)
    IMODS         :=  -module
    FLIBS         :=
    ifeq ($(NETCDF),enable)
@@ -203,7 +202,7 @@ index 50d4603..4ebfa10 100644
       ifeq ($(MACHINENAME),thunder)
          # add the following lines to ~/.personal.bashrc:
          # module load costinit
-@@ -493,7 +515,6 @@ ifeq ($(compiler),cray_xt3)
+@@ -493,7 +514,6 @@ ifeq ($(compiler),cray_xt3)
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
  # jgf20101102: on Sapphire,
@@ -211,7 +210,7 @@ index 50d4603..4ebfa10 100644
  #              HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.5-serial/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lz
-@@ -536,10 +557,8 @@ ifeq ($(compiler),cray_xt4)
+@@ -536,10 +556,8 @@ ifeq ($(compiler),cray_xt4)
  # be linked in, so the user must specify HDF5HOME on the command line.
  # On Jade, HDF5 was compiled with szip compression, so this library is
  # required as well.
@@ -222,7 +221,7 @@ index 50d4603..4ebfa10 100644
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -L$(SZIPHOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz
    endif
-@@ -572,7 +591,6 @@ ifeq ($(compiler),cray_xt5)
+@@ -572,7 +590,6 @@ ifeq ($(compiler),cray_xt5)
    FLIBS  	:=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -230,7 +229,7 @@ index 50d4603..4ebfa10 100644
  # jgf20090518: on Jade, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.2/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -606,7 +624,6 @@ ifeq ($(compiler),xtintel)
+@@ -606,7 +623,6 @@ ifeq ($(compiler),xtintel)
    FLIBS         :=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -238,7 +237,7 @@ index 50d4603..4ebfa10 100644
  # jgf20090518: on Jade, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.2/lib
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
-@@ -676,10 +693,8 @@ ifeq ($(compiler),utils)
+@@ -676,10 +692,8 @@ ifeq ($(compiler),utils)
  # be linked in, so the user must specify HDF5HOME on the command line.
  # On Jade, HDF5 was compiled with szip compression, so this library is
  # required as well.
@@ -249,7 +248,7 @@ index 50d4603..4ebfa10 100644
    ifeq ($(NETCDF),enable)
       FLIBS          := $(FLIBS) -L$(HDF5HOME) -L$(SZIPHOME) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz
    endif
-@@ -751,7 +766,6 @@ ifeq ($(compiler),diamond)
+@@ -751,7 +765,6 @@ ifeq ($(compiler),diamond)
    LIBS          :=
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
@@ -257,7 +256,7 @@ index 50d4603..4ebfa10 100644
  # jgf20101103: on Diamond, HDF5HOME=${PET_HOME}/pkgs/hdf5-1.8.4-serial/lib
    ifeq ($(NETCDF),enable)
       NETCDFHOME     :=/usr/local/usp/PETtools/CE/pkgs/netcdf-4.2.1.1-intel-serial
-@@ -795,7 +809,6 @@ ifeq ($(compiler),garnet)
+@@ -795,7 +808,6 @@ ifeq ($(compiler),garnet)
    endif
    IMODS		:=  -module
    FLIBS         :=
@@ -265,7 +264,7 @@ index 50d4603..4ebfa10 100644
  # jgf20110815: on Garnet, HDF5HOME=/opt/cray/hdf5/default/hdf5-pgi
  # jgf20130815: on Garnet, load module cray-netcdf, with the path to the
  #              installation being /opt/cray/netcdf/4.3.0
-@@ -1221,7 +1234,6 @@ ifeq ($(IBM),p6)
+@@ -1221,7 +1233,6 @@ ifeq ($(IBM),p6)
     MSGLIBS       := -lm
  # When compiling with netCDF support, the HDF5 libraries must also
  # be linked in, so the user must specify HDF5HOME on the command line.
