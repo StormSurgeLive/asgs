@@ -47,6 +47,12 @@ _show() {
         echo "${W} ADCIRC_GIT_REMOTE is not defined as anything. Try, 'define adcircremote https://|ssh://adcirc-remote-url' first"
       fi
       ;;
+    asgslocaldir)
+      if [ -n "${ASGS_LOCAL_DIR}" ]; then
+        echo "${I} ASGS_LOCAL_DIR is defined as '${ASGS_LOCAL_DIR}'"
+      # there is no 'else', so this is just silent if ASGS_LOCAL_DIR is not defined
+      fi
+      ;;
     machinename)
       if [ -n "${ASGS_MACHINE_NAME}" ]; then
         echo "${I} ASGS_MACHINE_NAME is defined as '${ASGS_MACHINE_NAME}'"
