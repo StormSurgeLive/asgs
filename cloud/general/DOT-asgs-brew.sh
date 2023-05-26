@@ -114,7 +114,7 @@ _is_a_num()
 }
 
 _pwd() {
-  echo "${I} Current directory: $(pwd)"
+  echo "${I} current directory: $(pwd)"
 }
 
 # change to a directory know by asgsh
@@ -1082,7 +1082,7 @@ purge() {
 if [ 1 = "${skip_platform_profiles}" ]; then
   echo "(-x used) ... skipping the loading platform.sh and properties.sh ..."
 else
-  echo "${I} initializing..."
+  echo "${I} initializing ASGS ..."
   # loading support for reading of run.properties file
   if [ -e "$SCRIPTDIR/properties.sh" ]; then
     echo "${I} found properties.sh"
@@ -1211,7 +1211,7 @@ else
 fi
 
 # source command completions
-echo "${I} Loading command completion definitions"
+echo "${I} loading command completion definitions"
 for C in $(ls $SCRIPTDIR/etc/bash-completions); do
   source $SCRIPTDIR/etc/bash-completions/$C
 done
@@ -1224,6 +1224,7 @@ show workdir
 show machinename
 show platform_init
 show adcirccompiler
+show asgslocaldir
 
 if [ -n "$_asgsh_splash" ]; then
 echo

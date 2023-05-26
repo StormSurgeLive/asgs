@@ -19,7 +19,7 @@
 # Note:
 # If an operator wishes to use the ssh form of the git url, they will need
 # to update the environmental variable ADCIRC_GIT_URL to use the url,
-#    
+#
 #   export ADCIRC_GIT_URL=git@github.com:adcirc
 #
 # before running 'build adcirc' in asgsh
@@ -39,9 +39,9 @@ _is_a_num()
 {
   re='[1-9][0-9]?$'
   if [[ "${1}" =~ $re ]] ; then
-    echo -n $1 
+    echo -n $1
   else
-    echo -n -1 
+    echo -n -1
   fi
   return
 }
@@ -57,7 +57,7 @@ _show_supported_versions()
   _ADCIRCS=
   echo  '||ASGS Supported ADCIRC versions||'
   echo  '|~~~VERSION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~DESCRIPTION'
-  for VERSION in $(ls -1 $SCRIPTDIR/patches/ADCIRC); do 
+  for VERSION in $(ls -1 $SCRIPTDIR/patches/ADCIRC); do
     _ADCIRCS="$_ADCIRCS $VERSION"
     local about="patchset for Version, $VERSION"
     if [ -e $SCRIPTDIR/patches/ADCIRC/$VERSION/about.txt ]; then
@@ -66,15 +66,28 @@ _show_supported_versions()
     num=$(($num+1))
     printf "|%-2s) %-33s | %-66s |\n" $num $VERSION "$about"
   done
-    # final menu entry for custom directory
-    num=$(($num+1))
-    printf "|%-2s) %-33s | %-66s |\n" $num custom "select this option for custom directory"
+  max_supported=$num
+  # local ADCIRC patch support
+  if [[ -n "$ASGS_LOCAL_DIR" && -d "$ASGS_LOCAL_DIR/patches/ADCIRC" ]]; then
+    for VERSION in $(ls -1 $ASGS_LOCAL_DIR/patches/ADCIRC); do
+      _ADCIRCS="$_ADCIRCS $VERSION"
+      local about="local patchset for Version, $VERSION"
+      if [ -e $ASGS_LOCAL_DIR/patches/ADCIRC/$VERSION/about.txt ]; then
+        about=$(cat $ASGS_LOCAL_DIR/patches/ADCIRC/$VERSION/about.txt | sed 's/\n//g')
+      fi
+      num=$(($num+1))
+      printf "|%-2s) %-33s | %-66s |\n" $num $VERSION "$about"
+    done
+  fi
+  # final menu entry for custom directory
+  num=$(($num+1))
+  printf "|%-2s) %-33s | %-66s |\n" $num custom "select this option for custom directory"
   echo  "--"
   echo
   ADCIRCS=($_ADCIRCS custom)
   if [ "${1}" != "noexit" ]; then
     # exits on error if '1' is optionally passed, defaults to 0 (no error)
-    exit ${1:-0} 
+    exit ${1:-0}
   fi
   NUM_ADC=$num
 }
@@ -93,7 +106,7 @@ if [ -z "$ADCIRC_META_DIR" ]; then
   exit 1
 fi
 
-_show_supported_versions noexit 
+_show_supported_versions noexit
 # get branch/tag/sha to checkout
 __SELECTED_VERSION=${ADCIRCS[0]} # current preferred default
 read -p "What supported 'version' of the ADCIRC source do you wish to build (by name or select 1-${NUM_ADC})? [$__SELECTED_VERSION] " _SELECTED_VERSION
@@ -122,6 +135,9 @@ fi
 
 # obtain patch information for the selection
 __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
+if [ $_isnum -gt $max_supported ]; then
+  __ADCIRC_PATCHSET_BASE=${ASGS_LOCAL_DIR}/patches/ADCIRC
+fi
 PATCHSET_NAME=${SELECTED_VERSION}
 PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${PATCHSET_NAME}
 SWANDIR=
@@ -309,8 +325,8 @@ __ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
 SWANDIR=${ADCIRCBASE}/${SWANDIR}
 
 # first class ADCIRC related binaries
-# + the SWAN=enable is only relevant to adcprep but 
-#   should not cause any issues for the other targets 
+# + the SWAN=enable is only relevant to adcprep but
+#   should not cause any issues for the other targets
 ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
 ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME}"
 
@@ -356,8 +372,8 @@ function dumpJSON()
     ;;
     *)
       echo '${W} unknown compiler is unsupported...; defaulting to "intel"'
-    esac 
-    local _FC_VERSION=$($_FC --version | head -n 1) 
+    esac
+    local _FC_VERSION=$($_FC --version | head -n 1)
     local _CC_VERSION=$($_CC --version | head -n 1)
 
     # mpif90 info
@@ -406,7 +422,7 @@ $patchJSON
     "env.adcirc.build.ADCIRCBASE"         : "$ADCIRCBASE",
     "env.adcirc.build.ADCIRCDIR"    : "$ADCIRCDIR",
     "env.adcirc.build.SWANDIR"            : "$SWANDIR",
-    "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}", 
+    "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}",
     "env.adcirc.build.ADCIRC_COMPILER"    : "${ADCIRC_COMPILER:-0}",
     "env.adcirc.build.ADCIRC_GIT_BRANCH"  : "${ADCIRC_GIT_BRANCH:-0}",
     "env.adcirc.build.ADCIRC_GIT_URL"     : "${ADCIRC_GIT_URL:-0}",
@@ -443,7 +459,7 @@ export ADCIRC_ARCHIVE_URL=${ADCIRC_BASE_URL}/${ADCIRC_SRC_FILE}
 export ADCIRC_EXTRACT_CMD=unzip
 }
 
-function dumpMETA() 
+function dumpMETA()
 {
   local ADCIRC_META_FILE="$1"
   cat <<META > $ADCIRC_META_FILE
@@ -531,7 +547,7 @@ patch_files() {
 
 case "${ADCIRC_SRC_TYPE}" in
   git|remote-zip)
-    echo 
+    echo
     _answer=yes
     read -p "Apply patches, proceed [$_answer]" answer
     if [ -z "$answer" ]; then
@@ -588,25 +604,25 @@ mkdir -p $ADCIRC_META_DIR 2> /dev/null
 
 dumpMETA "$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME"
 
-echo '                               _                    '
-echo '                             ,"_".                  '
-echo '                          _ /_| |_\ _               '
-echo '                         /_\|  ^  |/_\              '
-echo '                         | || /|\ || |              '
-echo '                         | |||   ||| |              '
-echo '                         | |||. .||| |              '
-echo '                         | ||| u ||| |              '
-echo '                         | |||   ||| |              '
-echo '                         | |||   ||| |              '
-echo '                         | ,"  V  ". |              '
-echo '                         ,"_x_   _x_".              '
-echo '                        /____  |  ____\             '
-echo '                         /_\ ||||| /_\              '
-echo '                         .:   : :   :.              '
-echo '                         : .  : .  : :              '
-echo '                        .:  .   : :   ..            '
-echo '                                                    '
-echo '                        S U C C E S S !             '
+echo '                               _                                 '
+echo '                             ,"_".                               '
+echo '                          _ /_| |_\ _                            '
+echo '                         /_\|  ^  |/_\                           '
+echo '                         | || /|\ || |                           '
+echo '                         | |||   ||| |                           '
+echo '                         | |||. .||| |                           '
+echo '                         | ||| u ||| |                           '
+echo '                         | |||   ||| |                           '
+echo '                         | |||   ||| |                           '
+echo '                         | ,"  V  ". |                           '
+echo '                         ,"_x_   _x_".                           '
+echo '                        /____  |  ____\                          '
+echo '                         /_\ ||||| /_\                           '
+echo '                         .:   : :   :.                           '
+echo '                         : .  : .  : :                           '
+echo '                        .:  .   : :   ..                         '
+echo '                                                                 '
+echo '                        S U C C E S S !                          '
 echo
 echo ADCIRC has been build and the ADCIRC profile registered in asgsh.
 echo To load this profile, at the asgsh prompt, enter:
