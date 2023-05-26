@@ -43,8 +43,6 @@ EOPASSWORD
     chmod 600 ~/.ssh/config
     if [ ! -d "$HOME/asgs" ]; then
       git clone https://github.com/StormSurgeLive/asgs.git || echo git clone went wonky .. moving along
-      git checkout issue-1139
-echo change back to master before final PR
     fi
     cd "$HOME/asgs"
     ./init-asgs.sh -b -x "--run-steps openmpi"         || echo "openmpi         - something went wonky"
