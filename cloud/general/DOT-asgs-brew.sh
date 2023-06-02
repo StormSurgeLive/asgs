@@ -636,6 +636,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 TIDEFAC=on
 HINDCASTLENGTH=20.0
 BACKGROUNDMET=$BACKGROUNDMET # on | off | GFS
+  FORECASTCYCLE="06,18"      # options - "00,06,12,18" (time in "Z", which is UTC/GMT)
 TROPICALCYCLONE=$TROPICALCYCLONE
   STORM=$STORM  # only used if TROPICALCYCLONE=on
   YEAR=$YEAR    # only used if TROPICALCYCLONE=on
