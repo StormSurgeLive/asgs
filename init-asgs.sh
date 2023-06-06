@@ -345,7 +345,7 @@ if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   echo "echo \"  $full_command \$@\""                     >> ./update-asgs
   echo "echo"                                             >> ./update-asgs
   echo "read -p \"proceed? [Y/n] \" run"                  >> ./update-asgs
-  echo "if [[ -z "\$run" || \$run = \"y\" ]]; then"       >> ./update-asgs
+  echo "if [[ -z "\$run" || \$run == \"Y\" ]]; then"      >> ./update-asgs
   echo "  cd $scriptdir"                                  >> ./update-asgs
   echo "  $full_command \$@"                              >> ./update-asgs
   echo "else"                                             >> ./update-asgs
