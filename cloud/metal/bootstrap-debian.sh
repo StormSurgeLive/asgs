@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+echo "deb http://archive.debian.org/debian stretch main contrib non-free" > /etc/apt/sources.list
 apt-get update
 apt-get install -y build-essential checkinstall
 apt-get install -y libssl-dev libexpat1-dev
@@ -49,4 +50,79 @@ mkdir /scratch
 chmod 777 /work /scratch
 
 # persist env in .bash_profile
-su -c 'cd /home/asgsuser/asgs; ./init-asgs.sh -b' - asgsuser
+#su -c 'cd /home/asgsuser/asgs; ./init-asgs.sh -b' - asgsuser
+
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps openmpi"         || echo openmpi         - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+
+exit
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps hdf5"            || echo hdf5            - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps netcdf4"         || echo netcdf4         - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps wgrib2"          || echo wgrib2          - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps cpra-postproc"   || echo cpra-postproc   - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps output"          || echo output          - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps util"            || echo util            - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps input-mesh"      || echo input-mesh      - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps input-nodalattr" || echo input-nodalattr - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps perl"            || echo perl            - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps perl-modules"    || echo perl-modules    - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps image-magick"    || echo image-magick    - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps python3"         || echo python3         - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps ffmpeg"          || echo ffmpeg          - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps gnuplot"         || echo gnuplot         - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps units"           || echo units           - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps nco"             || echo nco             - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
+su -c 'cd /home/asgsuser/asgs && ./init-asgs.sh -b -x "--run-steps pigz"             || echo pigz             - something went wonky but preserving docker image'
+if [ $? != 0 ]; then
+  exit 1
+fi
