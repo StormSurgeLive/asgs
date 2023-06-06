@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 apt-get update
 apt-get install -y build-essential checkinstall
 apt-get install -y libssl-dev libexpat1-dev
@@ -16,12 +18,12 @@ echo "asgsuser ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 # get git repo
 su -c 'cd /home/asgsuser && git clone https://github.com/StormSurgeLive/asgs.git && cd ./asgs && git checkout master' - asgsuser
 
-read -p "Set git user to? [asgsuser? " GIT_USER
+read -p "Set git user to? [asgsuser]? " GIT_USER
 if [ -z "$GIT_USER" ]; then
   GIT_USER=asgsuser
 fi
 
-read -p "Set git user to? [asgsuser? " GIT_EMAIL
+read -p "Set git email to? [asgsuser@noemail]? " GIT_EMAIL
 if [ -z "$GIT_EMAIL" ]; then
   GIT_EMAIL="asgsuser@noemail"
 fi
@@ -33,7 +35,7 @@ su -c 'echo "export PATH=${PATH}:/home/asgsuser/bin:/home/asgsuser/asgs" >> /hom
 
 /home/asgsuser
 mkdir /home/asgsuser/bin
-hown asgsuser:asgsuser /home/asgsuser/bin
+chown asgsuser:asgsuser /home/asgsuser/bin
 
 # NOTE: stuff related to $WORK and $SCRATCH happens in the docker-compose.yml file
 #  and is treated as a runtime environmental variable and mounted volumes
@@ -45,3 +47,6 @@ chown -R asgsuser:asgsuser /home/asgsuser/asgs-global.conf /home/asgsuser/.ssh
 mkdir /work
 mkdir /scratch
 chmod 777 /work /scratch
+
+# persist env in .bash_profile
+su -c 'cd /home/asgsuser/asgs; ./init-asgs.sh -b' - asgsuser
