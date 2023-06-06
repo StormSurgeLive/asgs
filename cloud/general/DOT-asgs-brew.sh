@@ -534,7 +534,7 @@ init_config() {
   cat<<EOF
 Initial forcing to use:
 
-1. Current GAM  (BACKGROUNDMET=GAM)
+1. Current GFS  (BACKGROUNDMET=GFS)
 2. Current NAM  (BACKGROUNDMET=on)
 3. NHC Forecast (TROPICALCYCLONE=on)
 
