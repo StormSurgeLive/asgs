@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Needed for ./init-asgs.sh, bin/guess
-export WORK=${WORK:-$HOME}
-export SCRATCH=${SCRATCH:-$HOME}
+export WORK=${WORK:-$(pwd)}
+export SCRATCH=${SCRATCH:-$(pwd)}
 export DEFAULT_COMPILER=gfortran
 export ASGS_TMP=${TMPDIR:-$WORK/asgs-build-tmp}
 
