@@ -8,7 +8,7 @@ export ASGS_TMP=${TMPDIR:-$WORK/asgs-build-tmp}
 
 # replacement for set_hpc() function in platforms.sh
 export HPCENV=pod.penguincomputing.com
-export HPCENVSHORT=peguin
+export HPCENVSHORT=penguin
 
 # Needed for ASGS
 export QUEUESYS=PBS
