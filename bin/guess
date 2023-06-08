@@ -29,10 +29,6 @@ _guess_platform()
     default_platform=frontera
   elif [ 1 -eq $(echo $HOSTNAME | grep -c soldier) ]; then
     default_platform=desktop
-  elif [ -e /etc/oracle-release ]; then
-    default_platform=oracle
-  elif [ -e /etc/debian_version ]; then
-    default_platform=debian
   fi
 
   # return if platform is not unknown 
@@ -106,6 +102,21 @@ _guess_platform()
         fi
       done
     fi
+  fi
+
+  # return if platform is not unknown 
+  if [ $default_platform != unknown ]; then
+    echo "$default_platform"
+    return
+  fi
+
+  # ultimate fallback is to general OS/linux distro support
+  if [ -e /etc/oracle-release ]; then
+    default_platform=oracle
+  elif [ -e /etc/debian_version ]; then
+    default_platform=debian
+  elif [ -e /etc/redhat-release ]; then
+    default_platform=rhel
   fi
 
   # return if platform is not unknown 
