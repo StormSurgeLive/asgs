@@ -139,6 +139,13 @@ else
   platform=$default_platform
 fi
 
+export WORK
+export SCRATCH
+export ASGS_TMPDIR
+export QUEUESYS
+export QCHECKCMD
+export SUBMITSTRING
+
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 # catch WORK and SCRATCH as early as possible
 DEFAULT_COMPILER=intel
@@ -167,10 +174,6 @@ case "$platform" in
     ;;
 esac
 
-export WORK
-export SCRATCH
-export ASGS_TMPDIR
-
 if [[ -z "$platform" && -z "$default_platform" ]]; then
   echo "A platform must be selected."
   exit 1
@@ -186,6 +189,28 @@ fi
 
 # Note: if BATCH is set, then "." is assumed and no "git checkout" is performed
 if [ -z "$BATCH" ]; then
+  # offer some tweaking of the queue system, this is the biggest
+  # difference when considering environments of the same OS (e.g., RHEL or related)
+  if [ "$QSYSASK" == "YES" ]; then
+    read -p "Queue system (<enter> if you don't know) [$QUEUESYS]? " _QUEUESYS
+    echo
+    if [ -n "$_QUEUESYS" ]; then
+      QUEUESYS=$_QUEUESYS
+    fi
+
+    read -p "Queue check command (<enter> if you don't know) [$QCHECKCMD]? " _QCHECKCMD
+    if [ -n "$_QCHECKCMD" ]; then
+      QCHECKCMD=$_QCHECKCMD
+    fi
+    echo
+
+    read -p "Queue submit command (<enter> if you don't know) [$SUBMITSTRING]? " _SUBMITSTRING
+    if [ -n "$_SUBMITSTRING" ]; then
+      SUBMITSTRING=$_SUBMITSTRING
+    fi
+    echo
+  fi
+
   echo
   echo "Platform name       : $platform"
   if [ -n "$ASGS_LOCAL_DIR" ]; then
@@ -198,8 +223,13 @@ if [ -z "$BATCH" ]; then
   echo "ASGS HOME           : $ASGS_HOME"
   echo "WORK                : $WORK"
   echo "SCRATCH             : $SCRATCH"
-  echo "ASGS Build directory: $ASGS_TMPDIR"
-  echo "Default Compiler    : $DEFAULT_COMPILER"
+  echo "ASGS build directory: $ASGS_TMPDIR"
+  echo "Default compiler    : $DEFAULT_COMPILER"
+  if [ "$QSYSASK" == "YES" ]; then
+    echo "Batch queue system  : $QUEUESYS"
+    echo "Batch queue check   : $QCHECKCMD"
+    echo "Batch queue submit  : $SUBMITSTRING"
+  fi
   echo
 
   read -p "Does the above system information look correct? [Y/n] " _looks_correct
