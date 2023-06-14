@@ -1142,6 +1142,42 @@ build() {
   esac
 }
 
+# short cut to tail -f the SYSLOG of the current ASGS package that is running
+tailf() {
+  if [ -z "${1}" ]; then
+    echo "'tailf' requires 1 argument - parameter"
+    return 
+  fi
+  case "${1}" in
+    adcirclog)
+       local timeout=${2:-900}  # timeout defaults to 900 seconds
+       rl                       # needed to update RUNDIR, LASTSUBDIR 
+       timeout $timeout tail -f $RUNDIR/*/*/adcirc.log
+       ;;
+    maillog)
+      if [ !-e "$SCRIPTDIR/mail.log" ]; then
+        echo "warning: asgs-sendmail log file "$SCRIPTDIR/mail.log" does not exist!"
+        return
+      fi
+      echo "type 'ctrl-c' to end"
+      echo "tail -f $SCRIPTDIR/mail.log"
+      tail -f $SCRIPTDIR/mail.log
+      ;;
+    syslog)
+      if [ -z "$SYSLOG" ]; then
+        echo "warning: log file "$SYSLOG" does not exist!"
+        return
+      fi
+      echo "type 'ctrl-c' to end"
+      echo "tail -f $SYSLOG"
+      tail -f $SYSLOG
+      ;;
+   *)
+      echo "'tailf' supports the following parameters: 'syslog', 'maillog'"
+    ;;
+  esac
+}
+
 # deprecation (may change *again* if we create a general install manager
 initadcirc(){
   echo "(deprecation notice): 'initadcirc' should now be called as, 'build adcirc'."
