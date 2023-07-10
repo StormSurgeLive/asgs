@@ -64,7 +64,7 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23
       GRIDFILE=cpra_2023mp_2023_realtime_v01c_chk.grd  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=CPRAv01c_5kcms_fort.15.template
+      CONTROLTEMPLATE=CPRA23v01c_5kcms_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=CPRA23v01c_nowindreduction_fort.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
@@ -73,8 +73,8 @@ case $GRIDNAME in
       METSTATIONS=$ELEVSTATIONS
       NAFILE=cpra_2023mp_2023_realtime_v01c.13
       NAPROPERTIES=${NAFILE}.properties
-      SWANTEMPLATE=fort.26.template
-      RIVERINIT=null                           # this mesh has no rivers ...
+      SWANTEMPLATE=CPRA23v01c_fort.26.template
+      RIVERINIT=null
       RIVERFLUX=null
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
