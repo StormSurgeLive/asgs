@@ -57,6 +57,37 @@ zNorth="northpole"
 selfAttractionEarthLoadTide="notprovided"
 #
 case $GRIDNAME in
+   "CPRA23v01c")
+      #
+      nodes=1577152
+      elements=3071945
+      INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23
+      GRIDFILE=cpra_2023mp_2023_realtime_v01c_chk.grd  # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=CPRA23v01c_5kcms_fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=CPRA23v01c_nowindreduction_fort.15.template
+      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      ELEVSTATIONS=combined_stations_20200929.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=cpra_2023mp_2023_realtime_v01c.13
+      NAPROPERTIES=${NAFILE}.properties
+      SWANTEMPLATE=CPRA23v01c_fort.26.template
+      RIVERINIT=null
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
+      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # FIXME: no unit offset url
+      ;;
+
    "AGT")
       # adcirc-global-test mesh, from ADCIRC test suite repository
       # https://github.com/adcirc/adcirc-testsuite
