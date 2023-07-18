@@ -1,0 +1,306 @@
+-91.2069440000 30.4291670000 ! 01160 ! USACE ! Mississippi River at Baton Rouge
+-90.9875000000 30.10927800 ! 01220 ! USACE ! Mississippi River at Donaldsonville
+-90.5687250000 30.0544170000 ! 01260 ! USACE ! Mississippi River at Reserve
+-90.4248190000 29.9973890000 ! 01280 ! USACE ! Mississippi River at Bonnet Carre
+-90.1361110000 29.9347220000 ! 01300 ! USACE ! Mississippi River at New Orleans (Carrollton)
+-90.0840640000 29.91185300 ! 01320 ! USACE ! Mississippi River at Harvey Lock
+-90.02776100 29.96330600 ! 01340 ! USACE ! Mississippi River at IHNC Lock
+-89.97090500 29.91584800 ! 01380 ! USACE ! Mississippi River at Algiers Lock
+-89.9699000000 29.6845440000 ! 01390 ! USACE ! Mississippi River at Alliance
+-89.7969000000 29.5711000000 ! 01400 ! USACE ! Mississippi River at West Point A La Hache
+-89.59541300 29.3893720000 ! 01440 ! USACE ! Mississippi River at Empire
+-89.3527780000 29.2758330000 ! 01480 ! USACE ! Mississippi River at Venice
+-89.2465000000 29.1338000000 ! 01545 ! USACE ! Mississippi River at Head of Passes
+-89.4071110000 28.9323050000 ! 01670 ! USACE ! Mississippi River Southwest Pass at East Jetty
+-87.7369323000 30.4065866900 ! 02378300 ! USGS ! Magnolia River at US98 nr Foley
+-87.7986010000 30.5454710000 ! 02378500 ! USGS ! Fish River near Silver Hill
+-87.8917920000 30.6427860000 ! 02378790 ! USGS ! Tiawasee Creek near Bridgehead
+-88.1433350000 30.8029650000 ! 02471001 ! USGS ! Chickasaw Creek near Kushla
+-88.1813910000 30.5007510000 ! 02471078 ! USGS ! Fowl River at Half-Mile Rd near Laurendine
+-88.7269444000 30.9780555600 ! 02479000 ! USGS ! Pascagoula River at Merrill
+-88.7811111000 30.7361111000 ! 02479300 ! USGS ! Red Creek at Vestry
+-88.6413888900 30.6105555600 ! 02479310 ! USGS ! Pascagoula River at Graham Ferry
+-88.5630560000 30.3677780000 ! 02480212 ! USGS ! Pascagoula River at MI 1 at Pascagoula
+-88.6084440000 30.3826940000 ! 02480285 ! USGS ! West Pascagoula River at Hwy 90 at Gautier
+-88.6947220000 30.3628890000 ! 02480287 ! USGS ! Graveline Bayou near Gautier
+-89.1219440000 30.5586110000 ! 02481000 ! USGS ! Biloxi River at Wortham
+-89.0358333000 30.4883333300 ! 02481130 ! USGS ! Biloxi River near Lyman
+-88.9758670000 30.4157530000 ! 02481270 ! USGS ! Back Bay of Biloxi near Biloxi
+-88.8280560000 30.4191670000 ! 02481299 ! USGS ! Old Fort Bayou at Ocean Springs
+-89.2744440000 30.4836110000 ! 02481510 ! USGS ! Wolf River near Landon
+-89.4413890000 30.3872220000 ! 02481660 ! USGS ! Jourdan River nr Bay St Louis
+-89.8061110000 30.5716670000 ! 02492110 ! USGS ! East Pearl River AB Wilson SL at Walkaih Bluff
+-89.6950000000 30.4625000000 ! 02492511 ! USGS ! East Pearl River at I-59 near Nicholson
+-89.7797220000 30.4563890000 ! 02492519 ! USGS ! Pearl River Navigation Canal Lock and Dam No. 1
+-89.7367304000 30.3851930000 ! 02492600 ! USGS ! Pearl River at Pearl River
+-91.73602200 30.6905560000 ! 03060 ! USACE ! Atchafalaya River at Melville
+-91.7615000000 30.5688330000 ! 03075 ! USACE ! Atchafalaya River at Krotz Springs
+-91.6866670000 30.2813890000 ! 03120 ! USACE ! Atchafalaya River at Butte La Rose
+-91.58935800 30.2331900000 ! 03210 ! USACE ! Bayou La Rompe at Lake Long
+-91.6893050000 30.3852500000 ! 03240 ! USACE ! Whiskey Bay Pilot Channel Below Head
+-91.4558330000 30.0384530000 ! 03615 ! USACE ! Keelboat Pass below Lake Chicot
+-91.3896660000 29.7659170000 ! 03645 ! USACE ! Six Mile Lake NE of Verdunville
+-91.21138900 29.6963890000 ! 03780 ! USACE ! Lower Atchafalaya River at Morgan City
+-91.2494440000 29.5333330000 ! 03820 ! USACE ! Avoca Island Cutoff south of Morgan City
+-89.9778470000 29.8571510000 ! 07374525 ! USGS ! Mississippi River at Belle Chasse
+-89.7195060000 29.7082660000 ! 073745257 ! USGS ! Crooked B. NW of L. Cuatro Caballo nr Delacroix
+-89.7039520000 29.5707770000 ! 073745258 ! USGS ! Cow Bayou at American Bay nr Pointe-A-La-Hache
+-89.5636690000 29.6335440000 ! 07374526 ! USGS ! Black Bay nr Snake Island nr Pointe-A-La-Hache
+-89.6060320000 29.5859630000 ! 07374527 ! USGS ! Northeast Bay Gardene nr Point-A-LA-Hache
+-89.8306214900 30.3013057800 ! 07374581 ! USGS ! Bayou Liberty nr Slidell
+-90.3345830000 30.4436940000 ! 07375650 ! USGS ! Tangipahoa River near Ponchatoula
+-91.0207220000 30.3212500000 ! 07378745 ! USGS ! Alligator Bayou near Kleinpeter
+-90.6103684000 30.3093619000 ! 07380215 ! USGS ! Amite River at Hwy 22 nr Maurepas
+-90.8612080000 30.1732530000 ! 073802225 ! USGS ! Bayou Conway near Sorrento
+-89.9888610000 29.6991110000 ! 07380238 ! USGS ! Naomi Diversion Canal near Naomi
+-89.9506270000 29.4227200000 ! 07380251 ! USGS ! Barataria Bay N of Grand Isle
+-90.0411840000 29.3985550000 ! 073802512 ! USGS ! Hackberry Bay NW of Grand Isle
+-89.9468060000 29.2728330000 ! 073802516 ! USGS ! Barataria Pass at Grand Isle
+-90.1655560000 29.5657780000 ! 07380330 ! USGS ! Bayou Perot at Point Legard near Cutoff
+-90.1814650000 29.5177170000 ! 07380335 ! USGS ! Little Lake nr Cutoff
+-91.0232220000 29.9915000000 ! 07380500 ! USGS ! Bayou Lafourche at Napoleonville
+-90.8225930000 29.7979850000 ! 07381000 ! USGS ! Bayou Lafourche at Thibodaux
+-90.5367780000 29.6470560000 ! 07381150 ! USGS ! Bayou Lafourche at Lockport
+-90.3808330000 29.5772220000 ! 07381235 ! USGS ! GIWW West of Bayou Lafourche at Larose
+-90.7298120000 29.3852210000 ! 07381328 ! USGS ! Houma Navigation Canal
+-90.7100000000 29.5980560000 ! 07381331 ! USGS ! GIWW at Houma
+-90.5877780000 29.3888890000 ! 073813375 ! USGS ! Bayou Terrebonne at Ctrl Str near Lapeyrouse
+-90.6180280000 29.3869720000 ! 07381343 ! USGS ! B. Petit Caillou at Ctrl Str near Lapeyrouse
+-90.9211110000 29.2491670000 ! 07381349 ! USGS ! Caillou Lake (Sister Lake) SW of Dulac
+-90.5576670000 29.6273330000 ! 07381355 ! USGS ! Company Canal at Salt Barrier nr Lockport
+-91.2158330000 29.9091110000 ! 07381454 ! USGS ! Belle River at Hwy 70 nr Pierre Part
+-91.0997220000 29.6683330000 ! 073814675 ! USGS ! Bayou Boeuf at Railroad Bridge at Amelia
+-91.6867797000 30.2815863800 ! 07381515 ! USGS ! Atchafalaya River at Butte La Rose
+-91.4456662000 29.8927040600 ! 073815450 ! USGS ! Chicot Pass near Myette Point near Charenton
+-91.3728850000 29.6979860000 ! 07381590 ! USGS ! Wax Lake Outlet at Calumet
+-91.3739970000 29.7043750000 ! 073815945 ! USGS ! Bayou Teche E of Calumet Flood Gate at Calumet
+-91.2119370000 29.6928190000 ! 07381600 ! USGS ! Lower Atchafalaya River at Morgan City
+-91.3041670000 29.6494440000 ! 073816202 ! USGS ! GIWW at mile 103 S of Morgan City
+-91.2458330000 29.5386110000 ! 073816501 ! USGS ! Avoca Island Cutoff south of Morgan City
+-91.1552780000 29.5855560000 ! 073816503 ! USGS ! Bayou Penchant S of Morgan City
+-91.4705560000 29.68052200 ! 07381670 ! USGS ! GIWW at Bayou Sale Ridge nr Franklin
+-91.5862250000 29.8793720000 ! 07385765 ! USGS ! Bayou Teche at Adeline Bridge nr Jeanerette
+-91.5416670000 29.82282800 ! 07385790 ! USGS ! Charenton Drainage Canal at Baldwin
+-92.0756780000 30.1418690000 ! 07386940 ! USGS ! Vermilion River at Hwy 733 nr Lafayette
+-92.1563610000 29.9511110000 ! 07386980 ! USGS ! Vermilion River at Perry
+-91.88146400 29.7132660000 ! 07387040 ! USGS ! Vermilion Bay nr Cypremort Point
+-92.1355560000 29.6744440000 ! 07387050 ! USGS ! Vermilion Bay(B. Fearman) near Intracoastal City
+-92.5905556000 30.1900000000 ! 08012150 ! USGS ! Mermentau River At Mermentau
+-93.2473760000 30.2371500000 ! 08017044 ! USGS ! Calcasieu River at I-10 at Lake Charles
+-93.2995990000 30.0318790000 ! 08017095 ! USGS ! North Calcasieu Lake near Hackberry
+-93.3490430000 29.8157760000 ! 08017118 ! USGS ! Calcasieu River at Cameron
+-93.7437780000 30.3038170000 ! 08030500 ! USGS ! Sabine Rv near Ruliff
+-93.7215544000 30.0979877400 ! 08030540 ! USGS ! Sabine Rv (at Navy Pier) at Orange
+-93.9085058000 30.1863204500 ! 08031000 ! USGS ! Cow Bayou nr Mauriceville
+-90.1235900000 30.0241600000 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave
+-89.9405000000 29.3247220000 ! 291929089562600 ! USGS ! Barataria Bay near Grand Terre Island
+-90.1000000000 29.4666670000 ! 292800090060000 ! USGS ! Little Lake nr Bay Dosgris E of Galliano
+-90.0111110000 29.4830560000 ! 292859090004000 ! USGS ! Barataria Waterway S of Lafitte
+-89.7605560000 29.4977780000 ! 292952089453800 ! USGS ! CRMS0282-H01-RT
+-90.9480560000 29.4977780000 ! 292952090565300 ! USGS ! CRMS0411-H01-RT
+-91.3855560000 29.5413890000 ! 293229091230800 ! USGS ! CRMS0465-H01-RT
+-92.6041670000 29.6358330000 ! 293809092361500 ! USGS ! CRMS0609-H01-RT
+-92.8230560000 29.6791670000 ! 294045092492300 ! USGS ! CRMS0615-H01-RT
+-92.4166670000 29.7880560000 ! 294717092250000 ! USGS ! CRMS0568-H01-RT
+-90.2047220000 29.8552780000 ! 2951190901217 ! USGS ! L. Cataouatche at Whiskey Canal S of Waggaman
+-89.9076940000 29.8535560000 ! 295124089542100 ! USGS ! Caernarvon Outfall Channel at Caernarvon
+-93.1669440000 29.8752780000 ! 295231093100100 ! USGS ! CRMS2418-H01-RT
+-90.3177780000 29.9169440000 ! 295501090190400 ! USGS ! Davis Pond Freshwater Diversion near Boutte
+-93.5105560000 29.9622220000 ! 295744093303800 ! USGS ! CRMS0651-H01-RT
+-91.5333330000 30.0533330000 ! 300312091320000 ! USGS ! Arm of Grand Lake near Crook Chene Cove
+-90.6308330000 30.1005560000 ! 300602090375100 ! USGS ! CRMS5373-H01-RT
+-89.2502780000 30.1227780000 ! 300722089150100 ! USGS ! Mississippi Sound near Grand Pass
+-89.5341670000 30.1947220000 ! 301141089320300 ! USGS ! E Pearl River at CSX Railroad nr Clairborne
+-90.1227500000 30.1996390000 ! 301200090072400 ! USGS ! Lake Pontchartrain at Crossover 4 near Mandeville
+-90.6400000000 30.2233330000 ! 301324090382400 ! USGS ! CRMS0061-H01-RT
+-93.34747200 29.7758060000 ! 73650 ! USACE ! Calcasieu River &amp; Pass nr Cameron
+-89.83582200 29.93574700 ! 76010 ! USACE ! Bayou Dupre Sector Gate East/Flood Side
+-89.9153416000 29.9987138000 ! 76025 ! USACE ! Bayou Bienvenue Floodgate East Flood Side
+-89.9005277000 30.0123888000 ! 76030 ! USACE ! IHNC Surge Barrier East Flood Side
+-89.9373611000 30.0067055000 ! 76040 ! USACE ! GIWW near Paris Road Bridge
+-90.0346666600 30.0304166000 ! 76065 ! USACE ! Seabrook Floodgate Closure Structure Lake Side
+-90.0267500000 29.96655600 ! 76160 ! USACE ! Inner Harbor Navigation Canal New Orleans
+-90.0834110000 29.9085000000 ! 76200 ! USACE ! Harvey Lock at GIWW
+-90.0693250000 29.8705640000 ! 76220 ! USACE ! Harvey Canal Sector Gates nr Lapalco Blvd
+-90.0598690000 29.84900300 ! 76230 ! USACE ! Harvey Canal at Boomtown Casino
+-89.9733610000 29.9142970000 ! 76240 ! USACE ! Algiers Lock - GIWW
+-90.0685777000 29.8157638000 ! 76265 ! USACE ! GIWW at West Closure Complex Flood Side
+-91.1710940000 29.6830390000 ! 76360 ! USACE ! Bayou Boeuf Lock - East
+-91.1805640000 29.6827310000 ! 76400 ! USACE ! Bayou Boeuf Lock - West
+-90.2732138000 29.9096360000 ! 82715 ! USACE ! Bayou Verret / W.Tie-In Sector Gate Flood Side
+-90.2730560000 29.9125000000 ! 82720 ! USACE ! Sellers Canal at Hwy 90
+-90.1580560000 29.8938890000 ! 82740 ! USACE ! Bayou Segnette at Lapalco Blvd
+-90.1566805000 29.8968083000 ! 82742 ! USACE ! Bayou Segnette Sector Gate - Flood Side
+-90.0354138000 29.79019700 ! 82762 ! USACE ! Hero Canal Bulkhead Control Structure - Flood Side/West
+-90.0328944000 29.7836472000 ! 82770 ! USACE ! Oakville Levee Pump Station - Flood Side/South
+-90.1105560000 29.6694440000 ! 82875 ! USACE ! Barataria Waterway at Lafitte
+-90.5508610000 30.3758610000 ! 85300 ! USACE ! Tickfaw River near Springfield
+-90.4002780000 30.2813890000 ! 85420 ! USACE ! Pass Manchac near Pontchoula
+-90.09119400 30.36309200 ! 85575 ! USACE ! Lake Pontchartrain at Mandeville
+-90.1156440000 30.0221640000 ! 85625 ! USACE ! Lake Pontchartrain at West End
+-90.0720280000 30.0260550000 ! 85626 ! USACE ! London Ave Canal 1 - ICS Lake-side
+-90.3490330000 29.9858860000 ! 85660 ! USACE ! Cross Bayou Canal nr Hwy 61 (South)
+-90.01676100 30.04082500 ! 85670 ! USACE ! Lake Pontchartrain at Lakefront Airport
+-89.7379050000 30.1633860000 ! 85700 ! USACE ! Rigolets nr Lake Pontchartrain
+-89.9068333000 29.8586666000 ! 85760 ! USACE ! Caernarvon Canal Sector Gate - South/Flood Side
+-88.0750000000 30.25073500 ! 8735180 ! NOAA NOS ! Dauphin Island
+-88.08084400 30.5652000000 ! 8735391 ! NOAA NOS ! Dog River Bridge
+-88.05136700 30.64563900 ! 8736897 ! NOAA NOS ! Coast Guard Sector Mobile
+-88.0433000000 30.7083000000 ! 8737048 ! NOAA NOS ! Mobile State Docks
+-88.1586000000 30.3766000000 ! 8738043 ! NOAA NOS ! West Fowl River Bridge
+-88.2477000000 30.4057000000 ! 8739803 ! NOAA NOS ! Bayou La Batre Bridge
+-88.4027000000 30.4133000000 ! 8740166 ! NOAA NOS ! Grand Bay NERR Mississippi Sound
+-89.3258000000 30.3264000000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club
+-89.2583000000 29.1783000000 ! 8760721 ! NOAA NOS ! Pilottown
+-89.4066670000 28.9316670000 ! 8760922 ! NOAA NOS ! Pilots Station East SW Pass
+-89.6732000000 29.8681000000 ! 8761305 ! NOAA NOS ! Shell Beach
+-90.3900000000 30.06898600 ! 8762483 ! NOAA NOS ! I-10 Bonnet Carre Floodway
+-91.2366670000 29.6683330000 ! 8764044 ! NOAA NOS ! Berwick Atchafalaya River
+-91.3839000000 29.3675000000 ! 8764314 ! NOAA NOS ! Eugene Island North
+-93.22374400 30.2236110000 ! 8767816 ! NOAA NOS ! Lake Charles
+-93.3007000000 30.1903000000 ! 8767961 ! NOAA NOS ! Bulk Terminal
+-93.3427780000 29.7680560000 ! 8768094 ! NOAA NOS ! Calcasieu Pass
+-93.93118600 29.8667000000 ! 8770475 ! TCOON ! Port Arthur
+-93.8817000000 29.98073100 ! 8770520 ! TCOON ! Rainbow Bridge
+-93.8701000000 29.7284000000 ! 8770570 ! NOAA NOS ! Sabine Pass North
+-91.3380560000 29.4494440000 ! AMRL1 ! NOAA RFC ! Amerada Pass
+-94.0963890000 30.1330560000 ! BEAT2 ! NOAA RFC ! Neches River at Beaumont
+-91.6867797000 30.2815863800 ! BLRL1 ! NOAA RFC ! Atchafalaya River above Butte La Rose
+-91.3225000000 30.1300000000 ! BSRL1 ! NOAA RFC ! Atchafalaya River at Bayou Sorrel Lock
+-91.2069440000 30.4291670000 ! BTRL1 ! NOAA RFC ! Mississippi River at Baton Rouge
+-90.8969440000 30.3477780000 ! BYML1 ! NOAA RFC ! Amite River at Bayou Manchac Point
+-93.3427780000 29.7680560000 ! CAPL1 ! NOAA RFC ! Tide Station at Calcasieu Pass
+-90.1695244000 30.4946364000 ! CUSL1 ! NOAA RFC ! Tchefuncte River nr Covington
+-90.9903800000 30.4640790000 ! DENL1 ! NOAA RFC ! Amite River at Denham Springs
+-88.8933643000 30.4760307000 ! DIBM6 ! NOAA RFC ! Tchoutacabouffa River nr D&#39;Iberville
+-90.9591670000 30.10318100 ! DONL1 ! NOAA RFC ! Mississippi River at Donaldsonville
+-92.30448900 29.5550000000 ! FRWL1 ! NOAA RFC ! Tide Station at Fresh Water Canal Locks
+-89.2063889000 30.3933611000 ! GLFM6 ! NOAA RFC ! Wolf River above Gulfport
+-91.4456662000 29.8927040600 ! GNDL1 ! NOAA RFC ! Atchafalaya River at Myette Point/Grand Lake
+-90.0351500000 30.0335500000 ! IHNC01 ! CPRA ! Seabrook Complex - Flood Side
+-89.8990000000 30.0156400000 ! IHNC02 ! CPRA ! IHNC Surge Barrier East - Flood Side
+-91.7613890000 30.5688890000 ! KRZL1 ! NOAA RFC ! Atchafalaya River at Krotz Springs
+-90.1107400000 29.6691100000 ! Lafitte ! CPRA ! Barataria Waterway at Lafitte
+-90.0191800000 30.0463500000 ! LakefrontAirport ! CPRA ! Lake Pontchartrain at Lakefront Airport
+-93.21694500 30.2536110000 ! LCHL1 ! NOAA RFC ! Calcasieu River at Saltwater Barrier
+-93.22330000 30.2236110000 ! LCLL1 ! NOAA RFC ! Tide Station at Lake Charles
+-93.2627780000 30.2941670000 ! LCRL1 ! NOAA RFC ! Calcasieu River at Sam Houston Jones State Park
+-89.8356300000 29.9360000000 ! LPV144 ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side
+-89.9043400000 29.8529300000 ! LPV149 ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side
+-89.0358333000 30.4883333300 ! LYMM6 ! NOAA RFC ! Biloxi River nr Lyman
+-90.0925100000 30.3597600000 ! Mandeville ! CPRA ! Lake Pontchartrain at Mandeville
+-91.21138900 29.6963890000 ! MCGL1 ! NOAA RFC ! Atchafalaya River at Morgan City
+-91.73602200 30.6905560000 ! MLVL1 ! NOAA RFC ! Atchafalaya River at Melville
+-92.5905556000 30.19009200 ! MRML1 ! NOAA RFC ! Mermentau River at Mermentau
+-93.6805560000 30.1983330000 ! NBFL1 ! NOAA RFC ! Sabine River at Nibletts Bluff Park
+-90.1361110000 29.9347220000 ! NORL1 ! NOAA RFC ! Mississippi River at New Orleans
+-89.6010700000 29.3734100000 ! NOV13 ! CPRA ! Mississippi River at Empire Floodgate
+-90.2709700000 29.3898400000 ! NOV14 ! CPRA ! Mississippi River at Empire Lock
+-88.4513888900 30.4586111000 ! ORAM6 ! NOAA RFC ! Escatawpa River at I-10 nr Orange Grove
+-93.7215544000 30.0979877400 ! ORNT2 ! NOAA RFC ! Sabine River at Orange
+-93.1447220000 30.2902780000 ! OTBL1 ! NOAA RFC ! Calcasieu River nr Old Town Bay
+-89.7367304000 30.3851930000 ! PERL1 ! NOAA RFC ! Pearl River at Pearl River
+-88.6414000000 30.6106000000 ! PGFM6 ! NOAA RFC ! Pascagoula River at Graham Ferry
+-90.8520419000 30.3326939000 ! PVLL1 ! NOAA RFC ! Amite River at Port Vincent
+-89.7374600000 30.1732000000 ! Rigolets ! CPRA ! Rigolets near Lake Pontchartrain
+-91.6644440000 30.9608330000 ! RRLL1 ! NOAA RFC ! Mississippi River at Red River Landing
+-90.5686110000 30.05454200 ! RRVL1 ! NOAA RFC ! Mississippi River at Reserve
+-93.8701000000 29.7284000000 ! SBPT2 ! NOAA RFC ! Tide Station near Sabine Pass
+-91.7983333000 30.9825000000 ! SMML1 ! NOAA RFC ! Atchafalaya River at Simmesport
+-91.9928975000 30.2174229000 ! VLSL1 ! NOAA RFC ! Vermilion River at Surrey St. at Lafayette
+-92.1563610000 29.9511110000 ! VRPL1 ! NOAA RFC ! Vermilion River at Perry
+-90.0341700000 29.7830500000 ! WBV09a ! CPRA ! Oakville Sluice Gate - Flood Side/South
+-90.0369200000 29.7906200000 ! WBV09b ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West
+-90.1571400000 29.8828800000 ! WBV162 ! CPRA ! Bayou Segnette Closure - Flood Side
+-90.2709700000 29.9083900000 ! WBV7274 ! CPRA ! Bayou Verret / W. Tie-In Sector Gate Flood Side
+-90.0710400000 29.8126300000 ! WBV90 ! CPRA ! GIWW at West Closure Complex - Flood Side
+-90.12359 30.02416 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
+-90.03515 30.03355 ! IHNC-01   ! CPRA ! Seabrook Complex - Flood Side (cf USGS 073802332)  
+-89.89900 30.01564 ! IHNC-02   ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
+-90.07104 29.81263 ! WBV90    ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
+-90.03692 29.79062 ! WBV09b   ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762) 
+-90.03417 29.78305 ! WBV09a   ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770) 
+-90.15714 29.88288 ! WBV162   ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742) 
+-89.90434 29.85293 ! LPV-149   ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760) 
+-89.83563 29.93600 ! LPV-144   ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
+-90.27097 29.90839 ! WBV7274  ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
+-89.60107 29.37341 ! NOV-13    ! CPRA ! Mississippi River at Empire Floodgate (cf USGS 07380260) 
+-89.59537 29.38984 ! NOV14    ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)
+-90.01918 30.04635 ! LakefrontAirport ! CPRA ! Lake Pontchartrain at Lakefront Airport (cf USACE 85670)
+-90.09251 30.35976 ! Mandeville ! CPRA ! Lake Pontchartrain at Mandeville (cf USACE 85575)
+-89.73746 30.17320 ! Rigolets ! CPRA ! Rigolets near Lake Pontchartrain (cf USACE 85700)
+-90.11074 29.66911 ! Lafitte ! CPRA ! Barataria Waterway at Lafitte (cf USACE 82875)
+-90.0693250000 29.8705638000 ! HarveyCanalNorth ! CPRA ! Harvey Canal Sector Gates North / Prot Side nr Lapalco (cf USACE 76220)
+-90.0619590000 29.8478540000 ! HarveyCanalBoom ! CPRA ! Harvey Canal at Broomtown Casion (cf USACE 76230)
+-89.9141700000 30.0000020000 ! BayouBienv ! CPRA ! Bayou Bienvenue Floodgate (cf USACE 76025)
+-89.9468000000 29.2728333000 ! BaraPass ! CPRA ! Barataria Pass at Grand Isle (cf USGS 073802516)
+-92.3053360000 29.5505010000 ! FreshCanal ! CPRA ! Freshwater Canal at Freshwater Bayou Lock South (cf USACE 76593)
+-93.3488889000 29.8155556000 ! CalcRiv ! CPRA ! Calcasieu River at Cameron (cf USGS 8017118)
+-90.7292930000 29.3284210000 ! HoumaNavCanal ! CPRA ! Houma Navigation Canal ( cf USACE 76305) 
+-89.79694440	29.57111110	!	WestPoint	!	CPRA	!	MS River at West Point a la Hache
+-89.96990000	29.68454440	!	Alliance	!	CPRA	!	MS River at Alliance
+-90.13611111	29.93472222	!	Carrollton	!	CPRA	!	MS River at Carrollton
+-90.42481940	29.99738880	!	BCSpillway	!	CPRA	!	MS River at Bonnet Carre Spillway
+-90.46608330	30.00202770	!	BCSpillwayN	!	CPRA	!	MS River at Bonnet Carre Spillway North
+-90.56872500	30.05441660	!	Reserve		!	CPRA	!	MS River at Reserve
+-91.21151000	29.69603000	!	MorganCity	!	CPRA	!	Lower Atchafalaya River at Morgan City
+-89.35278000    29.27583000 !   Venice      !   CPRA    !   MS River at Venice
+-91.47055550    29.68083330 !   BayouSale   !   CPRA    !   GIWW at Bayou Sale Ridge (cf USACE 76560)
+-91.09972200    29.66833000 !   BayouBoeuf  !   CPRA    !   Bayou Boeuf at Railroad Bridge (cf USGS 073814675)
+-89.8306214900 30.3013057800 ! 07374581 ! USGS ! Bayou Liberty nr Slidell
+-90.2486950000 30.6160220000 ! 07375000 ! USGS ! Tchefuncte River near Folsom
+-90.1695244000 30.4946364000 ! 07375050 ! USGS ! Tchefuncte River near Covington
+-90.1461111000 30.5563888900 ! 07375105 ! USGS ! Bogue Falaya River near Camp Covington
+-90.0845220000 30.4996360000 ! 07375170 ! USGS ! Bogue Falaya at Covington
+-90.0894440000 30.4763890000 ! 07375175 ! USGS ! Bogue Falaya River at Boston St. at Covington
+-90.0389640000 30.4821380000 ! 07375222 ! USGS ! Abita River north of Abita Springs
+-90.1548010000 30.4040830000 ! 07375230 ! USGS ! Tchefuncte River at Madisonville
+-90.4611111000 31.0122222000 ! 07375280 ! USGS ! Tangipahoa River at Osyka
+-90.4903728000 30.9376802900 ! 07375300 ! USGS ! Tangipahoa River near Kentwood
+-90.4842586900 30.7290746700 ! 07375430 ! USGS ! Tangipahoa River near Amite
+-90.3617520000 30.5065800000 ! 07375500 ! USGS ! Tangipahoa River at Robert
+-90.3345830000 30.4436940000 ! 07375650 ! USGS ! Tangipahoa River near Ponchatoula
+-90.6734317000 30.9307355900 ! 07375800 ! USGS ! Tickfaw River at Liverpool
+-90.6431509000 30.6862970700 ! 07375960 ! USGS ! Tickfaw River at Montpelier
+-90.6773160000 30.5038020000 ! 07376000 ! USGS ! Tickfaw River at Holden
+-90.5459240000 30.5043580000 ! 07376500 ! USGS ! Natalbany River at Baptist
+-90.8445454000 30.8890694000 ! 07377000 ! USGS ! Amite River near Darlington
+-90.8417669900 30.7362948400 ! 07377150 ! USGS ! Amite River at Grangeville
+-90.9601024000 30.6707406000 ! 07377210 ! USGS ! Sandy Creek nr Pride
+-90.9821167000 30.6211083300 ! 07377243 ! USGS ! Sandy Ck at Alph. Forbes nr Greenwell Springs
+-90.9806579000 30.5349106000 ! 07377300 ! USGS ! Amite River at Magnolia
+-91.0512991000 30.7022953800 ! 07377600 ! USGS ! Comite R. at Pt. Hudson-Pride Rd nr Milldale
+-91.0945500000 30.6432413800 ! 07377750 ! USGS ! Comite River near Zachary
+-91.0982722000 30.5582712600 ! 07377760 ! USGS ! Comite River at Comite Dr nr Baton Rouge
+-91.0401040000 30.5057450000 ! 07378050 ! USGS ! Comite R. at Greenwell Spg Rd near Baton Rouge
+-91.0209368000 30.5610210300 ! 07378083 ! USGS ! Beaver Bayou at Hooper Road nr Baton Rouge
+-90.9903800000 30.4640790000 ! 07378500 ! USGS ! Amite River near Denham Springs
+-91.0073240000 30.3868590000 ! 07378722 ! USGS ! Claycut Bayou at Antioch Rd near Baton Rouge
+-91.0207220000 30.3212500000 ! 07378745 ! USGS ! Alligator Bayou near Kleinpeter
+-91.1034380000 30.4444680000 ! 07379000 ! USGS ! Ward Creek at Government St at Baton Rouge
+-91.0942710000 30.3824140000 ! 07379960 ! USGS ! Dawson Cr. at Bluebonnet Blvd near Baton Rouge
+-90.9464890000 30.3285270000 ! 07380107 ! USGS ! Muddy Creek at Manchac Acres Rd near Oak Grove
+-90.8520419000 30.3326939000 ! 07380120 ! USGS ! Amite River at Port Vincent
+-90.8837090000 30.2974170000 ! 07380126 ! USGS ! Henderson Bayou near Port Vincent
+-90.7792616000 30.2754733000 ! 07380200 ! USGS ! Amite River near French Settlement
+-90.6103684000 30.3093619000 ! 07380215 ! USGS ! Amite River at Hwy 22 nr Maurepas
+-90.9187090000 30.1707530000 ! 073802220 ! USGS ! Panama Canal at Hwy 44 nr Gonzales
+-90.8612080000 30.1732530000 ! 073802225 ! USGS ! Bayou Conway near Sorrento
+-90.9634330000 30.2621400000 ! 0738022295 ! USGS ! Grand Goudine at Babin Rd Near Duplessis
+-90.8995420000 30.2274190000 ! 073802273 ! USGS ! Bayou Francois at Hwy 61 near Gonzales
+-90.7862050000 30.1893640000 ! 073802282 ! USGS ! New River Canal nr Sorrento
+-90.6308330000 30.1005560000 ! 300602090375100 ! USGS ! CRMS5373-H01-RT
+-90.6400000000 30.2233330000 ! 301324090382400 ! USGS ! CRMS0061-H01-RT
+-90.5508610000 30.3758610000 ! 85300 ! USACE ! Tickfaw River near Springfield
+-90.4002780000 30.2813890000 ! 85420 ! USACE ! Pass Manchac near Pontchoula
+-90.0922890000 30.3657970000 ! 85575 ! USACE ! Lake Pontchartrain at Mandeville
+-90.8969440000 30.3477780000 ! BYML1 ! NOAA RFC ! Amite River at Bayou Manchac Point
+-91.0438890000 30.7563890000 ! OLVL1 ! NOAA RFC ! Comite River near Olive Branch
+-90.5686110000 30.0555560000 ! RRVL1 ! NOAA RFC ! Mississippi River at Reserve
+-90.24254409   30.32909392   ! TAN_BC_01 ! CFIGS ! 0
+-90.16783465   30.36143748   ! TCH_BC_01 ! CFIGS ! 1
+-90.04136924   30.31019399   ! LAC_BC_01 ! CFIGS ! 2
+-89.88025839   30.23326713   ! LAC_BC_02 ! CFIGS ! 3
+-89.78275073   30.17785837   ! LAC_BC_03 ! CFIGS ! 4
+-90.28661299   30.26535431   ! AMI_BC_01 ! CFIGS ! 5
+-90.40164872   30.15884512   ! AMI_BC_02 ! CFIGS ! 6
