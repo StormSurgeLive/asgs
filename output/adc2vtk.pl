@@ -82,6 +82,7 @@ our @elementIndices;      # element array indices from data file
 my $meshfile = "null";
 my $cpp;  # 1 to reproject to cpp (carte parallelogrammatique projection)
 my $fluxBoundaries2dm; # defined if flux boundaries should be written as mesh geometry in *.2dm files
+my $arcMapCSV; # write mesh and flux boundary node pairs to ArcMap CSV files
 my $translate; # 1 to translate the mesh x-y coordinates to the center of the cpp projection
 my $centerx; # xcoord (deg) at center of the 2D mesh; conv to (m) if --cpp
 my $centery; # ycoord (deg) at center of the 2D mesh; conv to (m) if --cpp
@@ -107,6 +108,7 @@ GetOptions(
            "meshfile=s" => \$meshfile,
            "cpp" => \$cpp,
            "fluxBoundaries2dm" => \$fluxBoundaries2dm,
+           "arcMapCSV" => \$arcMapCSV,
            "slam0=s" => \$slam0,
            "sfea0=s" => \$sfea0,
            "translate" => \$translate,
@@ -297,6 +299,21 @@ for (my $i=0; $i<$np; $i++) {
    $y[$i] = $y[$i]*$scale;
 }
 
+if ( defined $arcMapCSV ) {
+   # write out the flux-specified node tables as XYZ CSV that can be read into ArcMap
+   my $arcMapCSVMeshFileName = $meshfile . "_meshNodes.csv";
+   my $ARCMAPMESHNODES;
+   if (not open($ARCMAPMESHNODES,">","$arcMapCSVMeshFileName")) {
+      stderrMessage("ERROR","Failed to open $arcMapCSVMeshFileName for writing: $!.");
+      die;
+   }
+   # node number , x , y, internal barrier height (m), bathymetric depth (m)
+   for (my $i=0; $i<$np; $i++) {
+      my $nodeNumber = $i + 1;
+      printf $ARCMAPMESHNODES "$nodeNumber,$x[$i],$y[$i],-99999,$z[$i]\n";
+   }
+   close($ARCMAPMESHNODES);
+}
 # read the element table
 for (my $i=0; $i<$ne; $i++) {
    $line = <MESH>;
@@ -526,6 +543,18 @@ unless (open($ADCELEFLUXBOUNDARY,">$adcFluxBoundaryGeometryElementFileName")) {
 }
 my $adcElementID = 1;
 #
+# write out the flux-specified boundary tables as ArcMap CSV
+my $arcMapCSVFluxBoundaryGeometryNodeFileName;
+my $ARCMAPFLUXBOUNDARY;
+if ( defined $arcMapCSV ) {
+   # write out the flux-specified node tables as ArcMap CSV
+   $arcMapCSVFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.csv";
+   if (not open($ARCMAPFLUXBOUNDARY,">","$arcMapCSVFluxBoundaryGeometryNodeFileName")) {
+      stderrMessage("ERROR","Failed to open $arcMapCSVFluxBoundaryGeometryNodeFileName for writing: $!.");
+      die;
+   }
+}
+#
 # now start reading the boundary table from the mesh (fort.14) file
 $line = <MESH>;
 @fields = split(' ',$line);
@@ -694,6 +723,8 @@ for (my $i=0; $i<$nbou; $i++) {
    printf XDMFFLUXBOUNDARY "                <Topology Dimensions=\"$numXYZValsPerNode $nvell 1\" Type=\"3DSMesh\"/>\n";
 
    printf XDMFFLUXBOUNDARY "             </Grid>\n";
+   my $adcStartNodeID;
+   my $numFluxBoundaryGeometryElements;
    if ( defined $fluxBoundaries2dm ) {
       #
       #  F L U X   B O U N D A R Y   A S   2 D M   M E S H   G E O M E T R Y
@@ -711,7 +742,7 @@ for (my $i=0; $i<$nbou; $i++) {
          die;
       }
       # write header for boundary geometry file
-      my $numFluxBoundaryGeometryElements = $nvell - 1;
+      $numFluxBoundaryGeometryElements = $nvell - 1;
       if ( $numPointsPerBoundaryNode == 2 ) {
          $numFluxBoundaryGeometryElements *= 3;
       }
@@ -722,7 +753,7 @@ for (my $i=0; $i<$nbou; $i++) {
       # ** use computed z values for boundary nodes from XDMF calculations above **
       my $j=0;                             #        2--3
       my $nodeID=1;                        # front  |  |  back
-      my $adcStartNodeID = $adcNodeID;     #        1  4
+      $adcStartNodeID = $adcNodeID;     #        1  4
       while ( $j<$nvell ) {
          $zrev = -1.0 * $z[$nbvv[$j]-1];
          # write the base front face boundary vertex (i.e., boundary node elevation)
@@ -798,34 +829,20 @@ for (my $i=0; $i<$nbou; $i++) {
          $n_full = $n_full + 2*$numPointsPerBoundaryNode;
       }
       close($TWODMFLUXBOUNDARY);
-   }
-   #
-   #            F L U X   B O U N D A R Y   A S
-   #  A D C I R C   N O D E   A N D   E L E M E N T   T A B L E S
-   #
-   # already wrote the node table for this flux boundary in the 2dm section above
-   # write the element table for this flux boundary
-   my $n = $adcStartNodeID; # last one that was actually used (unless this is the first boundary being written)
-   my $elementID=1;
-   while ( $elementID<(2*$numFluxBoundaryGeometryElements) ) {
-      if ( $numPointsPerBoundaryNode == 1 ) {
-         my $a = $n;
-         my $b = $n+1;
-         my $c = $b+2;
-         my $d = $b+1;
-         printf $ADCELEFLUXBOUNDARY "$adcElementID 3 $a $b $d\n";
-         $elementID++;
-         $adcElementID++;
-         printf $ADCELEFLUXBOUNDARY "$adcElementID 3 $b $c $d\n";
-         $elementID++;
-         $adcElementID++;
-      }
-      if ( $numPointsPerBoundaryNode == 2 ) {
-         for (my $e=0; $e<3; $e++) {
-            my $a = $n+$e;
-            my $b = $n+$e+1;
-            my $c = $b+4;
-            my $d = $b+3;
+      #
+      #            F L U X   B O U N D A R Y   A S
+      #  A D C I R C   N O D E   A N D   E L E M E N T   T A B L E S
+      #
+      # already wrote the node table for this flux boundary in the 2dm section above
+      # write the element table for this flux boundary
+      my $n = $adcStartNodeID; # last one that was actually used (unless this is the first boundary being written)
+      my $elementID=1;
+      while ( $elementID<(2*$numFluxBoundaryGeometryElements) ) {
+         if ( $numPointsPerBoundaryNode == 1 ) {
+            my $a = $n;
+            my $b = $n+1;
+            my $c = $b+2;
+            my $d = $b+1;
             printf $ADCELEFLUXBOUNDARY "$adcElementID 3 $a $b $d\n";
             $elementID++;
             $adcElementID++;
@@ -833,8 +850,32 @@ for (my $i=0; $i<$nbou; $i++) {
             $elementID++;
             $adcElementID++;
          }
+         if ( $numPointsPerBoundaryNode == 2 ) {
+            for (my $e=0; $e<3; $e++) {
+               my $a = $n+$e;
+               my $b = $n+$e+1;
+               my $c = $b+4;
+               my $d = $b+3;
+               printf $ADCELEFLUXBOUNDARY "$adcElementID 3 $a $b $d\n";
+               $elementID++;
+               $adcElementID++;
+               printf $ADCELEFLUXBOUNDARY "$adcElementID 3 $b $c $d\n";
+               $elementID++;
+               $adcElementID++;
+            }
+         }
+         $n = $n + 2*$numPointsPerBoundaryNode;
       }
-      $n = $n + 2*$numPointsPerBoundaryNode;
+   }
+   #
+   #  F L U X   B O U N D A R Y   A S
+   #      A R C  M A P   C S V
+   # write out the flux-specified boundary tables as ArcMap CSV
+   if ( defined $arcMapCSV && $numPointsPerBoundaryNode == 2 ) {
+      for (my $j=0; $j<$nvell; $j++) {
+         printf $ARCMAPFLUXBOUNDARY "$nbvv[$j],$x[$nbvv[$j]-1],$y[$nbvv[$j]-1],$fluxBoundaryNodeElevs[$j],$z[$nbvv[$j]-1]\n";
+         printf $ARCMAPFLUXBOUNDARY "$ibconn[$j] $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $fluxBoundaryNodeElevs[$j] $z[$ibconn[$j]-1]\n";
+      }
    }
 }
 close(MESH);
@@ -852,6 +893,10 @@ close(XDMFFLUXBOUNDARY);
 # finish writing boundary geometry as adcirc mesh (.14 file)
 close($ADCNODFLUXBOUNDARY);
 close($ADCELEFLUXBOUNDARY);
+# close arcmap csv file (if specified)
+if ( defined $arcMapCSV  ) {
+   close($ARCMAPFLUXBOUNDARY);
+}
 # open a file for the full mesh
 my $adcFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.14";
 my $ADCFLUXBOUNDARY;
@@ -887,35 +932,37 @@ close($ADCFLUXBOUNDARY);
 close($ADCNODFLUXBOUNDARY);
 close($ADCELEFLUXBOUNDARY);
 # fulldomain 2dm file of flux boundaries
-close($TWODMNODEFLUXBOUNDARY); # close for writing, open for reading
-my $twodmFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.2dm";
-my $TWODMFLUXBOUNDARY;
-if (not open($TWODMFLUXBOUNDARY,">","$twodmFluxBoundaryGeometryFileName")) {
-   stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.");
-   die;
+if ( defined $fluxBoundaries2dm ) {
+   close($TWODMNODEFLUXBOUNDARY); # close for writing, open for reading
+   my $twodmFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.2dm";
+   my $TWODMFLUXBOUNDARY;
+   if (not open($TWODMFLUXBOUNDARY,">","$twodmFluxBoundaryGeometryFileName")) {
+      stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.");
+      die;
+   }
+   printf $TWODMFLUXBOUNDARY "MESH2D\n";
+   printf $TWODMFLUXBOUNDARY "NUM_MATERIALS_PER_ELEM 1\n";
+   my $adcFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nd";
+   my $TWODMNODEFLUXBOUNDARY;
+   if (not open($TWODMNODEFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryNodeFileName")) {
+      stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryNodeFileName' for reading: $!.");
+      die;
+   }
+   my $file_content = do { local $/; <$TWODMNODEFLUXBOUNDARY> };
+   print $TWODMFLUXBOUNDARY $file_content;
+   close($TWODMNODEFLUXBOUNDARY);
+   close($TWODMELEMENTFLUXBOUNDARY); # close for writing, open for reading
+   my $adcFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.e4q";
+   my $TWODMELEMENTFLUXBOUNDARY;
+   if (not open($TWODMELEMENTFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryElementFileName")) {
+      stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryElementFileName' for reading: $!.");
+      die;
+   }
+   my $file_content = do { local $/; <$TWODMELEMENTFLUXBOUNDARY> };
+   print $TWODMFLUXBOUNDARY $file_content;
+   close($TWODMELEMENTFLUXBOUNDARY);
+   close($TWODMFLUXBOUNDARY);
 }
-printf $TWODMFLUXBOUNDARY "MESH2D\n";
-printf $TWODMFLUXBOUNDARY "NUM_MATERIALS_PER_ELEM 1\n";
-my $adcFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nd";
-my $TWODMNODEFLUXBOUNDARY;
-if (not open($TWODMNODEFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryNodeFileName")) {
-   stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryNodeFileName' for reading: $!.");
-   die;
-}
-my $file_content = do { local $/; <$TWODMNODEFLUXBOUNDARY> };
-print $TWODMFLUXBOUNDARY $file_content;
-close($TWODMNODEFLUXBOUNDARY);
-close($TWODMELEMENTFLUXBOUNDARY); # close for writing, open for reading
-my $adcFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.e4q";
-my $TWODMELEMENTFLUXBOUNDARY;
-if (not open($TWODMELEMENTFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryElementFileName")) {
-   stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryElementFileName' for reading: $!.");
-   die;
-}
-my $file_content = do { local $/; <$TWODMELEMENTFLUXBOUNDARY> };
-print $TWODMFLUXBOUNDARY $file_content;
-close($TWODMELEMENTFLUXBOUNDARY);
-close($TWODMFLUXBOUNDARY);
 #
 # write data from adcirc file(s)
 foreach my $file (@adcircfiles) {
