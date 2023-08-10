@@ -43,7 +43,7 @@ if [ -n "$_ASGSH_PID" ]; then
   exit 1
 fi
 
-while getopts "bmp:x:" optname; do
+while getopts "bL:mp:x:" optname; do
    case $optname in
       b) BATCH=1
          ;;
@@ -55,7 +55,7 @@ while getopts "bmp:x:" optname; do
            exit 1
          fi
          ;;
-      p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
+      L|p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
       x) # add extra arbitrary options to asgs-brew.pl command
          if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
