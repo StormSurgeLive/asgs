@@ -808,7 +808,7 @@ sub get_steps {
         },
         {
             key                 => q{cpra-postproc},
-            name                => q{Step for in output/cpra_postproc},
+            name                => q{Step for output/cpra_postproc},
             description         => q{Runs the makefile and builds associated utilities in the output/cpra_postproc directory},
             pwd                 => qq{$scriptdir/output/cpra_postproc},
             command             => qq{make -j $makejobs NETCDF_CAN_DEFLATE=enable NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
@@ -819,7 +819,7 @@ sub get_steps {
         },
         {
             key         => q{output},
-            name        => q{Step for in output/},
+            name        => q{Step for output/},
             description => q{Runs the makefile and builds associated utilities in the output/ directory.},
             pwd         => qq{$scriptdir/output},
 
@@ -832,7 +832,7 @@ sub get_steps {
         },
         {
             key                 => q{util},
-            name                => q{Step for in util/},
+            name                => q{Step for util/},
             description         => q{Runs the makefile and builds all associated utilities in the util/ directory.},
             pwd                 => qq{$scriptdir/util},
             command             => qq{make -j $makejobs NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
@@ -843,7 +843,7 @@ sub get_steps {
         },
         {
             key                 => q{input-mesh},
-            name                => q{Step for in util/input/mesh},
+            name                => q{Step for util/input/mesh},
             description         => q{Runs the makefile and builds all associated util/input/mesh in the input-mesh/ directory.},
             pwd                 => qq{$scriptdir/util/input/mesh},
             command             => qq{make -j $makejobs NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$asgs_compiler},
@@ -854,7 +854,7 @@ sub get_steps {
         },
         {
             key         => q{input-nodalattr},
-            name        => q{Step for in util/input/nodalattr},
+            name        => q{Step for util/input/nodalattr},
             description => q{Runs the makefile and builds associated utilities in the util/input/nodalattr directory.},
             pwd         => qq{$scriptdir/util/input/nodalattr},
 
