@@ -508,6 +508,15 @@ HPC_Queue_Hint()
        echo $DEFAULT_QUEUENAME
      fi
    ;;
+   "mike.hpc.lsu.edu")
+     if [[ $CPUREQUEST -eq 1 ]]; then
+       echo "single"
+     elif [[ $CPUREQUEST -le 64 ]]; then
+       echo "single"
+     else
+       echo $DEFAULT_QUEUENAME
+     fi
+   ;;
    "qbc.loni.org")
      if [[ $CPUREQUEST -eq 1 ]]; then
        echo "single"
