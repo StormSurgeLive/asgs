@@ -920,6 +920,13 @@ edit() {
       fi
     fi
     ;;
+  ssh-config)
+    if [ ! -e "$HOME/.ssh/config" ]; then
+      echo "$W '$HOME/.ssh/config' can't be found - ASGS relies on this, so might want to investigate."
+      return
+    fi
+    $EDITOR $HOME/.ssh/config
+    ;;
   statefile)
     if [ -z "$STATEFILE" ]; then
       echo "$I STATEFILE is not defined. Perhaps you have not defined a config or loaded a completed profile file yet?"
@@ -951,6 +958,7 @@ edit() {
     echo "meshes         - mesh defaults file"
     echo "platforms      - old platforms.sh file"
     echo "profile <NAME> - named ASGS profile (should be followed up with the 'load profile' command"
+    echo "ssh-config     - location of remote server aliases used by ASGS"
     echo "statefile      - STATEFILE from a run in EDITOR for easier forensics"
     echo "syslog         - SYSLOG from a run in EDITOR for easier forensics"
     ;;
