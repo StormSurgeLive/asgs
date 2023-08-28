@@ -23,12 +23,12 @@ if [ -x ${OPT}/bin/pigz ]; then
   exit
 fi
 
-PIGZ_VERSION=2.7
+PIGZ_VERSION=2.8
 PIGZ_DIR=pigz
 PIGZ_TGZ=${PIGZ_DIR}-${PIGZ_VERSION}.tar.gz
 cd $_ASGS_TMP
 
-#e.g., https://zlib.net/pigz/pigz-2.7.tar.gz
+#e.g., https://zlib.net/pigz/pigz-2.8.tar.gz
 if [ ! -e ${PIGZ_TGZ} ]; then
   wget --no-check-certificate https://zlib.net/${PIGZ_DIR}/${PIGZ_TGZ}
 fi
