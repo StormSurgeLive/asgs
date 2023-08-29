@@ -598,9 +598,11 @@ sub fatal_configcheck_SCENARIOPACKAGESIZE_if_TROPICALCYCLONE_DEFINED {
             my ( $found_PERCENT, $PERCENT ) = $self->_extract_from_string( q{PERCENT}, $CASE_block );    # attempt to find value of PERCENT
 
             # check for valid start patterns: 'nhcC', 'veerLeft', 'veerRight', 'namforecast'
-            if ( not $ENSTORM or $ENSTORM !~ m/^(nhcC|veerRight|veerLeft|namforecast)/ ) {
+	    my $_PERCENT = $PERCENT // q{};
+	    $_PERCENT =~ s/-//g;
+            if ( not $ENSTORM or $ENSTORM !~ m/^(nhcC|veerRight$_PERCENT|veerLeft$_PERCENT|namforecast)/ ) {
                 assert_FATAL(
-                    sprintf qq{Case "%s" - ENSTORM %s; typically starts with: 'nhcConsensus', 'veerRight', 'veerLeft', 'namforecast'. Please adjust '%s' and try again.},
+                    sprintf qq{Case "%s" - ENSTORM %s; typically starts with: 'nhcConsensus', 'veerRight$_PERCENT', 'veerLeft$_PERCENT', 'namforecast'. Please adjust '%s' and try again.},
                     $i, ( not $found_ENSTORM ) ? q{is MISSING} : qq{'$ENSTORM' appears INVALID}, $ASGS_CONFIG
                 );
             }
