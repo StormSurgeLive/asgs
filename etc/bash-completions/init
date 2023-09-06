@@ -1,7 +1,7 @@
 # START ASGS "init" completion
 # This file is in the public domain
 
-_init_completion() 
+_asgsinit_completion()  # NOTE: _init_completion will conflict with the system!!
 {
     local cur prev files 
     COMPREPLY=()
@@ -18,6 +18,6 @@ _init_completion()
     esac
     return 0
 } &&
-  complete -F _init_completion init
+  complete -F _asgsinit_completion init
 
 # END init completion
