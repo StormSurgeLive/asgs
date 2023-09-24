@@ -68,7 +68,7 @@ case $GRIDNAME in
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=CPRA23v01c_nowindreduction_fort.15.template
       CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=combined_stations_20200929.txt
+      ELEVSTATIONS=combined_stations_20230824.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=cpra_2023mp_2023_realtime_v01c.13
