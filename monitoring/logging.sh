@@ -99,21 +99,22 @@ findAndClearOrphans() {
 # set the name of the asgs log file
 setSyslogFileName()
 {
-   local DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   local DATETIME=$(date +'%D %H:%M:%S')
    if [[ ! -d $WORK/log ]]; then
       mkdir -p $WORK/log
-      echo "[$DATETIME] INFO: Created subdirectory for ASGS log files : '$WORK/log'."
+      echo "[$DATETIME] Created subdirectory for ASGS log files : '$WORK/log'."
    else
-      echo "[$DATETIME] INFO: Found subdirectory for ASGS log files : '$WORK/log'."
+      echo "[$DATETIME] Found subdirectory for ASGS log files : '$WORK/log'."
    fi
    SYSLOG=${SYSLOG:-$WORK/log/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log}
-   consoleMessage "Set ASGS log file parameter SYSLOG to '$SYSLOG'." $SYSLOG
+   consoleMessage "SYSLOG set to"
+   consoleMessage "$SYSLOG'." $SYSLOG
 }
 #
 # write an INFO-level message to the main asgs log file
 logMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $1"
+{ local DATETIME=`date +'%D %H:%M:%S'`
+  MSG="[${DATETIME}] $1"
   for syslogfile in $SYSLOG $2 ; do
     if [[ -f $syslogfile ]]; then
       echo ${MSG} >> $syslogfile
@@ -123,8 +124,8 @@ logMessage()
 #
 # write an INFO-level message to the cycle (or advisory log file)
 cycleMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $1"
+{ local DATETIME=`date +'%D %H:%M:%S'`
+  MSG="[${DATETIME}] $1"
   for cyclelogfile in $CYCLELOG $2 ; do
     if [[ -e $cyclelogfile ]]; then
       echo ${MSG} >> $cyclelogfile
@@ -137,8 +138,8 @@ scenarioMessage()
 {
   LOGMESSAGE=$1
   EXTRALOGFILE=$2
-  local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $LOGMESSAGE"
+  local DATETIME=`date +'%D %H:%M:%S'`
+  MSG="[${DATETIME}] $LOGMESSAGE"
   for scenariologfile in $SCENARIOLOG $EXTRALOGFILE ; do
      if [[ -e $scenariologfile ]]; then
         echo "${MSG}" >> $scenariologfile
@@ -154,7 +155,7 @@ appMessage()
 {
   LOGMESSAGE=$1
   APPLOGFILE=$2
-  local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+  local DATETIME=`date +'%D %H:%M:%S'`
   MSG="[${DATETIME}] DEBUG: $LOGMESSAGE"
   if [[ -e $RUNDIR ]]; then
      echo ${MSG} >> $APPLOGFILE
@@ -164,8 +165,8 @@ appMessage()
 # send a message to the console (i.e., window where the script was started)
 # (these should be rare)
 consoleMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] ATTN: $1"
+{ local DATETIME=`date +'%D %H:%M:%S'`
+  MSG="[${DATETIME}] $1"
   echo ${MSG}
   if [[ -e $2 ]]; then
      echo ${MSG} >> $2
@@ -184,7 +185,7 @@ allMessage()
 #
 # log a warning message, execution continues
 warn()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%D %H:%M:%S'`
   MSG="[${DATETIME}] WARNING: $1"
   for warnlogfile in $SYSLOG $2 ; do
     if [[ -e $warnlogfile ]]; then
@@ -201,7 +202,7 @@ warn()
 #
 # log an error message, notify Operator
 error()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%D %H:%M:%S'`
   MSG="[${DATETIME}] ERROR: $1"
   echo ${MSG}  # send to console
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
@@ -223,8 +224,8 @@ error()
 #
 # log an error message, execution halts
 fatal()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] FATAL ERROR: $1"
+{ local DATETIME=`date +'%D %H:%M:%S'`
+  MSG="[${DATETIME}] FATAL: $1"
   for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $fatallogfile ]]; then
       local frame=0
@@ -244,7 +245,7 @@ fatal()
 #
 # log a debug message
 debugMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+{ local DATETIME=`date +'%D %H:%M:%S'`
   MSG="[${DATETIME}] DEBUG: $1"
   for debuglogfile in $SCENARIOLOG $2; do
      if [[ -e $debuglogfile ]]; then
@@ -265,7 +266,7 @@ writeASGSInstanceStatus()
     local textlog="${logfile%.*}.txt" # directly viewable in web browser
     #
     # update time stamp
-    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    dateTime=`date +'%D %H:%M:%S'`
     echo "time.status.lastupdated : $dateTime" > $statfile  # <--<< OVERWRITE
     # basic asgs configuration
     echo "config.file : $CONFIG" >> $statfile
@@ -413,7 +414,7 @@ writeScenarioFilesStatus()
    local cycleJSON=$(expr $ADVISORY + 0) # strip leading zero (if any) before writing to json format
    #
    # update time stamp
-   dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+   dateTime=`date +'%D %H:%M:%S'`
    # write the status associated with each file
    echo "{" > $jsonfile # <-<< OVERWRITE
    echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
@@ -447,10 +448,10 @@ writeScenarioFilesStatus()
             found=0
          fi
          if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
-            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%D %H:%M:%S')
          fi
          first=\"${filesFirstTimeUpdated[$f]}\"
-         last=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
+         last=\"$(date -r $fileStatusPath/$f +'%D %H:%M:%S')\"
       fi
       echo \""$f\" : { \"exists\" : $e, \"numdatasets\" : { \"expected\" : $ne, \"found\" : $found }, \"time.updated\" : { \"first\" : $first, \"last\" : $last } },"  >> $jsonfile
    done
@@ -462,10 +463,10 @@ writeScenarioFilesStatus()
       if [[ -e $fileStatusPath/$f ]]; then
          e="true"
          if [[ ${filesFirstTimeUpdated[$f]} == "null" || ${filesFirstTimeUpdated[$f]} == "" || -z ${filesFirstTimeUpdated[$f]} ]]; then
-            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')
+            filesFirstTimeUpdated[$f]=$(date -r $fileStatusPath/$f +'%D %H:%M:%S')
          fi
          first=\"${filesFirstTimeUpdated[$f]}\"
-         last=\"$(date -r $fileStatusPath/$f +'%Y-%h-%d-T%H:%M:%S%z')\"
+         last=\"$(date -r $fileStatusPath/$f +'%D %H:%M:%S')\"
          fileSize=$(stat --printf='%s' $fileStatusPath/$f)
       fi
       echo -n \""$f\" : { \"exists\" : $e, \"size.bytes\" : $fileSize, \"time.updated\" : { \"first\" : $first, \"last\" : $last } }" >> $jsonfile

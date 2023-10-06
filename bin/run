@@ -5,10 +5,11 @@ if [ -z "$_ASGSH_PID" ]; then
   exit 1;
 fi
 
+source $SCRIPTDIR/monitoring/logging.sh
+
 _run() {
   if [ -n "${ASGS_CONFIG}" ]; then
-    echo "Running ASGS using the config file, '${ASGS_CONFIG}'"
-
+    consoleMessage "Starting ASGS ..."
     # NOTE: asgs_main.sh automatically extracts $SCRIPTDIR based on where it is located;
     # this means that asgs_main.sh will respect $SCRIPTDIR defined here by virtue of this capability.
     $SCRIPTDIR/asgs_main.sh -c $ASGS_CONFIG

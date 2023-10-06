@@ -193,8 +193,7 @@ checkDirExistence()
   THIS="asgs_main.sh>checkDirExistence()"
   if [[ -z $DIR ]]; then
      fatal "$THIS: The $TYPE was not specified in the configuration file."
-  fi
-  if [[ -e $DIR ]] ; then
+  elif [[ -e $DIR ]] ; then
      logMessage "$THIS: The $TYPE '$DIR' was found."
   else
      fatal "$THIS: The $TYPE '$DIR' does not exist."
@@ -1578,8 +1577,8 @@ done
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
-echo "(info) HPCENV is '$HPCENV'"
-echo "(info) HPCENVSHORT is '$HPCENVSHORT'"
+consoleMessage "HPCENV is '$HPCENV'"
+consoleMessage "HPCENVSHORT is '$HPCENVSHORT'"
 #
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
@@ -1799,7 +1798,8 @@ if [[ $HOTORCOLD = hotstart ]]; then
       curl $hotstartURL/run.properties > from.run.properties
    else
       # starting from a hotstart file on the local filesystem, not from a URL
-      checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
+      checkDirExistence $LASTSUBDIR "subdirectory containing the previous hotstart file"
+
       # check to make sure the COLDSTARTDATE was not set to "auto" in the
       # asgs config file (unless the run.properties file was also supplied)
       if [[ $COLDSTARTDATE = auto ]]; then
@@ -2068,7 +2068,7 @@ executeHookScripts "FINISH_SPINUP_STAGE"
 # Use for hindcast activities to end ASGS after the hindcast has been run
 if [[ "${HINDCASTONCE_AND_EXIT}" == "y" || "${HINDCASTONCE_AND_EXIT}" == "yes" ]]; then
    logMessage "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
-   echo "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
+   consoleMessage "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
    exit 0
 fi
 

@@ -357,9 +357,9 @@ writeTDSProperties()
 # set the values of HPCENV and HPCENVSHORT
 set_hpc() {
    local THIS="platforms.sh>set_hpc()"
-   echo "$THIS: Setting the values of HPCENV and HPCENVSHORT."
+   consoleMessage "$THIS: Setting the values of HPCENV and HPCENVSHORT."
    fqdn=$(hostname --long)
-   echo "$THIS: The fully qualified domain name is ${fqdn}."
+   consoleMessage "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
    if [[ ${fqdn:(-25)} = "stampede2.tacc.utexas.edu" ]]; then
@@ -411,8 +411,8 @@ set_hpc() {
       echo "$THIS: FATAL: Could not determine what platform the ASGS is running on."
       exit 1
    fi
-   echo "$THIS: The value of HPCENV is ${HPCENV}."
-   echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
+   consoleMessage "$THIS: The value of HPCENV is ${HPCENV}."
+   consoleMessage echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
 }
 
 # general init function for platforms defined using the
@@ -445,33 +445,32 @@ env_dispatch() {
  HPCENVSHORT=$1
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
- echo "${I} $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "queenbee") consoleMessage "$THIS: Queenbee (LONI) configuration found."
+  "queenbee")   # consoleMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "supermic") consoleMessage "$THIS: SuperMIC (LSU HPC) configuration found."
+  "supermic")   # consoleMessage "$THIS: SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "queenbeeC") consoleMessage "$THIS: QueenbeeC (LONI) configuration found."
+  "queenbeeC")  # consoleMessage "$THIS: QueenbeeC (LONI) configuration found."
           init_queenbeeC
           ;;
-  "lonestar5") consoleMessage "$THIS: Lonestar (TACC) configuration found."
+  "lonestar5")  # consoleMessage "$THIS: Lonestar (TACC) configuration found."
           init_lonestar5
           ;;
-  "stampede2") consoleMessage "$THIS: Stampede2 (TACC) configuration found."
+  "stampede2")  # consoleMessage "$THIS: Stampede2 (TACC) configuration found."
           init_stampede2
           ;;
-  "frontera") consoleMessage "$THIS: Frontera (TACC) configuration found."
+  "frontera")   # consoleMessage "$THIS: Frontera (TACC) configuration found."
           init_frontera
           ;;
-  "poseidon") consoleMessage "$THIS: Poseidon configuration found."
+  "poseidon")   # consoleMessage "$THIS: Poseidon configuration found."
           init_Poseidon
           ;;
-  "test") consoleMessage "$THIS: test environment (default) configuration found."
+  "test")       # consoleMessage "$THIS: test environment (default) configuration found."
           init_test
           ;;
-  *) # fallback for new method of initializing a platform
+  *)            # fallback for new method of initializing a platform
           init_platform
           ;;
   esac
