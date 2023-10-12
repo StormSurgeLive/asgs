@@ -45,6 +45,7 @@ LOGFILE=${SCENARIODIR}/enstorm_pedir_removal.sh.log
 # run configuration
 WAVES=${properties["coupling.waves"]}
 SWANHSCOMPRESSION=${properties["coupling.waves.swan.swanhscompression"]}
+SWANHSFULL=${properties["coupling.waves.swan.swanhsfull"]}
 hotstartcomp=${properties['adcirc.hotstartcomp']}
 #echo "hotstartcomp is $hotstartcomp" # jgfdebug
 #
@@ -97,6 +98,7 @@ if [[ $WAVES = on ]]; then
             fi
             scenarioMessage "$THIS: Finished creating tar archive of subdomain $file files." $LOGFILE
          ) &
+         if [[ $SWANHSFULL == "yes" ]]; then
          (
             scenarioMessage "$THIS: Creating fulldomain SWAN hotstart file from subdomain $file files." $LOGFILE
             ${SWANDIR}/$hSWANExe <<EndInput | tee $LOGFILE >> $SCENARIOLOG 2>&1
@@ -133,8 +135,8 @@ fi
 # set platform-specific value for the command used to remove directories
 # (some platforms have a special command that is nicer for their filesystem)
 REMOVALCMD="rm -rf"
-which rmpurge >/dev/null 2>&1 
-if [[ $? == 0 ]]; then 
+which rmpurge >/dev/null 2>&1
+if [[ $? == 0 ]]; then
    REMOVALCMD='rmpurge'
 fi
 THIS=archive/enstorm_pedir_removal.sh
