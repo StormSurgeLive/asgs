@@ -111,6 +111,9 @@ EndInput
             fi
             scenarioMessage "$THIS: Finished creating fulldomain SWAN hotstart file from subdomain $file files." $LOGFILE
          ) &
+         else
+            scenarioMessage "$THIS: Creation of fulldomain SWAN hotstart file was set to '$SWANHSFULL'."
+         fi
       fi
    done
 fi
