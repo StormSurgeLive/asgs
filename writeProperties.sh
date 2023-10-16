@@ -281,6 +281,7 @@ writeWaveCouplingProperties()
    echo "path.swandir : $SWANDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "coupling.waves.swan.reinitializeswan : $REINITIALIZESWAN" >> $STORMDIR_RUN_PROPERTIES
    echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR_RUN_PROPERTIES
+   echo "coupling.waves.swan.swanhsfull : $SWANHSFULL" >> $STORMDIR_RUN_PROPERTIES
    echo "swan.swandt : $SWANDT" >> $STORMDIR_RUN_PROPERTIES
    echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
    echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR_RUN_PROPERTIES
