@@ -501,6 +501,10 @@ if [[ -z "${CUSTOM_SRC}" && -n "${PATCHSET_DIR}" ]]; then
     # be patching in a third party directory
     pCOUNT=1
     patches=()
+    if [ -d "${ADCIRCBASE}/.git" ]; then 
+      echo "(info) .git detected, creating a branch named "${ADCIRC_PROFILE_NAME}" ..."
+      git checkout -b "${ADCIRC_PROFILE_NAME}"
+    fi
     for diff in $(find ${PATCHSET_DIR} -type f -name *.patch  | sort -n); do
       patches+=($diff)
       printf "applying patch %02d ... %s\n" $pCOUNT $diff
@@ -511,6 +515,13 @@ if [[ -z "${CUSTOM_SRC}" && -n "${PATCHSET_DIR}" ]]; then
         echo "(fatal) error applying patch: $diff"
         echo Exiting.
         exit $EXIT
+      fi
+      if [ -d "${ADCIRCBASE}/.git" ]; then 
+        echo "(info) .git detected, so making a commit after patch ..."
+        git commit -a -m "ASGS applied patch $pCOUNT
+
+$diff
+"
       fi
       _app_date=$(date "+%D %T %Z")
       echo "# $_app_date $diff" >> $BUILDSCRIPT
