@@ -1,0 +1,54 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Try::ALRM;
+use Util::H2O::More qw/ddd/;
+
+local %ENV = %ENV;
+
+#
+# set up round of checks done periodically, if any
+# alarms are triggered, send email alert STDERR, tec
+#
+
+# is aware of ASGS_CONFIG settings (e.g., TDS, etc)
+
+#
+# 1. Idea - have a directory to dump "checks" that can be run
+# via `system`, return a format similar to that NAGIOS YAM
+# at cp ... any executable in etc/asgs-mon.d that outputs the
+# following format and is set to run via commandline can be used
+#
+# --
+# status: OK | WARN | FATAL
+# warnings:
+#   - msg 1 ...
+#   - msg 2 ...
+#
+# 2. configuration happens in $HOME/asgs-global.conf
+#
+# Checks:
+# status check (status.json/run.properties)
+# log check (SYSLOG, mail-log)
+# queue check (info only)
+# SUs check
+# disk quota check
+# TDS server connectivity check
+# (eventually) register/check-in/deregister with external monitor
+#
+
+# readdir ??
+# ~/asgs-global.conf
+#;; need some kind of way to define a running environment
+#;; or situation - i.e., monitor an asgs run or monitor
+#;; benchmarks, etc... - may need to use YAML
+#[asgs-mon]
+#000-heartbeat=1
+#001-status-check=1
+#002-log-check=1
+#003-queue-check=1
+#004-SU-check=1
+#005-du-check=1
+#006-tds-check=1
