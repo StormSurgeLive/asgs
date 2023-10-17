@@ -540,6 +540,13 @@ patch_files() {
 $diff
 "
       fi
+      if [ -d "${ADCIRCBASE}/.git" ]; then 
+        echo "(info) .git detected, so making a commit after patch ..."
+        git commit -a -m "ASGS applied patch $pCOUNT
+
+$diff
+"
+      fi
       _app_date=$(date "+%D %T %Z")
       echo "# $_app_date $diff" >> $BUILDSCRIPT
       pCOUNT=$((pCOUNT+1))
