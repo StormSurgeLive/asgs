@@ -96,11 +96,16 @@ if [ -d "./platforms" ]; then
     if [ -e ./platforms/${platform}/init.sh ]; then
       about='(repo defined)'
       _PLATFORM_INIT[$platform]=$(readlink -f "./platforms/${platform}/init.sh")
+      about=
       if [ -e ./platforms/${platform}/about.txt ]; then
         about=$(cat ./platforms/${platform}/about.txt | sed 's/\n//g')
       fi
+      seereadme=
+      if [ -e ./platforms/${platform}/README ]; then
+        seereadme=" (see, ./platforms/$platform/README)"
+      fi
       if [ -z "$BATCH" ]; then
-        printf "% -14s - %s\n" "$platform" "$about"
+        printf "% -14s - %s%s\n" "$platform" "$about" "$seereadme"
       fi
     fi
   done
