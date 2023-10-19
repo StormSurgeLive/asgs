@@ -331,12 +331,16 @@ writeTDSProperties()
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
       echo "post.opendap.${SERVER}.copyablehosts : ( ls6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
       ;;
-   *) # if not found, look in ./thredds-servers where we add new servers now
+   *) # if not found, look in $SCRIPTDIR/ssh-servers where we add new servers now
       local SERVERDEF="${SCRIPTDIR}/ssh-servers/${SERVER}.sh"
-      consoleMessage $SERVERDEF
+      # if not found in ./ssh-servers and ASGS_LOCAL_DIR is defined, look in $ASGS_LOCAL_DIR/ssh-servers/
+      local LOCALSERVERDEF="${ASGS_LOCAL_DIR}/ssh-servers/${SERVER}.sh"
       if [ -e "$SERVERDEF" ]; then
-        consoleMessage "$THIS: Found THREDDS Data Server $SERVER in $SCRIPTDIR/$SERVER.sh"
-	      source "$SERVERDEF"
+        consoleMessage "$THIS: Found THREDDS Data Server $SERVER in ${SERVERDEF}.sh"
+        source "$SERVERDEF"
+      elif [[ -d "${ASGS_LOCAL_DIR}" && -e "${LOCALSERVERDEF}" ]]; then
+        consoleMessage "$THIS: Found THREDDS Data Server $SERVER in ${LOCALSERVERDEF}.sh"
+        source "$LOCALSERVERDEF"
       else
         consoleMessage "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
       fi
