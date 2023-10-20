@@ -1011,6 +1011,7 @@ delete() {
       fi
       ;;
     statefile)
+     load profile $_ASGSH_CURRENT_PROFILE
      if [[ -z "${STATEFILE}" ]]; then
        echo STATEFILE is not defined.
        _unset_statevars
@@ -1038,6 +1039,7 @@ delete() {
 move() {
   case "${1}" in
     statefile)
+     load profile $_ASGSH_CURRENT_PROFILE
      if [[ -z "${STATEFILE}" || ! -e "${STATEFILE}" ]]; then
        echo "${W} '${STATEFILE}' is not set or doesn't exist."
        _unset_statevars
