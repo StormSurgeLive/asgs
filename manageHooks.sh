@@ -179,6 +179,7 @@ executeHookScripts()
     timestampHook $hook
     if [[ $hook != "START_INIT" ]]; then
         logMessage "$THIS: Executing scripts for the $hook hook."
+        consoleMessage "Executing scripts for the $hook hook."
         # write status immediately, in case one of the hook scripts
         # wants to post the status file somewhere
         # (can't write status file immediately for the START_INIT script
