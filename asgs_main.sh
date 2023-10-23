@@ -7,7 +7,7 @@
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
 # Copyright(C) 2006--2023 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2022 Brett Estrade
+# Copyright(C) 2006--2007, 2019--2023 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -30,6 +30,43 @@ THIS=$(basename -- $0)
 #####################################################################
 #                B E G I N   F U N C T I O N S
 #####################################################################
+spinner()
+{
+   # $1 is the time limit in seconds to spin in seconds
+   #    (0 to spin forever or until associated process exits)
+   # $2 is the (optional) process ID to wait on
+   #    (if both pid and time limit were provided, and
+   #     time limit is exceeded before the process exits,
+   #     this function returns an error code for the calling
+   #     routine to interpret and deal with)
+   local spin='-\|/'
+   local i=0
+   local j=0
+   while [[ $j -le $1 ]]; do
+      i=$(( (i+1) %4 ))
+      printf "\b${spin:$i:1}" # to the console
+      sleep 1
+      # if there is a process ID, and the associated process
+      # has finished, break out of the loop
+      if [[ ! -z $2 ]]; then
+         if ! kill -0 $2 >> /dev/null 2>&1 ; then
+            return 0  # process we were waiting on has exited
+         fi
+         if [[ $1 -eq 0 ]]; then
+            # wait indefinitely for process to end
+            j=$(( (j-1) ))
+         fi
+      fi
+      j=$(( (j+1) ))
+   done
+   # time limit has been reached; return success unless
+   # process ID was also provided
+   if [[ ! -z $2 ]]; then
+      return 1  # process we are waiting on is still running
+   else
+      return 0  # we successfully waited for the right amount of time
+   fi
+}
 
 # reads/rereads+rebuilds derived variables
 # Sets default values for many different asgs parameters;
@@ -39,6 +76,7 @@ THIS=$(basename -- $0)
 # value in this script itself (in variables_init())
 readConfig()
 {
+   logMessage "Resetting defaults and then re-reading configuration."
    # Initialize variables accessed from ASGS config parameters to reasonable values
    source ${SCRIPTDIR}/config/config_defaults.sh
    # Initialize model parameters to appropriate values
@@ -126,14 +164,21 @@ checkFileExistence()
         fi
         # attempt to download the file
         logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        $downloadCMD 2> errmsg
+        consoleMessage "$I Downloading '${FNAME}.xz'"
+        $downloadCMD 2> errmsg &
+        local pid=$!
+        spinner 120 $pid  # hardcode that it should not take longer than 2 minutes to download in any case
         local err=$?
         if [[ $err == 0 ]]; then
            logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
-           xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
+           consoleMessage "$I Uncompressing '${FNAME}.xz'."
+           xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`." &
+           pid=$!
+           spinner 120 $pid
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
         else
-           warn "$THIS: Failed to download $FTYPE from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+           consoleMessage "$W Failed to download ${FNAME}.xz"
+           logMessage "$THIS: Failed to download $FTYPE from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
      fi
   fi
@@ -171,9 +216,14 @@ checkArchiveFreshness()
          logMessage "$THIS: The subdomain archive file $SCRATCHDIR/$archiveFile does not exist."
          continue
       fi
-      for inputFile in $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE; do
+      # jgfdebug:: for some meshes, $NAFILE is undefined but this case is not handled
+      inputFiles=( $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS )
+      if [[ ! -z $NAFILE && $NAFILE != "null" ]]; then
+         inputFiles+=( $NAFILE )
+      fi
+      for inputFile in ${inputFiles[@]}; do
          if [ ! -e $INPUTDIR/$inputFile ]; then
-            warn "$THIS: The input file $INPUTDIR/$inputFile does not exist."
+            consoleMessage "$W The input file $INPUTDIR/$inputFile does not exist."
             continue
          fi
          # see if the archiveFile is older than inputFile
@@ -556,7 +606,8 @@ prep()
           # found. This is a stopgap until a proper sanity check on the file
           # copy process can be implemented.
           logMessage "$ENSTORM: $THIS: Pausing 30 seconds after copying subdomain hotstart files."
-          sleep 30
+          consoleMessage "$I Pausing 30 seconds after copying subdomain hotstart files."
+          spinner 30
        fi
        #
        #  H O T S T A R T I N G   S W A N
@@ -582,6 +633,7 @@ prep()
              logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run started at $swanArchiveStart."
              waitMinutes=0 # number of minutes waiting for the archiving process to complete
              waitMinutesMax=60  # max number of minutes to wait for upstream archiving process to finish
+             consoleMessage "$I Waiting for SWAN hotstart file archive to be completed."
              while [[ $waitMinutes -lt $waitMinutesMax ]]; do
                 # wait until it is finished or has errored out
                 logMessage "$ENSTORM: $THIS: Detecting finish or error condition for archiving SWAN hotstart files in ${FROMDIR}."
@@ -591,16 +643,20 @@ prep()
                    logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run has finished."
                    break
                 else
-                   sleep 60
+                   printf "."
+                   spinner 60
+                   printf "\b.." # progress bar
                    waitMinutes=$(($waitMinutes + 1))
                 fi
              done
              if [[ $waitMinutes -ge 60 ]]; then
-                warn "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."
+                logMessage "$ENSTORM: $THIS: The archiving process for the hotstart source run did not finish within $watiMinutesMax minutes. Attempting to collect SWAN hotstart files anyway."
+                consoleMessage "$W Archiving for SWAN hotstart files did not complete within the time limit."
              fi
           else
              # FIXME: how to handle this situation?
-             warn "$ENSTORM: $THIS: The SWAN hotstart archiving process has not started in ${FROMDIR}."
+             logMessage "$ENSTORM: $THIS: The SWAN hotstart archiving process has not started in ${FROMDIR}."
+             consoleMessage "$W The SWAN hotstart archiving process has not started."
           fi
           logMessage "$ENSTORM: $THIS: Detecting number of subdomains for SWAN hotstart files in ${FROMDIR}."
           hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.ncpu\s*:\s*//p' $FROMDIR/run.properties`
@@ -626,7 +682,8 @@ prep()
                 # found. This is a stopgap until a proper sanity check on the file
                 # copy process can be implemented.
                 logMessage "$ENSTORM: $THIS: Pausing 30 seconds after copying SWAN subdomain hotstart files."
-                sleep 30
+                consoleMessage "Pausing 30 seconds after copying SWAN subdomain hotstart files."
+                spinner 30
                 swanHotstartOK=yes
              fi
              # subdomain SWAN hotstart files in a tar archive
@@ -861,9 +918,11 @@ prepFile()
             break # job submission command returned a "success" status
          else
             awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
-            warn "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in 60 seconds."
+            logMessage "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in '$jobSubmitInterval' seconds."
+            consoleMessage "$W Submission of ${JOBTYPE}.${queuesyslc} failed. Waiting to retry."
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-            sleep $jobSubmitInterval
+            spinner $jobSubmitInterval
+
          fi
       done
       monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
@@ -913,6 +972,7 @@ downloadCycloneData()
     logMessage "$THIS: Checking remote site for new advisory..." $APPLOGFILE
 #    pid=$!; trap "stop_activity_indicator ${pid}; exit" EXIT
     cd $RUNDIR 2>> ${SYSLOG}
+    local cycloneDataCheckInterval=60 # seconds
     newAdvisory=false
     newAdvisoryNum=null
     forecastFileName=al${STORM}${YEAR}.fst
@@ -984,7 +1044,9 @@ downloadCycloneData()
           newAdvisory="true"
        fi
        if [[ $newAdvisory = false ]]; then
-          sleep 60 # we are hotstarting, the advisory is same as last one
+          printf "."  # progress bar
+          spinner $cycloneDataCheckInterval
+          printf "\b.."
        fi
     done
     logMessage "$THIS: New forecast detected." $APPLOGFILE
@@ -1040,8 +1102,9 @@ downloadRiverFluxData()
             break
          else
             TRIES=$[$TRIES + 1]
-            warn "$ENSTORM: $THIS: Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 2 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
-            sleep 60
+            logMessage "$ENSTORM: $THIS: Attempt $TRIES at constructing river flux boundary condition (fort.20) file has failed. After 2 attempts, the default flux boundary condition file '$DEFAULTFILE' will be used."
+            consoleMessage "$W Constructing river flux boundary condition (fort.20) file has failed."
+            spinner 60
          fi
       done
    fi
@@ -1257,6 +1320,7 @@ submitJob()
    WALLTIME=${13}
    JOBTYPE=${14}
    #
+   consoleMessage "$I Submitting $ENSTORM $JOBTYPE job."
    THIS="asgs_main.sh>submitJob()"
    STORMDIR=${ADVISDIR}/${ENSTORM}
    #
@@ -1383,9 +1447,12 @@ submitJob()
          echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
          # terminate redirect processes for centralized logging
+         consoleMessage "$I Job has completed, waiting for job i/o to finalize."
          sleep 30 # give buffers a chance to flush to the filesystem
          finalizeCentralizedScenarioLogging
       ) &
+      local pid=$!
+      spinner 0 $pid
       # write the process id to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
       local subshellPID=$!
@@ -1411,13 +1478,14 @@ submitJob()
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
-            warn "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
+            logMessage "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
+            consoleMessage "$W ${JOBTYPE}.${queuesys} job submission failed. Waiting to retry."
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             writeScenarioFilesStatus  # final status update for files
             if [[ $enablePostStatus == "yes" ]]; then
                postScenarioStatus
             fi
-            sleep $jobSubmitInterval
+            spinner $jobSubmitInterval
          fi
       done
       writeScenarioFilesStatus  # final status update for files
@@ -1458,6 +1526,8 @@ submitJob()
          sleep 30 # give buffers a chance to flush to the filesystem
          finalizeCentralizedScenarioLogging
       ) &
+      local pid=$!
+      spinner 0 $pid
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
       echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
@@ -1578,13 +1648,12 @@ done
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
-echo "(info) HPCENV is '$HPCENV'"
-echo "(info) HPCENVSHORT is '$HPCENVSHORT'"
 #
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
 nullifyHooks          # in manageHooks.sh
 #
+consoleMessage "$I START_INIT $GRIDNAME $HPCENVSHORT"
 executeHookScripts "START_INIT"
 #
 # set a trap for a signal to reread the ASGS config file
@@ -1611,6 +1680,7 @@ if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
    if [[ -e $STATEFILE ]]; then
       logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
+      consoleMessage "$I Reading $STATEFILE for previous ASGS state."
       source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
       if [[ $LASTSUBDIR = null ]]; then
          HOTORCOLD=coldstart
@@ -1620,6 +1690,7 @@ if [[ $ONESHOT = yes ]]; then
       fi
    else
       # if the state file is not there, just start from cold
+      consoleMessage "$I '$STATEFILE' was not found. Creating a new statefile."
       logMessage "$THIS: The statefile '$STATEFILE' was not found. The ASGS will start cold and create a new statefile."
       HOTORCOLD=coldstart
    fi
@@ -1630,6 +1701,7 @@ else
    STATEFILE=${SCRATCHDIR}/${INSTANCENAME}.state
    if [[ -e $STATEFILE ]]; then
       logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
+      consoleMessage "$I Reading '$STATEFILE'."
       source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
       if [[ $LASTSUBDIR = null ]]; then
          HOTORCOLD=coldstart
@@ -1667,6 +1739,10 @@ logMessage "$THIS: Set permissions with the following umask: $UMASK."
 logMessage "$THIS: Configured the ASGS for the ${HPCENV} platform."
 logMessage "$THIS: Configured the ASGS according to the file ${CONFIG}."
 logMessage "$THIS: ASGS state file is ${STATEFILE}."
+#
+consoleMessage "$I SYSLOG: '${SYSLOG}'"
+consoleMessage "$I CONFIG: '${CONFIG}'"
+consoleMessage "$I Verifying that required files and directories actually exist."
 #
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
@@ -1746,6 +1822,7 @@ hotstartSuffix=.nc
 hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
+   consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
    urlCheck=$(expr match "$LASTSUBDIR" 'http')
    if [[ $urlCheck -eq 4 ]]; then
@@ -1774,6 +1851,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
    # FIXME: this also assumes that the hotstart format for this instance
    # is the same as the hotstart format that is being read
    if [[ $hotstartURL != "null" ]]; then
+      consoleMessage "$I Downloading hotstart file."
       debugMessage "The current directory is ${PWD}."
       debugMessage "The run directory is ${RUNDIR}."
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
@@ -1820,12 +1898,12 @@ fi
 if [[ -e ${RUNARCHIVEBASE}/${PREPPEDARCHIVE} ]]; then
    logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}."
 else
-   warn "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}. It will be recreated."
+   logMessage "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}. It will be recreated."
 fi
 if [[ -e ${RUNARCHIVEBASE}/${HINDCASTARCHIVE} ]]; then
    logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}."
 else
-   warn "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}. It will be recreated."
+   logMessage "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}. It will be recreated."
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
@@ -1856,6 +1934,7 @@ fi
 # initialize the directory where this instance of the ASGS will run and
 # keep all its files
 logMessage "$THIS: The directory $RUNDIR will be used for all files associated with this execution of the ASGS."
+consoleMessage "$I RUNDIR: '$RUNDIR'"
 # add the run directory to the list of alternate directories to look for
 # NAM data in
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
@@ -1926,6 +2005,7 @@ if [[ $START = coldstart ]]; then
    NWS=0
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
    HINDCASTLENGTH=${HINDCASTLENGTH:-30.0} # needed or --endtime swallows "--nws" in control_file_gen.pl options
+   consoleMessage "$I Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstart time is '$CSDATE'."
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
@@ -2214,6 +2294,7 @@ while [ true ]; do
       ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
       CYCLE=$ADVISORY
       executeHookScripts "NOWCAST_TRIGGERED"
+      consoleMessage "$I Advisory '$CYCLE'"
       ADVISDIR=$RUNDIR/${ADVISORY}
       if [ ! -d $ADVISDIR ]; then
           mkdir $ADVISDIR 2>> ${SYSLOG}
@@ -2366,6 +2447,7 @@ while [ true ]; do
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
          executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
+         consoleMessage "$I NAM cycle '$ADVISORY'"
          ADVISDIR=$RUNDIR/${ADVISORY}
          CYCLEDIR=$ADVISDIR
          CYCLELOG=$CYCLEDIR/cycle.log
@@ -2443,6 +2525,7 @@ while [ true ]; do
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
          executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
+         consoleMessage "$I GFS cycle '$ADVISORY'"
 
          writeScenarioProperties $SCENARIODIR
          cd $SCENARIODIR 2>> $SYSLOG
@@ -2594,7 +2677,7 @@ while [ true ]; do
    done
 
    if [[ $RUNNOWCAST = yes ]]; then
-      allMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
+      logMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
 
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
@@ -2640,6 +2723,7 @@ while [ true ]; do
       cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       #
       executeHookScripts "SUBMIT_NOWCAST_SCENARIO"
+      consoleMessage "$I $(head fort.15 | awk 'NR==2 { print $0 }')"
       #
       logMessage "$ENSTORM: $THIS: submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE"
       writeJobResourceRequestProperties ${ADVISDIR}/${ENSTORM}
@@ -2709,7 +2793,7 @@ while [ true ]; do
    executeHookScripts "START_FORECAST_STAGE"
    #
    ENSTORM="forecast"
-   allMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
+   logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
 
    # clear orphaned logging processes (if any)
    findAndClearOrphans
@@ -2732,6 +2816,7 @@ while [ true ]; do
       readConfig
       SCENARIO=$ENSTORM
       executeHookScripts "INITIALIZE_FORECAST_SCENARIO" # now that we know the name of the scenario
+      consoleMessage "$I Scenario '$SCENARIO'"
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
@@ -2838,7 +2923,7 @@ while [ true ]; do
                break      # we now have the spare capacity to run this scenario
             else
                logMessage "$ENSTORM: $THIS: Insufficient capacity to submit the next job. Sleeping for 1 minute."
-               sleep 60   # not enough cores available; sleep for a minute, then recheck/recalculate
+               spinner 60   # not enough cores available; sleep for a minute, then recheck/recalculate
             fi
          done
       fi
@@ -3128,12 +3213,13 @@ while [ true ]; do
          fi
       fi
       # then submit the job
-      allMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
+      logMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
       writeJobResourceRequestProperties $SCENARIODIR
 
       echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
       #
       executeHookScripts "SUBMIT_FORECAST_SCENARIO"
+      consoleMessage "$I $(head fort.15 | awk 'NR==2 { print $0 }')"
 
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
@@ -3174,8 +3260,9 @@ while [ true ]; do
    SCENARIOLOG=null
    THIS="asgs_main.sh"
    # allow all scenarios and associated post processing to complete
-   logMessage "$ENSTORM: $THIS: All forecast scenarios have been submitted."
+   logMessage "$ENSTORM: $THIS: Finished with forecast scenarios for cycle '$ADVISORY'."
    #
+   consoleMessage "$I Finished with forecast scenarios for cycle '$ADVISORY'."
    executeHookScripts "FINISH_FORECAST_STAGE"
    #
    LASTSUBDIR=null # don't need this any longer
