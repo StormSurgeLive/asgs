@@ -22,7 +22,7 @@
 #-----------------------------------------------------------------------
 #
 THIS=$(basename -- $0)
-# Count command line arguments; use them if provided or use 
+# Count command line arguments; use them if provided or use
 # run.properties if not.
 declare -A properties
 SCENARIODIR=$PWD
@@ -32,13 +32,13 @@ if [[ $# -eq 1 ]]; then
 fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
-echo "Loading properties."
+# echo "Loading properties."
 # get loadProperties function
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
-echo "Finished loading properties."
+# echo "Finished loading properties."
 # now set variables that would otherwise be set by command line arguments
 CONFIG=${properties['config.file']}
 CYCLEDIR=${properties['path.advisdir']}
@@ -61,7 +61,7 @@ if [[ $TROPICALCYCLONE != "off" ]]; then
 else
    STORM="null"
    YEAR=${CYCLE:0:4}
-fi      
+fi
 #
 SCENARIODIR=${CYCLEDIR}/${SCENARIO}       # shorthand
 CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
@@ -70,7 +70,7 @@ source ${SCRIPTDIR}/monitoring/logging.sh
 source ${SCRIPTDIR}/platforms.sh
 # dispatch environment (using the functions in platforms.sh)
 env_dispatch ${HPCENVSHORT}
-allMessage "$SCENARIO: $THIS: Starting post processing."
+logMessage "$SCENARIO: $THIS: Starting post processing for adding Wind10m layer."
 scenarioMessage "$THIS: SCENARIO=$SCENARIO ; SCENARIODIR=$SCENARIODIR"
 cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not change directory to $SCENARIODIR: `cat $errmsg`"
 #
@@ -79,7 +79,7 @@ cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could n
 #-----------------------------------------------------------------------
 # If winds at 10m (i.e., wind velocities that do not include the effect
 # of land interaction from nodal attributes line directional wind roughness
-# and canopy coefficient) were produced by another ensemble member, 
+# and canopy coefficient) were produced by another ensemble member,
 # then include these winds in the post processing
 wind10mFound=no
 dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
