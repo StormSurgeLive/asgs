@@ -95,7 +95,7 @@ timestampHook()
            status=\"${mypath}/${file}\"
            # the URL should be in the $SCENARIODIR/status/run.properties file
            # as the downloadurl property
-           if [[ $file == "scenario.status.json" || -e $RUNDIR/$mypath/status/run.properties ]]; then
+           if [[ $file == "scenario.status.json" && -e $RUNDIR/$mypath/status/run.properties ]]; then
                local downloadurl=$(grep downloadurl $RUNDIR/$mypath/status/run.properties)
                if [[ ! -z $downloadurl && $downloadurl != "" ]]; then
                    statusURL=\"${downloadurl##downloadurl : }/$file\"
@@ -179,6 +179,7 @@ executeHookScripts()
     timestampHook $hook
     if [[ $hook != "START_INIT" ]]; then
         logMessage "$THIS: Executing scripts for the $hook hook."
+        consoleMessage "$I ${hook}"
         # write status immediately, in case one of the hook scripts
         # wants to post the status file somewhere
         # (can't write status file immediately for the START_INIT script

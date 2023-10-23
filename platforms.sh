@@ -336,13 +336,13 @@ writeTDSProperties()
       # if not found in ./ssh-servers and ASGS_LOCAL_DIR is defined, look in $ASGS_LOCAL_DIR/ssh-servers/
       local LOCALSERVERDEF="${ASGS_LOCAL_DIR}/ssh-servers/${SERVER}.sh"
       if [ -e "$SERVERDEF" ]; then
-        consoleMessage "$THIS: Found THREDDS Data Server $SERVER in ${SERVERDEF}.sh"
+        consoleMessage "$I Found THREDDS Data Server $SERVER in ${SERVERDEF}.sh"
         source "$SERVERDEF"
       elif [[ -d "${ASGS_LOCAL_DIR}" && -e "${LOCALSERVERDEF}" ]]; then
-        consoleMessage "$THIS: Found THREDDS Data Server $SERVER in ${LOCALSERVERDEF}.sh"
+        consoleMessage "$I Found THREDDS Data Server $SERVER in ${LOCALSERVERDEF}.sh"
         source "$LOCALSERVERDEF"
       else
-        consoleMessage "$THIS: ERROR: THREDDS Data Server $SERVER was not recognized."
+        consoleMessage "$W ERROR: THREDDS Data Server $SERVER was not recognized."
       fi
       ;;
    esac
@@ -425,20 +425,22 @@ init_platform()
 {
   local INIT=${1:-"$PLATFORM_INIT"}
   if [ -z "${INIT}" ]; then
-    echo "${W} platform init script must be specified as the first argument! No platform init.sh known."
+    consoleMessage "${W} platform init script must be specified as the first argument! No platform init.sh known."
     return
   fi
   if [ ! -e "${INIT}" ]; then
-    echo "${W} Can't find init script, '$INIT'! No platform selected."
+    logMessage "${W} Can't find init script, '$INIT'! No platform selected."
+    consoleMessage "${W} Can't find init script, '$INIT'! No platform selected."
     return
   fi
-  printf "... attempting to load '$INIT' ... "
+  logMessage "... attempting to load '$INIT' ... "
   source $INIT
   if [ $? -eq 0 ]; then
-    printf "OK\n"
+    logMessage "OK"
   else
     echo
-    echo "${W} Failed to load '$INIT'! No platform selected."
+    logMessage "${W} Failed to load '$INIT'! No platform selected."
+    consoleMessage "${W} Failed to load '$INIT'! No platform selected."
   fi
   return
 }
@@ -449,30 +451,29 @@ env_dispatch() {
  HPCENVSHORT=$1
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
- echo "${I} $THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "queenbee") consoleMessage "$THIS: Queenbee (LONI) configuration found."
+  "queenbee") consoleMessage "$I Queenbee (LONI) configuration found."
           init_queenbee
           ;;
-  "supermic") consoleMessage "$THIS: SuperMIC (LSU HPC) configuration found."
+  "supermic") consoleMessage "$I SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
-  "queenbeeC") consoleMessage "$THIS: QueenbeeC (LONI) configuration found."
+  "queenbeeC") consoleMessage "$I QueenbeeC (LONI) configuration found."
           init_queenbeeC
           ;;
-  "lonestar5") consoleMessage "$THIS: Lonestar (TACC) configuration found."
+  "lonestar5") consoleMessage "$I Lonestar (TACC) configuration found."
           init_lonestar5
           ;;
-  "stampede2") consoleMessage "$THIS: Stampede2 (TACC) configuration found."
+  "stampede2") consoleMessage "$I Stampede2 (TACC) configuration found."
           init_stampede2
           ;;
-  "frontera") consoleMessage "$THIS: Frontera (TACC) configuration found."
+  "frontera") consoleMessage "$I Frontera (TACC) configuration found."
           init_frontera
           ;;
-  "poseidon") consoleMessage "$THIS: Poseidon configuration found."
+  "poseidon") consoleMessage "$I Poseidon configuration found."
           init_Poseidon
           ;;
-  "test") consoleMessage "$THIS: test environment (default) configuration found."
+  "test") consoleMessage "$I test environment (default) configuration found."
           init_test
           ;;
   *) # fallback for new method of initializing a platform

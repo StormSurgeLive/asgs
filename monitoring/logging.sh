@@ -6,7 +6,7 @@
 # requires logging capabilities.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2021 Jason Fleming
+# Copyright(C) 2012--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -102,12 +102,11 @@ setSyslogFileName()
    local DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
    if [[ ! -d $WORK/log ]]; then
       mkdir -p $WORK/log
-      echo "[$DATETIME] INFO: Created subdirectory for ASGS log files : '$WORK/log'."
+      consoleMessage "$I Created log directory '$WORK/log'"
    else
-      echo "[$DATETIME] INFO: Found subdirectory for ASGS log files : '$WORK/log'."
+      consoleMessage "$I Found log directory '$WORK/log'"
    fi
    SYSLOG=${SYSLOG:-$WORK/log/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log}
-   consoleMessage "Set ASGS log file parameter SYSLOG to '$SYSLOG'." $SYSLOG
 }
 #
 # write an INFO-level message to the main asgs log file
@@ -162,10 +161,11 @@ appMessage()
 }
 #
 # send a message to the console (i.e., window where the script was started)
-# (these should be rare)
+# (these should be strategic to enable real time progress monitoring,
+# not forensic troubleshooting or focused debugging)
 consoleMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] ATTN: $1"
+{ local DATETIME=`date +'%Y%m%d-%H%M%S'`
+  MSG="[${DATETIME}] $1"
   echo ${MSG}
   if [[ -e $2 ]]; then
      echo ${MSG} >> $2
