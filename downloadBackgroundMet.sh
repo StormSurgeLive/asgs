@@ -118,6 +118,7 @@ downloadBackgroundMet()
         TRIES=0
         while [[ $latestCycle -le $lastCycle ]]; do
             if [[ $TRIES -ne 0 ]]; then
+                printf "."  # progress bar
                 sleep 60
             fi
             ((TRIES++))

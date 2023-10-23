@@ -162,10 +162,11 @@ appMessage()
 }
 #
 # send a message to the console (i.e., window where the script was started)
-# (these should be rare)
+# (these should be strategic to enable real time progress monitoring,
+# not forensic troubleshooting or focused debugging)
 consoleMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] ATTN: $1"
+{ local DATETIME=`date +'%Y%m%d-%H%M%S'`
+  MSG="[${DATETIME}] $1"
   echo ${MSG}
   if [[ -e $2 ]]; then
      echo ${MSG} >> $2
