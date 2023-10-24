@@ -7,7 +7,7 @@
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
 # Copyright(C) 2006--2023 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2022 Brett Estrade
+# Copyright(C) 2006--2007, 2019--2023 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -126,12 +126,12 @@ checkFileExistence()
         fi
         # attempt to download the file
         logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        consoleMessage "Downloading '${FNAME}.xz'."
+        consoleMessage "$I Downloading '${FNAME}.xz'."
         $downloadCMD 2> errmsg
         local err=$?
         if [[ $err == 0 ]]; then
            logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
-           consoleMessage "Uncompressing '${FNAME}.xz'."
+           consoleMessage "$I Uncompressing '${FNAME}.xz'."
            xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`."
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
         else
@@ -1260,7 +1260,7 @@ submitJob()
    WALLTIME=${13}
    JOBTYPE=${14}
    #
-   consoleMessage "Submitting $ENSTORM $JOBTYPE job."
+   consoleMessage "$I Submitting $ENSTORM $JOBTYPE job."
    THIS="asgs_main.sh>submitJob()"
    STORMDIR=${ADVISDIR}/${ENSTORM}
    #
@@ -1582,14 +1582,14 @@ done
 if [[ $HPCENVSHORT = "null" ]]; then
    set_hpc
 fi
-consoleMessage "HPCENV is '$HPCENV'"
-consoleMessage "HPCENVSHORT is '$HPCENVSHORT'"
+consoleMessage "$I HPCENV is '$HPCENV'"
+consoleMessage "$I HPCENVSHORT is '$HPCENVSHORT'"
 #
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
 nullifyHooks          # in manageHooks.sh
 #
-consoleMessage "Executing scripts for the START_INIT hook."
+consoleMessage "$I Executing scripts for the START_INIT hook."
 executeHookScripts "START_INIT"
 #
 # set a trap for a signal to reread the ASGS config file
@@ -1616,7 +1616,7 @@ if [[ $ONESHOT = yes ]]; then
    # if it is there, read it
    if [[ -e $STATEFILE ]]; then
       logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
-      consoleMessage "Reading $STATEFILE for previous ASGS state."
+      consoleMessage "$I Reading $STATEFILE for previous ASGS state."
       source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
       if [[ $LASTSUBDIR = null ]]; then
          HOTORCOLD=coldstart
@@ -1626,7 +1626,7 @@ if [[ $ONESHOT = yes ]]; then
       fi
    else
       # if the state file is not there, just start from cold
-      consoleMessage "'$STATEFILE' was not found. Creating a new statefile."
+      consoleMessage "$I '$STATEFILE' was not found. Creating a new statefile."
       logMessage "$THIS: The statefile '$STATEFILE' was not found. The ASGS will start cold and create a new statefile."
       HOTORCOLD=coldstart
    fi
@@ -1637,7 +1637,7 @@ else
    STATEFILE=${SCRATCHDIR}/${INSTANCENAME}.state
    if [[ -e $STATEFILE ]]; then
       logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
-      consoleMessage "Reading '$STATEFILE'."
+      consoleMessage "$I Reading '$STATEFILE'."
       source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
       if [[ $LASTSUBDIR = null ]]; then
          HOTORCOLD=coldstart
@@ -1676,8 +1676,8 @@ logMessage "$THIS: Configured the ASGS for the ${HPCENV} platform."
 logMessage "$THIS: Configured the ASGS according to the file ${CONFIG}."
 logMessage "$THIS: ASGS state file is ${STATEFILE}."
 #
-consoleMessage "SYSLOG: '${SYSLOG}'"
-consoleMessage "CONFIG: '${CONFIG}'"
+consoleMessage "$I SYSLOG: '${SYSLOG}'"
+consoleMessage "$I CONFIG: '${CONFIG}'"
 consoleMessage "Verifying that required files and directories actually exist."
 #
 checkDirExistence $INPUTDIR "directory for input files"
@@ -1758,7 +1758,7 @@ hotstartSuffix=.nc
 hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 if [[ $HOTORCOLD = hotstart ]]; then
-   consoleMessage "Acquiring hotstart file."
+   consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
    urlCheck=$(expr match "$LASTSUBDIR" 'http')
    if [[ $urlCheck -eq 4 ]]; then
@@ -1787,7 +1787,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
    # FIXME: this also assumes that the hotstart format for this instance
    # is the same as the hotstart format that is being read
    if [[ $hotstartURL != "null" ]]; then
-      consoleMessage "Downloading hotstart file."
+      consoleMessage "$I Downloading hotstart file."
       debugMessage "The current directory is ${PWD}."
       debugMessage "The run directory is ${RUNDIR}."
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
@@ -1870,7 +1870,7 @@ fi
 # initialize the directory where this instance of the ASGS will run and
 # keep all its files
 logMessage "$THIS: The directory $RUNDIR will be used for all files associated with this execution of the ASGS."
-consoleMessage "RUNDIR: '$RUNDIR'."
+consoleMessage "$I RUNDIR: '$RUNDIR'."
 # add the run directory to the list of alternate directories to look for
 # NAM data in
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
@@ -1941,7 +1941,7 @@ if [[ $START = coldstart ]]; then
    NWS=0
    OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
    HINDCASTLENGTH=${HINDCASTLENGTH:-30.0} # needed or --endtime swallows "--nws" in control_file_gen.pl options
-   consoleMessage "Coldstarting."
+   consoleMessage "$I Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstart time is '$CSDATE'."
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
