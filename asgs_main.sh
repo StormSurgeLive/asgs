@@ -1834,12 +1834,12 @@ fi
 if [[ -e ${RUNARCHIVEBASE}/${PREPPEDARCHIVE} ]]; then
    logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}."
 else
-   warn "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}. It will be recreated."
+   logMessage "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${PREPPEDARCHIVE}. It will be recreated."
 fi
 if [[ -e ${RUNARCHIVEBASE}/${HINDCASTARCHIVE} ]]; then
    logMessage "$THIS: Found archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}."
 else
-   warn "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}. It will be recreated."
+   logMessage "$THIS: Could not find archive of preprocessed input files ${RUNARCHIVEBASE}/${HINDCASTARCHIVE}. It will be recreated."
 fi
 #
 checkFileExistence $OUTPUTDIR "postprocessing initialization script" $INITPOST
@@ -2610,7 +2610,7 @@ while [ true ]; do
    done
 
    if [[ $RUNNOWCAST = yes ]]; then
-      allMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
+      logMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
 
       # get river flux nowcast data, if configured to do so
       if [[ $VARFLUX = on ]]; then
@@ -2725,7 +2725,7 @@ while [ true ]; do
    executeHookScripts "START_FORECAST_STAGE"
    #
    ENSTORM="forecast"
-   allMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
+   logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
 
    # clear orphaned logging processes (if any)
    findAndClearOrphans
@@ -3144,7 +3144,7 @@ while [ true ]; do
          fi
       fi
       # then submit the job
-      allMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
+      logMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
       writeJobResourceRequestProperties $SCENARIODIR
 
       echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
