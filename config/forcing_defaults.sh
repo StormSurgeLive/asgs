@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-consoleMessage "Setting default parameters for forcing."
+consoleMessage "$I Setting default parameters for forcing."
 #
 # time between picking up advisory and giving up  on additional scenarios
 CYCLETIMELIMIT="05:00:00"

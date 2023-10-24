@@ -21,7 +21,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-consoleMessage "Setting default parameters for input/output."
+consoleMessage "$I Setting default parameters for input/output."
 #
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
 # water surface elevation station output

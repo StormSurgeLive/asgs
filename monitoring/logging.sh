@@ -102,12 +102,12 @@ setSyslogFileName()
    local DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
    if [[ ! -d $WORK/log ]]; then
       mkdir -p $WORK/log
-      consoleMessage "Created subdirectory for ASGS log files : '$WORK/log'."
+      consoleMessage "$I Created subdirectory for ASGS log files : '$WORK/log'."
    else
-      consoleMessage "Found subdirectory for ASGS log files : '$WORK/log'."
+      consoleMessage "$I Found subdirectory for ASGS log files : '$WORK/log'."
    fi
    SYSLOG=${SYSLOG:-$WORK/log/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log}
-   consoleMessage "Set ASGS log file parameter SYSLOG to '$SYSLOG'." $SYSLOG
+   consoleMessage "$I Set ASGS log file parameter SYSLOG to '$SYSLOG'." $SYSLOG
 }
 #
 # write an INFO-level message to the main asgs log file

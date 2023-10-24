@@ -31,13 +31,13 @@ if [[ $# -eq 1 ]]; then
 fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
-echo "Loading properties."
+#echo "Loading properties."
 # get loadProperties function
 SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
-echo "Finished loading properties."
+#echo "Finished loading properties."
 # now set variables that would otherwise be set by command line arguments
 CONFIG=${properties['config.file']}
 CYCLEDIR=${properties['path.advisdir']}

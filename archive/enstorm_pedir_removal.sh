@@ -50,6 +50,7 @@ hotstartcomp=${properties['adcirc.hotstartcomp']}
 #echo "hotstartcomp is $hotstartcomp" # jgfdebug
 #
 scenarioMessage "$THIS: Starting cleanup of subdomain (PE*) subdirectories." $LOGFILE
+consoleMessage "$I Starting cleanup of subdomain (PE*) subdirectories."
 #
 if [[ $WAVES = on ]]; then
    scenarioMessage "$THIS: Wave coupling with SWAN is active." $LOGFILE
@@ -163,3 +164,4 @@ for file in metis_graph.txt partmesh.txt fort.80 ; do
    fi
 done
 scenarioMessage "$THIS: Finished cleanup of subdomain (PE*) subdirectories." $LOGFILE
+consoleMessage "$THIS: Finished cleanup of subdomain (PE*) subdirectories."
