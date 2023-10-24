@@ -82,8 +82,7 @@ IFS=' ' read -r -a SERVERS <<< "$serverList"
 # assert there are server targets (at least 1)
 if [[ ${#SERVERS[@]} -eq 0 ]]; then
    MSG="cycle $CYCLE: $SCENARIO: $THIS: No opendap servers in $RUNPROPERTIES."
-   logMessage "$MSG" $SSHLOGFILE
-   consoleMessage "${W} $MSG"
+   consoleMessage "${W} $MSG" $SSHLOGFILE
    exit
 fi
 
@@ -145,8 +144,7 @@ for _file in ${_FILES[*]}; do
     FILES+=($_file)
   else
     MSG="cycle $CYCLE: $SCENARIO: $THIS: Can't find '$_file', which is listed in in $RUNPROPERTIES."
-    warn "$MSG"
-    consoleMessage "$MSG"
+    consoleMessage "${W} $MSG" $SSHLOGFILE
   fi
 done
 
@@ -155,26 +153,21 @@ done
 # send when done with all files ...
 if [[ -z $sendNotification ]]; then
     MSG="cycle $CYCLE: $SCENARIO: $THIS: 'sendNotification' tracer not found in file list."
-    warn "$MSG"
-    consoleMessage "$MSG"
+    consoleMessage "${W} $MSG" $SSHLOGFILE
 fi
 
 # assert there are files to upload
 if [[ ${#_FILES[@]} -eq 0 ]]; then
    MSG="cycle $CYCLE: $SCENARIO: $THIS: No files to post to opendap servers in $RUNPROPERTIES."
-   if [ "$MANUAL" == 1 ]; then
-     echo "$MSG"
-   else
-     warn "$MSG"
-   fi
+   logMessage "$MSG" $SSHLOGFILE
    exit
 fi
 if [[ $SCENARIO == "asgs.instance.status" ]]; then
    statusDir=${properties['path.statusdir']}
-   cd ${statusDir} > errmsg 2>&1 || warn "$SCENARIO: $THIS: Failed to change directory to '$statusDir': `cat errmsg`."
+   cd ${statusDir} > errmsg 2>&1 || logMessage "$SCENARIO: $THIS: Failed to change directory to '$statusDir'" $SSHLOGFILE
    sendEmail="no"
 else
-   cd ${SCENARIODIR} > errmsg 2>&1 || warn "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR': `cat errmsg`."
+   cd ${SCENARIODIR} > errmsg 2>&1 || logMessage "cycle $CYCLE: $SCENARIO: $THIS: Failed to change directory to '$SCENARIODIR'" $SSHLOGFILE
    if [[ -z $OPENDAPNOTIFY || $OPENDAPNOTIFY == "" || $OPENDAPNOTIFY == "null" ]]; then
       sendEmail="no"
    else
@@ -429,11 +422,7 @@ mkdir -p "$OPENDAPDIR"
 SSHCMD
          if [[ $? != 0 ]]; then
             MSG="$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
-            if [ "$MANUAL" == 1 ]; then
-              echo "$MSG"
-            else
-              warn "$MSG"
-            fi
+            consoleMessage "${W} $MSG" $SSHLOGFILE
             unset MSG
             threddsPostStatus=fail
          else
@@ -526,7 +515,7 @@ fi
 SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to create symbolic link for the storm name."
-               logMessage "$MSG" $SSHLOGFILE
+               consoleMessage "${W} $MSG" $SSHLOGFILE
                unset MSG
                threddsPostStatus=fail
             else
@@ -560,9 +549,8 @@ SSHCMD
                cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | tee -a ${SCENARIOLOG} | asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" 2>> ${SCENARIOLOG} 2>&1
                ERR=$?
                if [[ $ERR != $EXIT_SUCCESS ]]; then
-                 MSGS="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
-                 logMessage "$MSG" $SSHLOGFILE
-                 consoleMessage "${W} $MSG"
+                 MSG="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
+                 consoleMessage "${W} $MSG" $SSHLOGFILE
                  unset MSG
                  sendEmail="error"
                else
@@ -588,8 +576,7 @@ SSHCMD
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                MSG="$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-               logMessage "$MSG" $SSHLOGFILE
-               consoleMessage "${W} $MSG"
+               consoleMessage "${W} $MSG" $LOGFILE
                unset MSG
             else
                MSG="$SCENARIO: $_THIS: Successfully transferred the file."
@@ -600,13 +587,11 @@ SSHCMD
             retry=`expr $retry + 1`
             if [[ $retry -lt $timeoutRetryLimit ]]; then
                MSG="$SCENARIO: $_THIS: Trying again."
-               logMessage "$MSG" $SSHLOGFILE
-               consoleMessage "${W} $MSG"
+               consoleMessage "${W} $MSG" $LOGFILE
                unset MSG
             else
                MSG="$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
-               logMessage "$MSG" $SSHLOGFILE
-               consoleMessage "${W} $MSG"
+               consoleMessage "${W} $MSG" $SSHLOGFILE
                unset MSG
             fi
          done
@@ -626,8 +611,7 @@ SSHCMD
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                MSG="$SCENARIO: $_THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
-               logMessage "$MSG" $SSHLOGFILE
-               consoleMessage "${W} $MSG"
+               consoleMessage "${W} $MSG" $SSHLOGFILE
                unset MSG
             else
                logMessage "$SCENARIO: $_THIS: Successfully changed permissions to +r on $OPENDAPDIR/$fname." $SSHLOGFILE
@@ -636,12 +620,10 @@ SSHCMD
             retry=`expr $retry + 1`
             if [[ $retry -lt $timeoutRetryLimit ]]; then
                MSG="$SCENARIO: $_THIS: Trying again."
-               logMessage "$MSG" $SSHLOGFILE
-               consoleMessage "${W} $MSG"
+               consoleMessage "${W} $MSG" $SSHLOGFILE
             else
                MSG="$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation."
-               logMessage "$MSG" $SSHLOGFILE
-               consoleMessage "${W} $MSG"
+               consoleMessage "${W} $MSG" $SSHLOGFILE
                unset MSG
             fi
          done
@@ -663,8 +645,8 @@ SSHCMD
 mkdir -p "$OPENDAPDIR"
 SSHCMD
       if [[ $? != 0 ]]; then
-         MSG="$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
-         logMessage "$MSG" $SSHLOGFILE
+         MSG="$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine $OPENDAPHOST."
+         consoleMessage "${W} $MSG" $SSHLOGFILE
          unset MSG
          threddsPostStatus=fail
       fi
@@ -687,7 +669,7 @@ fi
 SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
-               logMessage "$MSG" $SSHLOGFILE
+               consoleMessage "${W} $MSG" $SSHLOGFILE
                unset MSG
                threddsPostStatus=fail
             else
@@ -719,7 +701,7 @@ SSHCMD
             ERR=$?
             if [[ $ERR != $EXIT_SUCCESS ]]; then
               MSG="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
-              logMessage "$MSG" $SSHLOGFILE
+              consoleMessage "${W} $MSG" $SSHLOGFILE
               unset MSG
             else
               opendapEmailSent=yes
@@ -728,25 +710,20 @@ SSHCMD
          fi
          chmod +r "$file" 2>> $SYSLOG
          MSG="$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-         consoleMessage "${I} $MSG"
-         logMessage "$MSG" $SSHLOGFILE
+         consoleMessage "${I} $MSG" $SSHLOGFILE
          rsync ${rsyncOptions} ./${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             MSG="$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
-            logMessage "$MSG" $SSHLOGFILE
+            consoleMessage "${W} $MSG" $SSHLOGFILE
             unset MSG
          fi
       done
       ;;
    *)
       threddsPostStatus=fail
-      MSGS="$SCENARIO: $_THIS: The opendap post method $OPENDAPPOSTMETHOD was not recognized."
-      if [ "$MANUAL" == 1 ]; then
-        echo "$MSG"
-      else
-        warn "$MSG"
-      fi
+      MSG="$SCENARIO: $_THIS: The opendap post method $OPENDAPPOSTMETHOD was not recognized."
+      consoleMessage "$MSG"
       unset MSG
       ;;
    esac # end case of transport methods (scp, rsync, etc)
@@ -765,12 +742,8 @@ SSHCMD
       cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | asgs-sendmail --subject "$subject" "$OPENDAPNOTIFY" 2>> ${SYSLOG} 2>&1
       ERR=$?
       if [[ $ERR != $EXIT_SUCCESS ]]; then
-        MSGS="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
-        if [ "$MANUAL" == 1 ]; then
-          echo "$MSG"
-        else
-          warn "$MSG"
-        fi
+        MSG="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
+        consoleMessage "${W} $MSG" $SSHLOGFILE
         unset MSG
         sendEmail="error"
       else
