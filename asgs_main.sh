@@ -1678,7 +1678,7 @@ logMessage "$THIS: ASGS state file is ${STATEFILE}."
 #
 consoleMessage "$I SYSLOG: '${SYSLOG}'"
 consoleMessage "$I CONFIG: '${CONFIG}'"
-consoleMessage "Verifying that required files and directories actually exist."
+consoleMessage "$I Verifying that required files and directories actually exist."
 #
 checkDirExistence $INPUTDIR "directory for input files"
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
