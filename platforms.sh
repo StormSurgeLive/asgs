@@ -449,7 +449,7 @@ env_dispatch() {
  HPCENVSHORT=$1
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
- echo "${I} $THIS: Initializing settings for ${HPCENVSHORT}."
+ consoleMessage "${I} Initializing settings for '${HPCENVSHORT}'."
  case $HPCENVSHORT in
   "queenbee") consoleMessage "$THIS: Queenbee (LONI) configuration found."
           init_queenbee
