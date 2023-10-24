@@ -1,9 +1,9 @@
-I. Introduction:
+I. Introduction-
 
-NOTE: The "official" Docker image for ASGS is based on the latest
-"debian:stable" Docker image on Dockerhub.
+NOTE- The "official" Docker image for ASGS is based on the latest
+"debian-stable" Docker image on Dockerhub.
 
-It is located in the "debian:stable" directory, and is non-graphical.
+It is located in the "debian-stable" directory, and is non-graphical.
 Using Ubuntu base image should work just the same, this will give most
 humans wanting a linux desktop, just that. However, we assume that ASGS
 will be installed and run on a remote cluster headnode. It is still
@@ -17,7 +17,7 @@ Github space, it may be necessary to build the latest image locally.
 
 I. Host Set Up
 
-0. Prerequisites for the host machine (your laptop, head-node, or cloud VPS):
+0. Prerequisites for the host machine (your laptop, head-node, or cloud VPS)-
 
 # assumes Linux, the ability to build an image is unknown
 
@@ -28,7 +28,7 @@ II. Building the latest Docker image
 
 # step 1 - build the image
 
-  cd debian:stable;
+  cd debian-stable;
   make build        # go do something else, this will take a while
 
 # step 2 - run it (uses docker-compose)
