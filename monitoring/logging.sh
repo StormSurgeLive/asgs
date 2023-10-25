@@ -6,7 +6,7 @@
 # requires logging capabilities.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2021 Jason Fleming
+# Copyright(C) 2012--2023 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -102,12 +102,11 @@ setSyslogFileName()
    local DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
    if [[ ! -d $WORK/log ]]; then
       mkdir -p $WORK/log
-      consoleMessage "$I Created subdirectory for ASGS log files : '$WORK/log'."
+      consoleMessage "$I Created log directory '$WORK/log'"
    else
-      consoleMessage "$I Found subdirectory for ASGS log files : '$WORK/log'."
+      consoleMessage "$I Found log directory '$WORK/log'"
    fi
    SYSLOG=${SYSLOG:-$WORK/log/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log}
-   consoleMessage "$I Set ASGS log file parameter SYSLOG to '$SYSLOG'." $SYSLOG
 }
 #
 # write an INFO-level message to the main asgs log file

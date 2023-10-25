@@ -22,7 +22,6 @@
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
 source $SCRIPTDIR/monitoring/logging.sh
-consoleMessage "$I Setting default values for the mesh '${GRIDNAME}'."
 
 MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes

@@ -164,4 +164,4 @@ for file in metis_graph.txt partmesh.txt fort.80 ; do
    fi
 done
 scenarioMessage "$THIS: Finished cleanup of subdomain (PE*) subdirectories." $LOGFILE
-consoleMessage "$THIS: Finished cleanup of subdomain (PE*) subdirectories."
+consoleMessage "$I Finished cleanup of subdomain (PE*) subdirectories."

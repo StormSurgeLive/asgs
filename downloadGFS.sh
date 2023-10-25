@@ -112,22 +112,23 @@ downloadGFS()
         # along with the range of cycles posted since the adcirc hotstart time
         latestCycle=0
         TRIES=0
+        printf "." # progress bar
         while [[ $latestCycle -le $lastCycle ]]; do
             if [[ $TRIES -ne 0 ]]; then
-                printf "." # progress bar
-                sleep 60
+                spinner 60
+                printf "\b.."
             fi
             ((TRIES++))
             # getting gfs status
             get_gfs_status.pl < $filledGfsTemplateName > get_gfs_status.pl.json 2>> $SYSLOG
             if [[ $? != 0 ]]; then
-                warn "$THIS: Failed to get status of GFS cycles with get_gfs_status.pl."
+                logMessage "$THIS: Failed to get status of GFS cycles with get_gfs_status.pl."
                 sleep 60
                 continue
             fi
             bashJSON.pl --key cyclelist --last < get_gfs_status.pl.json > latestCycle 2>> $SYSLOG
             if [[ $? != 0 ]]; then
-                warn "$THIS: Failed to extract the latest GFS cycle from get_gfs_status.pl.json with bashJSON.pl"
+                logMessage "$THIS: Failed to extract the latest GFS cycle from get_gfs_status.pl.json with bashJSON.pl"
                 sleep 60
                 continue
             fi
@@ -136,7 +137,7 @@ downloadGFS()
         # refine the list of GFS cycles to end the nowcast on the correct cycle
         select_nam_nowcast.pl < get_gfs_status.pl.json > select_gfs_nowcast.pl.json 2>> $SYSLOG
         if [[ $? != 0 ]]; then
-            warn "$THIS: Failed to select the proper GFS cycle to end the nowcast with select_nam_nowcast.pl."
+            logMessage "$THIS: Failed to select the proper GFS cycle to end the nowcast with select_nam_nowcast.pl."
         fi
         # then download the actual nowcast data for the time range of interest
         gfsCycleList=( $(bashJSON.pl --key cyclelist < select_gfs_nowcast.pl.json 2>> $SYSLOG) )
@@ -144,7 +145,8 @@ downloadGFS()
         #
         # subset and download with curl
         unset downloaded have
-        logMessage "$THIS: Subsetting and downloading GFS grib2 files."
+        logMessage "$THIS: Subsetting and downloading GFS grib2 files for cycle '$thisCycle'."
+        consoleMessage "$I Subsetting and downloading GFS grib2 files for cycle '$thisCycle'"
         for cycle in ${gfsCycleList[@]} ; do
             cyc=${cycle:8:2}
             hhh="000" # FIXME: this only applies to a nowcast
@@ -165,7 +167,7 @@ downloadGFS()
                 if [[ ! -s $localFile ]]; then
                     curl -s "$finalURL" > $localFile 2>> $SYSLOG
                     if [[ $? != 0 ]]; then
-                        warn "Subsetting GFS with curl failed when using the following command: '$cmd'."
+                        logMessage "Subsetting GFS with curl failed when using the following command: '$cmd'."
                         if [[ -e $localFile ]]; then
                             mv $localFile ${localFile}.curlerr
                         fi
@@ -179,26 +181,26 @@ downloadGFS()
                     localFileSize=$(stat -c "%s" $localFile 2>> $SYSLOG)
                     localFileLines=$(wgrib2 $localFile -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG | wc -l)
                     if [[ ! $localFileType =~ "(GRIB) version 2" && ! $localFileType =~ "data" ]]; then
-                        warn "Subsetting GFS with curl failed to produce a local grib2 file when using the following command: '$cmd'."
+                        logMessage "Subsetting GFS with curl failed to produce a local grib2 file when using the following command: '$cmd'."
                         if [[ "$localFileType" =~ "HTML document" ]]; then
-                            warn "The file '$localFile' is html instead of grib2."
+                            logMessage "The file '$localFile' is html instead of grib2."
                             mv $localFile ${localFile}.html 2>> $SYSLOG
                         else
-                            warn "The file type of '$localFile' is unrecognized: '$localFileType'."
+                            logMessage "The file type of '$localFile' is unrecognized: '$localFileType'."
                             mv $localFile ${localFile}.unrecognized 2>> $SYSLOG
                         fi
                     # make sure the downloaded file is at least 1MB (these files
                     # seem to be about 2-3MB)
                     elif [[ $localFileSize -lt 1000000 ]]; then
-                        warn "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
+                        logMessage "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
                         mv $localFile ${localFile}.toosmall 2>> $SYSLOG
                     # smoke test
                     elif [[ $localFileLines -eq 0 ]]; then
-                        warn "The file '$localFile' does not seem to have barometric pressure data."
+                        logMessage "The file '$localFile' does not seem to have barometric pressure data."
                         mv $localFile ${localFile}.nodata 2>> $SYSLOG
                     fi
                 else
-                    warn "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
+                    logMessage "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
                 fi
                 # if the file is still there, it passed its quality checks
                 if [[ -s $localFile ]]; then
@@ -209,7 +211,7 @@ downloadGFS()
                         have+=( $localFile )
                     fi
                 else
-                    warn "GFS subsetting with curl failed. Sleeping 60 seconds before retry."
+                    logMessage "GFS subsetting with curl failed. Sleeping 60 seconds before retry."
                     sleep 60
                 fi
             done
@@ -217,6 +219,7 @@ downloadGFS()
         #
         # now regrid to lat lon coordinates with wgrib2
         logMessage "$THIS: Regridding GFS grib2 files to latlon."
+        consoleMessage "$I Regridding GFS grib2 files to latlon."
         unset gfsFileList
         declare -a gfsFileList
         for cycle in ${gfsCycleList[@]} ; do
@@ -275,7 +278,8 @@ downloadGFS()
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        logMessage "$THIS: Writing ASCII WIN/PRE files."
+        logMessage "$THIS: Writing GFS ASCII WIN/PRE files."
+        consoleMessage "$I Writing GFS ASCII WIN/PRE files."
         unset winPreTimes
         for file in ${gfsFileList[@]}; do
             date=$(wgrib2 $file -match 'PRMSL' 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
@@ -343,6 +347,7 @@ downloadGFS()
         #
         # download forecast data
         logMessage "$THIS: INFO: Downloading files for scenario '$SCENARIO'."
+        consoleMessage "$I Downloading GFS files for scenario '$SCENARIO'."
         if [[ ! -d $SCENARIODIR ]]; then
             mkdir -p $SCENARIODIR
         fi
@@ -357,7 +362,8 @@ downloadGFS()
         unset downloaded have
         cyc=${gfsForecastCycle:8:2}
         yyyymmdd=${gfsForecastCycle:0:8}
-        logMessage "$THIS: Subsetting and downloading GFS grib2 files."
+        logMessage "$THIS: Subsetting and downloading GFS grib2 forecast files."
+        consoleMessage "$I Subsetting and downloading GFS grib2 forecast files."
         maxRetries=10
         for h in $(seq 0 120) ; do
             hhh=$(printf "%03d" $h)
@@ -379,7 +385,7 @@ downloadGFS()
                 if [[ ! -s $localFile ]]; then
                     curl -s "$finalURL" > $localFile 2>> $SYSLOG
                     if [[ $? != 0 ]]; then
-                        warn "Subsetting GFS with curl failed when using the following command: '$cmd'."
+                        logMessage "Subsetting GFS with curl failed when using the following command: '$cmd'."
                         if [[ -e $localFile ]]; then
                             mv $localFile ${localFile}.curlerr
                         fi
@@ -394,7 +400,7 @@ downloadGFS()
                     localFileSize=$(stat -c "%s" $localFile 2>> $SYSLOG)
                     localFileLines=$(wgrib2 $localFile -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG | wc -l)
                     if [[ ! $localFileType =~ "(GRIB) version 2" && ! $localFileType =~ "data" ]]; then
-                        warn "Subsetting GFS with curl failed to produce a local grib2 file '$localFile'."
+                        logMessage "Subsetting GFS with curl failed to produce a local grib2 file '$localFile'."
                         if [[ "$localFileType" =~ "HTML document" ]]; then
                             logMessage "The file '$localFile' is html instead of grib2."
                             if [[ $(cat $localFile) =~ "data file is not present" ]]; then
@@ -404,21 +410,21 @@ downloadGFS()
                                 mv $localFile ${localFile}.html 2>> $SYSLOG
                             fi
                         else
-                            warn "The file type of '$localFile' is unrecognized: '$localFileType'."
+                            logMessage "The file type of '$localFile' is unrecognized: '$localFileType'."
                             mv $localFile ${localFile}.unrecognized 2>> $SYSLOG
                         fi
                     # make sure the downloaded file is at least 1MB (these files
                     # seem to be about 2-3MB)
                     elif [[ $localFileSize -lt 1000000 ]]; then
-                        warn "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
+                        logMessage "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
                         mv $localFile ${localFile}.toosmall 2>> $SYSLOG
                     # smoke test
                     elif [[ $localFileLines -eq 0 ]]; then
-                        warn "The file '$localFile' does not seem to have barometric pressure data."
+                        logMessage "The file '$localFile' does not seem to have barometric pressure data."
                         mv $localFile ${localFile}.nodata 2>> $SYSLOG
                     fi
                 else
-                    warn "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
+                    logMessage "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
                 fi
                 # if the file is still there, it passed its quality checks
                 if [[ -s $localFile ]]; then
@@ -432,19 +438,20 @@ downloadGFS()
                 else
                     numRetries=$(( numRetries + 1 ))
                     if [[ $how == "download" ]]; then
-                        warn "GFS subsetting with curl failed. Sleeping 60 seconds before retry."
+                        logMessage "GFS subsetting with curl failed. Sleeping 60 seconds before retry."
                         sleep 60
                     fi
                 fi
             done
             if [[ $numRetries -ge $maxRetries ]]; then
-                warn "Exceeded the max number of retries for downloading this file. Continuing with the forecast files that were downloaded successfully."
+                logMessage "Exceeded the max number of retries for downloading this file. Continuing with the forecast files that were downloaded successfully."
                 break
             fi
         done
         #
         # now regrid to lat lon coordinates with wgrib2
         logMessage "$THIS: Regridding GFS forecast grib2 files to latlon."
+        consoleMessage "$I Regridding GFS forecast grib2 files to latlon."
         unset gfsFileList
         declare -a gfsFileList
         for origFile in ${gfsForecastFiles[@]} ; do
@@ -498,7 +505,8 @@ downloadGFS()
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        logMessage "$THIS: Writing ASCII WIN/PRE files."
+        logMessage "$THIS: Writing ASCII WIN/PRE GFS forecast files."
+        consoleMessage "$I Writing ASCII WIN/PRE GFS forecast files."
         unset winPreTimes
         for file in ${gfsFileList[@]}; do
             incr=( $(wgrib2 $file -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )

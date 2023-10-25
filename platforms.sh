@@ -425,20 +425,22 @@ init_platform()
 {
   local INIT=${1:-"$PLATFORM_INIT"}
   if [ -z "${INIT}" ]; then
-    echo "${W} platform init script must be specified as the first argument! No platform init.sh known."
+    consoleMessage "${W} platform init script must be specified as the first argument! No platform init.sh known."
     return
   fi
   if [ ! -e "${INIT}" ]; then
-    echo "${W} Can't find init script, '$INIT'! No platform selected."
+    logMessage "${W} Can't find init script, '$INIT'! No platform selected."
+    consoleMessage "${W} Can't find init script, '$INIT'! No platform selected."
     return
   fi
-  printf "... attempting to load '$INIT' ... "
+  logMessage "... attempting to load '$INIT' ... "
   source $INIT
   if [ $? -eq 0 ]; then
-    printf "OK\n"
+    logMessage "OK"
   else
     echo
-    echo "${W} Failed to load '$INIT'! No platform selected."
+    logMessage "${W} Failed to load '$INIT'! No platform selected."
+    consoleMessage "${W} Failed to load '$INIT'! No platform selected."
   fi
   return
 }
@@ -449,7 +451,6 @@ env_dispatch() {
  HPCENVSHORT=$1
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
- consoleMessage "${I} Initializing settings for '${HPCENVSHORT}'."
  case $HPCENVSHORT in
   "queenbee") consoleMessage "$I Queenbee (LONI) configuration found."
           init_queenbee
