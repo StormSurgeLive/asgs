@@ -3260,9 +3260,9 @@ while [ true ]; do
    SCENARIOLOG=null
    THIS="asgs_main.sh"
    # allow all scenarios and associated post processing to complete
-   logMessage "$ENSTORM: $THIS: All forecast scenarios for cycle '$CYCLE' have been submitted."
+   logMessage "$ENSTORM: $THIS: Finished with forecast scenarios for cycle '$ADVISORY'."
    #
-   consoleMessage "$I All forecast scenarios for cycle '$CYCLE' have been submitted."
+   consoleMessage "$I Finished with forecast scenarios for cycle '$ADVISORY'."
    executeHookScripts "FINISH_FORECAST_STAGE"
    #
    LASTSUBDIR=null # don't need this any longer
