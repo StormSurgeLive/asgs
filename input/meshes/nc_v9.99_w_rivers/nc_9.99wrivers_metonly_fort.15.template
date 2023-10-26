@@ -1,5 +1,5 @@
-ASGS %StormName%          ! 30 CHARACTER ALPHANUM RUN DESCRIPTION
-%EnsembleID%              ! 20 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+ ASGS %StormName%
+ %EnsembleID%
 1 20.0 1 20 100.0         ! NFOVER - NONFATAL ERROR OVERRIDE 
 1                         ! NABOUT - ABREVIATED OUTPUT
 %NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
