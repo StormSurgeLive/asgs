@@ -16,6 +16,9 @@ if [ "${2}" = "clean" ]; then
   for module in $(cat ./PERL-MODULES); do
     echo Y | cpanm --uninstall $module
   done
+
+  # cleans out an remaining build directory left by cpanm
+  rm -rfv $PERLBREW_ROOT/.cpanm
   exit
 fi
 
@@ -65,3 +68,6 @@ done
 
 # copy over ./PERL/perltidyrc to $HOME/.perltidyrc
 cp ./PERL/perltidyrc $HOME/.perltidyrc
+
+# clean up the build directory created by .cpanm
+rm -rfv $PERLBREW_ROOT/.cpanm
