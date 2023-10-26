@@ -42,7 +42,7 @@ source $SCRIPTDIR/properties.sh
 loadProperties $RUNPROPERTIES
 RUNDIR=${properties['path.rundir']}        # parent directory of all runs created by asgs_main.sh, $RUNDIR in asgs_main.sh, asgsh
 SSHLOGFILE=$RUNDIR/ssh-server.log       # primary log target for this script
-consoleMessage "${I} $THIS: error log is set to '$SSHLOGFILE'"
+consoleMessage "${I} $THIS: error log is set to '$SSHLOGFILE'" $SSHLOGFILE
 
 if [ -z "$OPENDAPNOTIFY" ]; then
   OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
