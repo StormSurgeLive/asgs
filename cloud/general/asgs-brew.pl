@@ -900,7 +900,7 @@ sub get_steps {
             description         => q{Install Perl modules used for ASGS.},
             pwd                 => qq{$scriptdir},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
-            clean               => sub { my $op = shift; print qq{No explicit clean step for, $op->{name}\n} },
+            clean               => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5 clean},
             precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.38.0/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
