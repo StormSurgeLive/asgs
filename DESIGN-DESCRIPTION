@@ -69,10 +69,11 @@ CPAN.
 3. The use of languages other than Perl for complex tasks in ASGS
 is not totally disallowed, but it is discouraged. For example:
 
-a. The python environment in ASGS is currently old (2.7) and there
-are no plans to upgrade it in the forseeable future. Perl is well
-suited to our goals of portability, maintainability, and desired
-longevity of code (backward compatibility).
+a. The python environment has been removed in favor of operators using
+their own environment, since the ASGS Shell can happily use that
+provided there is not some internal one in the way. It is to the
+operator's benefit for ASGS to not provide Python if they are a
+general user of this language.
 
 b. Many of the numerically focused utilities that post process ADCIRC
 and SWAN output in the ASGS are written in Fortran for historical

@@ -601,7 +601,6 @@ sub get_steps {
     my $adcirc_git_url    = $opts_ref->{'adcirc-git-url'} // q{git@github.com:adcirc};
     my $adcirc_git_branch = $opts_ref->{'adcirc-git-branch'};
     my $adcirc_git_repo   = $opts_ref->{'adcirc-git-repo'};
-    my $pythonpath        = qq{$asgs_install_path};
 
     # generator for PATH string as an anonymous subroutine,
     #   Dev note: ADD new PATHs here using the existing pattern
@@ -732,11 +731,6 @@ sub get_steps {
             export_ENV => {
                 CPPFLAGS => { value => qq{-I$asgs_install_path/include}, how => q{append}, separator => q{ } },
                 LDFLAGS  => { value => qq{-L$asgs_install_path/lib},     how => q{append}, separator => q{ } },
-
-                # the following HDF5* vars are needed in the environment for any netCDF4 python modules
-                HDF5_DIR              => { value => qq{$asgs_install_path},         how => q{replace} },
-                HDF5_LIBDIR           => { value => qq{$asgs_install_path/lib},     how => q{replace} },
-                HDF5_INCDIR           => { value => qq{$asgs_install_path/include}, how => q{replace} },
                 HDF5_USE_FILE_LOCKING => { value => q{FALSE}, how => q{replace} },
             },
             skip_if => sub {
@@ -767,9 +761,6 @@ sub get_steps {
             # augment existing %ENV (cumulative)
             export_ENV => {
                 NETCDFHOME     => { value => qq{$asgs_install_path},         how => q{replace} },
-                NETCDF4_DIR    => { value => qq{$asgs_install_path},         how => q{replace} },    # needed for any netCDF4 python module
-                NETCDF4_LIBDIR => { value => qq{$asgs_install_path/lib},     how => q{replace} },    # needed for netCDF4 python module
-                NETCDF4_INCDIR => { value => qq{$asgs_install_path/include}, how => q{replace} },    # needed for netCDF4 python module
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -951,36 +942,6 @@ sub get_steps {
 
                 # exit code will be 0 if successful, so return the negation of it
                 return $bins_ok && ( not $exit_code );
-            },
-        },
-        {
-            # note: updating the python 3 version support must be done here and in the
-            # ./cloud/general/init-python3.sh script
-            # note: this installs python 3
-            key         => q{python3},
-            name        => q{step for installing python 3 and required modules},
-            description => q{install python 3 locally and install required modules},
-            pwd         => qq{$scriptdir},
-            export_env  => {
-
-                # putting this in $home/python310/asgs/build reflects what perlbrew's default
-                # behavior is doing by putting perl into $HOME/perl5/perlbrew/build/perl-$version
-                PYTHONPATH => { value => $pythonpath,                               how => q{replace} },
-                PATH       => { value => qq{$pythonpath/bin:$asgs_home/.local/bin}, how => q{prepend} },
-            },
-            command             => qq{bash ./cloud/general/init-python3.sh install $pythonpath},
-            clean               => qq{bash ./cloud/general/init-python3.sh clean   $pythonpath},
-            skip_if             => sub { 0 },
-            precondition_check  => sub { 1 },
-            postcondition_check => sub {
-                local $?;
-
-                # just invokes interpreter for version
-                system(qq{python3.7 cloud/general/t/netcdf4-bench.py});
-
-                # look for zero exit code on success
-                my $exit_code = ( $? >> 8 );
-                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
             },
         },
         {

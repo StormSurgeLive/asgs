@@ -20,8 +20,8 @@ user if they wish to run asgs-brew.pl. If the user selects "y", then
 the designated values.
 
 2. asgs-brew.pl will build all required untilities, install perl locally
-using perlbrew, install python 2.7.18 locally, then provide a shell
-wrapper to the ASGS environment via the asgsh shell.
+using perlbrew, then provide a shell, wrapper to the ASGS environment via
+the asgsh shell.
 
 Once asgs-brew.pl is completed successfully, it will output the simple
 instructions used to run asgsh for the first time.

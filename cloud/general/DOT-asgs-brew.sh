@@ -97,7 +97,6 @@ help() {
   echo "           email <EM@IL>   - (alias: ve) verifies email configuration is correct, will test send email if provided an address"
   echo "           regressions     - (alias: vr) runs regression test suite for previously solved issues"
   echo "           perl            - (alias: vp) verifies the Perl environment and modules"
-  echo "           python3         - (alias: vpy) verifies the Python 3.7 environment and modules"
   echo "           ssh_config      - checks \$HOME/.ssh/config is set up properly"
   echo "   exit                    - exits ASGS shell, returns \$USER to login shell"
 }
@@ -1208,7 +1207,6 @@ alias v="verify"
 alias va="verify adcirc"
 alias ve="verify email"
 alias vp="verify perl"
-alias vpy="verify python"
 alias vr="verify regressions"
 alias vs="verify ssh_config"
 
