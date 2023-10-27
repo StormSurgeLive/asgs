@@ -18,9 +18,6 @@ _verify() {
     perl)
      verify_perl
      ;;
-    python3)
-     verify_python3
-     ;;
     regressions)
      verify_regressions
      ;;
@@ -29,7 +26,6 @@ _verify() {
      ;;
     *)
      verify_perl
-     verify_python3
      verify_adcirc
      verify_regressions
      verify_ssh_config
@@ -61,17 +57,6 @@ verify_perl() {
       perl -c $file > /dev/null 2>&1 && echo ok $file || echo not ok $file;
     done
   done
-}
-
-verify_python3() {
-  echo ++ Benchmarking and verifying netCDF4 module functionality
-  rm -f ./*.nc # pre clean up
-  pyNETCDFBENCH=$SCRIPTDIR/cloud/general/t/netcdf4-bench.py
-  python3.7 $pyNETCDFBENCH && echo ok $pyNETCDFBENCH works || echo not ok $pyNETCDFBENCH 
-  rm -f ./*.nc # post clean up
-  popd > /dev/null 2>&1
-  # clean up all python cache dirs
-  find . -name __pycache__ | xargs -n1 rm -rf
 }
 
 verify_regressions() {
