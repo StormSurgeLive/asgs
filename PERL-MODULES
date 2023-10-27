@@ -1,6 +1,7 @@
 IO::Socket::SSL
 Config::Tiny
 Date::Calc
+File::ShareDir
 DateTime
 DateTime::Format::Builder
 Email::Sender::Simple
@@ -16,8 +17,6 @@ Time::Local
 Try::Tiny
 Template
 Perl::Tidy
-Weather::NHC::TropicalCyclone
-File::ShareDir
 Archive::Zip
 JSON::XS
 YAML::Tiny
@@ -25,3 +24,6 @@ DBD::SQLite
 Util::H2O
 Util::H2O::More
 Text::CSV
+Dispatch::Fu
+Try::ALRM
+Weather::NHC::TropicalCyclone
