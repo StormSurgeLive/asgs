@@ -358,7 +358,7 @@ downloadGFS()
         yyyymmdd=${gfsForecastCycle:0:8}
         logMessage "$THIS: Subsetting and downloading GFS grib2 files."
         maxRetries=10
-        for h in $(seq 0 120) ; do
+        for h in $(seq 0 $GFSFORECASTLENGTH) ; do
             hhh=$(printf "%03d" $h)
             file="gfs.t${cyc}z.pgrb2.0p25.f$hhh"
             remotePath="%2Fgfs.${yyyymmdd}%2F${cyc}%2Fatmos"
