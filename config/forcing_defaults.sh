@@ -58,15 +58,15 @@ forecastDownload="only-to-run"        # "only-to-run" or "all"
 #
 #  Meteorological Forcing : Global Forecast System (GFS) Model
 #
-GFSBACKSITE="ftp.ncep.noaa.gov"           # forecast data from NCEP
-GFSBACKDIR="/pub/data/nccf/com/gfs/v16.3" # contains the GFS files
+GFSBACKSITE="ftp.ncep.noaa.gov"             # forecast data from NCEP
+GFSBACKDIR="/pub/data/nccf/com/gfs/v16.3"   # contains the GFS files
 # GFS subset
 gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
 gfsDomain['bottomlat']='0'
 gfsDomain['coverage']='regional'
-GFSFORECASTLENGTH=120                     # hours of GFS forecast to run
+GFSFORECASTLENGTH=${GFSFORECASTLENGTH:-120} # hours of GFS forecast to run
 #
 # Subsetting downloaded grib2 data using wgrib2
 # wgrib2 regridding expects longitude to range
