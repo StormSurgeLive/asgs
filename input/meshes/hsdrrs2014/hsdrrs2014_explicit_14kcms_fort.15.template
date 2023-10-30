@@ -1,5 +1,5 @@
-ASGS %StormName%       ! 32 CHARACTER ALPHANUMERIC RUN DESCRIPTION
-%EnsembleID%           ! 24 CHARACTER ALPANUMERIC RUN IDENTIFICATION
+ ASGS %StormName%
+ %EnsembleID%
 1 20.0 1 20 100.0      ! NFOVER,warnelev,iwarndump,warnelevdumplimit,errorelev
  0                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
 %NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log

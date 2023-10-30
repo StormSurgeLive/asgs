@@ -1,5 +1,5 @@
-ASGS %StormName%
-%EnsembleID%
+ ASGS %StormName%
+ %EnsembleID%
 1 20.0 1 50 1000.0 ! NFOVER
 0        	 ! NABOUT
 %NSCREEN%  	 ! NSCREEN

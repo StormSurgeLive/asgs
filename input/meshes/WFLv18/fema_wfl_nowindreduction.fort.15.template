@@ -1,5 +1,5 @@
-WFL %StormName%  
-%EnsembleID% 
+ ASGS %StormName%
+ %EnsembleID%
 1 10 0 50 30                             ! NFOVER WarnElev iWarnElevDump WarnElevDumpLimit ErrorElev - NONFATAL ERROR OVERRIDE OPTION and other stuff
 1                                        ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
 %NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
