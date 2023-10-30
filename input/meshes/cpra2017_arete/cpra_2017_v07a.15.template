@@ -1,5 +1,5 @@
-ASGS %StormName%
-%EnsembleID%
+ ASGS %StormName%
+ %EnsembleID%
  1   20.0   1   50   1000.0  ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
  0  ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
 %NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log

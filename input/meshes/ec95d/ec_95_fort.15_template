@@ -1,4 +1,4 @@
- ASGS   %StormName%
+ ASGS %StormName%
  %EnsembleID%
  1                     ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
  0                     ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
