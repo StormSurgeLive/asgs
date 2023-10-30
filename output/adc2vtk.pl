@@ -354,6 +354,8 @@ my @elevBoundaryElevs; # bathytopo elevation
 my @elevBoundaryLons;  # longitude (degrees E)
 my @elevBoundaryLats;  # latitude (degrees N)
 my @elevBoundaryNodes; # node number 1-indexed
+my @elevBoundaryExternalBoundaryIndices; # 1-based index into the total external boundary array
+my @elevBoundaryLocalBoundaryIndices; # 1-based index into the total external boundary array
 my $elevBoundaryCount = 0;
 for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
@@ -369,6 +371,8 @@ for (my $i=0; $i<$nope; $i++) {
       $elevBoundaryLats[$elevBoundaryCount] = $y[$nbdv-1];
       $elevBoundaryElevs[$elevBoundaryCount] = $z[$nbdv-1];
       $elevBoundaryTypes[$elevBoundaryCount] = $ibtypee;
+      $elevBoundaryExternalBoundaryIndices[$elevBoundaryCount] = $elevBoundaryCount+1;
+      $elevBoundaryLocalBoundaryIndices[$elevBoundaryCount] = $elevBoundaryCount+1;
       $elevBoundaryCount++;
       printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
    }
@@ -377,16 +381,49 @@ printf VTKELEVBOUNDARY "\n";
 printf VTKELEVBOUNDARY "            </DataArray>\n";
 printf VTKELEVBOUNDARY "         </Points>\n";
 printf VTKELEVBOUNDARY "         <PointData>\n";
+# elevation boundary type
 printf VTKELEVBOUNDARY "            <DataArray Name=\"IBTYPEE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
 for (my $i=0; $i<$elevBoundaryCount; $i++) {
    printf VTKELEVBOUNDARY " $elevBoundaryTypes[$i]";
 }
 printf VTKELEVBOUNDARY "            </DataArray>\n";
+# bathy/topo elevation (positive downward)
 printf VTKELEVBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
 for (my $i=0; $i<$elevBoundaryCount; $i++) {
    printf VTKELEVBOUNDARY " $elevBoundaryElevs[$i]";
 }
 printf VTKELEVBOUNDARY "            </DataArray>\n";
+# longitudes (degrees west)
+printf VTKELEVBOUNDARY "            <DataArray Name=\"Longitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryLons[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+# latitudes (degrees north)
+printf VTKELEVBOUNDARY "            <DataArray Name=\"Latitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryLats[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+# node numbers
+printf VTKELEVBOUNDARY "            <DataArray Name=\"NodeNumber\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryNodes[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+# external boundary indices
+printf VTKELEVBOUNDARY "            <DataArray Name=\"ExternalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryExternalBoundaryIndices[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+# local boundary indices
+printf VTKELEVBOUNDARY "            <DataArray Name=\"LocalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
+for (my $i=0; $i<$elevBoundaryCount; $i++) {
+   printf VTKELEVBOUNDARY " $elevBoundaryLocalBoundaryIndices[$i]";
+}
+printf VTKELEVBOUNDARY "            </DataArray>\n";
+#
 printf VTKELEVBOUNDARY "         </PointData>\n";
 printf VTKELEVBOUNDARY "      </Piece>\n";
 printf VTKELEVBOUNDARY "   </PolyData>\n";
@@ -565,6 +602,16 @@ my $nvel = $fields[0];
 # echo the data
 printf VTKECHOFLUXBOUNDARY "$nbou ! NBOU\n";
 printf VTKECHOFLUXBOUNDARY "$nvel ! NVEL\n";
+my @fluxBoundaryTypes; # ibtypee
+my @fluxBoundaryElevs; # bathytopo elevation
+my @fluxBoundaryLons;  # longitude (degrees E)
+my @fluxBoundaryLats;  # latitude (degrees N)
+my @fluxBoundaryNodes; # node number 1-indexed
+my @fluxBoundaryFullDomainBoundaryIndices; # 1-based index into the total external boundary array
+my @fluxBoundaryLocalBoundaryIndices; # 1-based index into the total external boundary array
+my $fluxBoundaryCount = 0;
+my $fluxBoundaryCountStart = 0;       # total count at the start of a new boundary
+#
 # loop over the total number of flux boundaries
 for (my $i=0; $i<$nbou; $i++) {
    $line = <MESH>;
@@ -580,9 +627,11 @@ for (my $i=0; $i<$nbou; $i++) {
       # this is a non levee flux boundary -- skip its nodes
       for (my $j=0; $j<$nvell; $j++) {
          $line = <MESH>;
+         $fluxBoundaryCount++;
       }
       next;
    }
+
    $numPoints = $nvell * $numPointsPerBoundaryNode;
    my @fluxBoundaryNodeElevs;
    my @nbvv;
@@ -591,6 +640,10 @@ for (my $i=0; $i<$nbou; $i++) {
    # read
    for (my $j=0; $j<$nvell; $j++) {
       $line = <MESH>;
+      $fluxBoundaryCount++;
+      if ( $j == 0 ) {
+         $fluxBoundaryCountStart = $fluxBoundaryCount;
+      }
       my @nvellFields = split(' ',$line);
       $nbvv[$j] = $nvellFields[0];   # node number is first value on the line
       $fluxBoundaryNodeElevs[$j] = "null";
@@ -616,6 +669,13 @@ for (my $i=0; $i<$nbou; $i++) {
          $ibconn[$j] = $nvellFields[1];
          $fluxBoundaryNodeElevs[$j] = $nvellFields[2];
       }
+      $fluxBoundaryTypes[$fluxBoundaryCount] = $ibtype; # ibtype
+      $fluxBoundaryLons[$fluxBoundaryCount] = $x[$nbvv[$j]-1];  # longitude (degrees E)
+      $fluxBoundaryLats[$fluxBoundaryCount] = $y[$nbvv[$j]-1];  # latitude (degrees N)
+      $fluxBoundaryElevs[$fluxBoundaryCount] = $z[$nbvv[$j]-1]; # bathytopo elevation
+      $fluxBoundaryNodes[$fluxBoundaryCount] = $nbvv[$j];       # node number 1-indexed
+      $fluxBoundaryFullDomainBoundaryIndices[$fluxBoundaryCount] = $fluxBoundaryCount; # 1-based index into the total external boundary array
+      $fluxBoundaryLocalBoundaryIndices[$fluxBoundaryCount] = $j+1; # 1-based index into the total external boundary array
       if ( $fluxBoundaryNodeElevs[$j] eq "null" ) {
          stderrMessage("ERROR","The flux boundary type '$ibtype' was not recognized.");
       }
@@ -653,6 +713,7 @@ for (my $i=0; $i<$nbou; $i++) {
    printf VTKFLUXBOUNDARY "            </DataArray>\n";
    printf VTKFLUXBOUNDARY "         </Points>\n";
    printf VTKFLUXBOUNDARY "         <PointData>\n";
+   # ibtype
    printf VTKFLUXBOUNDARY "            <DataArray Name=\"IBTYPE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
    for (my $j=0; $j<$nvell; $j++) {
       for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
@@ -661,6 +722,7 @@ for (my $i=0; $i<$nbou; $i++) {
    }
    printf VTKFLUXBOUNDARY "\n";
    printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   # elevation
    printf VTKFLUXBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
    for (my $j=0; $j<$nvell; $j++) {
       for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
@@ -669,6 +731,52 @@ for (my $i=0; $i<$nbou; $i++) {
    }
    printf VTKFLUXBOUNDARY "\n";
    printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   # latitudes
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"Latitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $fluxBoundaryLats[$fluxBoundaryCountStart+$j] ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   # longitudes
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"Longitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $fluxBoundaryLons[$fluxBoundaryCountStart+$j] ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   # node number
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"NodeNumber\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $fluxBoundaryNodes[$fluxBoundaryCountStart+$j] ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   # full domain boundary index
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"ExternalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $fluxBoundaryFullDomainBoundaryIndices[$fluxBoundaryCountStart+$j] ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   # local boundary index
+   printf VTKFLUXBOUNDARY "            <DataArray Name=\"LocalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   for (my $j=0; $j<$nvell; $j++) {
+      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
+         printf VTKFLUXBOUNDARY " $fluxBoundaryLocalBoundaryIndices[$fluxBoundaryCountStart+$j] ";
+      }
+   }
+   printf VTKFLUXBOUNDARY "\n";
+   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   #
    printf VTKFLUXBOUNDARY "         </PointData>\n";
    printf VTKFLUXBOUNDARY "      </Piece>\n";
    #
