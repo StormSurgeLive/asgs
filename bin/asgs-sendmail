@@ -42,30 +42,31 @@ my $config_file = qq{$HOME/asgs-global.conf};
 # $logfile default, assumes asgsh env, which has $SCRIPTDIR defined
 # so ideal default $logfile is /path/to/asgs/mail.log
 my $logfile = sprintf( qq{%s/mail.log}, $ENV{SCRIPTDIR} // $HOME );
-my $to;
 
-GetOptions(
-    "c|config=s"  => \$config_file,
-    "h|help"      => \&show_help,
-    "l|logfile=s" => \$logfile,
-    "s|subject=s" => \$subject,
-    "t|to=s"      => \$to,
-);
-
-# verify recipient email has been set via --to
-die qq{a recipient is required to be defined via --to\n} unless defined $to;
-
-# make sure that $to is a comma delimited list of email addresses, accept a
-# space delimted list, but reform it to use commas
-
-$to =~ s/,/ /g;             # turn all commas to spaces
-$to =~ s/ +/ /g;            # reduce all contiguous spaces of 2 or more, down to 1 space
-my @to = split / /, $to;    # split on single space
-$to = join q{,}, @to;       # recreate list of email addresses and delimit them by commas
-
-exit run();
+exit run() if not caller();
 
 sub run {
+    my $to;
+
+    GetOptions(
+        "c|config=s"  => \$config_file,
+        "h|help"      => \&show_help,
+        "l|logfile=s" => \$logfile,
+        "s|subject=s" => \$subject,
+        "t|to=s"      => \$to,
+    );
+
+    # verify recipient email has been set via --to
+    die qq{a recipient is required to be defined via --to\n} unless defined $to;
+
+    # make sure that $to is a comma delimited list of email addresses, accept a
+    # space delimted list, but reform it to use commas
+
+    $to =~ s/,/ /g;             # turn all commas to spaces
+    $to =~ s/ +/ /g;            # reduce all contiguous spaces of 2 or more, down to 1 space
+    my @to = split / /, $to;    # split on single space
+    $to = join q{,}, @to;       # recreate list of email addresses and delimit them by commas
+
     my @content = <STDIN>;
     my $content;
     if (@content) {

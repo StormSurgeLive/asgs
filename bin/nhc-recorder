@@ -7,6 +7,8 @@ use warnings;
 use Weather::NHC::TropicalCyclone ();
 use POSIX qw/strftime/;
 use File::Copy qw/copy/;
+use FindBin qw/$Bin/;
+require qq{$Bin/asgs-sendmail};
 
 use constant {
     EXIT_SUCCESS      => 0,
