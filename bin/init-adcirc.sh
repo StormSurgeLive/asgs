@@ -284,14 +284,9 @@ case "${ADCIRC_SRC_TYPE}" in
 	pushd $ADCIRCBASE
       fi
       echo
-      read -p "Which ADCIRC branch would you like to checkout from GitHub ('.' to skip checkout)? [$ADCIRC_GIT_BRANCH] " repo
-      if [ -z "$repo" ]; then
-        repo=$ADCIRC_GIT_BRANCH
-      fi
+      # always do checkout here
+      repo=$ADCIRC_GIT_BRANCH
       do_checkout=yes
-      if [ "$repo" == "." ]; then
-        do_checkout=no
-      fi
       if [ "$do_checkout" == "yes" ]; then
         CURRENT_BRANCH=$(git branch | egrep '^\*' | awk '{ print $2 }')
         if [ "${ADCIRC_GIT_BRANCH}" != "${CURRENT_BRANCH}" ]; then
@@ -547,9 +542,8 @@ patch_files() {
 
 case "${ADCIRC_SRC_TYPE}" in
   git|remote-zip)
-    echo
     _answer=yes
-    read -p "Apply patches, proceed [$_answer]" answer
+    read -p "Apply patches? [$_answer]" answer
     if [ -z "$answer" ]; then
       answer=$_answer
     fi
