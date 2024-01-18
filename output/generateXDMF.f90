@@ -971,8 +971,10 @@ integer, intent(in) :: nSnaps
 integer, intent(in) :: olun ! i/o unit number to write XDMF xml to
 !
 integer :: domainExtent
-character(len=20) :: attributeType
-integer :: i, j, k
+character(len=30) :: attributeType
+character(len=30) :: attributeName
+character(len=30) :: functionType ! JOIN(...) or SQRT(...)
+integer :: i, j, k, n
 !
 attributeType = "Scalar"
 domainExtent = m%np
@@ -986,12 +988,13 @@ do
    if (trim(fmd%xds(j)%dataCenter).eq."Cell") then
       domainExtent = m%ne
    endif
-   write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(fmd%xds(j)%varNameXDMF)//'"'
-   write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
-   write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
+   attributeName = trim(fmd%xds(j)%varNameXDMF)
    !
    ! Scalar attribute
    if (trim(attributeType).eq."Scalar") then
+      write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(attributeName)//'"'
+      write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
+      write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
       write(olun,'('//ind('+')//',A)')    '<DataItem ItemType="HyperSlab"'
       write(olun,'('//ind('|')//',A,i0,A)')'  Dimensions="',domainExtent,'"'
       write(olun,'('//ind('|')//',A)')    '   Type="HyperSlab">'
@@ -1013,32 +1016,47 @@ do
    !
    ! Vector attribute
    else
-      write(olun,'('//ind('+')//',A)')      '<DataItem ItemType="Function"'
-      write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',domainExtent,' 3"'
-      write(olun,'('//ind('|')//',A)')      '  Function="JOIN($0, $1, 0*$0)">'
-      do k=0,fmd%xds(j)%numComponents-1
-         if (k.eq.0) then
-            write(olun,'('//ind('+')//',A)')   '<DataItem ItemType="HyperSlab"'
-         else
-            write(olun,'('//ind('|')//',A)')   '<DataItem ItemType="HyperSlab"'
+      do n=1,2
+         functionType = 'JOIN($0, $1, 0*$0)'     ! 2D result vector
+         if ( n.eq.2 ) then
+            functionType = 'SQRT($0*$0 + $1*$1)' ! 2D vector magnitude
+            attributeName = trim(attributeName)//'Mag'
+            attributeType = "Scalar"
          endif
-         write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',domainExtent,'"'
-         write(olun,'('//ind('|')//',A)')      '  Type="HyperSlab">'
-         write(olun,'('//ind('+')//',A)')         '<DataItem Dimensions="3 2"'
-         write(olun,'('//ind('|')//',A)')         '  Format="XML">'
-         write(olun,'('//ind('|')//',A,i0,A)')    '  ',iSnap-1,' 0'
-         write(olun,'('//ind('|')//',A)')         '  1 1'
-         write(olun,'('//ind('|')//',A,i0)')      '  1 ',domainExtent
-         write(olun,'('//ind('|')//',A)')         '</DataItem>' ! end of dimensions
-         write(olun,'('//ind('|')//',A,i0,1x,i0,A)') '<DataItem Dimensions="',nSnaps-1,domainExtent,'"'
-         write(olun,'('//ind('|')//',a,a,a)')        '  NumberType="',trim(fmd%xds(j)%numberType),'"'
-         write(olun,'('//ind('|')//',a,i0,a)')       '  Precision="',fmd%xds(j)%numberPrecision,'"'
-         write(olun,'('//ind('|')//',A)')            '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i+k)%varNameNetCDF)
-         write(olun,'('//ind('|')//',A)')            '</DataItem>' ! end of Dimensions
-         write(olun,'('//ind('-')//',A)')         '</DataItem>' ! end of HyperSlab
+         write(olun,'('//ind('|')//',A)') '<Attribute Name="'//trim(attributeName)//'"'
+         write(olun,'('//ind('|')//',A)') '  Center="'//trim(fmd%xds(j)%dataCenter)//'"'
+         write(olun,'('//ind('|')//',A)') '  AttributeType="'//trim(attributeType)//'">'
+         write(olun,'('//ind('+')//',A)')      '<DataItem ItemType="Function"'
+         if ( n.eq.1) then
+            write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',domainExtent,' 3"'
+         else
+            write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',domainExtent,'"'
+         endif
+         write(olun,'('//ind('|')//',A,A,A)')      '  Function="',trim(functionType),'">'
+         do k=0,fmd%xds(j)%numComponents-1
+            if (k.eq.0) then
+               write(olun,'('//ind('+')//',A)')   '<DataItem ItemType="HyperSlab"'
+            else
+               write(olun,'('//ind('|')//',A)')   '<DataItem ItemType="HyperSlab"'
+            endif
+            write(olun,'('//ind('|')//',A,i0,A)') '  Dimensions="',domainExtent,'"'
+            write(olun,'('//ind('|')//',A)')      '  Type="HyperSlab">'
+            write(olun,'('//ind('+')//',A)')         '<DataItem Dimensions="3 2"'
+            write(olun,'('//ind('|')//',A)')         '  Format="XML">'
+            write(olun,'('//ind('|')//',A,i0,A)')    '  ',iSnap-1,' 0'
+            write(olun,'('//ind('|')//',A)')         '  1 1'
+            write(olun,'('//ind('|')//',A,i0)')      '  1 ',domainExtent
+            write(olun,'('//ind('|')//',A)')         '</DataItem>' ! end of dimensions
+            write(olun,'('//ind('|')//',A,i0,1x,i0,A)') '<DataItem Dimensions="',nSnaps-1,domainExtent,'"'
+            write(olun,'('//ind('|')//',a,a,a)')        '  NumberType="',trim(fmd%xds(j)%numberType),'"'
+            write(olun,'('//ind('|')//',a,i0,a)')       '  Precision="',fmd%xds(j)%numberPrecision,'"'
+            write(olun,'('//ind('|')//',A)')            '  Format="HDF">'//trim(fmd%dataFileName)//':/'//trim(fmd%ncds(i+k)%varNameNetCDF)
+            write(olun,'('//ind('|')//',A)')            '</DataItem>' ! end of Dimensions
+            write(olun,'('//ind('-')//',A)')         '</DataItem>' ! end of HyperSlab
+         enddo
+         write(olun,'('//ind('-')//',A)')         '</DataItem>' ! end of FUNCTION
+         write(olun,'('//ind('-')//',A)')      '</Attribute>' ! end of Vector Attribute
       enddo
-      write(olun,'('//ind('-')//',A)')         '</DataItem>' ! end of FUNCTION
-      write(olun,'('//ind('-')//',A)')      '</Attribute>' ! end of Vector Attribute
    endif
    i = i + fmd%xds(j)%numComponents
    j = j + 1
