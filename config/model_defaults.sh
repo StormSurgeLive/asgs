@@ -25,8 +25,9 @@
 #----------------------------------------------------------------
 #
 # ADCIRC parameters (fort.15) file
+adcirc_version="notset"
 TIMESTEPSIZE="1.0"                          # ADCIRC time step in seconds
-solver_time_integration="implicit"          # "implicit" or "explicit"
+solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:
 # "0.35 0.30  0.35"  ! implicit time stepping, oldest and most used values
 # "0.00 1.00  0.00"  ! explicit time stepping

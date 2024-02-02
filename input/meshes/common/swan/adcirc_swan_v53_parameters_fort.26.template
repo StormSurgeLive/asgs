@@ -5,10 +5,22 @@ $ spectral propagation velocities and may not give
 $ good numerical results with ADCIRC+SWAN v52.
 $
 $ comment lines:
+PROJect 'name' 'nr' 
+        'title1'
+        'title2'
+        'title3'
+$ 'name'   is the name of the project, at most 16 characters long
+$ 'nr'     is the run identification to distinguish this run among 
+$          other runs for the same project; 4 characters max. 
+$          It is the only required information in this command.
+$ 'title1' is a string of (72 characters max) to appear in the	 
+$          output of the program for the user's convenience.
+$ 'title2' same as 'title1'.	 
+$ 'title3' same as 'title1'.
 PROJ 'ASGS' '%nr%'
 '%StormName%'
-'%EnsembleID%'
-'%WTIMINC%'
+'%EnsembleID% ADCIRC Version %ADCIRCVER%'
+'%WTIMINC% TEMPLATE26_2024.1'
 $
 $********************MODEL INPUT*************************
 $

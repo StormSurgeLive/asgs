@@ -1,0 +1,38 @@
+---
+ adcirc_version: "v53release"
+ solver_time_integration: "implicit"
+ time_weighting_coefficients: "0.35 0.3 0.35" 
+ lateral_turbulence: "eddy_viscosity"
+ eddy_viscosity_coefficient: 50.0
+ smagorinsky_coefficient: 0.2
+ h0: 0.1
+ velmin: 0.1
+ wind_drag_formula: "garratt"
+ wind_drag_limit: 0.0025
+ output_wind_drag: "no"
+ bottom_friction_limit: 0.001
+ advection: "on"
+ wetdry_output_nodecode: "no"
+ wetdry_output_noff: "no"
+ wetdry_noff_active: "yes"
+ inundation_output: "yes"
+ inundation_threshold: 0.6
+ nodal_attribute_activate:
+   - "sea_surface_height_above_geoid"
+   - "mannings_n_at_sea_floor"
+ netcdf_metadata:
+   NCPROJ: "ASGS"
+   NCINST: "Seahorse Consulting"
+   NCSOUR: "ADCIRC"
+   NCHIST: "ASGS Workflow"
+   NCREF: "https://doi.org/10.1061/40990(324)48"
+   NCCOM: "Trusted since 2006."
+   NCHOST: "www.seahorsecoastal.com"
+   NCCONV: "CF"
+   NCCONT: "jason.fleming@adcirc.live"
+   NCDATE: "2010-05-01 00:00:00 UTC"   
+ swan_max_iterations: 20
+ swan_convergence_npts: 95
+ nodal_attribute_default_values:
+   sea_surface_height_above_geoid: 0.0
+   mannings_n_at_sea_floor: 0.02

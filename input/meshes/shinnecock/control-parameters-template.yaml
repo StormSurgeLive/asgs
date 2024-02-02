@@ -1,19 +1,34 @@
 ---
- doe: "a deer, a female deer"
- ray: "a drop of golden sun"
- pi: 3.14159
- xmas: true
- french-hens: 3
- calling-birds:
-   - huey
-   - dewey
-   - louie
-   - fred
- xmas-fifth-day:
-   calling-birds: four
-   french-hens: 3
-   golden-rings: 5
-   partridges:
-     count: 1
-     location: "a pear tree"
-   turtle-doves: two
+ adcirc_version: "%ADCIRCVER%"
+ solver_time_integration: "%IM_ETC%"
+ time_weighting_coefficients: "%A00B00C00%" 
+ lateral_turbulence: "%lateral_turbulence%"
+ eddy_viscosity_coefficient: %ESLM%
+ smagorinsky_coefficient: %ESLM_Smagorinsky%
+ h0: %H0%
+ velmin: %VELMIN%
+ wind_drag_formula: "%DRAGLAWSTRING%"
+ wind_drag_limit: "%WINDDRAGLIMIT%"
+ output_wind_drag: "%output_wind_drag%"
+ bottom_friction_limit: "%FFACTOR%"
+ advection: "%advection%"
+ wetdry_output_nodecode: "%output_nodecode%"
+ wetdry_output_noff: "%output_noff%"
+ wetdry_noff_active: "%noff_active%"
+ inundation_output: "%inundation_output%"
+ inundation_threshold: %inundation_threshold%
+ nodal_attribute_activate: %nodal_attribute_activate_list%
+ netcdf_metadata:
+   NCPROJ: "%NCPROJ%"
+   NCINST: "%NCINST%"
+   NCSOUR: "%NCSOUR%"
+   NCHIST: "%NCHIST%"
+   NCREF:  "%NCREF%"
+   NCCOM:  "%NCCOM%"
+   NCHOST: "%NCHOST%"
+   NCCONV: "%NCCONV%"
+   NCCONT: "%NCCONT%"
+   NCDATE: "%NCDATE%"   
+ swan_max_iterations: %MXITNS%
+ swan_convergence_npts: %NPNTS%
+ nodal_attribute_default_values: %nodal_attribute_default_values_hash%

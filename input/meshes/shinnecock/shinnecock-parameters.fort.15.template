@@ -1,4 +1,4 @@
- ASGS %StormName%
+ ASGS TEMPLATE15_2024.1 %StormName% ADCIRC Version %ADCIRCVER%
  %EnsembleID%
  %NFOVER%    ! %NFOVER-Line%
  %NABOUT%    ! %NABOUT-Line%
@@ -11,6 +11,7 @@
  %NOLICA%    ! %NOLICA-Line%
  %NOLICAT%   ! %NOLICAT-Line%
  %NWP%       ! %NWP-Line%
+ %NWPLIST%   ! %NWPLIST-Line%
  1           ! %NCOR-Line%
  1           ! %NTIP-Line%
  %NWS%       ! %NWS-Line%
@@ -27,9 +28,9 @@
  %H0% 12 12 %VELMIN%         ! %H0-Line%
  -72.43 40.66                ! %SLAM0-Line%
  %FFACTOR% 1.0  10.  0.33333 ! %FFACTOR-Line%
- %EVM%                       ! %ESM-Line%
+ %ESLM%                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
- 5                           ! %NTIF-Line% %NTIF-TIDALCOMMENT%
+ 5 ! %NTIFCOMMENT% %NTIF-Line% 
 M2
  0.242334  1.405174E-004 0.693000  %M2NF%  %M2EQARG%
 N2
@@ -40,7 +41,7 @@ K1
  0.141565  7.292040E-005 0.736000  %K1NF%  %K1EQARG%
 O1
  0.100514  6.759704E-005 0.695000  %O1NF%  %O1EQARG%
- 5                           ! %NBFR-Line% %NBFR-TIDALCOMMENT%
+ 5 ! %NBFRCOMMENT% %NBFR-Line% 
  M2
       0.000140518902509   %M2NF%  %M2EQARG%
  N2
@@ -431,29 +432,29 @@ O1
    0.05380042  184.054
    0.05377795  184.050
    0.05375799  184.047
- 90.0               ! %ANGINN-Line%
- %FORT61%           ! %NOUTE-Line%
- %NUMELEVSTATIONS%  ! %NSTAE-Line%
- %FORT62%           ! %NOUTV-Line%
- %NUMVELSTATIONS%   ! %NSTAV-Line%
- %FORT7172%         ! %NOUTM-Line%
- %NUMMETSTATIONS%   ! %NSTAM-Line%
- %FORT63%           ! %NOUTGE-Line%
- %FORT64%           ! %NOUTGV-Line%
- %FORT7374%         ! %NOUTGW-Line%
- 0                  ! %NHARF-Line%
- 0.0 0.0 0 0.0      ! %THAS-Line%
- 0 0 0 0            ! %NHASE-Line%
- %NHSTAR%  %NHSINC% ! %NHSTAR-Line%
- 1 0 1.0E-7 25      ! %ITITER-Line%
-%NCPROJ%      %NCPROJ-Line%
-%NCINST%
-%NCSOUR%
-%NCHIST%
-%NCREF%
-%NCCOM%
-%NCHOST%
-%NCCONT%
+ 90.0                 ! %ANGINN-Line%
+ %FORT61%             ! %NOUTE-Line%
+ %NUMELEVSTATIONS%    ! %NSTAE-Line%
+ %FORT62%             ! %NOUTV-Line%
+ %NUMVELSTATIONS%     ! %NSTAV-Line%
+ %FORT7172%           ! %NOUTM-Line%
+ %NUMMETSTATIONS%     ! %NSTAM-Line%
+ %FORT63%             ! %NOUTGE-Line%
+ %FORT64%             ! %NOUTGV-Line%
+ %FORT7374%           ! %NOUTGW-Line%
+ 0                    ! %NHARF-Line%
+ 0.0 0.0 0 0.0        ! %THAS-Line%
+ 0 0 0 0              ! %NHASE-Line%
+ %NHSTAR%  %NHSINC%   ! %NHSTAR-Line%
+ %ITITER% 0 1.0E-7 25 ! %ITITER-Line%
+%NCPROJ%                %NCPROJ-Line%
+%NCINST%                %NCINST-Line%
+%NCSOUR%                %NCSOUR-Line%
+%NCHIST%                %NCHIST-Line%
+%NCREF%                 %NCREF-Line%
+%NCCOM%                 %NCCOM-Line%
+%NCHOST%                %NCHOST-Line%
+%NCCONT%                %NCCONT-Line%
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00 %NCDATE-Line%
 
 %met_control_namelist%
