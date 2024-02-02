@@ -451,6 +451,25 @@ if ( $nws eq "0" ) {
 # load up the periodicflux data
 $fluxdata = getPeriodicFlux($periodicflux);
 #
+# construct metControl namelist line
+# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
+my $output_wind_drag = "F";
+if ( $p->{output_wind_drag} == "yes" ) {
+   $output_wind_drag = "T"
+}
+$met_control_line = '&metControl WindDragLimit='$p->{wind_drag_limit}', DragLawString='$p->{wind_drag_formula}', outputWindDrag='$p->{output_wind_drag} eq "yes" ? "T" : "F"' /';
+#
+# construct wetDryControl namelist 
+# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
+my $wetdry_control_line = '&wetDryControl outputNodeCode='$p->{wetdry_output_nodecode} eq "yes" ? "T" : "F"
+                                       ', outputNOFF='$p->{wetdry_output_noff} eq "yes" ? "T" : "F"
+                                       ', noffActive='$p->{wetdry_noff_active} eq "yes" ? "T" : "F"' /';
+#
+# construct inundationOutput namelist
+#&inundationOutputControl inundationOutput=logicalValue0, inunThresh =floatValue /
+my $inundation_output_line = '&inundationOutputControl inundationOutput='$p->{inundation_output} eq "yes" ? "T" : "F"
+                             ', inunThresh='$p->{inundation_threshold}' /';
+#
 # apply static offset if specified
 my $offsetline = "NO LINE HERE";
 $staticoffset = $runProp{'forcing.staticoffset'};
@@ -526,6 +545,8 @@ if ( $p->{lateral_turbulence} eq "smagorinsky" ) {
 }
 #
 #
+
+
 #
 ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
