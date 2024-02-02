@@ -856,7 +856,8 @@ case $GRIDNAME in
       ELEVSTATIONS=shinnecock_stations.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      NAFILE=null
+      NAFILE=shinnecock.13
+      NATEMPLATE=shinnecock_nodal_attributes.template
       NAPROPERTIES=shinnecock_nodal_attributes.properties
       RIVERINIT=null                            # this mesh has no rivers ...
       RIVERFLUX=null
@@ -870,6 +871,45 @@ case $GRIDNAME in
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      ;;
+   "Shinnecock-parameters")
+      #
+      nodes=3070
+      elements=5780
+      INPUTDIR=${SCRIPTDIR}/input/meshes/shinnecock # grid and other input files
+      GRIDFILE=shinnecock_inlet_coarse.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=shinnecock-parameters.fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=${CONTROLTEMPLATE}
+      CONTROLPROPERTIES=null  # automatically written by control_file_gen.pl to run.properties
+      ELEVSTATIONS=shinnecock_stations.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      NAFILE=shinnecock.13.template
+      NAPROPERTIES=null       # automatically written by control_file_gen.pl to run.properties
+      RIVERINIT=null                            # this mesh has no rivers ...
+      RIVERFLUX=null
+      HINDCASTRIVERFLUX=null
+      # interaction between mesh and models:
+      TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
+      SWANDT=1200                 # swan time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="01:00:00" # forecast wall clock time
+      # default physics parameters (that differ from the settings in config/model_defaults.sh
+      eddy_viscosity_coefficient="5.0"       # ESL
+      h0="0.05"                   # min depth (m) to be considered wet
+      velmin="0.02"               # min pseudovelocity (m/s) from wet to dry to change state
+      wind_drag_limit="0.0025"      # max wind drag coefficient, unitless
+      bottom_friction_limit="0.0025"  # min bottom friction when using Manning's n (CF/FFACTOR)
+      # nodal attributes listed in fort.15 file
+      nodal_attribute_activate=( "sea_surface_height_above_geoid" )
+      #
+      # SWAN parameters (fort.26) template file
+      SWANTEMPLATE=adcirc_swan_v53_parameters_fort.26.template # found in input/meshes/common/swan
       ;;
    "ec2001_v2e"|"EC2001v2e")
       #
