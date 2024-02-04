@@ -900,11 +900,11 @@ case $GRIDNAME in
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       # default physics parameters (that differ from the settings in config/model_defaults.sh
-      eddy_viscosity_coefficient="5.0"       # ESL
+      eddy_viscosity_coefficient="5.0"  # ESLM
       h0="0.05"                   # min depth (m) to be considered wet
       velmin="0.02"               # min pseudovelocity (m/s) from wet to dry to change state
-      wind_drag_limit="0.0025"      # max wind drag coefficient, unitless
       bottom_friction_limit="0.0025"  # min bottom friction when using Manning's n (CF/FFACTOR)
+      metControl["WindDragLimit"]="0.0025"   # max wind drag coefficient, unitless
       # nodal attributes listed in fort.15 file
       nodal_attribute_activate=( "sea_surface_height_above_geoid" )
       #

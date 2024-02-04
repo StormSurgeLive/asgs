@@ -27,6 +27,7 @@
 # ADCIRC parameters (fort.15) file
 adcirc_version="notset"
 TIMESTEPSIZE="1.0"                          # ADCIRC time step in seconds
+advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:
 # "0.35 0.30  0.35"  ! implicit time stepping, oldest and most used values
@@ -39,16 +40,8 @@ lateral_turbulence="eddy_viscosity"         # "smagorinsky" or "eddy_viscosity"
     smagorinsky_coefficient="0.2"           # ESLM
 h0=0.1                        # min depth (m) to be considered wet
 velmin=0.1                    # min pseudovelocity (m/s) from wet to dry to change state
-wind_drag_formula="garratt"   # "garratt" or "powell"
-wind_drag_limit="0.0025"      # max wind drag coefficient, unitless
-output_wind_drag="no"         # "yes" or "no" to write fulldomain time varying wind drag coefficient
 bottom_friction_limit=0.001   # min bottom friction when using Manning's n (CF/FFACTOR)
-advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-wetdry_output_nodecode="no"   # yes|no to write out fulldomain time varying integer node wet/dry state
-wetdry_output_noff="no"       # yes|no to write out fulldomain time varying integer element wet/dry state
-wetdry_noff_active="yes"      # yes|no to use element wet/dry state in calculations
-inundation_output="yes"       # yes|no to write extra fulldomain inundation data at end of execution
-inundation_threshold="0.6"    # inundation reference depth (m) used in inundation output calculations
+#
 # nodal attributes listed in fort.15 file
 declare -a nodal_attribute_activate
 nodal_attribute_activate=( )
@@ -67,6 +60,24 @@ nodal_attribute_activate=( )
 #    internal_tide_friction
 #    subgrid_barrier
 # e.g.: nodal_attribute_activate=( "sea_surface_height_above_geoid" "mannings_n_at_sea_floor" )
+#
+# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
+declare -A metControl
+metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
+metControl["DragLawString"]="garratt" # "garratt" or "powell"
+metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
+#
+# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
+declare -A wetDryControl
+wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
+wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
+wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
+#
+# &inundationOutputControl inundationOutput=logicalValue0, inunThresh =floatValue /
+declare -A inundationOutputControl
+inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
+inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
+#
 # netCDF metadata at or near the bottom of the fort.15 file
 declare -A netcdf_metadata
 netcdf_metadata["NCPROJ"]="ASGS"                      # project title
@@ -99,5 +110,6 @@ nodal_attribute_default_values["internal_tide_friction"]="0.0  0.0  0.0"
 nodal_attribute_default_values["subgrid_barrier"]="99999.0"
 #
 # SWAN parameters (fort.26) file
-swan_max_iterations="20"      # MXITNS max number of iterations per timestep
-swan_convergence_npts="95"    # NPNTS percent of vertices required to meet convergence criteria per timestep
+declare -A swan
+swan["MXITNS"]="20"   # max number of iterations per timestep
+swan["NPNTS"]="95"    # percent of mesh vertices required to meet convergence criteria per timestep

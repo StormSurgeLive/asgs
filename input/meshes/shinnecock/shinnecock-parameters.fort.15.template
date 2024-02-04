@@ -1,5 +1,5 @@
  ASGS TEMPLATE15_2024.1 %StormName% ADCIRC Version %ADCIRCVER%
- %EnsembleID%
+ %ScenarioID%
  %NFOVER%    ! %NFOVER-Line%
  %NABOUT%    ! %NABOUT-Line%
  %NSCREEN%   ! %NSCREEN-Line%
@@ -11,7 +11,7 @@
  %NOLICA%    ! %NOLICA-Line%
  %NOLICAT%   ! %NOLICAT-Line%
  %NWP%       ! %NWP-Line%
- %NWPLIST%   ! %NWPLIST-Line%
+ %NALIST%   ! %NALIST-Line%
  1           ! %NCOR-Line%
  1           ! %NTIP-Line%
  %NWS%       ! %NWS-Line%
@@ -30,7 +30,7 @@
  %FFACTOR% 1.0  10.  0.33333 ! %FFACTOR-Line%
  %ESLM%                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
- 5 ! %NTIFCOMMENT% %NTIF-Line% 
+ 5 ! %NTIFCOMMENT% %NTIF-Line%
 M2
  0.242334  1.405174E-004 0.693000  %M2NF%  %M2EQARG%
 N2
@@ -41,7 +41,7 @@ K1
  0.141565  7.292040E-005 0.736000  %K1NF%  %K1EQARG%
 O1
  0.100514  6.759704E-005 0.695000  %O1NF%  %O1EQARG%
- 5 ! %NBFRCOMMENT% %NBFR-Line% 
+ 5 ! %NBFRCOMMENT% %NBFR-Line%
  M2
       0.000140518902509   %M2NF%  %M2EQARG%
  N2
@@ -447,16 +447,17 @@ O1
  0 0 0 0              ! %NHASE-Line%
  %NHSTAR%  %NHSINC%   ! %NHSTAR-Line%
  %ITITER% 0 1.0E-7 25 ! %ITITER-Line%
-%NCPROJ%                %NCPROJ-Line%
-%NCINST%                %NCINST-Line%
-%NCSOUR%                %NCSOUR-Line%
-%NCHIST%                %NCHIST-Line%
-%NCREF%                 %NCREF-Line%
-%NCCOM%                 %NCCOM-Line%
-%NCHOST%                %NCHOST-Line%
-%NCCONT%                %NCCONT-Line%
+%NCPROJ% %NCPROJ-Line%
+%NCINST% %NCINST-Line%
+%NCSOUR% %NCSOUR-Line%
+%NCHIST% %NCHIST-Line%
+%NCREF%  %NCREF-Line%
+%NCCOM%  %NCCOM-Line%
+%NCHOST% %NCHOST-Line%
+%NCCONT% %NCCONT-Line%
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00 %NCDATE-Line%
-
+!
+! namelists:
 %met_control_namelist%
 %wetdry_control_nameli0st%
 %inundation_output_control_namelist%
