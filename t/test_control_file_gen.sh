@@ -31,6 +31,7 @@ inundationOutputControl["inundationOutput"]="yes"
 inundationOutputControl["inunThresh"]="0.6"
 declare -a nodal_attribute_activate
 nodal_attribute_activate=( "sea_surface_height_above_geoid" "mannings_n_at_sea_floor" )
+na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
 declare -A netcdf_metadata
 netcdf_metadata["NCPROJ"]="ASGS"
 netcdf_metadata["NCINST"]="Seahorse Consulting"
@@ -43,6 +44,7 @@ netcdf_metadata["NCCONV"]="CF"
 netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live"
 netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"
 # swan
+declare -A swan
 swan["MXITNS"]="20"
 swan["NPNTS"]="95"
 # nodal attributes
@@ -50,20 +52,36 @@ nodal_attributes_template_file="shinnecock_nodal_attributes.template"
 declare -A nodal_attribute_default_values
 nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
 nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+stuff="\n"
+for k in ${!nodal_attribute_default_values[@]}; do stuff="$stuff     $k: ${nodal_attribute_default_values[$k]}\n" ; done
 #
 # fill in template
 #
+filledControlParametersTemplateName=control-parameters.yaml
+controlParametersTemplateName=$INPUTDIR/control-parameters-template.yaml
+# LINTER: Check to make sure netcdf metadata does not have any embedded "?" characters
 sed \
     -e "s/%ADCIRCVER%/$adcirc_version/" \
     -e "s/%IM_ETC%/$solver_time_integration/" \
     -e "s/%A00B00C00%/$time_weighting_coefficients/" \
     -e "s/%lateral_turbulence%/$lateral_turbulence/" \
-    -e "s/%ESLM%/$eddy_viscostity_coefficient/"                   \
+    -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
     -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
-    -e "s/%H0/$h0/" \
+    -e "s/%H0%/$h0/" \
     -e "s/%VELMIN%/$velmin/" \
     -e "s/%FFACTOR%/$bottom_friction_limit/" \
     -e "s/%advection%/$advection/" \
+    -e "s/%nodal_attribute_activate_list%/$na_string/" \
+    -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
+    -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
+    -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
+    -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
+    -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
+    -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
+    -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
+    -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
+    -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
+    -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
     -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
     -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
     -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
@@ -72,21 +90,11 @@ sed \
     -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
     -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
     -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-    -e "s/%NCPROJ%/${netcdf_metadata["NCPROJ"]}/" \
-    -e "s/%NCINST%/${netcdf_metadata["NCINST"]}/" \
-    -e "s/%NCSOUR%/${netcdf_metadata["NCSOUR"]}/" \
-    -e "s/%NCHIST%/${netcdf_metadata["NCHIST"]}/" \
-    -e "s/%NCREF%/${netcdf_metadata["NCREF"]}/" \
-    -e "s/%NCCOM%/${netcdf_metadata["NCCOM"]}/" \
-    -e "s/%NCHOST%/${netcdf_metadata["NCHOST"]}/" \
-    -e "s/%NCCONV%/${netcdf_metadata["NCCONV"]}/" \
-    -e "s/%NCCONT%/${netcdf_metadata["NCCONT"]}/" \
-    -e "s/%NCDATE%/${netcdf_metadata["NCDATE"]}/" \
-    -e "s/%SWANMXITNS%/${swan["MXITNS"]}/" \
-    -e "s/%SWANNPNTS%/${swan["NPNTS"]}/" \
+    -e "s/%MXITNS%/${swan["MXITNS"]}/" \
+    -e "s/%NPNTS%/${swan["NPNTS"]}/" \
     -e "s/%nodal_attributes_template_file%/$nodal_attributes_template_file/" \
-    -e "s/%nodal_attributes_default_values%/$nodal_attributes_default_values_hash/" \
-     < $SCRIPTDIR/$controlParametersTemplateName \
+    -e "s/%nodal_attribute_default_values_hash%/$stuff/" \
+     < $controlParametersTemplateName \
      > "$filledControlParametersTemplateName"
 if [[ $? != 0 ]]; then
     echo "$THIS: Failed to fill in control parameters template with sed."

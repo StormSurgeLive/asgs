@@ -7,11 +7,11 @@
  smagorinsky_coefficient: %ESLM_Smagorinsky%
  h0: %H0%
  velmin: %VELMIN%
- bottom_friction_limit: "%FFACTOR%"
+ bottom_friction_limit: %FFACTOR%
  advection: "%advection%"
  metControl:
    DragLawString: "%DragLawString%"
-   WindDragLimit: "%WindDragLimit%"
+   WindDragLimit: %WindDragLimit%
    outputWindDrag: "%outputWindDrag%"
  wetDryControl:
    outputNodeCode: "%outputNodeCode%"
@@ -32,8 +32,9 @@
    NCCONV: "%NCCONV%"
    NCCONT: "%NCCONT%"
    NCDATE: "%NCDATE%"
- swan_max_iterations: %MXITNS%
- swan_convergence_npts: %NPNTS%
- nodal_attributes_template_file: %nodal_attributes_template_file%
- nodal_attributes_file: %nodal_attributes_file%
- nodal_attribute_default_values: %nodal_attribute_default_values_hash%
+ swan:
+   MXTINS: %MXITNS%
+   NPNTS: %NPNTS%
+ nodal_attributes:
+   template: %nodal_attributes_template_file%
+   default_values: %nodal_attribute_default_values_hash%
