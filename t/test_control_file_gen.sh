@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# set variables used by this script
+INPUTDIR=$SCRIPTDIR/input/meshes/shinnecock
+#
 # set variables to be used in yaml template
 # SCRIPTDIR is defined by the asgsh environment
 adcirc_version="v53release"
@@ -88,76 +91,63 @@ sed \
 if [[ $? != 0 ]]; then
     echo "$THIS: Failed to fill in control parameters template with sed."
 fi
-NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
-# water surface elevation station output
+# set variables to be used in command line options
+SCENARIO=nowcast
+ADVISORY=20
+ADVISDIR=$SCRATCH
+CSDATE=20240101
+HINDCASTLENGTH=30.0
+TIMESTEPSIZE=2.0
+NWS=20
+HOTSTARTFORMAT=netcdf
+ELEVSTATIONS=${INPUTDIR}/shinnecock_stations.txt
+VELSTATIONS=$ELEVSTATIONS
+METSTATIONS=$ELEVSTATIONS
+GRIDNAME=shinnecock_inlet_coarse.grd
+PERIODICFLUX=null
+NSCREEN=-1000
 FORT61="--fort61freq 300.0 --fort61netcdf"
-# water current velocity station output
 FORT62="--fort62freq 0"
-# full domain water surface elevation output
 FORT63="--fort63freq 3600.0 --fort63netcdf"
-# full domain water current velocity output
 FORT64="--fort64freq 3600.0 --fort64netcdf"
-# met station output
 FORT7172="--fort7172freq 300.0 --fort7172netcdf"
-# full domain meteorological output
 FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
-#SPARSE="--sparse-output"
 SPARSE=""
 NETCDF4="--netcdf4"
 OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-# fulldomain or subdomain hotstart files
-if [[ $HOTSTARTCOMP != "subdomain" ]]; then
-   HOTSTARTCOMP="fulldomain"
-fi
-# binary, netcdf, or netcdf3 hotstart files
-if [[ $HOTSTARTFORMAT != "netcdf3" && $HOTSTARTFORMAT != "binary" ]]; then
-   HOTSTARTFORMAT="netcdf"
-fi
-# "continuous" or "reset" for maxele.63 etc files
-MINMAX=reset
+SWANDT=1200
+SWANTEMPLATE=${SCRIPTDIR}/input/meshes/common/adcirc_swan_v53_parameters_fort.26.template
+HOTSWAN="yes"
+BLADJ=0.9
+PUREVORTEX=3.0
+PUREBACKGROUND=5.0
+HSTIME=86400.0
+NHCNAME="KATRINA"
 #
-if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
-   scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
-   ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="01:00:00" # forecast wall clock time
-   CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
-   TIMESTEPSIZE=300.0          # 15 minute time steps
-   NCPU=15                     # dramatically reduced resource requirements
-   NUMWRITERS=1                # multiple writer procs might collide
-   WAVES=off                   # deactivate wave forcing
-   FORT61="--fort61freq 0"     # turn off water surface elevation station output
-   FORT62="--fort62freq 0"     # turn off water current velocity station output
-   FORT63="--fort63freq 0"     # turn off full domain water surface elevation output
-   FORT64="--fort64freq 0"     # turn off full domain water current velocity output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"    # met station output
-   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"   # full domain meteorological output
-   #SPARSE="--sparse-output"
-   SPARSE=""
-   NETCDF4="--netcdf4"
-   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-   POSTPROCESS=( null_post.sh )
-fi
-
-
-OUTPUTOPTIONS=
-CONTROLOPTIONS="--name $ENSTORM"
-CONTROLOPTIONS="$CONTROLOPTIONS  --scriptdir $SCRIPTDIR
- --advisorynum $ADVISORY
-  --advisdir $ADVISDIR
-   --cst $CSDATE
-    --endtime $HINDCASTLENGTH
-     --dt $TIMESTEPSIZE
-      --nws $NWS
-       --hsformat $HOTSTARTFORMAT
-        --advisorynum 0
-          $OUTPUTOPTIONS"
-CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
-CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
-if [[ $NOFORCING = true ]]; then
-    CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
-else
-    CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0"
-fi
-$SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS --controltemplate $filledControlParametersTemplateName < $filledControlParametersTemplateName > fort.15 2>> control_file_gen.pl.log
+C="--name $SCENARIO"
+C="$C --scriptdir $SCRIPTDIR"
+C="$C --advisorynum $ADVISORY"
+C="$C --advisdir $ADVISDIR"
+C="$C --stormdir $SCRATCH"
+C="$C --cst $CSDATE"
+C="$C --endtime $HINDCASTLENGTH"
+C="$C --dt $TIMESTEPSIZE"
+C="$C --nws $NWS"
+C="$C --bladj $BLADJ"
+C="$C --pureVortex $PUREVORTEX"
+C="$C --pureBackground $PUREBACKGROUND"
+C="$C --nhcName $NHCNAME"
+C="$C --hsformat $HOTSTARTFORMAT"
+C="$C --hstime $HSTIME"
+C="$C --elevstations ${INPUTDIR}/${ELEVSTATIONS}"
+C="$C --velstations ${INPUTDIR}/${VELSTATIONS}"
+C="$C --metstations ${INPUTDIR}/${METSTATIONS}"
+C="$C --gridname $GRIDNAME"          # for run.properties
+C="$C --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+C="$C --nscreen $NSCREEN"
+C="$C --swantemplate $SWANTEMPLATE"
+C="$C --swandt $SWANDT"
+C="$C $OUTPUTOPTIONS"
+C="$C --controltemplate $INPUTDIR/shinnecock-parameters.fort.15.template"
+#
+$SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < $filledControlParametersTemplateName > fort.15 2>> control_file_gen.pl.log
