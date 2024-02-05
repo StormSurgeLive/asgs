@@ -2035,10 +2035,9 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
 
 #BOB
-   logMessage "Debug: hindcast: building fort.15"
    controlFile="$ADVISDIR/$ENSTORM/fort.15"
    swanFile="$ADVISDIR/$ENSTORM/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml >> ${SYSLOG} 2>&1
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
