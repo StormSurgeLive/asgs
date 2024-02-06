@@ -1,6 +1,7 @@
 ---
  adcirc_version: "v53release"
  solver_time_integration: "implicit"
+ hindcast_length: 1.0
  time_weighting_coefficients: "0.35 0.3 0.35"
  lateral_turbulence: "eddy_viscosity"
  eddy_viscosity_coefficient: 50.0
@@ -9,6 +10,11 @@
  velmin: 0.1
  bottom_friction_limit: 0.001
  advection: "on"
+ meteorology:
+   wtiminc: 900
+   storm_name: "KATRINA"
+ tides:
+   tidal_forcing: on
  metControl:
    DragLawString: "garratt"
    WindDragLimit: 0.0025
@@ -20,7 +26,6 @@
  inundationOutputControl:
    inundationOutput: "yes"
    inunThresh: 0.6
- nodal_attribute_activate: [sea_surface_height_above_geoid, mannings_n_at_sea_floor]
  netcdf_metadata:
    NCPROJ: "ASGS"
    NCINST: "Seahorse Consulting"
@@ -32,11 +37,16 @@
    NCCONV: "CF"
    NCCONT: "jason.fleming@adcirc.live"
    NCDATE: "2010-05-01 00:00:00 UTC"
+ wave_coupling:
+   waves: "on"
+   wave_model: "%WAVEMODEL%"
+   rstiminc: 1200
  swan:
-   MXTINS: 20
-   NPNTS: 95
+   mxitns: 20
+   npnts: 95
  nodal_attributes:
-   template: shinnecock_nodal_attributes.template
+   template: "/home/jason/Campaigns/Development/2023/issue-1244/input/meshes/shinnecock/shinnecock_nodal_attributes.template"
+   activate: [sea_surface_height_above_geoid, mannings_n_at_sea_floor]
    default_values: 
      mannings_n_at_sea_floor: 0.02
      sea_surface_height_above_geoid: 0.0

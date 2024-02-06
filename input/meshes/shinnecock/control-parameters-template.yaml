@@ -1,6 +1,7 @@
 ---
  adcirc_version: "%ADCIRCVER%"
  solver_time_integration: "%IM_ETC%"
+ hindcast_length: %HINDCASTLENGTH%
  time_weighting_coefficients: "%A00B00C00%"
  lateral_turbulence: "%lateral_turbulence%"
  eddy_viscosity_coefficient: %ESLM%
@@ -9,6 +10,11 @@
  velmin: %VELMIN%
  bottom_friction_limit: %FFACTOR%
  advection: "%advection%"
+ meteorology:
+   wtiminc: %WTIMINC%
+   storm_name: "%storm_name%"
+ tides:
+   tidal_forcing: %tidal_forcing%
  metControl:
    DragLawString: "%DragLawString%"
    WindDragLimit: %WindDragLimit%
@@ -20,7 +26,6 @@
  inundationOutputControl:
    inundationOutput: "%inundationOutput%"
    inunThresh: %inunThresh%
- nodal_attribute_activate: %nodal_attribute_activate_list%
  netcdf_metadata:
    NCPROJ: "%NCPROJ%"
    NCINST: "%NCINST%"
@@ -32,9 +37,14 @@
    NCCONV: "%NCCONV%"
    NCCONT: "%NCCONT%"
    NCDATE: "%NCDATE%"
+ wave_coupling:
+   waves: "%WAVES%"
+   wave_model: "%WAVEMODEL%"
+   rstiminc: %RSTIMINC%
  swan:
-   MXTINS: %MXITNS%
-   NPNTS: %NPNTS%
+   mxitns: %MXITNS%
+   npnts: %NPNTS%
  nodal_attributes:
-   template: %nodal_attributes_template_file%
+   template: "%nodal_attributes_template_file%"
+   activate: %nodal_attribute_activate_list%
    default_values: %nodal_attribute_default_values_hash%

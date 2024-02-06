@@ -1,4 +1,4 @@
- ASGS TEMPLATE15_2024.1 %StormName% ADCIRC Version %ADCIRCVER%
+ ASGS TEMPLATE15_2024.1 %StormName% ADCIRCVersion:%ADCIRCVER%
  %ScenarioID%
  %NFOVER%    ! %NFOVER-Line%
  %NABOUT%    ! %NABOUT-Line%
@@ -447,15 +447,15 @@ O1
  0 0 0 0              ! %NHASE-Line%
  %NHSTAR%  %NHSINC%   ! %NHSTAR-Line%
  %ITITER% 0 1.0E-7 25 ! %ITITER-Line%
-%NCPROJ% %NCPROJ-Line%
-%NCINST% %NCINST-Line%
-%NCSOUR% %NCSOUR-Line%
-%NCHIST% %NCHIST-Line%
-%NCREF%  %NCREF-Line%
-%NCCOM%  %NCCOM-Line%
-%NCHOST% %NCHOST-Line%
-%NCCONT% %NCCONT-Line%
-%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00 %NCDATE-Line%
+%NCPROJ%%NCPROJ-Line%
+%NCINST%%NCINST-Line%
+%NCSOUR%%NCSOUR-Line%
+%NCHIST%%NCHIST-Line%
+%NCREF%%NCREF-Line%
+%NCCOM%%NCCOM-Line%
+%NCHOST%%NCHOST-Line%
+%NCCONT%%NCCONT-Line%
+%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00%NCDATE-Line%
 !
 ! namelists:
 %met_control_namelist%

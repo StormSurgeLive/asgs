@@ -15,6 +15,12 @@ h0=0.1
 velmin=0.1
 bottom_friction_limit=0.001
 advection="on"
+owi_win_pre_time_increment=900
+HINDCASTLENGTH=1.0
+# tides
+tidal_forcing="on"
+# meteorology
+storm_name="KATRINA"
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
 declare -A metControl
 metControl["DragLawString"]="garratt"
@@ -43,12 +49,16 @@ netcdf_metadata["NCHOST"]="www.seahorsecoastal.com"
 netcdf_metadata["NCCONV"]="CF"
 netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live"
 netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"
+# wave coupling
+WAVES="on"
+wave_model="swan"
+SWANDT=1200
 # swan
 declare -A swan
 swan["MXITNS"]="20"
 swan["NPNTS"]="95"
 # nodal attributes
-nodal_attributes_template_file="shinnecock_nodal_attributes.template"
+nodal_attributes_template_file="$INPUTDIR/shinnecock_nodal_attributes.template"
 declare -A nodal_attribute_default_values
 nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
 nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
@@ -63,15 +73,18 @@ controlParametersTemplateName=$INPUTDIR/control-parameters-template.yaml
 sed \
     -e "s/%ADCIRCVER%/$adcirc_version/" \
     -e "s/%IM_ETC%/$solver_time_integration/" \
+    -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
     -e "s/%A00B00C00%/$time_weighting_coefficients/" \
     -e "s/%lateral_turbulence%/$lateral_turbulence/" \
     -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
     -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
+    -e "s/%tidal_forcing%/$tidal_forcing/" \
     -e "s/%H0%/$h0/" \
     -e "s/%VELMIN%/$velmin/" \
     -e "s/%FFACTOR%/$bottom_friction_limit/" \
     -e "s/%advection%/$advection/" \
-    -e "s/%nodal_attribute_activate_list%/$na_string/" \
+    -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
+    -e "s/%storm_name%/$storm_name/" \
     -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
     -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
     -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
@@ -90,9 +103,13 @@ sed \
     -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
     -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
     -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
+    -e "s/%WAVES%/$WAVES/" \
+    -e "s/%wave_model%/$wave_model/" \
+    -e "s/%RSTIMINC%/$SWANDT/" \
     -e "s/%MXITNS%/${swan["MXITNS"]}/" \
     -e "s/%NPNTS%/${swan["NPNTS"]}/" \
-    -e "s/%nodal_attributes_template_file%/$nodal_attributes_template_file/" \
+    -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
+    -e "s/%nodal_attribute_activate_list%/$na_string/" \
     -e "s/%nodal_attribute_default_values_hash%/$stuff/" \
      < $controlParametersTemplateName \
      > "$filledControlParametersTemplateName"
@@ -103,8 +120,7 @@ fi
 SCENARIO=nowcast
 ADVISORY=20
 ADVISDIR=$SCRATCH
-CSDATE=20240101
-HINDCASTLENGTH=30.0
+CSDATE=2024010100
 TIMESTEPSIZE=2.0
 NWS=20
 HOTSTARTFORMAT=netcdf
@@ -123,33 +139,31 @@ FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
 SPARSE=""
 NETCDF4="--netcdf4"
 OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-SWANDT=1200
+
 SWANTEMPLATE=${SCRIPTDIR}/input/meshes/common/adcirc_swan_v53_parameters_fort.26.template
 HOTSWAN="yes"
 BLADJ=0.9
 PUREVORTEX=3.0
 PUREBACKGROUND=5.0
+ENDTIME=2024010200
 HSTIME=86400.0
-NHCNAME="KATRINA"
 #
 C="--name $SCENARIO"
-C="$C --scriptdir $SCRIPTDIR"
 C="$C --advisorynum $ADVISORY"
 C="$C --advisdir $ADVISDIR"
 C="$C --stormdir $SCRATCH"
 C="$C --cst $CSDATE"
-C="$C --endtime $HINDCASTLENGTH"
+C="$C --endtime $ENDTIME"
 C="$C --dt $TIMESTEPSIZE"
 C="$C --nws $NWS"
 C="$C --bladj $BLADJ"
 C="$C --pureVortex $PUREVORTEX"
 C="$C --pureBackground $PUREBACKGROUND"
-C="$C --nhcName $NHCNAME"
 C="$C --hsformat $HOTSTARTFORMAT"
 C="$C --hstime $HSTIME"
-C="$C --elevstations ${INPUTDIR}/${ELEVSTATIONS}"
-C="$C --velstations ${INPUTDIR}/${VELSTATIONS}"
-C="$C --metstations ${INPUTDIR}/${METSTATIONS}"
+C="$C --elevstations ${ELEVSTATIONS}"
+C="$C --velstations ${VELSTATIONS}"
+C="$C --metstations ${METSTATIONS}"
 C="$C --gridname $GRIDNAME"          # for run.properties
 C="$C --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
 C="$C --nscreen $NSCREEN"
@@ -158,4 +172,4 @@ C="$C --swandt $SWANDT"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/shinnecock-parameters.fort.15.template"
 #
-$SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < $filledControlParametersTemplateName > fort.15 2>> control_file_gen.pl.log
+$SCRIPTDIR/control_file_gen.pl $C < $filledControlParametersTemplateName > fort.15
