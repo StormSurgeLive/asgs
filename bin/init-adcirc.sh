@@ -186,6 +186,44 @@ case "$SELECTED_VERSION" in
 esac
 
 #
+# A S K  A B O U T  D E B U G  O P T I O N S  F I R S T
+#
+
+cat <<EOF
+Please choose a debug method [1-5]
+  1. none (default)
+  2. trace
+  3. full
+  4. buserror
+  5. netcdf_trace
+EOF
+
+_DEBUG=
+read -p "Choose 1-5 [1]: " DEBUG
+
+case "${DEBUG}" in
+  1)
+    DEBUG=
+    ;;
+  2)
+    DEBUG=trace
+    ;;
+  3)
+    DEBUG=full
+    ;;
+  4)
+    DEBUG=buserror
+    ;;
+  5)
+    DEBUG=netcdf_trace
+    ;;
+esac
+
+if [[ -n "${DEBUG}" ]]; then
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}
+fi
+
+#
 # C H O O S E  A D C I R C  P R O F I L E  N A M E
 #
 
@@ -328,16 +366,16 @@ SWANDIR=${ADCIRCBASE}/${SWANDIR}
 # + the SWAN=enable is only relevant to adcprep but
 #   should not cause any issues for the other targets
 ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
-ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG}"
 
 # for building coupled adcswan/padcswan (include all netCDF flags, no 'SWAN=enable')
 ADCSWAN_BINS="adcswan padcswan"
-ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME}"
+ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} DEBUG=${DEBUG}"
 
 # SWAN related utilities other than adcswan/padcswan
 #  + do not include anything related to netCDF
 SWAN_UTIL_BINS="unhcat.exe"
-SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
+SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG}"
 
 #
 # W R I T E   M E T A D A T A  &  B U I L D  A D C I R C
@@ -449,6 +487,7 @@ $patchJSON
     "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
     "adcirc.build.modules.loaded"         : "$MODULE_LIST"
     "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
+    "adcirc.build.debug"                  : "DEBUG=$DEBUG"
   }
 JSON
 export ADCIRC_SRC_TYPE=remote-zip
