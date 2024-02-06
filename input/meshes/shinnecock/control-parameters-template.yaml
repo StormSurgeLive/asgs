@@ -12,7 +12,14 @@
  advection: "%advection%"
  meteorology:
    wtiminc: %WTIMINC%
-   storm_name: "%storm_name%"
+   tropical_cyclone:
+     storm_name: "%storm_name%"
+   owi_win_pre:
+     nwset: %nwset%
+     nwbs: %nwbs%
+     dwm: %dwm%
+     startdate: %win_pre_start_date%
+     enddate: %win_pre_end_date%
  tides:
    tidal_forcing: %tidal_forcing%
  metControl:
