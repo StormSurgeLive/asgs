@@ -11,6 +11,8 @@ time_weighting_coefficients="0.35 0.3 0.35"
 lateral_turbulence="eddy_viscosity"
 eddy_viscosity_coefficient=50.0
 smagorinsky_coefficient=0.2
+nfover="1 20.0 1 20 100.0"
+log_level="INFO"
 h0=0.1
 velmin=0.1
 bottom_friction_limit=0.001
@@ -64,7 +66,7 @@ nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
 nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
 na_defaults="\n"
 for k in ${!nodal_attribute_default_values[@]}; do
-   na_defaults="$na_defaults     $k: ${nodal_attribute_default_values[$k]}\n"
+   na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
 done
 na_activate_list=""
 for k in ${nodal_attribute_activate[@]}; do
@@ -85,6 +87,8 @@ sed \
     -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
     -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
     -e "s/%tidal_forcing%/$tidal_forcing/" \
+    -e "s/%NFOVER%/$nfover/" \
+    -e "s/%NABOUT%/$log_level/" \
     -e "s/%H0%/$h0/" \
     -e "s/%VELMIN%/$velmin/" \
     -e "s/%FFACTOR%/$bottom_friction_limit/" \
@@ -116,7 +120,7 @@ sed \
     -e "s/%NPNTS%/${swan["NPNTS"]}/" \
     -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
     -e "s/%nodal_attribute_activate_list%/$na_string/" \
-    -e "s/%nodal_attribute_default_values_hash%/$stuff/" \
+    -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
      < $controlParametersTemplateName \
      > "$filledControlParametersTemplateName"
 if [[ $? != 0 ]]; then
@@ -146,18 +150,16 @@ SPARSE=""
 NETCDF4="--netcdf4"
 OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
 
-SWANTEMPLATE=${SCRIPTDIR}/input/meshes/common/adcirc_swan_v53_parameters_fort.26.template
+SWANTEMPLATE=${SCRIPTDIR}/input/meshes/common/swan/adcirc_swan_v53_parameters_fort.26.template
 HOTSWAN="yes"
 BLADJ=0.9
 PUREVORTEX=3.0
 PUREBACKGROUND=5.0
-ENDTIME=2024010200
+ENDTIME=2024010300
 HSTIME=86400.0
 #
 C="--name $SCENARIO"
 C="$C --advisorynum $ADVISORY"
-C="$C --advisdir $ADVISDIR"
-C="$C --stormdir $SCRATCH"
 C="$C --cst $CSDATE"
 C="$C --endtime $ENDTIME"
 C="$C --dt $TIMESTEPSIZE"
