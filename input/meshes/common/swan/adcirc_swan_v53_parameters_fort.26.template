@@ -18,9 +18,9 @@ $          output of the program for the user's convenience.
 $ 'title2' same as 'title1'.
 $ 'title3' same as 'title1'.
 PROJ 'ASGS' '%nr%'
-'%StormName%'
-'%ScenarioID% ADCIRC Version %ADCIRCVER%'
-'%WTIMINC% TEMPLATE26_2024.1'
+'TEMPLATE26:2024.1 %StormName%'
+'%ScenarioID% ADCIRCVersion:%ADCIRCVER%'
+'WTIMINCLine: %WTIMINC%'
 $
 $********************MODEL INPUT*************************
 $

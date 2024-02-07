@@ -62,7 +62,7 @@
 #
 #jgf20120124: standalone usage example for making a fort.15 for the
 # ec95d mesh. It was for a tides-only run.
-#perl ~/asgs/trunk/control_file_gen.pl --controltemplate ~/asgs/trunk/input/ec_95_fort.15_template --gridname fort.14 --cst 2012010100 --endtime 7 --dt 30.0 --nws 0 --hsformat binary --stormdir . --name hindcast --fort63freq 3600.0
+#perl ~/asgs/trunk/control_file_gen.pl --controltemplate ~/asgs/trunk/input/ec_95_fort.15_template --gridname fort.14 --cst 2012010100 --endtime 7 --dt 30.0 --nws 0 --hsformat binary --name hindcast --fort63freq 3600.0
 
 use strict;
 use warnings;
@@ -73,6 +73,7 @@ use Cwd;
 use ASGSUtil;
 #
 my $nscreen=-1000; # frequency of time step output to STDOUT(+) or adcirc.log(-)
+my %logLevelsNABOUT = ('DEBUG' => -1, 'ECHO' => 0, 'INFO' => 1, 'WARNING' => 2, 'ERROR' => 3 );
 my $fort61freq=0; # output frequency in SECONDS
 my $fort61append; # if defined, output files will be appended across hotstarts
 my $fort62freq=0; # output frequency in SECONDS
@@ -123,8 +124,6 @@ my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=0;
 my $advisorynum="0";
-our $stormDir = "."; # directory where this script will write files
-our $advisdir;  # the directory for this run
 my $particles;  # flag to produce fulldomain current velocity files at an
                 # increment of 30 minutes
 our $NHSINC;    # time step increment at which to write hot start files
@@ -155,7 +154,6 @@ our $dwm = "1.0";
 my $parameters;  # YAML document that defines model control options
 #
 GetOptions("controltemplate=s" => \$controltemplate,
-           "stormdir=s" => \$stormDir,
            "swantemplate=s" => \$swantemplate,
            "elevstations=s" => \$elevstations,
            "velstations=s" => \$velstations,
@@ -171,7 +169,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "nws=s" => \$nws,
            "advisorynum=s" => \$advisorynum,
            "hstime=s" => \$hstime,
-           "advisdir=s" => \$advisdir,
            "nscreen=s"   => \$nscreen,
            "fort61freq=s" => \$fort61freq,
            "fort62freq=s" => \$fort62freq,
@@ -242,7 +239,7 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    if ( abs($nws) == 30 || abs($nws) == 330 ) {
       $wtiminc_line .= " $p->{meteorology}->{wtiminc} $pureVortex $pureBackground";
       # create the fort.22 file for ADCIRC ASCII OWI format
-      open(METFILE,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write $stormDir/fort.22 file: $!.";
+      open(METFILE,">fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for scenario '$enstorm' to write 'fort.22' file: $!.";
       printf METFILE "$nwset\n"; # defaults to 1 (just fort.221 fort.222)
       printf METFILE "$nwbs\n";  # defaults to 0 (no blank snaps)
       printf METFILE "$dwm\n";   # defaults to 1.0
@@ -396,7 +393,7 @@ $fluxdata = getPeriodicFlux($periodicflux);
 # construct metControl namelist line
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
 my $outputWindDrag = $p->{metControl}->{outputWindDrag} eq "yes" ? "T" : "F";
-my $met_control_line ="&metControl WindDragLimit=$p->{metControl}->{WindDragLimit}, DragLawString=$p->{metControl}->{DragLawString}, outputWindDrag=.$outputWindDrag /";
+my $met_control_line ="&metControl WindDragLimit=$p->{metControl}->{WindDragLimit}, DragLawString=\"$p->{metControl}->{DragLawString}\", outputWindDrag=$outputWindDrag /";
 #
 # construct wetDryControl namelist
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
@@ -487,6 +484,10 @@ while(<TEMPLATE>) {
     s/%StormName%/$rundesc/;
     # fill in frequency of time step output to STDOUT or adcirc.log
     s/%NSCREEN%/$nscreen/;
+    # non-fatal override (water levels for warnings and fatal errors)
+    s/%NFOVER%/$p->{nfover}/;
+    # logging levels (debug, echo, info, warning, error)
+    s/%NABOUT%/$logLevelsNABOUT{$p->{log_level}}/;
     # set six digit IM according to time integration
     # IM=0 is the same as IM=111111
     s/%IM%/$im/;
@@ -581,9 +582,20 @@ while(<TEMPLATE>) {
     s/%CSHOUR%/$ch/;
     s/%CSMIN%/$cmin/;
     s/%CSSEC%/$cs/;
+    # remove line IDs from netCDF metadata so it doesn't
+    # show up in output files
+    s/%NCPROJ-Line%//;
+    s/%NCINST-Line%//;
+    s/%NCSOUR-Line%//;
+    s/%NCHIST-Line%//;
+    s/%NCREF-Line%//;
+    s/%NCCOM-Line%//;
+    s/%NCHOST-Line%//;
+    s/%NCCONT-Line%//;
+    s/%NCDATE-Line%//;
     # namelists
     s/%met_control_namelist%/$met_control_line/;
-    s/%wetdry_control_namelist%/%wetdry_control_line/;
+    s/%wetdry_control_namelist%/$wetdry_control_line/;
     s/%inundation_output_control_namelist%/$inundation_output_control_line/;
     s/%dynamic_water_level_correction_namelist%/$dynamic_water_level_correction_line/;
     #
@@ -631,11 +643,11 @@ if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} e
    }
    #
    # open output fort.26 file
-   unless (open(FORT26,">$stormDir/fort.26")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the output control file $stormDir/fort.26: $!.");
+   unless (open(FORT26,">fort.26")) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open the swan parameters file 'fort.26': $!.");
       die;
    }
-   ASGSUtil::stderrMessage("INFO","The fort.26 file will be written to the directory $stormDir.");
+   ASGSUtil::stderrMessage("INFO","The 'fort.26' file will be written.");
    #
    $startdatetime = sprintf("%4d%02d%02d.%02d0000",$ny,$nm,$nd,$nh);
    $enddatetime = sprintf("%4d%02d%02d.%02d0000",$ey,$em,$ed,$eh);
@@ -657,8 +669,8 @@ if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} e
        s/%swandt%/$swandt/;
        # fill in ensemble name -- this is in the comment line
        my $scenarioid72 = substr($scenarioid,0,72); # 'title2' in SWAN documentation, max 72 char
-       s/%ScenarioID%/$scenarioid72/;
-       s/%EnsembleID%/$scenarioid72/; # for backward compatibility with old templates
+       s/%ScenarioID%|%EnsembleID%/$scenarioid72/;
+       #s//$scenarioid72/; # for backward compatibility with old templates
        # fill in the ADCIRC version : jgfdebug does this need to be checked for length?
        s/%ADCIRCVER%/$p->{adcirc_version}/;
        # may be asymmetric parameters, or wtiminc, rstiminc, etc
@@ -721,7 +733,6 @@ if ( abs($nws) != 19 && abs($nws) != 319 && abs($nws) != 20 && abs($nws) != 320 
    printf RUNPROPS "track_modified : notrack\n";
 }
 printf RUNPROPS "year : $ny\n";
-printf RUNPROPS "directory storm : $stormDir\n";
 printf RUNPROPS "mesh : $gridname\n";
 printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $gridname\n";
@@ -1033,7 +1044,7 @@ sub customParameters {
    # create the runme file, if this is a nowcast that has an ending time
    # that is later than the previous hotstart
    if ( $enstorm eq "nowcast" && $specifiedRunLength != 0 ) {
-      open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
+      open(RUNME,">runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing: $!.";
       printf RUNME "$specifiedRunLength day nowcast\n";
       close(RUNME);
    }
@@ -1050,7 +1061,7 @@ sub customParameters {
 sub owiParameters {
    #
    # open met file
-   open(METFILE,"<$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI ASCII (NWS12) file $stormDir/fort.22 for reading: $!.";
+   open(METFILE,"<fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI ASCII (NWS12) file 'fort.22' for reading: $!.";
    my $line = <METFILE>;
    close(METFILE);
    $line =~ /^# (\d+)/;
@@ -1074,17 +1085,17 @@ sub owiParameters {
    }
    #
    # open file that will contain the hotstartdate
-   open(HSD,">$stormDir/hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file $stormDir/hotstartdate: $!.";
+   open(HSD,">hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file 'hotstartdate': $!.";
    my $hotstartdate = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh);
-   ASGSUtil::stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written to the directory $stormDir.");
+   ASGSUtil::stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written.");
    printf HSD $hotstartdate;
    close(HSD);
    # determine the date time of the start and end of the OWI files
    my $owistart = $hotstartdate; # reasonable default
    my $owiend = "nullend";
-   my @fort221 = glob($stormDir."/*.221");
+   my @fort221 = glob("*.221");
    if (@fort221) {
-      open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file $stormDir/$fort221[0]: $!.";
+      open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file '$fort221[0]': $!.";
       my $header221 = <FORT221>;
       close(FORT221);
       my @fields221 = split(" ",$header221);
@@ -1118,14 +1129,14 @@ sub owiParameters {
    $nwset = 1;
    # hack to see if there is an additional, optional region scale set of
    # win/pre files
-   my @fort223 = glob($stormDir."/*.223");
+   my @fort223 = glob("*.223");
    if (@fort223) {
       $nwset = 2;
    }
    ASGSUtil::stderrMessage("INFO","nwset is '$nwset'");
    #
    # create the fort.22 output file, which is the wind input file for ADCIRC
-   open(MEMBER,">$stormDir/fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for ensemble member '$enstorm' to write $stormDir/fort.22 file: $!.";
+   open(MEMBER,">fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for scenario '$enstorm' to write 'fort.22' file: $!.";
    printf MEMBER "$nwset\n"; # defaults to 1
    printf MEMBER "$nwbs\n";  # defaults to 0
    printf MEMBER "$dwm\n";   # defaults to 1.0
@@ -1157,7 +1168,7 @@ sub owiParameters {
    #
    # create the runme file, if this is a nowcast
    if ( $enstorm eq "nowcast" ) {
-      open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
+      open(RUNME,">runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing: $!.";
       printf RUNME "$scenarioid\n";
    }
    close(RUNME);
@@ -1173,7 +1184,6 @@ sub owiParameters {
 sub vortexModelParameters {
    my $nws = shift;
    my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
-   $scenarioid = $enstorm;
    #
    # convert hotstart time (in days since coldstart) if necessary
    if ( $hstime ) {
@@ -1280,7 +1290,7 @@ sub vortexModelParameters {
    my $runlengthHours;
    if ( $enstorm eq "nowcast" && $goodRunlength == 1 ) {
       my $runlengthHours = ( $RNDAY*86400.0 - $hstime ) / 3600.0;
-      open(RUNME,">$stormDir/runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing in the directory $stormDir: $!.";
+      open(RUNME,">runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing: $!.";
       printf RUNME "$runlengthHours hour nowcast\n";
       close(RUNME);
    }

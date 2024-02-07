@@ -6,6 +6,8 @@
  lateral_turbulence: "%lateral_turbulence%"
  eddy_viscosity_coefficient: %ESLM%
  smagorinsky_coefficient: %ESLM_Smagorinsky%
+ nfover: "%NFOVER%"
+ log_level: "%NABOUT%"
  h0: %H0%
  velmin: %VELMIN%
  bottom_friction_limit: %FFACTOR%
@@ -46,7 +48,7 @@
    NCDATE: "%NCDATE%"
  wave_coupling:
    waves: "%WAVES%"
-   wave_model: "%WAVEMODEL%"
+   wave_model: "%wave_model%"
    rstiminc: %RSTIMINC%
  swan:
    mxitns: %MXITNS%

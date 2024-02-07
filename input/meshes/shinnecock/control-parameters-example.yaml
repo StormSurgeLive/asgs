@@ -6,6 +6,8 @@
  lateral_turbulence: "eddy_viscosity"
  eddy_viscosity_coefficient: 50.0
  smagorinsky_coefficient: 0.2
+ nfover: "1 20.0 1 20 100.0"
+ log_level: "INFO"
  h0: 0.1
  velmin: 0.1
  bottom_friction_limit: 0.001
