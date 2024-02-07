@@ -27,6 +27,7 @@
 # ADCIRC parameters (fort.15) file
 adcirc_version="notset"
 TIMESTEPSIZE="1.0"                          # ADCIRC time step in seconds
+
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:
@@ -110,6 +111,7 @@ nodal_attribute_default_values["internal_tide_friction"]="0.0  0.0  0.0"
 nodal_attribute_default_values["subgrid_barrier"]="99999.0"
 #
 # SWAN parameters (fort.26) file
+SWANDT=1200 # swan timestep / coupling interval (seconds)
 declare -A swan
 swan["MXITNS"]="20"   # max number of iterations per timestep
 swan["NPNTS"]="95"    # percent of mesh vertices required to meet convergence criteria per timestep

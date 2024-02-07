@@ -88,6 +88,9 @@ RIVERSITE="ftp.nssl.noaa.gov"
 RIVERDIR="/projects/ciflow/adcirc_info"
 RIVERUSER="ldm"
 RIVERDATAPROTOCOL="scp"
+HINDCASTRIVERFLUX=null
+RIVERINIT=null           # mesh has no rivers ...
+RIVERFLUX=null
 #
 # Model coupling : SWAN
 #

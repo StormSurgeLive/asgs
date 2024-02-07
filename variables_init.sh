@@ -121,8 +121,6 @@ variables_init()
    STORMTRACKOPTIONS="--strengthPercent null"
    PSEUDOSTORM=n
    MESHPROPERTIES=null
-   CONTROLPROPERTIES=null
-   NAPROPERTIES=null
    EMAILNOTIFY=no # set to yes to have host platform email notifications
    NOTIFY_SCRIPT=null_notify.sh
    ACTIVATE_LIST=null

@@ -771,7 +771,7 @@ if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} e
    writeFileName("swan_TPS.63",$fort7374specifier);
    writeFileName("swan_TPS_max.63",$fort7374specifier);
 }
-if ($inundationOutput eq "on") {
+if ($p->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
    writeFileName("initiallydry.63",$fort63specifier);
    writeFileName("inundationtime.63",$fort63specifier);
    writeFileName("maxinundepth.63",$fort63specifier);

@@ -66,19 +66,12 @@ case $GRIDNAME in
       CONTROLTEMPLATE=CPRA23v01c_5kcms_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=CPRA23v01c_nowindreduction_fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.3621"
       ELEVSTATIONS=combined_stations_20230824.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=cpra_2023mp_2023_realtime_v01c.13
-      NAPROPERTIES=${NAFILE}.properties
       SWANTEMPLATE=CPRA23v01c_fort.26.template
-      RIVERINIT=null
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -98,18 +91,12 @@ case $GRIDNAME in
       CONTROLTEMPLATE=m2-agt.fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE # no wind roughness in AGT fort.13
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=elev_stations_agt.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=agt.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                            # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=720.0          # adcirc time step size (seconds)
-      SWANDT=1200                 # swan time step size (seconds)
       zNorth="112.8516 40.3289  ! China-Argentina"
       selfAttractionEarthLoadTide="m2-agt.fort.24"
       # intersection between mesh, models, hpc platform, and number of compute cores:
@@ -127,18 +114,10 @@ case $GRIDNAME in
       CONTROLTEMPLATE=LA_v19k-WithUpperAtch.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LA_v19k-WithUpperAtch.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=combined_stations_20190327.txt
       VELSTATIONS=combined_stations_20190327.txt
       METSTATIONS=combined_stations_20190327.txt
       NAFILE=LA_v19k-WithUpperAtch_chk.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -158,80 +137,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=combined_stations_20200929.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=LA_v20a-WithUpperAtch_chk.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
-      ;;
-   "LAv21a")
-      #
-      nodes=1593485
-      elements=3102441
-      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a # <--<< SAME DIRECTORY AS LAST YEAR
-      GRIDFILE=LA_v21a-WithUpperAtch_chk.grd   # mesh (fort.14) file
-      OLDGRIDFILE="LA_v20a-WithUpperAtch_chk.grd"
-      MESHPROPERTIES=${OLDGRIDFILE}.properties
-      CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template # <--<< SAME FORT.15 as last year
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=combined_stations_20200929.txt
-      VELSTATIONS=$ELEVSTATIONS
-      METSTATIONS=$ELEVSTATIONS
-      NAFILE=LA_v21a-WithUpperAtch_chk.13
-      OLDNAFILE="LA_v20a-WithUpperAtch_chk.13"
-      NAPROPERTIES=${OLDNAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
-      ;;
-   "LAv21c")
-      #
-      nodes=1593485
-      elements=3102441
-      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a # <--<< SAME DIRECTORY AS LAST YEAR
-      GRIDFILE=LA_v21c-WithUpperAtch_chk.grd   # mesh (fort.14) file
-      OLDGRIDFILE="LA_v21a-WithUpperAtch_chk.grd"
-      MESHPROPERTIES=${OLDGRIDFILE}.properties
-      CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template # <--<< SAME FORT.15 as last year
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=combined_stations_20200929.txt
-      VELSTATIONS=$ELEVSTATIONS
-      METSTATIONS=$ELEVSTATIONS
-      NAFILE=LA_v21a-WithUpperAtch_chk.13
-      OLDNAFILE="LA_v21a-WithUpperAtch_chk.13"
-      NAPROPERTIES=${OLDNAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -254,18 +164,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=LAERDCv5i_10.194kcms.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=LAERDCv5i_10.194kcms.norough.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=combined_stations_20200929.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=LA_ERDC_v05k_chk.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null             # this mesh has rivers with constant flow ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -283,18 +186,12 @@ case $GRIDNAME in
       CONTROLTEMPLATE=ec_95_fort.15_template   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=ec_95_nowindreduction.fort.15_template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=cera_stations.txt
       VELSTATIONS=cera_stations.txt
       METSTATIONS=cera_stations.txt
       NAFILE=null
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                            # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=30.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="06:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -313,18 +210,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=tx2008r35h_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2008r35h_norough_template.15
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=tx2008r35h_stations_20170618.txt
       VELSTATIONS=tx2008r35h_stations_20170618.txt
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=tx2008_r35h.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2763"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -344,18 +234,13 @@ case $GRIDNAME in
       CONTROLTEMPLATE=tx2017_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2017_norough_template.15
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=tx2008r35h_stations_20170618.txt
       VELSTATIONS=tx2008r35h_stations_20170618.txt
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=ctx_gr_p01E02_na_p02_fort.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2347"
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
-      SWANDT=1200 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time, including partmesh
@@ -374,18 +259,13 @@ case $GRIDNAME in
       CONTROLTEMPLATE=tx2020a_esl_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=tx2020a_norough_template.15
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=tx2008r35h_stations_20170618.txt
       VELSTATIONS=tx2008r35h_stations_20170618.txt
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=tx2020a.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2347"
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -404,18 +284,13 @@ case $GRIDNAME in
       CONTROLTEMPLATE=TXLA22a_fort.15.template  # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=tx2008r35h_stations_20170618.txt
       VELSTATIONS=tx2008r35h_stations_20170618.txt
       METSTATIONS=tx2008r35h_stations_20170618.txt
       NAFILE=TXLA22a.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2347"
       # interaction between mesh and models:
       TIMESTEPSIZE=2.0           # adcirc time step size (seconds)
-      SWANDT=1200 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and n compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time,including partmesh
@@ -435,18 +310,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=neflga_v12_geo_template.15   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=neflga_v12_geo_norough_template.15
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=neflga_stations_20190809.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=neflga_v12.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.003"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -465,18 +333,15 @@ case $GRIDNAME in
       CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
-      CONTROLPROPERTIES=fort.15.properties
       ELEVSTATIONS=ncv999_stations_20180907.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=nc_inundation_v9.99_rivers.13
-      NAPROPERTIES=${NAFILE}.properties
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
       HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -494,42 +359,10 @@ case $GRIDNAME in
       CONTROLTEMPLATE=fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=norough_fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=elev_stations.txt
       VELSTATIONS=vel_stations.txt
       METSTATIONS=met_stations.txt
       NAFILE=hsofs_NE-hires_v18_weir_rivers_depsm2.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
-      SWANDT=1800                 # swan timestep / coupling interval (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
-      UNITOFFSETFILE=unit_offset_hsofs.dat
-      ;;
-   "hsofs_NE-hires_v2_depf2")
-      nodes=2617704
-      elements=5149248
-      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs_NE-hires_v2_depf2
-      GRIDFILE=hsofs_NE-hires_v2_depf2.grd
-      MESHPROPERTIES=${GRIDFILE}.nc.properties
-      CONTROLTEMPLATE=hsofs_NE-hires_v2_depf2.15.template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
-      ELEVSTATIONS=hsofs_stations_2020-02-01.txt
-      VELSTATIONS=$ELEVSTATIONS
-      METSTATIONS=$ELEVSTATIONS
-      NAFILE=hsofs_NE-hires_v2_with_mann_advstate.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
       SWANDT=1800                 # swan timestep / coupling interval (seconds)
@@ -551,14 +384,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=hsofs_explicit.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      h0=0.05
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=hsofs.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
       SWANDT=1800                 # swan timestep / coupling interval (seconds)
@@ -580,17 +410,12 @@ case $GRIDNAME in
       CONTROLTEMPLATE=SABv20a.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=SABv20a.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=SABv20a.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="36:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -610,16 +435,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=fema_wfl_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=fema_wfl_nowindreduction.fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      h0=0.05
       ELEVSTATIONS=fema_wfl_stations_20191114.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=fema_wfl_fort.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
       SWANDT=1800                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
@@ -640,18 +460,14 @@ case $GRIDNAME in
       CONTROLTEMPLATE=southfl-v11-1.template.15
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=southfl-v11-1.nowindreduction.template.15
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=southfl_stations_20190502.txt
       VELSTATIONS=southfl_stations_20190502.txt
       METSTATIONS=southfl_stations_20190502.txt
       NAFILE=southfl_v11-1_final-production.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.155"
       HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -670,18 +486,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=cenfl.fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=cenfl.norough.fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=cenfl_stations_20190809.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=cenfl_v7.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.17"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -700,18 +509,10 @@ case $GRIDNAME in
       CONTROLTEMPLATE=FEMA_R3_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=FEMA_R3_nowindreduction_fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=cera_stations_20180810.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=FEMA_R3_20110303_MSL.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -731,18 +532,10 @@ case $GRIDNAME in
       CONTROLTEMPLATE=FEMA_R2_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=FEMA_R2.noswanrefrac.nowindreduction.fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=cera_stations_20180810.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=FEMA_R2_01262012_refrac_fort.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -761,18 +554,10 @@ case $GRIDNAME in
       CONTROLTEMPLATE=NAC2014_R01.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=NAC2014_R01.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=cera_stations_20180810.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
       NAFILE=NAC2014_R01.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
-      SWANDT=1200                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -791,18 +576,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=NGOM_RT_v19b.15.template_18kcms   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=NGOM_RT_v19b.nowindreduction.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=NGOM_RT_v19b_stations_08282018.txt
       VELSTATIONS=NGOM_RT_v19b_stations_08282018.txt
       METSTATIONS=NGOM_RT_v19b_stations_08282018.txt
       NAFILE=NGOM_RT_v19b_chk.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                           # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                 # swan time step size (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -822,18 +600,11 @@ case $GRIDNAME in
       CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=EGOM-RT_v20b_stations.txt
       VELSTATIONS=EGOM-RT_v20b_stations.txt
       METSTATIONS=EGOM-RT_v20b_stations.txt
       NAFILE=EGOM-RT_v20b_asgs_chk.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                            # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      SWANDT=1200                 # swan time step size (seconds)
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.106"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -852,19 +623,13 @@ case $GRIDNAME in
       CONTROLTEMPLATE=shinnecock_asgs.fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=shinnecock_asgs.fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
+      h0=0.05
       ELEVSTATIONS=shinnecock_stations.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=shinnecock.13
-      NATEMPLATE=shinnecock_nodal_attributes.template
-      NAPROPERTIES=shinnecock_nodal_attributes.properties
-      RIVERINIT=null                            # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
-      SWANDT=1200                 # swan time step size (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -882,18 +647,12 @@ case $GRIDNAME in
       CONTROLTEMPLATE=shinnecock-parameters.fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=${CONTROLTEMPLATE}
-      CONTROLPROPERTIES=null  # automatically written by control_file_gen.pl to run.properties
       ELEVSTATIONS=shinnecock_stations.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=shinnecock.13.template
-      NAPROPERTIES=null       # automatically written by control_file_gen.pl to run.properties
-      RIVERINIT=null                            # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
-      SWANDT=1200                 # swan time step size (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -919,22 +678,12 @@ case $GRIDNAME in
       GRIDFILE=ec2001_v2e.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=ec2001_v2e_fort.15.template   # fort.15 template (designed for 1s timestep)
-      TIMESTEPSIZE=1.0           # adcirc time step size (seconds)
-      # CONTROLTEMPLATE=ec2001_v2e_adcircv55_fort.15.template # designed for larger timestep (e.g., 50s)
-      # TIMESTEPSIZE=50.0
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=$CONTROLTEMPLATE  # same b/c no inundation coverage
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=ec2001_v2e.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                            # this mesh has no rivers ...
-      RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
-      # interaction between mesh and models:
-      SWANDT=1200                # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="06:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
@@ -951,18 +700,12 @@ case $GRIDNAME in
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=openwater.fort.15.template  # designed for 2s timestep (any adcirc version)
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
-      # CONTROLTEMPLATE=openwater_adcircv55.fort.15.template # designed for larger timestep (adcirc v55 only)
-      # TIMESTEPSIZE=50.0            # adcirc time step size (seconds)
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=${CONTROLTEMPLATE} # same b/c no inundation area
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=openwater.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
       SWANDT=1800                 # swan timestep / coupling interval (seconds)
@@ -981,19 +724,13 @@ case $GRIDNAME in
       GRIDFILE=PRVI15_fort.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=PRVI15_fort.15.template  # designed for 2s timestep (any adcirc version)
-      TIMESTEPSIZE=1.0            # adcirc time step size (seconds)
-      # CONTROLTEMPLATE=openwater_adcircv55.fort.15.template # designed for larger timestep (adcirc v55 only)
-      # TIMESTEPSIZE=50.0            # adcirc time step size (seconds)
+      h0=0.05
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=PRVI15_norough_fort.15.template
-      CONTROLPROPERTIES=${CONTROLTEMPLATE}.properties
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
       NAFILE=PRVI15_fort.13
-      NAPROPERTIES=${NAFILE}.properties
-      RIVERINIT=null                          # this mesh has no rivers ...RIVERFLUX=null
-      HINDCASTRIVERFLUX=null
       # interaction between mesh and models:
       SWANDT=600                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:

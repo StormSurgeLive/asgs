@@ -75,8 +75,8 @@ done
 #
 # fill in template
 #
-filledControlParametersTemplateName=control-parameters.yaml
-controlParametersTemplateName=$INPUTDIR/control-parameters-template.yaml
+controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
+filledControlParametersTemplate=control-parameters.yaml
 # LINTER: Check to make sure netcdf metadata does not have any embedded "?" characters
 sed \
     -e "s/%ADCIRCVER%/$adcirc_version/" \
@@ -121,8 +121,8 @@ sed \
     -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
     -e "s/%nodal_attribute_activate_list%/$na_string/" \
     -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
-     < $controlParametersTemplateName \
-     > "$filledControlParametersTemplateName"
+     < $controlParametersTemplate \
+     > "$filledControlParametersTemplate"
 if [[ $? != 0 ]]; then
     echo "$THIS: Failed to fill in control parameters template with sed."
 fi
@@ -180,4 +180,4 @@ C="$C --swandt $SWANDT"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/shinnecock-parameters.fort.15.template"
 #
-$SCRIPTDIR/control_file_gen.pl $C < $filledControlParametersTemplateName > fort.15
+$SCRIPTDIR/control_file_gen.pl $C < $filledControlParametersTemplate > fort.15

@@ -2059,8 +2059,8 @@ if [[ $START = coldstart ]]; then
    # don't have a meterological forcing (fort.22) file in this case
    # preproces
    logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing."
-   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
-   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES
+   for inputProperties in $MESHPROPERTIES; do
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
          cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
       else
@@ -2666,8 +2666,8 @@ while [ true ]; do
    if [[ ! -e $NOWCASTDIR/runme ]]; then
       RUNNOWCAST=no
    fi
-   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
-   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES"
+   for inputProperties in $MESHPROPERTIES; do
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
          cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
       else
@@ -3161,8 +3161,8 @@ while [ true ]; do
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
-      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
-      for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
+      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES"
+      for inputProperties in $MESHPROPERTIES; do
          if [[ -e ${INPUTDIR}/$inputProperties ]]; then
             cat ${INPUTDIR}/$inputProperties >> $SCENARIODIR/run.properties
          else
