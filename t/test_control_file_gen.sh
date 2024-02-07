@@ -62,8 +62,14 @@ nodal_attributes_template_file="$INPUTDIR/shinnecock_nodal_attributes.template"
 declare -A nodal_attribute_default_values
 nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
 nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
-stuff="\n"
-for k in ${!nodal_attribute_default_values[@]}; do stuff="$stuff     $k: ${nodal_attribute_default_values[$k]}\n" ; done
+na_defaults="\n"
+for k in ${!nodal_attribute_default_values[@]}; do
+   na_defaults="$na_defaults     $k: ${nodal_attribute_default_values[$k]}\n"
+done
+na_activate_list=""
+for k in ${nodal_attribute_activate[@]}; do
+   na_activate_list="$na_activate_list    - $k\n"
+done
 #
 # fill in template
 #

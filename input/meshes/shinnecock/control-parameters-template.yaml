@@ -15,13 +15,13 @@
    tropical_cyclone:
      storm_name: "%storm_name%"
    owi_win_pre:
-     nwset: %nwset%
-     nwbs: %nwbs%
-     dwm: %dwm%
-     startdate: %win_pre_start_date%
-     enddate: %win_pre_end_date%
+     nwset: "%nwset%"
+     nwbs: "%nwbs%"
+     dwm: "%dwm%"
+     startdate: "%win_pre_start_date%"
+     enddate: "%win_pre_end_date%"
  tides:
-   tidal_forcing: %tidal_forcing%
+   tidal_forcing: "%tidal_forcing%"
  metControl:
    DragLawString: "%DragLawString%"
    WindDragLimit: %WindDragLimit%
@@ -52,6 +52,8 @@
    mxitns: %MXITNS%
    npnts: %NPNTS%
  nodal_attributes:
-   template: "%nodal_attributes_template_file%"
-   activate: %nodal_attribute_activate_list%
-   default_values: %nodal_attribute_default_values_hash%
+    template: "%nodal_attributes_template_file%"
+    activate:
+      - "sea_surface_height_above_geoid"
+      - "mannings_n_at_sea_floor"
+    default_values: %nodal_attribute_default_values_hash%

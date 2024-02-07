@@ -475,12 +475,8 @@ if ( $p->{advection} eq "off" ) {
 #
 # count the number of activated nodal attributes and form the
 # associated list of nodal attributes
-my @nodal_attributes_activate = $p->{nodal_attributes}->{activate};
+my @nodal_attributes_activate = @{$p->{nodal_attributes}->{activate}};
 my $nwp = scalar @nodal_attributes_activate;
-my $nodal_attributes_active = 'NO LINE HERE';
-if ( $nwp != 0 ) {
-   $nodal_attributes_active = join('\n',@nodal_attributes_activate);
-}
 #
 ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
@@ -510,7 +506,16 @@ while(<TEMPLATE>) {
     # number of nodal attributes
     s/%NWP%/$nwp/;
     # list of nodal attributes
-    s/%NALIST%/$nodal_attributes_active/;
+    if ( /%NALIST%/ ) {
+       if ( $nwp == 0 ) {
+          s/%NALIST%/NO LINE HERE/;
+       } else {
+          foreach my $nali (@nodal_attributes_activate) {
+            printf "$nali\n";
+          }
+          next;
+       }
+    }
     # lateral turbulence formulation
     s/%ESLM%/$eslm/;
     # minimum water depth to be categorized wet vs dry
@@ -1285,7 +1290,7 @@ sub vortexModelParameters {
    }
    #
    # create run description
-   $rundesc = "cs:$csdate"."0000 cy:$p->{meteorology}->{storm_name}$advisorynum";
+   $rundesc = "cs:$csdate"."0000 cy:$p->{meteorology}->{tropical_cyclone}->{storm_name}$advisorynum";
    # create the RUNID
    $scenarioid = $addHours . " hour " . $enstorm . " run";
    # create the WTIMINC line
