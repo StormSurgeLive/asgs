@@ -25,9 +25,9 @@
 #----------------------------------------------------------------
 #
 # ADCIRC parameters (fort.15) file
+controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
 adcirc_version="notset"
 TIMESTEPSIZE="1.0"                          # ADCIRC time step in seconds
-
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:

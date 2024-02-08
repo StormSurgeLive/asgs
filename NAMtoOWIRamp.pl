@@ -145,23 +145,6 @@ $jshash_ref->{"winPrePressureFile"} = $presFile;
 my $wtiminc = $timeStep * 3600;    # ts in seconds
 $jshash_ref->{"winPreWtimincSeconds"} = ($wtiminc * 1.0);
 ASGSUtil::writeJSON($jshash_ref);
-# have to add the meteorology time increment to fort.22
-ASGSUtil::stderrMessage("INFO",
-              "Adding WTIMINC value to fort.22 as a comment line." );
-my $F22;
-unless ( open( $F22, ">>", "fort.22" ) ) {
-   ASGSUtil::stderrMessage(
-             "ERROR",
-             "Failed to open WIN/PRE (a.k.a. OWI or NWS=12) fort.22 file " .
-             "to append a comment line with the " .
-             "meteorological time increment.");
-   die;
-}
-ASGSUtil::stderrMessage(
-          "INFO",
-          "Appending the WTIMINC value of '$wtiminc' to the fort.22 file." );
-print $F22 "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15\n";
-close($F22);
 #
 # loop through the time-steps to run awips_interp
 ASGSUtil::stderrMessage(
