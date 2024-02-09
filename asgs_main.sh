@@ -2033,7 +2033,64 @@ if [[ $START = coldstart ]]; then
    fi
 
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
-
+   #
+   na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
+   na_defaults="\n"
+   for k in ${!nodal_attribute_default_values[@]}; do
+      na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
+   done
+   na_activate_list=""
+   for k in ${nodal_attribute_activate[@]}; do
+      na_activate_list="$na_activate_list    - $k\n"
+   done
+   sed \
+    -e "s/%ADCIRCVER%/$adcirc_version/" \
+    -e "s/%IM_ETC%/$solver_time_integration/" \
+    -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
+    -e "s/%A00B00C00%/$time_weighting_coefficients/" \
+    -e "s/%lateral_turbulence%/$lateral_turbulence/" \
+    -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
+    -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
+    -e "s/%tidal_forcing%/$tidal_forcing/" \
+    -e "s/%NFOVER%/$nfover/" \
+    -e "s/%NABOUT%/$log_level/" \
+    -e "s/%H0%/$h0/" \
+    -e "s/%VELMIN%/$velmin/" \
+    -e "s/%FFACTOR%/$bottom_friction_limit/" \
+    -e "s/%advection%/$advection/" \
+    -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
+    -e "s/%storm_name%/$storm_name/" \
+    -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
+    -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
+    -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
+    -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
+    -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
+    -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
+    -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
+    -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
+    -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
+    -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
+    -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
+    -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
+    -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
+    -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
+    -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
+    -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
+    -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
+    -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
+    -e "s/%WAVES%/$WAVES/" \
+    -e "s/%wave_model%/$wave_model/" \
+    -e "s/%RSTIMINC%/$SWANDT/" \
+    -e "s/%MXITNS%/${swan["MXITNS"]}/" \
+    -e "s/%NPNTS%/${swan["NPNTS"]}/" \
+    -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
+    -e "s/%nodal_attribute_activate_list%/$na_string/" \
+    -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
+     < $controlParametersTemplate \
+     > "$filledControlParametersTemplate"
+   if [[ $? != 0 ]]; then
+      echo "$THIS: Failed to fill in control parameters template with sed."
+   fi
 #BOB
    controlFile="$ADVISDIR/$ENSTORM/fort.15"
    swanFile="$ADVISDIR/$ENSTORM/fort.26"
@@ -2417,6 +2474,10 @@ while [ true ]; do
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
+         tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+         owiWinPre["startDateTime"]=${tlimits[0]}
+         owiWinPre["endDateTime"]=${tlimits[1]} 
          cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2428,9 +2489,10 @@ while [ true ]; do
          # create links to the OWI files
          ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
-         # created by NAMtoOWIRamp.pl, contains the WTIMINC,
-         # which is needed by control_file_gen.pl
-         mv fort.22 owi_fort.22 2>> $SYSLOG
+         fort22="owi_fort.22"
+         echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+         echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
+         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22         
          ;;
       "on"|"NAM")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2486,6 +2548,10 @@ while [ true ]; do
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
+         tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+         owiWinPre["startDateTime"]=${tlimits[0]}
+         owiWinPre["endDateTime"]=${tlimits[1]}         
          cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2497,6 +2563,10 @@ while [ true ]; do
          # create links to the OWI files
          ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+         fort22="fort.22"
+         echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+         echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
+         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22 
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
@@ -2626,13 +2696,70 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    # generate fort.15 file
    logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-
+   #
+   na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
+   na_defaults="\n"
+   for k in ${!nodal_attribute_default_values[@]}; do
+      na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
+   done
+   na_activate_list=""
+   for k in ${nodal_attribute_activate[@]}; do
+      na_activate_list="$na_activate_list    - $k\n"
+   done
+   sed \
+    -e "s/%ADCIRCVER%/$adcirc_version/" \
+    -e "s/%IM_ETC%/$solver_time_integration/" \
+    -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
+    -e "s/%A00B00C00%/$time_weighting_coefficients/" \
+    -e "s/%lateral_turbulence%/$lateral_turbulence/" \
+    -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
+    -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
+    -e "s/%tidal_forcing%/$tidal_forcing/" \
+    -e "s/%NFOVER%/$nfover/" \
+    -e "s/%NABOUT%/$log_level/" \
+    -e "s/%H0%/$h0/" \
+    -e "s/%VELMIN%/$velmin/" \
+    -e "s/%FFACTOR%/$bottom_friction_limit/" \
+    -e "s/%advection%/$advection/" \
+    -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
+    -e "s/%storm_name%/$storm_name/" \
+    -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
+    -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
+    -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
+    -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
+    -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
+    -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
+    -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
+    -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
+    -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
+    -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
+    -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
+    -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
+    -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
+    -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
+    -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
+    -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
+    -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
+    -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
+    -e "s/%WAVES%/$WAVES/" \
+    -e "s/%wave_model%/$wave_model/" \
+    -e "s/%RSTIMINC%/$SWANDT/" \
+    -e "s/%MXITNS%/${swan["MXITNS"]}/" \
+    -e "s/%NPNTS%/${swan["NPNTS"]}/" \
+    -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
+    -e "s/%nodal_attribute_activate_list%/$na_string/" \
+    -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
+     < $controlParametersTemplate \
+     > "$filledControlParametersTemplate"
+   if [[ $? != 0 ]]; then
+      echo "$THIS: Failed to fill in control parameters template with sed."
+   fi
 #BOB
    THIS="asgs_main.sh"
    debugMessage "$THIS: $ENSTORM: Building fort.15 file."
    controlFile="fort.15"
-   swanFile="fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+   swanFile="fort.26" 
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control-parameters.yaml > $controlFile 2>> ${SYSLOG}
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -3080,6 +3207,10 @@ while [ true ]; do
             2>> $SYSLOG
             preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
             winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+            WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
+            tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+            owiWinPre["startDateTime"]=${tlimits[0]}
+            owiWinPre["endDateTime"]=${tlimits[1]}         
             # copy log data to scenario.log
             for file in lambert_diag.out reproject.log ; do
                if [[ -e $ADVISDIR/$file ]]; then
@@ -3090,6 +3221,10 @@ while [ true ]; do
             # create links to the OWI files
             ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
             ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+            fort22="fort.22"
+            echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+            echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
+            echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22 
          fi
          CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
@@ -3107,13 +3242,70 @@ while [ true ]; do
       CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
       CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
+      #
+      na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
+      na_defaults="\n"
+      for k in ${!nodal_attribute_default_values[@]}; do
+         na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
+      done
+      na_activate_list=""
+      for k in ${nodal_attribute_activate[@]}; do
+         na_activate_list="$na_activate_list    - $k\n"
+      done
+      sed \
+      -e "s/%ADCIRCVER%/$adcirc_version/" \
+      -e "s/%IM_ETC%/$solver_time_integration/" \
+      -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
+      -e "s/%A00B00C00%/$time_weighting_coefficients/" \
+      -e "s/%lateral_turbulence%/$lateral_turbulence/" \
+      -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
+      -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
+      -e "s/%tidal_forcing%/$tidal_forcing/" \
+      -e "s/%NFOVER%/$nfover/" \
+      -e "s/%NABOUT%/$log_level/" \
+      -e "s/%H0%/$h0/" \
+      -e "s/%VELMIN%/$velmin/" \
+      -e "s/%FFACTOR%/$bottom_friction_limit/" \
+      -e "s/%advection%/$advection/" \
+      -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
+      -e "s/%storm_name%/$storm_name/" \
+      -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
+      -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
+      -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
+      -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
+      -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
+      -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
+      -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
+      -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
+      -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
+      -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
+      -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
+      -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
+      -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
+      -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
+      -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
+      -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
+      -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
+      -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
+      -e "s/%WAVES%/$WAVES/" \
+      -e "s/%wave_model%/$wave_model/" \
+      -e "s/%RSTIMINC%/$SWANDT/" \
+      -e "s/%MXITNS%/${swan["MXITNS"]}/" \
+      -e "s/%NPNTS%/${swan["NPNTS"]}/" \
+      -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
+      -e "s/%nodal_attribute_activate_list%/$na_string/" \
+      -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
+      < $controlParametersTemplate \
+      > "$filledControlParametersTemplate"
+      if [[ $? != 0 ]]; then
+         echo "$THIS: Failed to fill in control parameters template with sed."
+      fi
 #BOB
       THIS="asgs_main.sh"
       debugMessage "$THIS: $ENSTORM: Building fort.15 file."
-
       controlFile="fort.15"
       swanFile="fort.26"
-      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
+      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control-parameters.yaml > $controlFile 2>> ${SYSLOG}
       controlExitStatus=$?
       if [[ $controlExitStatus != 0 ]]; then
          controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
