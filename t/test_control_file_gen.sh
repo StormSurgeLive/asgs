@@ -17,12 +17,19 @@ h0=0.1
 velmin=0.1
 bottom_friction_limit=0.001
 advection="on"
-owi_win_pre_time_increment=900
+WTIMINC=900
 HINDCASTLENGTH=1.0
 # tides
 tidal_forcing="on"
 # meteorology
 storm_name="KATRINA"
+# OWI Win/Pre ASCII format (NWS=12)
+declare -A owiWinPre
+owiWinPre["NWSET"]=1
+owiWinPre["NWBS"]=0
+owiWinPre["DWM"]=1.0
+owiWinPre["startDateTime"]=1970010100
+owiWinPre["endDateTime"]=1980010100
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
 declare -A metControl
 metControl["DragLawString"]="garratt"
@@ -83,6 +90,11 @@ sed \
     -e "s/%IM_ETC%/$solver_time_integration/" \
     -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
     -e "s/%A00B00C00%/$time_weighting_coefficients/" \
+    -e "s/%NWSET%/${owiWinPre["NWSET"]}/" \
+    -e "s/%NWBS%/${owiWinPre["NWBS"]}/" \
+    -e "s/%DWM%/${owiWinPre["DWM"]}/" \
+    -e "s/%startdatetime%/${owiWinPre["startDateTime"]}/" \
+    -e "s/%enddatetime%/${owiWinPre["endDateTime"]}/" \
     -e "s/%lateral_turbulence%/$lateral_turbulence/" \
     -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
     -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
@@ -93,7 +105,7 @@ sed \
     -e "s/%VELMIN%/$velmin/" \
     -e "s/%FFACTOR%/$bottom_friction_limit/" \
     -e "s/%advection%/$advection/" \
-    -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
+    -e "s/%WTIMINC%/$WTIMINC/" \
     -e "s/%storm_name%/$storm_name/" \
     -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
     -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \

@@ -238,12 +238,6 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    # and appending it to the wtiminc line
    if ( abs($nws) == 30 || abs($nws) == 330 ) {
       $wtiminc_line .= " $p->{meteorology}->{wtiminc} $pureVortex $pureBackground";
-      # create the fort.22 file for ADCIRC ASCII OWI format
-      open(METFILE,">fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for scenario '$enstorm' to write 'fort.22' file: $!.";
-      printf METFILE "$nwset\n"; # defaults to 1 (just fort.221 fort.222)
-      printf METFILE "$nwbs\n";  # defaults to 0 (no blank snaps)
-      printf METFILE "$dwm\n";   # defaults to 1.0
-      close(METFILE);
    }
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
    owiParameters();
@@ -1060,12 +1054,7 @@ sub customParameters {
 #--------------------------------------------------------------------------
 sub owiParameters {
    #
-   # open met file
-   open(METFILE,"<fort.22") || die "ERROR: control_file_gen.pl: Failed to open OWI ASCII (NWS12) file 'fort.22' for reading: $!.";
-   my $line = <METFILE>;
-   close(METFILE);
-   $line =~ /^# (\d+)/;
-   my $wtiminc_value = $1;
+   my $wtiminc_value = $p->{meteorology}->{wtiminc};
    #
    # determine the relationship between the start of the NAM data and the
    # current time in the ADCIRC run
@@ -1083,25 +1072,9 @@ sub owiParameters {
       $nmin = 0;
       $ns = 0;
    }
-   #
-   # open file that will contain the hotstartdate
-   open(HSD,">hotstartdate") || die "ERROR: control_file_gen.pl: Failed to open the HOTSTARTDATE file 'hotstartdate': $!.";
-   my $hotstartdate = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh);
-   ASGSUtil::stderrMessage("INFO","The file containing the hotstartdate '$hotstartdate' will be written.");
-   printf HSD $hotstartdate;
-   close(HSD);
-   # determine the date time of the start and end of the OWI files
-   my $owistart = $hotstartdate; # reasonable default
-   my $owiend = "nullend";
-   my @fort221 = glob("*.221");
-   if (@fort221) {
-      open(FORT221,"<$fort221[0]") || die "ERROR: control_file_gen.pl: Failed to open the fort.221 file '$fort221[0]': $!.";
-      my $header221 = <FORT221>;
-      close(FORT221);
-      my @fields221 = split(" ",$header221);
-      $owistart = $fields221[-2];
-      $owiend = $fields221[-1];
-   }
+   # date time of the start and end of the OWI file(s)
+   my $owistart = $p->{meteorology}->{owi_win_pre}->{startdatetime};
+   my $owiend = $p->{meteorology}->{owi_win_pre}->{enddatetime};
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend OWI ASCII ";
    $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
@@ -1125,23 +1098,8 @@ sub owiParameters {
    # snaps to be skipped in the OWI file if it starts before the
    # current time in the ADCIRC run)
    $nwbs = int($blank_time/$wtiminc_value);
-   ASGSUtil::stderrMessage("INFO","nwbs is '$nwbs'");
-   $nwset = 1;
-   # hack to see if there is an additional, optional region scale set of
-   # win/pre files
-   my @fort223 = glob("*.223");
-   if (@fort223) {
-      $nwset = 2;
-   }
-   ASGSUtil::stderrMessage("INFO","nwset is '$nwset'");
-   #
-   # create the fort.22 output file, which is the wind input file for ADCIRC
-   open(MEMBER,">fort.22") || die "ERROR: control_file_gen.pl: Failed to open file for scenario '$enstorm' to write 'fort.22' file: $!.";
-   printf MEMBER "$nwset\n"; # defaults to 1
-   printf MEMBER "$nwbs\n";  # defaults to 0
-   printf MEMBER "$dwm\n";   # defaults to 1.0
-   close(MEMBER);
-   ASGSUtil::stderrMessage("INFO","The OWI file ends at '$owiend'.");
+   $nwset = $p->{meteorology}->{owi_win_pre}->{nwset};
+   # compute RNDAY and NHSINC
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $ey = $1;
    $em = $2;
@@ -1149,7 +1107,6 @@ sub owiParameters {
    $eh = $4;
    $emin = 0;
    $es = 0;
-   #
    # get difference
    ( $ddays, $dhrs, $dmin, $dsec )
            = Date::Calc::Delta_DHMS(

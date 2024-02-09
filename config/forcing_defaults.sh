@@ -25,6 +25,15 @@ THIS=$(basename -- $0)
 # time between picking up advisory and giving up  on additional scenarios
 CYCLETIMELIMIT="05:00:00"
 #
+# Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
+#
+declare -A owiWinPre
+owiWinPre["NWSET"]=1      # number of win/pre ascii datasets (i.e., domains)
+owiWinPre["NWBS"]=0       # number of blank snaps (i.e., datasets)
+owiWinPre["DWM"]=1.0      # wind multiplier (unitless)
+owiWinPre["startDateTime"]=1970010100  # yyyymmddhh24
+owiWinPre["endDateTime"]=1980010100    # yyyymmddhh24
+#
 #  Meteorological Forcing : Tropical Cyclones
 #
 #RSSSITE=filesystem

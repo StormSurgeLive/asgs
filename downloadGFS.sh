@@ -251,27 +251,29 @@ downloadGFS()
         # inventory in the first file
         date=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         sdate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
-        startDateTime=$date
+        owiWinPre["startDateTime"]=$date
         #
-        # determine the wtiminc (time increment between files in seconds,
+        # determine the WTIMINC (time increment between data sets in seconds,
         # needed for the ADCIRC fort.15 file)
         date=$(wgrib2 ${gfsFileList[1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         ndate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
-        wtiminc=$(( (ndate - sdate) ))
-        # write to a temp/pseudo fort.22 file
+        WTIMINC=$(( (ndate - sdate) ))
+        # write the fort.22 file
         fort22="fort.22"
         if [[ $BACKGROUNDMET == "gfsBlend" ]]; then
             fort22="owi_fort.22"
         fi
-        echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > $fort22
+        echo ${owiWinPre["NWSET"]} > $fort22
+        echo ${owiWinPre["NWBS"]} >> $fort22
+        echo ${owiWinPre["DWM"]}  >> $fort22
         #
         # find the end time for use in the main file header
-        endDateTime=$(wgrib2 ${gfsFileList[-1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
+        owiWinPre["endDateTime"]=$(wgrib2 ${gfsFileList[-1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         #
         # write the headers to the win/pre files
-        preFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.221
-        winFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.222
-        headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)"
+        preFileName=GFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
+        winFileName=GFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
+        headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
         headerLine="${headerLineTemplate:0:30}#${gfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#gfsDomain['coverage']}):${#headerLineTemplate}}"
         echo "$headerLine" > $preFileName # fort.221
         echo "$headerLine" > $winFileName # fort.222
@@ -301,12 +303,12 @@ downloadGFS()
         # write metadata to JSON
         bashJSON.pl \
             --mapscalar get="$THIS" \
-            --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)" \
+            --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})" \
             --mapscalar winPreVelocityFile="$winFileName" \
             --mapscalar winPrePressureFile="$preFileName" \
             --mapscalar winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} )) \
-            --mapscalar gfsForecastValidStart="${startDateTime}0000" \
-            --mapscalar winPreWtimincSeconds="$wtiminc" \
+            --mapscalar gfsForecastValidStart="${owiWinPre["startDateTime"]}0000" \
+            --mapscalar winPreWtimincSeconds="$WTIMINC" \
             --mapscalar winPreNumRecords="${#winPreTimes[*]}" \
             --maparray winPreDataTimes="$(echo ${winPreTimes[@]})" \
             --maparray filesDownloaded="$(echo ${downloaded[@]})" \
@@ -472,33 +474,37 @@ downloadGFS()
         #
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
-        startDateTime=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
+        owiWinPre["startDateTime"]=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         #
-        # determine the wtiminc (time increment between files in seconds,
+        # determine the WTIMINC (time increment between datasets in seconds,
         # needed for the ADCIRC fort.15 file)
         incr=( $(wgrib2 ${gfsFileList[1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
-        wtiminc=${incr[0]}
+        WTIMINC=${incr[0]}
         if [[ ${incr[1]} == "hour" ]]; then
-            wtiminc=$(( $wtiminc * 3600 ))
+            WTIMINC=$(( $WTIMINC * 3600 ))
         else
             fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
         fi
-        # write to a temp/pseudo fort.22 file
-        echo "# $wtiminc <-set WTIMINC to this value in ADCIRC fort.15" > fort.22
+        # write the fort.22 file
+        fort22="fort.22"
+        echo ${owiWinPre["NWSET"]} > $fort22
+        echo ${owiWinPre["NWBS"]} >> $fort22
+        echo ${owiWinPre["DWM"]}  >> $fort22
         #
         # find the end time for use in the main file header
         incr=( $(wgrib2 ${gfsFileList[-1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
         duration=${incr[0]}
+        local sdt=${owiWinPre["startDateTime"]}
         if [[ ${incr[1]} == "hour" ]]; then
-            endDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' 2>>$SYSLOG)
+            owiWinPre["endDateTime"]=$(date -u --date="${sdt:0:4}-${sdt:4:2}-${sdt:6:2} ${sdt:8:10}:00:00 $duration hours" '+%Y%m%d%H' 2>>$SYSLOG)
         else
             fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
         fi
         #
         # write the headers to the win/pre files
-        preFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.221
-        winFileName=GFS_${stage^^}_${startDateTime}_${endDateTime}.222
-        headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)"
+        preFileName=GFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
+        winFileName=GFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
+        headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
         headerLine="${headerLineTemplate:0:30}#${gfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#gfsDomain['coverage']}):${#headerLineTemplate}}"
         echo "$headerLine" > $preFileName # fort.221
         echo "$headerLine" > $winFileName # fort.222
@@ -514,7 +520,7 @@ downloadGFS()
             if [[ ${incr[0]} == "anl" ]]; then
                 duration="0"
             fi
-            snapDateTime=$(date -u --date="${startDateTime:0:4}-${startDateTime:4:2}-${startDateTime:6:2} ${startDateTime:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
+            snapDateTime=$(date -u --date="${sdt:0:4}-${sdt:4:2}-${sdt:6:2} ${sdt:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
             headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)"
             winPreTimes+=( $snapDateTime )
             echo "$headerLine" >> $preFileName
@@ -533,12 +539,12 @@ downloadGFS()
         # write metadata to JSON
         bashJSON.pl \
             --mapscalar get="$THIS" \
-            --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" $startDateTime $endDateTime)" \
+            --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})" \
             --mapscalar winPreVelocityFile="$winFileName" \
             --mapscalar winPrePressureFile="$preFileName" \
             --mapscalar winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} )) \
-            --mapscalar gfsForecastValidStart="${startDateTime}0000" \
-            --mapscalar winPreWtimincSeconds="$wtiminc" \
+            --mapscalar gfsForecastValidStart="${owiWinPre["startDateTime"]}0000" \
+            --mapscalar winPreWtimincSeconds="$WTIMINC" \
             --mapscalar winPreNumRecords="${#winPreTimes[*]}" \
             --maparray winPreDataTimes="$(echo ${winPreTimes[@]})" \
             --maparray filesDownloaded="$(echo ${downloaded[@]})" \
