@@ -69,12 +69,13 @@ downloadGFS()
     # status checker and GFS downloader
     gfsTemplateName="get_gfs_template.json"
     filledGfsTemplateName="asgs_main.sh_get_gfs_status.json"
+    # epoch seconds associated with cold start and hotstart times
+    csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+    hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
     #
     # N O W C A S T
     if [[ $stage == "NOWCAST" ]]; then
         # determine the cycle time corresponding to the current state of the simulation
-        csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
-        hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
         lastCycle=$(TZ=UTC date -u -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H" 2>>$SYSLOG)
         DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
         sed \
@@ -252,12 +253,18 @@ downloadGFS()
         date=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         sdate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
         owiWinPre["startDateTime"]=$date
+        owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
         #
         # determine the WTIMINC (time increment between data sets in seconds,
         # needed for the ADCIRC fort.15 file)
         date=$(wgrib2 ${gfsFileList[1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         ndate=$(date --date="${date:0:4}-${date:4:2}-${date:6:2} ${date:8:10}:00:00" '+%s' 2>>$SYSLOG)
         WTIMINC=$(( (ndate - sdate) ))
+        #
+        # determine the NWBS (number of blank snaps between the
+        # hotstart time and the start of the OWI WIN/PRE data)
+        # under normal circumstances, will be equal to 0
+        owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
         # write the fort.22 file
         fort22="fort.22"
         if [[ $BACKGROUNDMET == "gfsBlend" ]]; then
@@ -475,6 +482,8 @@ downloadGFS()
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
         owiWinPre["startDateTime"]=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
+        date=${owiWinPre["startDateTime"]}
+        owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
         #
         # determine the WTIMINC (time increment between datasets in seconds,
         # needed for the ADCIRC fort.15 file)
@@ -485,8 +494,16 @@ downloadGFS()
         else
             fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
         fi
+        #
+        # determine the NWBS (number of blank snaps between the
+        # hotstart time and the start of the OWI WIN/PRE data)
+        # under normal circumstances, will be equal to 0
+        owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
         # write the fort.22 file
         fort22="fort.22"
+        if [[ $BACKGROUNDMET == "gfsBlend" ]]; then
+            fort22="owi_fort.22"
+        fi
         echo ${owiWinPre["NWSET"]} > $fort22
         echo ${owiWinPre["NWBS"]} >> $fort22
         echo ${owiWinPre["DWM"]}  >> $fort22
