@@ -241,6 +241,7 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    }
 } elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
    owiParameters();
+   $wtiminc_line = "$p->{meteorology}->{wtiminc}";
 } elsif ( defined $specifiedRunLength ) {
    ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
    customParameters();
@@ -686,7 +687,7 @@ if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} e
    close(FORT26);
 }
 #
-# append run-control.properties file
+# write run-control.properties file
 # set components
 my $model = "PADCIRC";
 my $model_type = "SADC";
@@ -713,7 +714,7 @@ if ( $enstorm eq "nowcast" ) {
    $run_type = "Hindcast"; # for the run-control.properties file
 }
 ASGSUtil::stderrMessage("INFO","Opening run-control.properties file for writing.");
-unless (open(RUNPROPS,">>run-control.properties")) {
+unless (open(RUNPROPS,">run-control.properties")) {
    ASGSUtil::stderrMessage("ERROR","Failed to open the run-control.properties file for appending: $!.");
    die;
 }
@@ -739,6 +740,7 @@ if (defined $hstime) {
 printf RUNPROPS "RunStartTime : $runstarttime\n";
 printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";
+#
 printf RUNPROPS "Model : $model\n";
 # write the names of the output files to the run-control.properties file
 ASGSUtil::stderrMessage("INFO","Writing file names and formats to run-control.properties file.");
@@ -1034,14 +1036,7 @@ sub customParameters {
    }
    ($ey,$em,$ed,$eh,$emin,$es) =
       Date::Calc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);
-    $wtiminc_line = "NO LINE HERE";
-   # create the runme file, if this is a nowcast that has an ending time
-   # that is later than the previous hotstart
-   if ( $enstorm eq "nowcast" && $specifiedRunLength != 0 ) {
-      open(RUNME,">runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing: $!.";
-      printf RUNME "$specifiedRunLength day nowcast\n";
-      close(RUNME);
-   }
+   $wtiminc_line = "NO LINE HERE";
    ASGSUtil::stderrMessage("DEBUG","Finished setting specified run length.");
 }
 
@@ -1054,10 +1049,8 @@ sub customParameters {
 #--------------------------------------------------------------------------
 sub owiParameters {
    #
-   my $wtiminc_value = $p->{meteorology}->{wtiminc};
-   #
    # determine the relationship between the start of the NAM data and the
-   # current time in the ADCIRC run
+   # current time in the ADCIRC hotstart file
    if ( defined $hstime && $hstime != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
@@ -1077,28 +1070,7 @@ sub owiParameters {
    my $owiend = $p->{meteorology}->{owi_win_pre}->{enddatetime};
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend OWI ASCII ";
-   $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-   $oy = $1;
-   $om = $2;
-   $od = $3;
-   $oh = $4;
-   $omin = 0;
-   $os = 0;
-   #
-   # get difference
    print "cs:'$csdate' cy:'$owistart'";
-   my ( $ddays, $dhrs, $dmin, $dsec )
-           = Date::Calc::Delta_DHMS(
-                $ny,$nm,$nd,$nh,0,0,
-                $oy,$om,$od,$oh,0,0);
-   # find the difference in seconds
-   my $blank_time = $ddays*86400.0 + $dhrs*3600.0 + $dmin*60.0 + $dsec;
-   ASGSUtil::stderrMessage("INFO","Blank time is '$blank_time'.");
-   # calculate the number of blank snaps (or the number of
-   # snaps to be skipped in the OWI file if it starts before the
-   # current time in the ADCIRC run)
-   $nwbs = int($blank_time/$wtiminc_value);
-   $nwset = $p->{meteorology}->{owi_win_pre}->{nwset};
    # compute RNDAY and NHSINC
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $ey = $1;
@@ -1108,7 +1080,7 @@ sub owiParameters {
    $emin = 0;
    $es = 0;
    # get difference
-   ( $ddays, $dhrs, $dmin, $dsec )
+   ( my $ddays, my $dhrs, my $dmin, my $dsec )
            = Date::Calc::Delta_DHMS(
                 $cy,$cm,$cd,$ch,0,0,
                 $ey,$em,$ed,$eh,0,0);
@@ -1122,13 +1094,6 @@ sub owiParameters {
    $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
    $scenarioid = $addHours . " hour " . $enstorm . " run";
    $NHSINC = int(($RNDAY*86400.0)/$dt);
-   #
-   # create the runme file, if this is a nowcast
-   if ( $enstorm eq "nowcast" ) {
-      open(RUNME,">runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing: $!.";
-      printf RUNME "$scenarioid\n";
-   }
-   close(RUNME);
 }
 #
 #--------------------------------------------------------------------------
@@ -1241,15 +1206,6 @@ sub vortexModelParameters {
    if ( $RNDAY != $RNDAY_orig ) {
       ($ey,$em,$ed,$eh,$emin,$es) =
        Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$RNDAY,0,0,0);
-   }
-   # create the runme file, if this is a nowcast that has an ending time
-   # that is later than the previous hotstart
-   my $runlengthHours;
-   if ( $enstorm eq "nowcast" && $goodRunlength == 1 ) {
-      my $runlengthHours = ( $RNDAY*86400.0 - $hstime ) / 3600.0;
-      open(RUNME,">runme") || die "ERROR: control_file_gen.pl: Failed to open runme file for writing: $!.";
-      printf RUNME "$runlengthHours hour nowcast\n";
-      close(RUNME);
    }
    $addHours=$RNDAY*24.0; # for reporting the predicted number of datasets in each file
    if ( $hstime ) {

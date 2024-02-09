@@ -1580,7 +1580,8 @@ handleFailedJob()
    fi
 }
 source $SCRIPTDIR/monitoring/logging.sh
-source $SCRIPTDIR/platforms.sh       # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/platforms.sh        # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/properties.sh       # read properties file into a hash
 source $SCRIPTDIR/variables_init.sh
 source $SCRIPTDIR/writeProperties.sh
 source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
@@ -2477,7 +2478,14 @@ while [ true ]; do
          WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
          tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
          owiWinPre["startDateTime"]=${tlimits[0]}
-         owiWinPre["endDateTime"]=${tlimits[1]} 
+         owiWinPre["endDateTime"]=${tlimits[1]}
+         # determine the number of blank snaps (if any)
+         # epoch seconds associated with cold start and hotstart times
+         date=${tlimits[0]}
+         csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+         owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
          cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2492,7 +2500,7 @@ while [ true ]; do
          fort22="owi_fort.22"
          echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
-         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22         
+         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          ;;
       "on"|"NAM")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2551,7 +2559,14 @@ while [ true ]; do
          WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
          tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
          owiWinPre["startDateTime"]=${tlimits[0]}
-         owiWinPre["endDateTime"]=${tlimits[1]}         
+         owiWinPre["endDateTime"]=${tlimits[1]}
+         # determine the number of blank snaps (if any)
+         # epoch seconds associated with cold start and hotstart times
+         date=${tlimits[0]}
+         csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+         owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
          cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2566,7 +2581,7 @@ while [ true ]; do
          fort22="fort.22"
          echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
-         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22 
+         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
@@ -2758,7 +2773,7 @@ while [ true ]; do
    THIS="asgs_main.sh"
    debugMessage "$THIS: $ENSTORM: Building fort.15 file."
    controlFile="fort.15"
-   swanFile="fort.26" 
+   swanFile="fort.26"
    perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control-parameters.yaml > $controlFile 2>> ${SYSLOG}
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
@@ -2786,14 +2801,6 @@ while [ true ]; do
       scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
       cat tide_fac.out >> scenario.log
    fi
-
-   # if current nowcast ends at same time as last nowcast, don't run it,
-   # we'll just use the previous nowcast hotstart file(s) ... to signal that
-   # this is the case, control_file_gen.pl won't write the 'runme' file
-   if [[ ! -e $NOWCASTDIR/runme ]]; then
-      RUNNOWCAST=no
-   fi
-   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES"
    for inputProperties in $MESHPROPERTIES; do
       if [[ -e ${INPUTDIR}/$inputProperties ]]; then
          cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
@@ -2802,7 +2809,10 @@ while [ true ]; do
       fi
    done
 
-   if [[ $RUNNOWCAST = yes ]]; then
+   # load properties
+   declare -A properties
+   loadProperties run-control.properties
+   if [[ ${properties['RunEndTime']} != ${properties['RunStartTime']} ]]; then
       logMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
 
       # get river flux nowcast data, if configured to do so
@@ -3210,7 +3220,14 @@ while [ true ]; do
             WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
             tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
             owiWinPre["startDateTime"]=${tlimits[0]}
-            owiWinPre["endDateTime"]=${tlimits[1]}         
+            owiWinPre["endDateTime"]=${tlimits[1]}
+            # determine the number of blank snaps (if any)
+            # epoch seconds associated with cold start and hotstart times
+            date=${tlimits[0]}
+            csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+            hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+            owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+            owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
             # copy log data to scenario.log
             for file in lambert_diag.out reproject.log ; do
                if [[ -e $ADVISDIR/$file ]]; then
@@ -3224,7 +3241,7 @@ while [ true ]; do
             fort22="fort.22"
             echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
             echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
-            echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22 
+            echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
          CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
