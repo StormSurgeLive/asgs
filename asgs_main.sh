@@ -2032,7 +2032,7 @@ if [[ $START = coldstart ]]; then
    else
       CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0"
    fi
-
+   #
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
    #
    na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
@@ -2044,6 +2044,7 @@ if [[ $START = coldstart ]]; then
    for k in ${nodal_attribute_activate[@]}; do
       na_activate_list="$na_activate_list    - $k\n"
    done
+   echo "controlParametersTemplate is $controlParametersTemplate"
    sed \
     -e "s/%ADCIRCVER%/$adcirc_version/" \
     -e "s/%IM_ETC%/$solver_time_integration/" \
@@ -2088,14 +2089,14 @@ if [[ $START = coldstart ]]; then
     -e "s/%nodal_attribute_activate_list%/$na_string/" \
     -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
      < $controlParametersTemplate \
-     > "$filledControlParametersTemplate"
+     > control_parameters.yaml
    if [[ $? != 0 ]]; then
       echo "$THIS: Failed to fill in control parameters template with sed."
    fi
 #BOB
    controlFile="$ADVISDIR/$ENSTORM/fort.15"
    swanFile="$ADVISDIR/$ENSTORM/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml >> ${SYSLOG} 2>&1
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml > fort.15 2>> ${SYSLOG} 
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -2765,7 +2766,7 @@ while [ true ]; do
     -e "s/%nodal_attribute_activate_list%/$na_string/" \
     -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
      < $controlParametersTemplate \
-     > "$filledControlParametersTemplate"
+     > control_parameters.yaml
    if [[ $? != 0 ]]; then
       echo "$THIS: Failed to fill in control parameters template with sed."
    fi
@@ -2774,7 +2775,7 @@ while [ true ]; do
    debugMessage "$THIS: $ENSTORM: Building fort.15 file."
    controlFile="fort.15"
    swanFile="fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control-parameters.yaml > $controlFile 2>> ${SYSLOG}
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml > $controlFile 2>> ${SYSLOG}
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -3313,7 +3314,7 @@ while [ true ]; do
       -e "s/%nodal_attribute_activate_list%/$na_string/" \
       -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
       < $controlParametersTemplate \
-      > "$filledControlParametersTemplate"
+      > control_parameters.yaml
       if [[ $? != 0 ]]; then
          echo "$THIS: Failed to fill in control parameters template with sed."
       fi
@@ -3322,7 +3323,7 @@ while [ true ]; do
       debugMessage "$THIS: $ENSTORM: Building fort.15 file."
       controlFile="fort.15"
       swanFile="fort.26"
-      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control-parameters.yaml > $controlFile 2>> ${SYSLOG}
+      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml > $controlFile 2>> ${SYSLOG}
       controlExitStatus=$?
       if [[ $controlExitStatus != 0 ]]; then
          controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
