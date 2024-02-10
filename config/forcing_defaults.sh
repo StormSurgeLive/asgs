@@ -3,7 +3,7 @@
 # forcing_defaults.sh : Functions required for initializing
 # parameters that are only related to the forcing.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2023 Jason Fleming
+# Copyright(C) 2019--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -22,8 +22,16 @@
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
 #
-# time between picking up advisory and giving up  on additional scenarios
-CYCLETIMELIMIT="05:00:00"
+# Tidal forcing
+#
+TIDEFAC="off"
+tidal_forcing=$TIDEFAC
+#
+# Meteorology: General
+# 
+WTIMINC="notset"
+BACKGROUNDMET="on"
+TROPICALCYCLONE="off"
 #
 # Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
 #
@@ -36,6 +44,8 @@ owiWinPre["endDateTime"]=1980010100    # yyyymmddhh24
 #
 #  Meteorological Forcing : Tropical Cyclones
 #
+STORMNAME=stormname
+storm_name="notset"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
 #FDIR=~/asgs/branches/2014stable/input/sample_advisories/2018
@@ -61,6 +71,8 @@ FORECASTLENGTH=84                     # hours of NAM forecast to run (max 84)
 PTFILE="ptFile_oneEighth.txt"         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 VELOCITYMULTIPLIER=1.0
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
 forecastSelection="latest"            # "latest" or "strict"
 forecastDownload="only-to-run"        # "only-to-run" or "all"
 #
@@ -100,9 +112,13 @@ RIVERDATAPROTOCOL="scp"
 HINDCASTRIVERFLUX=null
 RIVERINIT=null           # mesh has no rivers ...
 RIVERFLUX=null
+VARFLUX=off
+USERIVERFILEONLY=no
+PERIODICFLUX=null
 #
 # Model coupling : SWAN
 #
+WAVES=off
 REINITIALIZESWAN="no"
 SWANHSCOMPRESSION="no"
 SWANHSFULL="yes"

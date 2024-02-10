@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2023 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2023 Brett Estrade
+# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2024 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -25,7 +25,6 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-
 #
 #####################################################################
 #                B E G I N   F U N C T I O N S

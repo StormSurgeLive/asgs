@@ -3,7 +3,7 @@
 # io_defaults.sh : Functions required for initializing
 # parameters that are only related to input/output controls.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2022 Jason Fleming
+# Copyright(C) 2019--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -23,6 +23,18 @@
 THIS=$(basename -- $0)
 #
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
+nfover=${nfover:-"1 20.0 1 20 100.0"}       # nonfatal override; warnelev and errorelev
+log_level=${log_level:-"1"}                 # nabout      
+# io
+ELEVSTATIONS=${ELEVSTATIONS:-"null"}
+VELSTATIONS=${VELSTATIONS:-"null"}
+METSTATIONS=${METSTATIONS:-"null"}
+OUTPUTOPTIONS=${OUTPUTOPTIONS:-"notset"}
+HOTSTARTCOMP=${HOTSTARTCOMP:-"fulldomain"}
+MAILINGLIST=${MAILINGLIST:-"null"}
+NOTIFYUSER=${NOTIFYUSER:-"null"}
+HOTSTARTFORMAT=${HOTSTARTFORMAT:-"null"}
+
 # water surface elevation station output
 FORT61="--fort61freq 300.0 --fort61netcdf"
 # water current velocity station output
