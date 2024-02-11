@@ -34,7 +34,7 @@ HOTSTARTCOMP=${HOTSTARTCOMP:-"fulldomain"}
 MAILINGLIST=${MAILINGLIST:-"null"}
 NOTIFYUSER=${NOTIFYUSER:-"null"}
 HOTSTARTFORMAT=${HOTSTARTFORMAT:-"null"}
-
+#
 # water surface elevation station output
 FORT61="--fort61freq 300.0 --fort61netcdf"
 # water current velocity station output

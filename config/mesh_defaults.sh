@@ -23,8 +23,6 @@
 THIS=$(basename -- $0)
 source $SCRIPTDIR/monitoring/logging.sh
 # mesh
-GRIDFILE=fort.14
-GRIDNAME=fort14
 MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
 NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
 OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets

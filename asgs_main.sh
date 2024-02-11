@@ -2021,7 +2021,7 @@ if [[ $START = coldstart ]]; then
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
 
-   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --advisorynum $ADVISORY --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
@@ -2037,18 +2037,24 @@ if [[ $START = coldstart ]]; then
    na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
    na_defaults="\n"
    for k in ${!nodal_attribute_default_values[@]}; do
-      na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
+      na_defaults="$na_defaults      $k: \"${nodal_attribute_default_values[$k]}\"\n"
    done
    na_activate_list=""
    for k in ${nodal_attribute_activate[@]}; do
       na_activate_list="$na_activate_list    - $k\n"
    done
+   echo "netcdf_metadata[NCPROJ] is '${netcdf_metadata[NCPROJ]}'"
    echo "controlParametersTemplate is $controlParametersTemplate"
    sed \
-    -e "s/%ADCIRCVER%/$adcirc_version/" \
+    -e "s/%ADCIRCVER%/$(adcirc -v)/" \
     -e "s/%IM_ETC%/$solver_time_integration/" \
     -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
     -e "s/%A00B00C00%/$time_weighting_coefficients/" \
+    -e "s/%NWSET%/${owiWinPre["NWSET"]}/" \
+    -e "s/%NWBS%/${owiWinPre["NWBS"]}/" \
+    -e "s/%DWM%/${owiWinPre["DWM"]}/" \
+    -e "s/%startdatetime%/${owiWinPre["startDateTime"]}/" \
+    -e "s/%enddatetime%/${owiWinPre["endDateTime"]}/" \
     -e "s/%lateral_turbulence%/$lateral_turbulence/" \
     -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
     -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
@@ -2059,7 +2065,7 @@ if [[ $START = coldstart ]]; then
     -e "s/%VELMIN%/$velmin/" \
     -e "s/%FFACTOR%/$bottom_friction_limit/" \
     -e "s/%advection%/$advection/" \
-    -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
+    -e "s/%WTIMINC%/$WTIMINC/" \
     -e "s/%storm_name%/$storm_name/" \
     -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
     -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
@@ -2088,14 +2094,14 @@ if [[ $START = coldstart ]]; then
     -e "s/%nodal_attribute_activate_list%/$na_string/" \
     -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
      < $controlParametersTemplate \
-     > control_parameters.yaml
+     > $SCENARIODIR/control_parameters.yaml
    if [[ $? != 0 ]]; then
       echo "$THIS: Failed to fill in control parameters template with sed."
    fi
 #BOB
-   controlFile="$ADVISDIR/$ENSTORM/fort.15"
-   swanFile="$ADVISDIR/$ENSTORM/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml > fort.15 2>> ${SYSLOG} 
+   controlFile="$SCENARIODIR/fort.15"
+   swanFile="$SCENARIODIR/fort.26"
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < $SCENARIODIR/control_parameters.yaml > $controlFile 2>> ${SYSLOG} 
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."

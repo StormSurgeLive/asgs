@@ -35,7 +35,7 @@ TROPICALCYCLONE="off"
 #
 # Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
 #
-declare -A owiWinPre
+declare -g -A owiWinPre
 owiWinPre["NWSET"]=1      # number of win/pre ascii datasets (i.e., domains)
 owiWinPre["NWBS"]=0       # number of blank snaps (i.e., datasets)
 owiWinPre["DWM"]=1.0      # wind multiplier (unitless)
@@ -122,3 +122,4 @@ WAVES=off
 REINITIALIZESWAN="no"
 SWANHSCOMPRESSION="no"
 SWANHSFULL="yes"
+wave_model="SWAN"

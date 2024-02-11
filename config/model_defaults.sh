@@ -45,7 +45,7 @@ velmin=0.1                    # min pseudovelocity (m/s) from wet to dry to chan
 bottom_friction_limit=0.001   # min bottom friction when using Manning's n (CF/FFACTOR)
 #
 # nodal attributes listed in fort.15 file
-declare -a nodal_attribute_activate
+declare -g -a nodal_attribute_activate
 nodal_attribute_activate=( )
 # possible list elements include
 #    primitive_weighting_in_continuity_equation
@@ -64,24 +64,24 @@ nodal_attribute_activate=( )
 # e.g.: nodal_attribute_activate=( "sea_surface_height_above_geoid" "mannings_n_at_sea_floor" )
 #
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
-declare -A metControl
+declare -g -A metControl
 metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
 metControl["DragLawString"]="garratt" # "garratt" or "powell"
 metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
 #
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
-declare -A wetDryControl
+declare -g -A wetDryControl
 wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
 wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
 wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
 #
 # &inundationOutputControl inundationOutput=logicalValue0, inunThresh =floatValue /
-declare -A inundationOutputControl
+declare -g -A inundationOutputControl
 inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
 inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
 #
 # netCDF metadata at or near the bottom of the fort.15 file
-declare -A netcdf_metadata
+declare -g -A netcdf_metadata
 netcdf_metadata["NCPROJ"]="ASGS"                      # project title
 netcdf_metadata["NCINST"]="Seahorse Consulting"       # institution
 netcdf_metadata["NCSOUR"]="ADCIRC"                    # source (model, instrument type)
@@ -94,9 +94,10 @@ netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live" # contact information
 # strongly suggest NCDATE be hardcoded to "%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00"
 # in the control file (fort.15) template
 netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"   # cold start date and time (with time zone)
+echo "model_defaults.sh: netcdf_metadata[NCPROJ] is '${netcdf_metadata[NCPROJ]}'"
 #
 # ADCIRC nodal attributes (fort.13) file
-declare -A nodal_attribute_default_values
+declare -g -A nodal_attribute_default_values
 nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
 nodal_attribute_default_values["surface_submergence_state"]="1"
 nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
@@ -113,6 +114,6 @@ nodal_attribute_default_values["subgrid_barrier"]="99999.0"
 #
 # SWAN parameters (fort.26) file
 SWANDT=1200 # swan timestep / coupling interval (seconds)
-declare -A swan
+declare -g -A swan
 swan["MXITNS"]="20"   # max number of iterations per timestep
 swan["NPNTS"]="95"    # percent of mesh vertices required to meet convergence criteria per timestep
