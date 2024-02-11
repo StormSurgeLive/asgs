@@ -1,7 +1,7 @@
 ---
  adcirc_version: "%ADCIRCVER%"
  solver_time_integration: "%IM_ETC%"
- hindcast_length: %HINDCASTLENGTH%
+ initialization_length: %HINDCASTLENGTH%
  time_weighting_coefficients: "%A00B00C00%"
  lateral_turbulence: "%lateral_turbulence%"
  eddy_viscosity_coefficient: %ESLM%

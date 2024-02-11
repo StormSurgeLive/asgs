@@ -2090,7 +2090,7 @@ if [[ $START = coldstart ]]; then
     -e "s/%RSTIMINC%/$SWANDT/" \
     -e "s/%MXITNS%/${swan["MXITNS"]}/" \
     -e "s/%NPNTS%/${swan["NPNTS"]}/" \
-    -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
+    -e "s?%nodal_attributes_template_file%?$INPUTDIR/$NAFILE?" \
     -e "s/%nodal_attribute_activate_list%/$na_string/" \
     -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
      < $controlParametersTemplate \

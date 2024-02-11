@@ -603,29 +603,31 @@ close(TEMPLATE);
 #
 #  A D C I R C   N O D A L   A T T R I B U T E S   F I L E
 #
-my $nafi;
-if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
-   ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
-   die;
-}
-my $nafo;
-if (not open($nafo,">","fort.13") ) {
-   ASGSUtil::stderrMessage("ERROR","Failed to open 'fort.13': $!.");
-   die;
-}
-#
-# fill in nodal attribute default values from hash
-while(<$nafi>) {
-   foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
-      my $tag = "%"."$key"."_default"."%";
-      my $value = "$p->{nodal_attributes}->{default_values}->{$key}";
-      s/$tag/$value/;
+if ( "$p->{nodal_attributes}->{template}" ne "null" && "$p->{nodal_attributes}->{template}" ne "notset" ) {
+   my $nafi;
+   if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
+      die;
    }
-   print $nafo $_;
+   my $nafo;
+   if (not open($nafo,">","fort.13") ) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open 'fort.13': $!.");
+      die;
+   }
+   #
+   # fill in nodal attribute default values from hash
+   while(<$nafi>) {
+      foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
+         my $tag = "%"."$key"."_default"."%";
+         my $value = "$p->{nodal_attributes}->{default_values}->{$key}";
+         s/$tag/$value/;
+      }
+      print $nafo $_;
+   }
+   #
+   close($nafi); # nodal attributes file template
+   close($nafo); # nodal attributes file (filled template)
 }
-#
-close($nafi); # nodal attributes file template
-close($nafo); # nodal attributes file (filled template)
 #
 #
 #  S W A N   C O N T R O L   F I L E
