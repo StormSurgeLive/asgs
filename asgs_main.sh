@@ -372,12 +372,6 @@ prep()
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then
         ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
     fi
-    # symbolically link nodal attributes
-    if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-        if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
-           ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
-        fi
-    fi
     # symbolically link self attraction / earth load tide file if needed
     if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
         ln -s $INPUTDIR/$selfAttractionEarthLoadTide $ADVISDIR/$ENSTORM/fort.24 2>> ${SYSLOG}
@@ -544,6 +538,11 @@ prep()
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
+          if [ -e $ADVISDIR/$ENSTORM/fort.13 ]; then
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.13 file."
+             prepFile prep13 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+          fi
        fi
     else
        # this is a P A R A L L E L   H O T S T A R T
@@ -563,6 +562,11 @@ prep()
           if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+          fi
+          if [[ -e $ADVISDIR/$ENSTORM/fort.13 ]]; then
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.13 file."
+             prepFile prep13 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
           if [[ $WAVES = on ]]; then
@@ -771,9 +775,6 @@ EOF
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${SCRATCHDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ ! -z $NAFILE && $NAFILE != null ]]; then
-          FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
-       fi
        if [[ $selfAttractionEarthLoadTide != "notprovided" ]]; then
           FILELIST=$FILELIST' PE*/fort.24'
        fi
@@ -2101,7 +2102,7 @@ if [[ $START = coldstart ]]; then
 #BOB
    controlFile="$SCENARIODIR/fort.15"
    swanFile="$SCENARIODIR/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < $SCENARIODIR/control_parameters.yaml > $controlFile 2>> ${SYSLOG} 
+   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < $SCENARIODIR/control_parameters.yaml > $controlFile 2>> ${SYSLOG}
    controlExitStatus=$?
    if [[ $controlExitStatus != 0 ]]; then
       controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
@@ -2115,22 +2116,20 @@ if [[ $START = coldstart ]]; then
       exit -9
    fi
 #BOB
-
+   if [[ -e fort.13 ]]; then
+      logMessage "$THIS: $SCENARIO Moving nodal attributes (fort.13) file to scenario directory '$SCENARIODIR'."
+      mv fort.13 $SCENARIODIR 2>> $SYSLOG
+   fi
    if [[ -e tide_fac.out ]]; then
       scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
       cat tide_fac.out >> $SCENARIOLOG
    fi
-   # don't have a meterological forcing (fort.22) file in this case
-   # preproces
    logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing."
-   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES
-   for inputProperties in $MESHPROPERTIES; do
-      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
-      else
-         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-      fi
-   done
+   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+      cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
+   else
+      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+   fi
    # make sure the archive of subdomain files is up to date
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    THIS="asgs_main.sh"
@@ -2802,19 +2801,19 @@ while [ true ]; do
       continue  # abandon this nowcast and wait for the next one
    fi
 #BOB
-
+   if [[ -e fort.13 ]]; then
+      logMessage "$THIS: $SCENARIO: Moving nodal attributes (fort.13) file to scenario directory '$SCENARIODIR'."
+      mv fort.13 $SCENARIODIR 2>> $SYSLOG
+   fi
    if [[ -e tide_fac.out ]]; then
       scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
       cat tide_fac.out >> scenario.log
    fi
-   for inputProperties in $MESHPROPERTIES; do
-      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
-      else
-         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-      fi
-   done
-
+   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+      cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
+   else
+      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+   fi
    # load properties
    declare -A properties
    loadProperties run-control.properties
@@ -3350,6 +3349,10 @@ while [ true ]; do
       fi
       THIS="asgs_main.sh"
 #BOB
+      if [[ -e fort.13 ]]; then
+         logMessage "$THIS: $SCENARIO: Moving nodal attributes (fort.13) file to scenario directory '$SCENARIODIR'."
+         mv fort.13 $SCENARIODIR 2>> $SYSLOG
+      fi
       if [[ -e tide_fac.out ]]; then
          scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
          cat tide_fac.out >> scenario.log
