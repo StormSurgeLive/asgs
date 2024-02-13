@@ -24,11 +24,14 @@ THIS=$(basename -- $0)
 #
 # Tidal forcing
 #
-TIDEFAC="off"
+TIDEFAC="on"
 tidal_forcing=$TIDEFAC
+tidefac_file="tide_fac.out" # need full path
+tidal_potential_comment="tidal_potential_comment:notset"
+tidal_boundary_comment="tidal_boundary_comment:notset"
 #
 # Meteorology: General
-# 
+#
 WTIMINC="notset"
 BACKGROUNDMET="on"
 TROPICALCYCLONE="off"

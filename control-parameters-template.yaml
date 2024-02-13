@@ -24,6 +24,9 @@
      enddatetime: %enddatetime%
  tides:
    tidal_forcing: "%tidal_forcing%"
+   tidefac_file: "%tidefac_file%"
+   tidal_potential_comment: "%tidal_potential_comment%"
+   tidal_boundary_comment: "%tidal_boundary_comment%"
  metControl:
    DragLawString: "%DragLawString%"
    WindDragLimit: %WindDragLimit%
@@ -55,7 +58,5 @@
    npnts: %NPNTS%
  nodal_attributes:
     template: "%nodal_attributes_template_file%"
-    activate:
-      - "sea_surface_height_above_geoid"
-      - "mannings_n_at_sea_floor"
+    activate: %nodal_attribute_activate_list%
     default_values: %nodal_attribute_default_values_hash%

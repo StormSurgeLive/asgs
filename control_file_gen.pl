@@ -324,20 +324,14 @@ if ( $p->{wave_coupling}->{waves} eq "on"  ) {
 }
 #
 # tides
-my $tides = "off";
-my $tide_fac_message = `tide_fac.x --length $RNDAY --year $cy --month $cm --day $cd --hour $ch -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir .`;
-if ( $tide_fac_message =~ /ERROR|WARNING/ ) {
-   ASGSUtil::stderrMessage("WARNING","There was an issue when running tide_fac.x: $tide_fac_message.");
-} else {
-   ASGSUtil::stderrMessage("INFO","Nodal factors and equilibrium arguments were written to the file 'tide_fac.out'.");
+if ( $p->{tides}->{tidal_forcing} eq "on" ) {
    # open data file
-   unless (open(TIDEFAC,"<tide_fac.out")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the file 'tide_fac.out' for reading: $!.");
+   unless (open(TIDEFAC,"<$p->{tides}->{tidefac_file}")) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open the file '$p->{tides}->{tidefac_file}' for reading: $!.");
       die;
    }
    # parse out nodal factors and equilibrium arguments from the
    # various constituents
-   $tides = "on";
    ASGSUtil::stderrMessage("INFO","Parsing tidal node factors and equilibrium arguments.");
    while(<TIDEFAC>) {
       my @constituent = split;
@@ -523,7 +517,9 @@ while(<TEMPLATE>) {
     # number of forcing frequencies on periodic flux boundaries
     s/%NFFR%/$nffr/;
     # fill in nodal factors and equilibrium arguments
-    if ( $tides eq "on" ) {
+    if ( $p->{tides}->{tidal_forcing} eq "on" ) {
+       s/%NTIFCOMMENT%/$p->{tides}->{tidal_potential_comment}/;
+       s/%NBFRCOMMENT%/$p->{tides}->{tidal_boundary_comment}/;
        s/%M2NF%/$m2nf/; s/%M2EQARG%/$m2eqarg/;
        s/%S2NF%/$s2nf/; s/%S2EQARG%/$s2eqarg/;
        s/%N2NF%/$n2nf/; s/%N2EQARG%/$n2eqarg/;

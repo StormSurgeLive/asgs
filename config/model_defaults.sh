@@ -94,7 +94,6 @@ netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live" # contact information
 # strongly suggest NCDATE be hardcoded to "%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00"
 # in the control file (fort.15) template
 netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"   # cold start date and time (with time zone)
-echo "model_defaults.sh: netcdf_metadata[NCPROJ] is '${netcdf_metadata[NCPROJ]}'"
 #
 # ADCIRC nodal attributes (fort.13) file
 declare -g -A nodal_attribute_default_values

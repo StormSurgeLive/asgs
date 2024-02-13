@@ -650,7 +650,7 @@ case $GRIDNAME in
       ELEVSTATIONS=shinnecock_stations.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      NAFILE=shinnecock.13.template
+      NAFILE=shinnecock_nodal_attributes.template
       # interaction between mesh and models:
       TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
