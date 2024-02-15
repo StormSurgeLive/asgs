@@ -145,6 +145,7 @@ variables_init()
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
    # mesh coordinate system
    zNorth="northpole"
+   tcEnd=1970010100 # end of tc run according to track data 
    #
    #  H O O K S
    #
