@@ -117,7 +117,6 @@ my $hstime;      # time, in seconds, of hotstart file (since coldstart)
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
 our $endtime;    # time at which the run should end (yyyymmddhh24)
 our $dt=3.0;      # adcirc time step, in seconds
-my $swandt=600.0; # swan time step, in seconds
 my $bladj=0.9;
 our $enstorm;    # ensemble name of the storm
 my $tau=0; # forecast period
@@ -164,7 +163,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "cst=s" => \$csdate,
            "endtime=s" => \$endtime,
            "dt=s" => \$dt,
-           "swandt=s" => \$swandt,
            "bladj=s" => \$bladj,
            "nws=s" => \$nws,
            "advisorynum=s" => \$advisorynum,
@@ -319,7 +317,7 @@ if ( $nws eq "0" ) {
    $fort7374 = "NO LINE HERE";
 }
 # add swan time step to WTIMINC line if wave coupling was specified
-if ( $p->{wave_coupling}->{waves} eq "on"  ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on"  ) {
    $wtiminc_line .= " $p->{wave_coupling}->{rstiminc}";
 }
 #
@@ -556,16 +554,16 @@ while(<TEMPLATE>) {
     # iterative solver specification
     s/%ITITER%/$ititer/;
     # netcdf metadata
-    s/%NCPROJ%/$p->{netcdf_metadata}->{NCPROJ}/;
-    s/%NCINST%/$p->{netcdf_metadata}->{NCINST}/;
-    s/%NCSOUR%/$p->{netcdf_metadata}->{NCSOUR}/;
-    s/%NCHIST%/$p->{netcdf_metadata}->{NCHIST}/;
-    s/%NCREF%/$p->{netcdf_metadata}->{NCREF}/;
-    s/%NCCOM%/$p->{netcdf_metadata}->{NCCOM}/;
-    s/%NCHOST%/$p->{netcdf_metadata}->{NCHOST}/;
-    s/%NCCONV%/$p->{netcdf_metadata}->{NCCONV}/;
-    s/%NCCONT%/$p->{netcdf_metadata}->{NCCONT}/;
-    s/%NCDATE%/$p->{netcdf_metadata}->{NCDATE}/;
+    s/%NCPROJ%/$p->{netcdf_metadata}->{ncproj}/;
+    s/%NCINST%/$p->{netcdf_metadata}->{ncinst}/;
+    s/%NCSOUR%/$p->{netcdf_metadata}->{ncsour}/;
+    s/%NCHIST%/$p->{netcdf_metadata}->{nchist}/;
+    s/%NCREF%/$p->{netcdf_metadata}->{ncref}/;
+    s/%NCCOM%/$p->{netcdf_metadata}->{nccom}/;
+    s/%NCHOST%/$p->{netcdf_metadata}->{nchost}/;
+    s/%NCCONV%/$p->{netcdf_metadata}->{ncconv}/;
+    s/%NCCONT%/$p->{netcdf_metadata}->{nccont}/;
+    s/%NCDATE%/$p->{netcdf_metadata}->{ncdate}/;
     # coldstart date by parts instead of NCDATE
     s/%CSYEAR%/$cy/;
     s/%CSMONTH%/$cm/;
@@ -628,7 +626,7 @@ if ( "$p->{nodal_attributes}->{template}" ne "null" && "$p->{nodal_attributes}->
 #
 #  S W A N   C O N T R O L   F I L E
 #
-if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "swan" ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" ) {
    # open swan template file for fort.26
    unless (open(TEMPLATE,"<$swantemplate")) {
       ASGSUtil::stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading: $!.");
@@ -659,7 +657,7 @@ if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} e
        my $rundesc72 = substr($rundesc,0,72);       # 'title1' in SWAN documentation, max 72 char
        s/%StormName%/$rundesc72/;
        # if we are looking at the DT line, fill in the time step (seconds)
-       s/%swandt%/$swandt/;
+       s/%swandt%/$p->{wave_coupling}->{rstiminc}/;
        # fill in ensemble name -- this is in the comment line
        my $scenarioid72 = substr($scenarioid,0,72); # 'title2' in SWAN documentation, max 72 char
        s/%ScenarioID%|%EnsembleID%/$scenarioid72/;
@@ -697,7 +695,7 @@ my $date2 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # 1st output
 my $date3 = sprintf("%4d%02d%02dT%02d%02d",$ey,$em,$ed,$eh,$emin); # end time
 my $runstarttime = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh); # start time
 my $runendtime = sprintf("%4d%02d%02d%02d",$ey,$em,$ed,$eh); # end time
-if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "swan" ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" ) {
    $model_type = "SPDS";
    $model = "PADCSWAN";
 }
@@ -754,7 +752,7 @@ writeFileName("maxele.63",$fort63specifier);
 writeFileName("maxvel.63",$fort64specifier);
 writeFileName("maxwvel.63",$fort7374specifier);
 writeFileName("minpr.63",$fort7374specifier);
-if ( $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "swan" ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" ) {
    writeFileName("maxrs.63",$fort7374specifier);
    writeFileName("swan_DIR.63",$fort7374specifier);
    writeFileName("swan_DIR_max.63",$fort7374specifier);
@@ -1065,6 +1063,13 @@ sub owiParameters {
    }
    # date time of the start and end of the OWI file(s)
    my $owistart = $p->{meteorology}->{owi_win_pre}->{startdatetime};
+   $owistart =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   $oy = $1;
+   $om = $2;
+   $od = $3;
+   $oh = $4;
+   $omin = 0;
+   $os = 0;
    my $owiend = $p->{meteorology}->{owi_win_pre}->{enddatetime};
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend OWI ASCII ";
@@ -1189,12 +1194,12 @@ sub vortexModelParameters {
    # its hotstart file. After adcirc has written its hotstart file,
    # swan has to run its time own time step, and then write
    # the swan hotstart file.
-   if ( $p->{wave_coupling}->{waves} eq "on" ) {
+   if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" ) {
       my $total_time = $RNDAY*86400.0; # in seconds
       # unusual but possible for the total run time to be less than the swan
       # time step
-      if ( $total_time < $swandt ) {
-         $total_time = $swandt; # run for at least one swan time step
+      if ( $total_time < $p->{wave_coupling}->{rstiminc} ) {
+         $total_time = $p->{wave_coupling}->{rstiminc}; # run for at least one swan time step
          $RNDAY = $total_time / 86400.0; # convert to days
          $NHSINC = int(($RNDAY*86400.0)/$dt);
       }
