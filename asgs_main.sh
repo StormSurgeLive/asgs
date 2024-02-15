@@ -1580,11 +1580,12 @@ handleFailedJob()
    fi
 }
 source $SCRIPTDIR/monitoring/logging.sh
-source $SCRIPTDIR/platforms.sh        # this includes source $SCRIPTDIR/monitoring/logging.sh
-source $SCRIPTDIR/properties.sh       # read properties file into a hash
+source $SCRIPTDIR/platforms.sh            # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/properties.sh           # read properties file into a hash
 source $SCRIPTDIR/variables_init.sh
 source $SCRIPTDIR/writeProperties.sh
-source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
+source $SCRIPTDIR/manageHooks.sh          # depends on monitoring/logging.sh
+source $SCRIPTDIR/generateDynamicInput.sh # generates tide_fac.out, fort.13, fort.15, fort.26
 
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1999,6 +2000,7 @@ if [[ $START = coldstart ]]; then
    STORMDIR=$ADVISDIR/$ENSTORM
    mkdir -p $STORMDIR 2>> ${SYSLOG}
    SCENARIODIR=$STORMDIR
+   cd $SCENARIODIR 2>> $SYSLOG
    SCENARIOLOG=$SCENARIODIR/scenario.log
    HSTIME=0
    # We assume that the hindcast is only used to spin up tides or
@@ -2010,10 +2012,14 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstart time is '$CSDATE'."
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
-   writeProperties $STORMDIR
+   writeProperties $SCENARIODIR
    writeScenarioProperties $SCENARIODIR
    writeScenarioFilesStatus $SCENARIODIR
-
+   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+      cat ${INPUTDIR}/$MESHPROPERTIES >> $SCENARIODIR/run.properties
+   else
+      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+   fi
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
    if [[ $PERIODICFLUX != null ]]; then
@@ -2034,102 +2040,15 @@ if [[ $START = coldstart ]]; then
    fi
    #
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
+   runLength=$HINDCASTLENGTH # to compute long term tidal constituents
+   # uses parameters described above as well as control-parameters.yaml
+   # to generate tide_fac.out, fort.13, fort.15, and fort.26
+   controlExitStatus=0
+   controlMsg=""
+   generateDynamicInput
+   THIS="asgs_main.sh"
    #
-   na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
-   na_defaults="\n"
-   for k in ${!nodal_attribute_default_values[@]}; do
-      na_defaults="$na_defaults      $k: \"${nodal_attribute_default_values[$k]}\"\n"
-   done
-   na_activate_list=""
-   for k in ${nodal_attribute_activate[@]}; do
-      na_activate_list="$na_activate_list    - $k\n"
-   done
-   echo "netcdf_metadata[NCPROJ] is '${netcdf_metadata[NCPROJ]}'"
-   echo "controlParametersTemplate is $controlParametersTemplate"
-   sed \
-    -e "s/%ADCIRCVER%/$(adcirc -v)/" \
-    -e "s/%IM_ETC%/$solver_time_integration/" \
-    -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
-    -e "s/%A00B00C00%/$time_weighting_coefficients/" \
-    -e "s/%NWSET%/${owiWinPre["NWSET"]}/" \
-    -e "s/%NWBS%/${owiWinPre["NWBS"]}/" \
-    -e "s/%DWM%/${owiWinPre["DWM"]}/" \
-    -e "s/%startdatetime%/${owiWinPre["startDateTime"]}/" \
-    -e "s/%enddatetime%/${owiWinPre["endDateTime"]}/" \
-    -e "s/%lateral_turbulence%/$lateral_turbulence/" \
-    -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
-    -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
-    -e "s/%tidal_forcing%/$tidal_forcing/" \
-    -e "s/%NFOVER%/$nfover/" \
-    -e "s/%NABOUT%/$log_level/" \
-    -e "s/%H0%/$h0/" \
-    -e "s/%VELMIN%/$velmin/" \
-    -e "s/%FFACTOR%/$bottom_friction_limit/" \
-    -e "s/%advection%/$advection/" \
-    -e "s/%WTIMINC%/$WTIMINC/" \
-    -e "s/%storm_name%/$storm_name/" \
-    -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
-    -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
-    -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
-    -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
-    -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
-    -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
-    -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
-    -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
-    -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
-    -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
-    -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
-    -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
-    -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
-    -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
-    -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
-    -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
-    -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
-    -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-    -e "s/%WAVES%/$WAVES/" \
-    -e "s/%wave_model%/$wave_model/" \
-    -e "s/%RSTIMINC%/$SWANDT/" \
-    -e "s/%MXITNS%/${swan["MXITNS"]}/" \
-    -e "s/%NPNTS%/${swan["NPNTS"]}/" \
-    -e "s?%nodal_attributes_template_file%?$INPUTDIR/$NAFILE?" \
-    -e "s/%nodal_attribute_activate_list%/$na_string/" \
-    -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
-     < $controlParametersTemplate \
-     > $SCENARIODIR/control_parameters.yaml
-   if [[ $? != 0 ]]; then
-      echo "$THIS: Failed to fill in control parameters template with sed."
-   fi
-#BOB
-   controlFile="$SCENARIODIR/fort.15"
-   swanFile="$SCENARIODIR/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < $SCENARIODIR/control_parameters.yaml > $controlFile 2>> ${SYSLOG}
-   controlExitStatus=$?
-   if [[ $controlExitStatus != 0 ]]; then
-      controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
-   fi
-   if [[ ! -e $controlFile || ! -s $controlFile ]]; then
-      controlExitStatus=1
-      controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
-   fi
-   if [[ $controlExitStatus -ne 0 ]]; then
-      logMessage "$THIS: $SCENARIO: $controlMsg This is terminal."  >> ${SYSLOG} 2>&1
-      exit -9
-   fi
-#BOB
-   if [[ -e fort.13 ]]; then
-      logMessage "$THIS: $SCENARIO Moving nodal attributes (fort.13) file to scenario directory '$SCENARIODIR'."
-      mv fort.13 $SCENARIODIR 2>> $SYSLOG
-   fi
-   if [[ -e tide_fac.out ]]; then
-      scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-      cat tide_fac.out >> $SCENARIOLOG
-   fi
    logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing."
-   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
-      cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
-   else
-      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
-   fi
    # make sure the archive of subdomain files is up to date
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    THIS="asgs_main.sh"
@@ -2384,7 +2303,7 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS=" --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
@@ -2588,7 +2507,7 @@ while [ true ]; do
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
@@ -2624,7 +2543,7 @@ while [ true ]; do
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="--advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
 
       "OWI")
@@ -2672,7 +2591,7 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
       "off")
          # don't need to download any data
@@ -2685,6 +2604,11 @@ while [ true ]; do
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+      cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
+   else
+      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+   fi
    # if there is no forcing from an external data source, set control options
    if [[ $NOFORCING = true ]]; then
       logMessage "NOFORCING is $NOFORCING"
@@ -2703,12 +2627,12 @@ while [ true ]; do
       writeScenarioProperties $NOWCASTDIR
       CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
       CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
-      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS="$CONTROLOPTIONS --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
    fi
    # activate padcswan based on ASGS configuration
    if [[ $WAVES = on ]]; then
-      CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
+      CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
    fi
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
@@ -2716,103 +2640,16 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    # generate fort.15 file
    logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-   #
-   na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
-   na_defaults="\n"
-   for k in ${!nodal_attribute_default_values[@]}; do
-      na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
-   done
-   na_activate_list=""
-   for k in ${nodal_attribute_activate[@]}; do
-      na_activate_list="$na_activate_list    - $k\n"
-   done
-   sed \
-    -e "s/%ADCIRCVER%/$adcirc_version/" \
-    -e "s/%IM_ETC%/$solver_time_integration/" \
-    -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
-    -e "s/%A00B00C00%/$time_weighting_coefficients/" \
-    -e "s/%lateral_turbulence%/$lateral_turbulence/" \
-    -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
-    -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
-    -e "s/%tidal_forcing%/$tidal_forcing/" \
-    -e "s/%NFOVER%/$nfover/" \
-    -e "s/%NABOUT%/$log_level/" \
-    -e "s/%H0%/$h0/" \
-    -e "s/%VELMIN%/$velmin/" \
-    -e "s/%FFACTOR%/$bottom_friction_limit/" \
-    -e "s/%advection%/$advection/" \
-    -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
-    -e "s/%storm_name%/$storm_name/" \
-    -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
-    -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
-    -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
-    -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
-    -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
-    -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
-    -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
-    -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
-    -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
-    -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
-    -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
-    -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
-    -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
-    -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
-    -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
-    -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
-    -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
-    -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-    -e "s/%WAVES%/$WAVES/" \
-    -e "s/%wave_model%/$wave_model/" \
-    -e "s/%RSTIMINC%/$SWANDT/" \
-    -e "s/%MXITNS%/${swan["MXITNS"]}/" \
-    -e "s/%NPNTS%/${swan["NPNTS"]}/" \
-    -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
-    -e "s/%nodal_attribute_activate_list%/$na_string/" \
-    -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
-     < $controlParametersTemplate \
-     > control_parameters.yaml
-   if [[ $? != 0 ]]; then
-      echo "$THIS: Failed to fill in control parameters template with sed."
-   fi
-#BOB
+   runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
+   # uses parameters described above as well as control-parameters.yaml
+   # to generate tide_fac.out, fort.13, fort.15, and fort.26
+   controlExitStatus=0
+   controlMsg=""
+   generateDynamicInput
    THIS="asgs_main.sh"
-   debugMessage "$THIS: $ENSTORM: Building fort.15 file."
-   controlFile="fort.15"
-   swanFile="fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml > $controlFile 2>> ${SYSLOG}
-   controlExitStatus=$?
-   if [[ $controlExitStatus != 0 ]]; then
-      controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
-   fi
-   if [[ ! -e $controlFile || ! -s $controlFile ]]; then
-      controlExitStatus=1
-      controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
-   fi
-   if [[ $WAVES == on ]]; then
-      if [[ ! -e $swanFile || ! -s $swanFile ]]; then
-         controlExitStatus=1
-         controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
-      fi
-   fi
    if [[ $controlExitStatus -ne 0 ]]; then
-      warn "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned."
-      echo "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned." >> jobFailed
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       continue  # abandon this nowcast and wait for the next one
-   fi
-#BOB
-   if [[ -e fort.13 ]]; then
-      logMessage "$THIS: $SCENARIO: Moving nodal attributes (fort.13) file to scenario directory '$SCENARIODIR'."
-      mv fort.13 $SCENARIODIR 2>> $SYSLOG
-   fi
-   if [[ -e tide_fac.out ]]; then
-      scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-      cat tide_fac.out >> scenario.log
-   fi
-   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
-      cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
-   else
-      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
    fi
    # load properties
    declare -A properties
@@ -3131,7 +2968,7 @@ while [ true ]; do
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          writeTropicalCycloneForecastProperties $STORMDIR
-         CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--cst $CSDATE --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
          if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
@@ -3248,115 +3085,34 @@ while [ true ]; do
             echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
             echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
-         CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS=" --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       # if there is no forcing from an external data source, set control options
       if [[ $NOFORCING = true ]]; then
          CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
          CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       if [[ $WAVES = on ]]; then
-         CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
       fi
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
       CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
       CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-      #
-      na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
-      na_defaults="\n"
-      for k in ${!nodal_attribute_default_values[@]}; do
-         na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
-      done
-      na_activate_list=""
-      for k in ${nodal_attribute_activate[@]}; do
-         na_activate_list="$na_activate_list    - $k\n"
-      done
-      sed \
-      -e "s/%ADCIRCVER%/$adcirc_version/" \
-      -e "s/%IM_ETC%/$solver_time_integration/" \
-      -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
-      -e "s/%A00B00C00%/$time_weighting_coefficients/" \
-      -e "s/%lateral_turbulence%/$lateral_turbulence/" \
-      -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
-      -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
-      -e "s/%tidal_forcing%/$tidal_forcing/" \
-      -e "s/%NFOVER%/$nfover/" \
-      -e "s/%NABOUT%/$log_level/" \
-      -e "s/%H0%/$h0/" \
-      -e "s/%VELMIN%/$velmin/" \
-      -e "s/%FFACTOR%/$bottom_friction_limit/" \
-      -e "s/%advection%/$advection/" \
-      -e "s/%WTIMINC%/$owi_win_pre_time_increment/" \
-      -e "s/%storm_name%/$storm_name/" \
-      -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
-      -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
-      -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
-      -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
-      -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
-      -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
-      -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
-      -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
-      -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
-      -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
-      -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
-      -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
-      -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
-      -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
-      -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
-      -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
-      -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
-      -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-      -e "s/%WAVES%/$WAVES/" \
-      -e "s/%wave_model%/$wave_model/" \
-      -e "s/%RSTIMINC%/$SWANDT/" \
-      -e "s/%MXITNS%/${swan["MXITNS"]}/" \
-      -e "s/%NPNTS%/${swan["NPNTS"]}/" \
-      -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
-      -e "s/%nodal_attribute_activate_list%/$na_string/" \
-      -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
-      < $controlParametersTemplate \
-      > control_parameters.yaml
-      if [[ $? != 0 ]]; then
-         echo "$THIS: Failed to fill in control parameters template with sed."
-      fi
-#BOB
+      runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
+      # uses parameters described above as well as control-parameters.yaml
+      # to generate tide_fac.out, fort.13, fort.15, and fort.26
+      controlExitStatus=0
+      controlMsg=""
+      generateDynamicInput
       THIS="asgs_main.sh"
-      debugMessage "$THIS: $ENSTORM: Building fort.15 file."
-      controlFile="fort.15"
-      swanFile="fort.26"
-      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS < control_parameters.yaml > $controlFile 2>> ${SYSLOG}
-      controlExitStatus=$?
-      if [[ $controlExitStatus != 0 ]]; then
-         controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
-      fi
-      if [[ ! -e $controlFile || ! -s $controlFile ]]; then
-         controlExitStatus=1
-         controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
-      fi
-      if [[ $WAVES == on ]]; then
-         if [[ ! -e $swanFile || ! -s $swanFile ]]; then
-            controlExitStatus=1
-            controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
-         fi
-      fi
       if [[ $controlExitStatus -ne 0 ]]; then
-         warn "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned."
-         echo "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned." >> jobFailed
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       fi
       THIS="asgs_main.sh"
-#BOB
-      if [[ -e fort.13 ]]; then
-         logMessage "$THIS: $SCENARIO: Moving nodal attributes (fort.13) file to scenario directory '$SCENARIODIR'."
-         mv fort.13 $SCENARIODIR 2>> $SYSLOG
-      fi
-      if [[ -e tide_fac.out ]]; then
-         scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-         cat tide_fac.out >> scenario.log
-      fi
+      #
       # if the $STORMDIR is not there, it is probably because handleFailedJob has
       # moved it ... should we increment the scenario counter and just go on?
       # ... just using "continue" as below will have the effect of retrying this
@@ -3379,14 +3135,11 @@ while [ true ]; do
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
-      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES"
-      for inputProperties in $MESHPROPERTIES; do
-         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-            cat ${INPUTDIR}/$inputProperties >> $SCENARIODIR/run.properties
-         else
-            logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-         fi
-      done
+      if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+         cat ${INPUTDIR}/$MESHPROPERTIES >> $SCENARIODIR/run.properties
+      else
+         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+      fi
       # recording the scenario number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       # copy log data to scenario.log

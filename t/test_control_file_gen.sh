@@ -188,7 +188,6 @@ C="$C --gridname $GRIDNAME"          # for run.properties
 C="$C --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
 C="$C --nscreen $NSCREEN"
 C="$C --swantemplate $SWANTEMPLATE"
-C="$C --swandt $SWANDT"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/shinnecock-parameters.fort.15.template"
 #

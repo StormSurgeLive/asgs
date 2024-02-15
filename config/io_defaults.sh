@@ -24,7 +24,7 @@ THIS=$(basename -- $0)
 #
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
 nfover=${nfover:-"1 20.0 1 20 100.0"}       # nonfatal override; warnelev and errorelev
-log_level=${log_level:-"1"}                 # nabout      
+log_level=${log_level:-"INFO"}              # NABOUT (DEBUG=-1, ECHO=0, INFO=1, WARNING=2, ERROR=3)
 # io
 ELEVSTATIONS=${ELEVSTATIONS:-"null"}
 VELSTATIONS=${VELSTATIONS:-"null"}
