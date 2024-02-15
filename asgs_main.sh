@@ -3135,14 +3135,11 @@ while [ true ]; do
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
-      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES"
-      for inputProperties in $MESHPROPERTIES; do
-         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-            cat ${INPUTDIR}/$inputProperties >> $SCENARIODIR/run.properties
-         else
-            logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-         fi
-      done
+      if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+         cat ${INPUTDIR}/$MESHPROPERTIES >> $SCENARIODIR/run.properties
+      else
+         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+      fi
       # recording the scenario number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       # copy log data to scenario.log
