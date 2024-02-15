@@ -187,7 +187,7 @@ checkFileExistence()
 }
 #
 # The ASGS stores a .tar.gz archive of decomposed subdomain
-# fort.13, fort.14, and fort.18 to avoid having to re-run adcprep --partmesh
+# fort.14 and fort.18 to avoid having to re-run adcprep --partmesh
 # and --prepall for each cycle (which is time consuming) ... however
 # if the fulldomain files change, then this archive will have to be
 # rebuilt.
@@ -318,7 +318,7 @@ function float_cond()
     return $stat
 }
 #
-# subroutine to run adcprep, using a pre-prepped archive of fort.13,
+# subroutine to run adcprep, using a pre-prepped archive of 
 # fort.14, fort.24 files
 #
 # This subroutine deals with all the possible situations that can arise
@@ -337,7 +337,7 @@ prep()
     FROMDIR=$5 # directory containing files to hotstart this run from
     HPCENVSHORT=$6     # machine to run on (jade, desktop, queenbee, etc)
     NCPU=$7     # number of CPUs to request in parallel jobs
-    PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
+    PREPPEDARCHIVE=$8 # preprocessed fort.14 and fort.18 package
     GRIDFILE=$9 # fulldomain grid
     ACCOUNT=${10} # account to charge time to
     OUTPUTOPTIONS="${11}" # contains list of args for appending files
