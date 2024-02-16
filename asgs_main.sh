@@ -318,7 +318,7 @@ function float_cond()
     return $stat
 }
 #
-# subroutine to run adcprep, using a pre-prepped archive of 
+# subroutine to run adcprep, using a pre-prepped archive of
 # fort.14, fort.24 files
 #
 # This subroutine deals with all the possible situations that can arise
@@ -2196,9 +2196,6 @@ while [ true ]; do
    # write the properties associated with asgs configuration to the
    # run.properties file
    writeProperties $RUNDIR
-   if [[ $TROPICALCYCLONE = on ]]; then
-      writeTropicalCycloneProperties $RUNDIR
-   fi
    if [[ $BACKGROUNDMET != off ]]; then
       case $BACKGROUNDMET in
          "on"|"NAM")
@@ -2214,9 +2211,7 @@ while [ true ]; do
    if [[ $WAVES = on ]]; then
       writeWaveCouplingProperties $RUNDIR
    fi
-
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
-
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE == "on" ]]; then
       case $VORTEXMODEL in
@@ -2261,6 +2256,7 @@ while [ true ]; do
             fatal "$ENSTORM: $THIS: The BACKGROUNDMET parameter was set to '$BACKGROUNDMET' but the only supported choices when TROPICALCYCLONE=$TROPICALCYCLONE are 'off' and 'namBlend'."
             ;;
       esac
+      writeTropicalCycloneProperties $RUNDIR
       #
       executeHookScripts "NOWCAST_POLLING"
       #
@@ -2308,7 +2304,7 @@ while [ true ]; do
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
-      STORMNAME=$(grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//' 2>> ${SYSLOG}) 
+      STORMNAME=$(grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//' 2>> ${SYSLOG})
       tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
       CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
