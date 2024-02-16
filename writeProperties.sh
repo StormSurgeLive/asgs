@@ -127,7 +127,7 @@ writeProperties()
    echo "nccont : ${netcdf_metadata["NCCONT"]}" >> $STORMDIR_RUN_PROPERTIES
    echo "ncdate : ${netcdf_metadata["NCDATE"]}" >> $STORMDIR_RUN_PROPERTIES
    # nodal attributes
-   echo "adcirc.nodal_attributes.file.template : $nodal_attributes_template_file" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.nodal_attributes.file.template : $NAFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.nodal_attributes.activate : ( ${nodal_attribute_activate[@]} )" >> $STORMDIR_RUN_PROPERTIES
    for k in ${!nodal_attribute_default_values[@]}; do
       echo "adcirc.nodal_attributes.$k.default.values : ( ${nodal_attribute_default_values[$k]} )"  >> $STORMDIR_RUN_PROPERTIES

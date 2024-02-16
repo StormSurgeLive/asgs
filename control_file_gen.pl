@@ -738,6 +738,37 @@ printf RUNPROPS "RunEndTime : $runendtime\n";
 printf RUNPROPS "ColdStartTime : $csdate\n";
 #
 printf RUNPROPS "Model : $model\n";
+# model parameters
+printf RUNPROPS "adcirc.control.numerics.im : $im\n";
+printf RUNPROPS "adcirc.control.numerics.a00b00c00 : ( $a00b00c00 )\n";
+printf RUNPROPS "adcirc.control.physics.nolica : $nolica\n";
+printf RUNPROPS "adcirc.control.physics.nolicat : $nolicat\n";
+printf RUNPROPS "adcirc.control.monitoring.nscreen : $nscreen\n";
+printf RUNPROPS "adcirc.control.monitoring.nabout : $logLevelsNABOUT{$p->{log_level}}\n";
+printf RUNPROPS "adcirc.control.physics.rnday : $RNDAY\n";
+printf RUNPROPS "adcirc.control.numerics.input.ihot : $ihot\n";
+printf RUNPROPS "adcirc.control.physics.nwp : $nwp\n";
+printf RUNPROPS "adcirc.control.physics.elsm : $eslm\n";
+printf RUNPROPS "adcirc.control.numerics.nffr : $nffr\n";
+printf RUNPROPS "adcirc.control.numerics.output.nhsinc : $NHSINC\n";
+printf RUNPROPS "adcirc.control.numerics.output.nhstar : $NHSTAR\n";
+my @noute = split(" ",$numelevstations);
+printf RUNPROPS "adcirc.control.physics.output.noute : $noute[0]\n";
+my @noutv = split(" ",$numvelstations);
+printf RUNPROPS "adcirc.control.physics.output.noutv : $noutv[0]\n";
+printf RUNPROPS "adcirc.control.numerics.ititer : $ititer\n";
+if ( $nws ne "0" ) {
+   printf RUNPROPS "adcirc.control.numerics.meteorology.wtiminc_line : ( $wtiminc_line )\n";
+   my @noutm = split(" ",$nummetstations);
+   printf RUNPROPS "adcirc.control.physics.output.noutm : $noutm[0]\n";
+   if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
+      printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $bladj\n";
+      if ( abs($nws) == 30 || abs($nws) == 330 ) {
+         printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $pureVortex\n";
+         printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $pureBackground\n";
+      }
+   }
+}
 # write the names of the output files to the run-control.properties file
 ASGSUtil::stderrMessage("INFO","Writing file names and formats to run-control.properties file.");
 writeFileName("fort.61",$fort61specifier);
