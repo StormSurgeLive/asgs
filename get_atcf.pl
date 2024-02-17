@@ -57,6 +57,7 @@ my $nhcName; # the name given by the NHC, e.g., TWO, GUSTAV, KATRINA, etc
 my $insecure;# if set, use "http" instead of "https"
 my $body;    # text of the forecast/advisory
 my $advNum;  # advisory number detected from the BEST/OFCL data feeds
+my $newAdvisory = 0;
 GetOptions(
            "statefile=s" => \$statefile,
            "rsssite=s" => \$rsssite,
@@ -273,7 +274,6 @@ while (!$dl) {
       my $textAdvisoryPath;
       my $stormFound = 0;
       my $linkFound = 0;
-      my $newAdvisory = 0;
       # printf STDERR "INFO: get_atcf.pl:
       # The index-at.xml file contains $cnt lines.\n";
       # Loop over the body of the index file, looking for our storm.

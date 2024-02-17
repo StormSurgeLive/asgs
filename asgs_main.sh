@@ -3274,7 +3274,6 @@ while [ true ]; do
       OLDADVISDIR=$ADVISDIR
    fi
    if [[ $ONESHOT = yes || $NOFORCING = true || $TRIGGER = auto ]]; then
-      wait      # allow any background processes to complete
       exit $OK  # exit because the ASGS will be started again later
    fi
    CYCLELOG=null
