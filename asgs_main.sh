@@ -1023,7 +1023,7 @@ downloadCycloneData()
              fi
           fi
           ;;
-       "rss" | "rssembedded" )
+       "rss" | "rssembedded" | "auto" )
           # if there was a new advisory, the $GET_ATCF_SCRIPT script (default is get_atcf.pl)
           # would have returned the advisory number in stdout
           if [[ ! -z $newAdvisoryNum && $newAdvisoryNum != null ]]; then
@@ -1034,7 +1034,7 @@ downloadCycloneData()
           fi
           ;;
        *)
-          fatal "$THIS: Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss, rssembedded, or atcf."
+          fatal "$THIS: Invalid 'TRIGGER' type: '$TRIGGER'; must be ftp, rss, rssembedded, auto, or atcf."
           ;;
        esac
        if [ $START = coldstart ]; then
@@ -3273,7 +3273,7 @@ while [ true ]; do
    if [[ $RUNNOWCAST = yes ]]; then
       OLDADVISDIR=$ADVISDIR
    fi
-   if [[ $ONESHOT = yes || $NOFORCING = true ]]; then
+   if [[ $ONESHOT = yes || $NOFORCING = true || $TRIGGER = auto ]]; then
       wait      # allow any background processes to complete
       exit $OK  # exit because the ASGS will be started again later
    fi
