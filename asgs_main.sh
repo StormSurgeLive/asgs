@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2023 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2023 Brett Estrade
+# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2024 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -25,7 +25,6 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
-
 #
 #####################################################################
 #                B E G I N   F U N C T I O N S
@@ -188,7 +187,7 @@ checkFileExistence()
 }
 #
 # The ASGS stores a .tar.gz archive of decomposed subdomain
-# fort.13, fort.14, and fort.18 to avoid having to re-run adcprep --partmesh
+# fort.14 and fort.18 to avoid having to re-run adcprep --partmesh
 # and --prepall for each cycle (which is time consuming) ... however
 # if the fulldomain files change, then this archive will have to be
 # rebuilt.
@@ -319,7 +318,7 @@ function float_cond()
     return $stat
 }
 #
-# subroutine to run adcprep, using a pre-prepped archive of fort.13,
+# subroutine to run adcprep, using a pre-prepped archive of
 # fort.14, fort.24 files
 #
 # This subroutine deals with all the possible situations that can arise
@@ -338,7 +337,7 @@ prep()
     FROMDIR=$5 # directory containing files to hotstart this run from
     HPCENVSHORT=$6     # machine to run on (jade, desktop, queenbee, etc)
     NCPU=$7     # number of CPUs to request in parallel jobs
-    PREPPEDARCHIVE=$8 # preprocessed fort.13 and fort.14 package
+    PREPPEDARCHIVE=$8 # preprocessed fort.14 and fort.18 package
     GRIDFILE=$9 # fulldomain grid
     ACCOUNT=${10} # account to charge time to
     OUTPUTOPTIONS="${11}" # contains list of args for appending files
@@ -372,12 +371,6 @@ prep()
     # symbolically link grid
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then
         ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
-    fi
-    # symbolically link nodal attributes
-    if [ ! -e $ADVISDIR/$ENSTORM/fort.13 ]; then
-        if [[ ! -z $NAFILE  && $NAFILE != null ]]; then
-           ln -s $INPUTDIR/$NAFILE $ADVISDIR/$ENSTORM/fort.13 2>> ${SYSLOG}
-        fi
     fi
     # symbolically link self attraction / earth load tide file if needed
     if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
@@ -545,6 +538,11 @@ prep()
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
+          if [ -e $ADVISDIR/$ENSTORM/fort.13 ]; then
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.13 file."
+             prepFile prep13 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+          fi
        fi
     else
        # this is a P A R A L L E L   H O T S T A R T
@@ -564,6 +562,11 @@ prep()
           if [[ $VARFLUX = on || $VARFLUX = default ]]; then
              logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.20 file."
              prepFile prep20 $NCPU $ACCOUNT $WALLTIME
+             THIS="asgs_main.sh>prep()"
+          fi
+          if [[ -e $ADVISDIR/$ENSTORM/fort.13 ]]; then
+             logMessage "$ENSTORM: $THIS: Running adcprep to prepare new fort.13 file."
+             prepFile prep13 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
           if [[ $WAVES = on ]]; then
@@ -772,9 +775,6 @@ EOF
     if [[ $HAVEARCHIVE = no ]]; then
        logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${SCRATCHDIR}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
-       if [[ ! -z $NAFILE && $NAFILE != null ]]; then
-          FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18 PE*/fort.13'
-       fi
        if [[ $selfAttractionEarthLoadTide != "notprovided" ]]; then
           FILELIST=$FILELIST' PE*/fort.24'
        fi
@@ -1580,10 +1580,12 @@ handleFailedJob()
    fi
 }
 source $SCRIPTDIR/monitoring/logging.sh
-source $SCRIPTDIR/platforms.sh       # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/platforms.sh            # this includes source $SCRIPTDIR/monitoring/logging.sh
+source $SCRIPTDIR/properties.sh           # read properties file into a hash
 source $SCRIPTDIR/variables_init.sh
 source $SCRIPTDIR/writeProperties.sh
-source $SCRIPTDIR/manageHooks.sh  # depends on monitoring/logging.sh
+source $SCRIPTDIR/manageHooks.sh          # depends on monitoring/logging.sh
+source $SCRIPTDIR/generateDynamicInput.sh # generates tide_fac.out, fort.13, fort.15, fort.26
 
 #####################################################################
 #                 E N D  F U N C T I O N S
@@ -1998,6 +2000,7 @@ if [[ $START = coldstart ]]; then
    STORMDIR=$ADVISDIR/$ENSTORM
    mkdir -p $STORMDIR 2>> ${SYSLOG}
    SCENARIODIR=$STORMDIR
+   cd $SCENARIODIR 2>> $SYSLOG
    SCENARIOLOG=$SCENARIODIR/scenario.log
    HSTIME=0
    # We assume that the hindcast is only used to spin up tides or
@@ -2009,10 +2012,14 @@ if [[ $START = coldstart ]]; then
    logMessage "$ENSTORM: $THIS: Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstart time is '$CSDATE'."
    logMessage "$ENSTORM: $THIS: The initial hindcast duration is '$HINDCASTLENGTH' days."
-   writeProperties $STORMDIR
+   writeProperties $SCENARIODIR
    writeScenarioProperties $SCENARIODIR
    writeScenarioFilesStatus $SCENARIODIR
-
+   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+      cat ${INPUTDIR}/$MESHPROPERTIES >> $SCENARIODIR/run.properties
+   else
+      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+   fi
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
    if [[ $PERIODICFLUX != null ]]; then
@@ -2021,7 +2028,7 @@ if [[ $START = coldstart ]]; then
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
 
-   CONTROLOPTIONS="--name $ENSTORM --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --cst $CSDATE --endtime $HINDCASTLENGTH --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --advisorynum $ADVISORY --cst $CSDATE --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
@@ -2029,45 +2036,19 @@ if [[ $START = coldstart ]]; then
    if [[ $NOFORCING = true ]]; then
       CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
    else
-      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $HINDCASTLENGTH  --nws $NWS  --advisorynum 0"
+      CONTROLOPTIONS="$CONTROLOPTIONS --nws $NWS  --advisorynum 0"
    fi
-
+   #
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
-
-#BOB
-   logMessage "Debug: hindcast: building fort.15"
-   controlFile="$ADVISDIR/$ENSTORM/fort.15"
-   swanFile="$ADVISDIR/$ENSTORM/fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-   controlExitStatus=$?
-   if [[ $controlExitStatus != 0 ]]; then
-      controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
-   fi
-   if [[ ! -e $controlFile || ! -s $controlFile ]]; then
-      controlExitStatus=1
-      controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
-   fi
-   if [[ $controlExitStatus -ne 0 ]]; then
-      logMessage "$THIS: $SCENARIO: $controlMsg This is terminal."  >> ${SYSLOG} 2>&1
-      exit -9
-   fi
-#BOB
-
-   if [[ -e tide_fac.out ]]; then
-      scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-      cat tide_fac.out >> $SCENARIOLOG
-   fi
-   # don't have a meterological forcing (fort.22) file in this case
-   # preproces
+   runLength=$HINDCASTLENGTH # to compute long term tidal constituents
+   # uses parameters described above as well as control-parameters.yaml
+   # to generate tide_fac.out, fort.13, fort.15, and fort.26
+   controlExitStatus=0
+   controlMsg=""
+   generateDynamicInput
+   THIS="asgs_main.sh"
+   #
    logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing."
-   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
-   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
-      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
-      else
-         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-      fi
-   done
    # make sure the archive of subdomain files is up to date
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    THIS="asgs_main.sh"
@@ -2215,9 +2196,6 @@ while [ true ]; do
    # write the properties associated with asgs configuration to the
    # run.properties file
    writeProperties $RUNDIR
-   if [[ $TROPICALCYCLONE = on ]]; then
-      writeTropicalCycloneProperties $RUNDIR
-   fi
    if [[ $BACKGROUNDMET != off ]]; then
       case $BACKGROUNDMET in
          "on"|"NAM")
@@ -2233,9 +2211,7 @@ while [ true ]; do
    if [[ $WAVES = on ]]; then
       writeWaveCouplingProperties $RUNDIR
    fi
-
    logMessage "$ENSTORM: $THIS: Checking for new meteorological data every 60 seconds ..."
-
    # TROPICAL CYCLONE ONLY
    if [[ $TROPICALCYCLONE == "on" ]]; then
       case $VORTEXMODEL in
@@ -2280,6 +2256,7 @@ while [ true ]; do
             fatal "$ENSTORM: $THIS: The BACKGROUNDMET parameter was set to '$BACKGROUNDMET' but the only supported choices when TROPICALCYCLONE=$TROPICALCYCLONE are 'off' and 'namBlend'."
             ;;
       esac
+      writeTropicalCycloneProperties $RUNDIR
       #
       executeHookScripts "NOWCAST_POLLING"
       #
@@ -2322,12 +2299,14 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --name $ENSTORM --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS=" --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
-      STORMNAME=`grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//'` 2>> ${SYSLOG}
+      STORMNAME=$(grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//' 2>> ${SYSLOG})
+      tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
+      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       case $VORTEXMODEL in
          "GAHM"|"ASYMMETRIC")
@@ -2418,6 +2397,17 @@ while [ true ]; do
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
+         tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+         owiWinPre["startDateTime"]=${tlimits[0]}
+         owiWinPre["endDateTime"]=${tlimits[1]}
+         # determine the number of blank snaps (if any)
+         # epoch seconds associated with cold start and hotstart times
+         date=${tlimits[0]}
+         csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+         owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
          cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2429,9 +2419,10 @@ while [ true ]; do
          # create links to the OWI files
          ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
-         # created by NAMtoOWIRamp.pl, contains the WTIMINC,
-         # which is needed by control_file_gen.pl
-         mv fort.22 owi_fort.22 2>> $SYSLOG
+         fort22="owi_fort.22"
+         echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+         echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
+         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          ;;
       "on"|"NAM")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2487,6 +2478,17 @@ while [ true ]; do
            2>> $SYSLOG
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
+         WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
+         tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+         owiWinPre["startDateTime"]=${tlimits[0]}
+         owiWinPre["endDateTime"]=${tlimits[1]}
+         # determine the number of blank snaps (if any)
+         # epoch seconds associated with cold start and hotstart times
+         date=${tlimits[0]}
+         csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+         owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+         owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
          cp $RUNDIR/get_nam_data.pl.* $SCENARIODIR 2>> $SYSLOG
          # copy log data to scenario.log
          for file in lambert_diag.out reproject.log ; do
@@ -2498,8 +2500,12 @@ while [ true ]; do
          # create links to the OWI files
          ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+         fort22="fort.22"
+         echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+         echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
+         echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
@@ -2535,7 +2541,7 @@ while [ true ]; do
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="--advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
 
       "OWI")
@@ -2583,7 +2589,7 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          ;;
       "off")
          # don't need to download any data
@@ -2596,6 +2602,11 @@ while [ true ]; do
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
    ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+   if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+      cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
+   else
+      logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+   fi
    # if there is no forcing from an external data source, set control options
    if [[ $NOFORCING = true ]]; then
       logMessage "NOFORCING is $NOFORCING"
@@ -2614,12 +2625,12 @@ while [ true ]; do
       writeScenarioProperties $NOWCASTDIR
       CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
       CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
-      CONTROLOPTIONS="$CONTROLOPTIONS --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS="$CONTROLOPTIONS --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
    fi
    # activate padcswan based on ASGS configuration
    if [[ $WAVES = on ]]; then
-      CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
+      CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
    fi
    CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
@@ -2627,56 +2638,21 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    # generate fort.15 file
    logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-
-#BOB
+   runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
+   # uses parameters described above as well as control-parameters.yaml
+   # to generate tide_fac.out, fort.13, fort.15, and fort.26
+   controlExitStatus=0
+   controlMsg=""
+   generateDynamicInput
    THIS="asgs_main.sh"
-   debugMessage "$THIS: $ENSTORM: Building fort.15 file."
-   controlFile="fort.15"
-   swanFile="fort.26"
-   perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-   controlExitStatus=$?
-   if [[ $controlExitStatus != 0 ]]; then
-      controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
-   fi
-   if [[ ! -e $controlFile || ! -s $controlFile ]]; then
-      controlExitStatus=1
-      controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
-   fi
-   if [[ $WAVES == on ]]; then
-      if [[ ! -e $swanFile || ! -s $swanFile ]]; then
-         controlExitStatus=1
-         controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
-      fi
-   fi
    if [[ $controlExitStatus -ne 0 ]]; then
-      warn "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned."
-      echo "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned." >> jobFailed
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       continue  # abandon this nowcast and wait for the next one
    fi
-#BOB
-
-   if [[ -e tide_fac.out ]]; then
-      scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-      cat tide_fac.out >> scenario.log
-   fi
-
-   # if current nowcast ends at same time as last nowcast, don't run it,
-   # we'll just use the previous nowcast hotstart file(s) ... to signal that
-   # this is the case, control_file_gen.pl won't write the 'runme' file
-   if [[ ! -e $NOWCASTDIR/runme ]]; then
-      RUNNOWCAST=no
-   fi
-   #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
-   for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
-      if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-         cat ${INPUTDIR}/$inputProperties >> $ADVISDIR/$ENSTORM/run.properties
-      else
-         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-      fi
-   done
-
-   if [[ $RUNNOWCAST = yes ]]; then
+   # load properties
+   declare -A properties
+   loadProperties run-control.properties
+   if [[ ${properties['RunEndTime']} != ${properties['RunStartTime']} ]]; then
       logMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
 
       # get river flux nowcast data, if configured to do so
@@ -2990,9 +2966,11 @@ while [ true ]; do
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          writeTropicalCycloneForecastProperties $STORMDIR
-         CONTROLOPTIONS="--cst $CSDATE --scriptdir $SCRIPTDIR --advisdir $ADVISDIR --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--cst $CSDATE --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
+         tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
+         CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
          if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
             # in it already ... potentially with Rmax changes if desired
@@ -3081,6 +3059,17 @@ while [ true ]; do
             2>> $SYSLOG
             preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
             winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
+            WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
+            tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+            owiWinPre["startDateTime"]=${tlimits[0]}
+            owiWinPre["endDateTime"]=${tlimits[1]}
+            # determine the number of blank snaps (if any)
+            # epoch seconds associated with cold start and hotstart times
+            date=${tlimits[0]}
+            csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
+            hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+            owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+            owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
             # copy log data to scenario.log
             for file in lambert_diag.out reproject.log ; do
                if [[ -e $ADVISDIR/$file ]]; then
@@ -3091,55 +3080,39 @@ while [ true ]; do
             # create links to the OWI files
             ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
             ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
+            fort22="fort.22"
+            echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+            echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
+            echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
-         CONTROLOPTIONS=" --scriptdir $SCRIPTDIR --advisorynum $ADVISORY --advisdir $ADVISDIR --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS=" --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       # if there is no forcing from an external data source, set control options
       if [[ $NOFORCING = true ]]; then
          CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
          CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --advisdir $ADVISDIR --scriptdir $SCRIPTDIR --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
       fi
       if [[ $WAVES = on ]]; then
-         CONTROLOPTIONS="${CONTROLOPTIONS} --swandt $SWANDT --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
       fi
       CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
       CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
       CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
-#BOB
+      runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
+      # uses parameters described above as well as control-parameters.yaml
+      # to generate tide_fac.out, fort.13, fort.15, and fort.26
+      controlExitStatus=0
+      controlMsg=""
+      generateDynamicInput
       THIS="asgs_main.sh"
-      debugMessage "$THIS: $ENSTORM: Building fort.15 file."
-
-      controlFile="fort.15"
-      swanFile="fort.26"
-      perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS >> ${SYSLOG} 2>&1
-      controlExitStatus=$?
-      if [[ $controlExitStatus != 0 ]]; then
-         controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
-      fi
-      if [[ ! -e $controlFile || ! -s $controlFile ]]; then
-         controlExitStatus=1
-         controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
-      fi
-      if [[ $WAVES == on ]]; then
-         if [[ ! -e $swanFile || ! -s $swanFile ]]; then
-            controlExitStatus=1
-            controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
-         fi
-      fi
       if [[ $controlExitStatus -ne 0 ]]; then
-         warn "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned."
-         echo "$THIS: $ENSTORM: $controlMsg The $ENSTORM run will be abandoned." >> jobFailed
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       fi
       THIS="asgs_main.sh"
-#BOB
-      if [[ -e tide_fac.out ]]; then
-         scenarioMessage "$ENSTORM: $THIS: tide_fac.out is as follows:"
-         cat tide_fac.out >> scenario.log
-      fi
+      #
       # if the $STORMDIR is not there, it is probably because handleFailedJob has
       # moved it ... should we increment the scenario counter and just go on?
       # ... just using "continue" as below will have the effect of retrying this
@@ -3162,14 +3135,11 @@ while [ true ]; do
       if [[ $VARFLUX = default ]]; then
          ln -s ${INPUTDIR}/${RIVERFLUX} ./fort.20 2>> ${SYSLOG}
       fi
-      #debugMessage "MESHPROPERTIES is $MESHPROPERTIES CONTROLPROPERTIES is $CONTROLPROPERTIES NAPROPERTIES is $NAPROPERTIES"
-      for inputProperties in $MESHPROPERTIES $CONTROLPROPERTIES $NAPROPERTIES; do
-         if [[ -e ${INPUTDIR}/$inputProperties ]]; then
-            cat ${INPUTDIR}/$inputProperties >> $SCENARIODIR/run.properties
-         else
-            logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$inputProperties was not found and will not be added to the run.properties file."
-         fi
-      done
+      if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
+         cat ${INPUTDIR}/$MESHPROPERTIES >> $SCENARIODIR/run.properties
+      else
+         logMessage "$ENSTORM: $THIS: The properties file ${INPUTDIR}/$MESHPROPERTIES was not found and will not be added to the run.properties file."
+      fi
       # recording the scenario number may come in handy for load
       # balancing the postprocessing, particularly for CERA
       # copy log data to scenario.log

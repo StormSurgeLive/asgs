@@ -140,20 +140,22 @@ unless ( $year ) {
 }
 # if the cold start date was not provided on the command line, we use the
 # oldest data in the BEST track file
+my $firstBESTDate = "1970010100";
+my $hindcastATCF = "$dir/bal$storm$year.dat";
+unless ( open(HCST,"<$hindcastATCF") ) {
+   stderrMessage("ERROR","Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.");
+   die;
+}
+while(<HCST>) {
+   my @fields = split(',',$_);
+   $firstBESTDate = $fields[2];
+   $firstBESTDate =~ s/\s*//g; # remove spaces
+   last;
+}
+close(HCST);
 unless ( $coldstartdate ) {
-   my $hindcastATCF = "$dir/bal$storm$year.dat";
-   unless ( open(HCST,"<$hindcastATCF") ) {
-      stderrMessage("ERROR","Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.");
-      die;
-   }
-   while(<HCST>) {
-      my @fields = split(',',$_);
-      $coldstartdate = $fields[2];
-   }
-   close(HCST);
-   $coldstartdate =~ s/\s*//g; # remove spaces
+   $coldstartdate = $firstBESTDate;
    stderrMessage("INFO","The cold start date was not specified using the --coldstartdate argument. The date/time of the most recent hindcast is '$coldstartdate'. This will be used as the coldstart date/time.");
-   printf STDOUT $coldstartdate;
 }
 #
 # Check to make sure that the ensemble member name does not match more than
@@ -442,12 +444,13 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 330 
 # write the names of the unmodified, ATCF-formatted track data
 printf PROPS "track_raw_dat : bal$storm$year.dat\n";
 printf PROPS "track_raw_fst : al$storm$year.fst\n";
-close(PROPS);
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
 my $last_windspeed = $lasthindcastwindspeed;
 my $consensus_angle=0;      # direction of motion of consensus track
 my $old_consensus_angle=0;  # previous direction of consensus track
+my $firstForecastTime;
+my $lastForecastTime;
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E
 #---------------------------------------------------------------------
@@ -481,6 +484,11 @@ while(<FCST>) {
    ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
      Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0);
    my $forecastedDate = sprintf("%4d%02d%02d%02d",$ftyear,$ftmon,$ftday,$fthour);
+       # grab the first relevant hindcast line; this is the zero hour
+   unless ($firstForecastTime) {
+       $firstForecastTime = $forecastedDate;
+   }
+   $lastForecastTime = $forecastedDate;
    #
    # if the forecastedDate is before the last hindcast date, then ignore
    # this line and go to the next one
@@ -623,6 +631,7 @@ while(<FCST>) {
           = sprintf("%4d%02d%02d%02d",$ftyear,$ftmon,$ftday,$fthour);
        # fill in the date and time for metadata purposes
        substr($line,8,10)=sprintf("%10d",$forecastedDate);
+      $lastForecastTime = $forecastedDate;
    }
    # if the requested variation is veer, modify the track so that it veers
    # as a percent of the cone of uncertainty
@@ -699,6 +708,12 @@ if ( $zdFound == 0 ) {
       stderrMessage("ERROR","The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF.");
    }
 }
+printf PROPS "forcing.tropicalcyclone.best.time.start : $firstHindcastTime\n";
+printf PROPS "forcing.tropicalcyclone.best.time.end : $lasthindcasttime\n";
+printf PROPS "forcing.tropicalcyclone.fcst.time.start : $firstForecastTime\n";
+printf PROPS "forcing.tropicalcyclone.fcst.time.end : $lastForecastTime\n";
+close(PROPS);
+
 1;
 
 #------------------------------------------------------------------------

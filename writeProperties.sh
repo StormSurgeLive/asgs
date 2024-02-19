@@ -44,9 +44,11 @@ writeProperties()
    echo "path.inputdir : $INPUTDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.spinup.length : $HINDCASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR_RUN_PROPERTIES
-   echo "forcing.tide.selfattractionearthloadtide : $selfAttractionEarthLoadTide" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tides : $TIDEFAC" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.tides.selfattractionearthloadtide : $selfAttractionEarthLoadTide" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.varflux : $VARFLUX" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.staticoffset : $STATICOFFSET" >> $STORMDIR_RUN_PROPERTIES
@@ -65,14 +67,14 @@ writeProperties()
    echo "hpc.job.default.queuename : $QUEUENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.default.serqueue : $SERQUEUE" >> $STORMDIR_RUN_PROPERTIES
    # static input files, templates, and property files
+   ADCIRCVERSION=$(${ADCIRCDIR}/adcirc -v)
+   echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR_RUN_PROPERTIES
-   echo "adcirc.file.properties.naproperties : $NAPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
-   echo "adcirc.file.properties.controlproperties : $CONTROLPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.velstations : $VELSTATIONS" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.metstations : $METSTATIONS" >> $STORMDIR_RUN_PROPERTIES
@@ -84,6 +86,52 @@ writeProperties()
    echo "file.preppedarchive : $PREPPEDARCHIVE" >> $STORMDIR_RUN_PROPERTIES
    echo "file.hindcastarchive : $HINDCASTARCHIVE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.minmax : $MINMAX" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.numerics.dtdp : $TIMESTEPSIZE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.numerics.solver_time_integration : $solver_time_integration" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.numerics.time_weighting_coefficients : ( $time_weighting_coefficients )" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.physics.lateral_turbulence : $lateral_turbulence"  >> $STORMDIR_RUN_PROPERTIES
+   if [[ $lateral_turbulence == "eddy_viscosity" ]]; then
+      echo "adcirc.control.physics.eddy_viscosity_coefficient : $eddy_viscosity_coefficient" >> $STORMDIR_RUN_PROPERTIES
+   fi
+   if [[ $lateral_turbulence == "smagorinsky" ]]; then
+      echo "adcirc.control.physics.smagorinsky_coefficient : $smagorinsky_coefficient" >> $STORMDIR_RUN_PROPERTIES
+   fi
+   echo "adcirc.control.physics.bottom_friction_limit : $bottom_friction_limit" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.physics.advection : $advection" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.monitoring.nfover : ( $nfover )" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.monitoring.log_level : $log_level" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.wetdry.h0 : $h0" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.wetdry.velmin : $velmin" >> $STORMDIR_RUN_PROPERTIES
+   if [[ $TIDEFAC == "on" ]]; then
+      echo "forcing.tides.file.tide_fac : $tidefac_file" >> $STORMDIR_RUN_PROPERTIES
+   fi
+   echo "adcirc.control.physics.metcontrol.draglawstring : ${metControl["DragLawString"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.physics.metcontrol.winddraglimit : ${metControl["WindDragLimit"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.output.metcontrol.winddraglimit : ${metControl["outputWindDrag"]}" >> $STORMDIR_RUN_PROPERTIES
+   #
+   echo "adcirc.control.wetdry.noffactive : ${wetDryControl["noffActive"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.output.wetdry.outputnodecode : ${wetDryControl["outputNodeCode"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.output.wetdry.outputnoff : ${wetDryControl["outputNOFF"]}" >> $STORMDIR_RUN_PROPERTIES
+   #
+   echo "adcirc.control.output.inundationoutputcontrol.inundationOutput : ${inundationOutputControl["inundationOutput"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.control.output.inundationoutputcontrol.inunThresh : ${inundationOutputControl["inunThresh"]}" >> $STORMDIR_RUN_PROPERTIES
+   #
+   echo "ncproj : ${netcdf_metadata["NCPROJ"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "ncinst : ${netcdf_metadata["NCINST"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "ncsour : ${netcdf_metadata["NCSOUR"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "nchist : ${netcdf_metadata["NCHIST"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "ncref : ${netcdf_metadata["NCREF"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "nccom : ${netcdf_metadata["NCCOM"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "nchost : ${netcdf_metadata["NCHOST"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "ncconv : ${netcdf_metadata["NCCONV"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "nccont : ${netcdf_metadata["NCCONT"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "ncdate : ${netcdf_metadata["NCDATE"]}" >> $STORMDIR_RUN_PROPERTIES
+   # nodal attributes
+   echo "adcirc.nodal_attributes.file.template : $NAFILE" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.nodal_attributes.activate : ( ${nodal_attribute_activate[@]} )" >> $STORMDIR_RUN_PROPERTIES
+   for k in ${!nodal_attribute_default_values[@]}; do
+      echo "adcirc.nodal_attributes.$k.default.values : ( ${nodal_attribute_default_values[$k]} )"  >> $STORMDIR_RUN_PROPERTIES
+   done
    # notification
    echo "notification.emailnotify : $EMAILNOTIFY" >> $STORMDIR_RUN_PROPERTIES
    echo "notification.executable.notify_script : $NOTIFY_SCRIPT" >> $STORMDIR_RUN_PROPERTIES
@@ -128,8 +176,7 @@ writeProperties()
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
    echo "enstorm : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
    #
-   ADCIRCVERSION=`${ADCIRCDIR}/adcirc -v`
-   echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR_RUN_PROPERTIES
+
    #
    # properties for backward compatibility
    echo "hostname : $HPCENV" >> $STORMDIR_RUN_PROPERTIES
@@ -154,10 +201,16 @@ writeScenarioProperties()
    echo "scenario.number : $si" >> $STORMDIR_RUN_PROPERTIES
    echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR_RUN_PROPERTIES
    echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR_RUN_PROPERTIES
-   # this is used in forming the path where the results will be
-   # posted to a remote server
    if [[ $BACKGROUNDMET != "off" ]]; then
+      # this is used in forming the path where the results will be
+      # posted to a remote server
       echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.meteorology.owi.winpre.nwset : ${owiWinPre["NWSET"]}" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.meteorology.owi.winpre.nwbs : ${owiWinPre["NWBS"]}" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.meteorology.owi.winpre.dwm : ${owiWinPre["DWM"]}" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.meteorology.owi.winpre.start : ${owiWinPre["startDateTime"]}" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.meteorology.owi.winpre.end : ${owiWinPre["endDateTime"]}" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.meteorology.owi.winpre.wtiminc : $WTIMINC" >> $STORMDIR_RUN_PROPERTIES
    fi
    # FIXME: the following are legacy properties from 2014stable
    # and should not be carried forward
@@ -218,7 +271,6 @@ writeGFSProperties()
    echo "config.forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
    echo "WindModel : GFS" >> $STORMDIR_RUN_PROPERTIES
 }
-
 #
 # write properties to the run.properties file that are associated with
 # tropical cyclone forcing configuration.

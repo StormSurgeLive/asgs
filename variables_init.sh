@@ -121,8 +121,6 @@ variables_init()
    STORMTRACKOPTIONS="--strengthPercent null"
    PSEUDOSTORM=n
    MESHPROPERTIES=null
-   CONTROLPROPERTIES=null
-   NAPROPERTIES=null
    EMAILNOTIFY=no # set to yes to have host platform email notifications
    NOTIFY_SCRIPT=null_notify.sh
    ACTIVATE_LIST=null
@@ -147,6 +145,7 @@ variables_init()
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
    # mesh coordinate system
    zNorth="northpole"
+   tcEnd=1970010100 # end of tc run according to track data 
    #
    #  H O O K S
    #

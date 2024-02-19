@@ -1,0 +1,62 @@
+---
+ adcirc_version: "%ADCIRCVER%"
+ solver_time_integration: "%IM_ETC%"
+ initialization_length: %HINDCASTLENGTH%
+ time_weighting_coefficients: "%A00B00C00%"
+ lateral_turbulence: "%lateral_turbulence%"
+ eddy_viscosity_coefficient: %ESLM%
+ smagorinsky_coefficient: %ESLM_Smagorinsky%
+ nfover: "%NFOVER%"
+ log_level: "%NABOUT%"
+ h0: %H0%
+ velmin: %VELMIN%
+ bottom_friction_limit: %FFACTOR%
+ advection: "%advection%"
+ meteorology:
+   wtiminc: %WTIMINC%
+   tropical_cyclone:
+     storm_name: "%storm_name%"
+   owi_win_pre:
+     nwset: %NWSET%
+     nwbs: %NWBS%
+     dwm: %DWM%
+     startdatetime: %startdatetime%
+     enddatetime: %enddatetime%
+ tides:
+   tidal_forcing: "%tidal_forcing%"
+   tidefac_file: "%tidefac_file%"
+   tidal_potential_comment: "%tidal_potential_comment%"
+   tidal_boundary_comment: "%tidal_boundary_comment%"
+ metControl:
+   DragLawString: "%DragLawString%"
+   WindDragLimit: %WindDragLimit%
+   outputWindDrag: "%outputWindDrag%"
+ wetDryControl:
+   outputNodeCode: "%outputNodeCode%"
+   outputNOFF: "%outputNOFF%"
+   noffActive: "%noffActive%"
+ inundationOutputControl:
+   inundationOutput: "%inundationOutput%"
+   inunThresh: %inunThresh%
+ netcdf_metadata:
+   ncproj: "%NCPROJ%"
+   ncinst: "%NCINST%"
+   ncsour: "%NCSOUR%"
+   nchist: "%NCHIST%"
+   ncref:  "%NCREF%"
+   nccom:  "%NCCOM%"
+   nchost: "%NCHOST%"
+   ncconv: "%NCCONV%"
+   nccont: "%NCCONT%"
+   ncdate: "%NCDATE%"
+ wave_coupling:
+   waves: "%WAVES%"
+   wave_model: "%wave_model%"
+   rstiminc: %RSTIMINC%
+ swan:
+   mxitns: %MXITNS%
+   npnts: %NPNTS%
+ nodal_attributes:
+    template: "%nodal_attributes_template_file%"
+    activate: %nodal_attribute_activate_list%
+    default_values: %nodal_attribute_default_values_hash%
