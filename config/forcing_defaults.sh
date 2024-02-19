@@ -3,7 +3,7 @@
 # forcing_defaults.sh : Functions required for initializing
 # parameters that are only related to the forcing.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2023 Jason Fleming
+# Copyright(C) 2019--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -33,7 +33,7 @@ CYCLETIMELIMIT="05:00:00"
 #HDIR=${FDIR}
 STORM=07                         # storm number, e.g. 05=ernesto in 2006
 YEAR=2018                        # year of the storm
-TRIGGER="rssembedded"            # either "ftp" or "rss"
+TRIGGER="rssembedded"            # ftp|rss|rssembedded|ATCF|auto
 RSSSITE="www.nhc.noaa.gov"       # site information for retrieving advisories
 FTPSITE="ftp.nhc.noaa.gov"       # hindcast/nowcast ATCF formatted files
 FDIR="/atcf/afst"                # forecast dir on nhc ftp site
