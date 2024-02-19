@@ -22,11 +22,33 @@
 #----------------------------------------------------------------
 THIS=$(basename -- $0)
 #
-# time between picking up advisory and giving up  on additional scenarios
-CYCLETIMELIMIT="05:00:00"
+# Tidal forcing
+#
+TIDEFAC="on"
+tidal_forcing=$TIDEFAC
+tidefac_file="tide_fac.out" # need full path
+tidal_potential_comment="tidal_potential_comment:notset"
+tidal_boundary_comment="tidal_boundary_comment:notset"
+#
+# Meteorology: General
+#
+WTIMINC="notset"
+BACKGROUNDMET="on"
+TROPICALCYCLONE="off"
+#
+# Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
+#
+declare -g -A owiWinPre
+owiWinPre["NWSET"]=1      # number of win/pre ascii datasets (i.e., domains)
+owiWinPre["NWBS"]=0       # number of blank snaps (i.e., datasets)
+owiWinPre["DWM"]=1.0      # wind multiplier (unitless)
+owiWinPre["startDateTime"]=1970010100  # yyyymmddhh24
+owiWinPre["endDateTime"]=1980010100    # yyyymmddhh24
 #
 #  Meteorological Forcing : Tropical Cyclones
 #
+STORMNAME=stormname
+storm_name="notset"
 #RSSSITE=filesystem
 #FTPSITE=filesystem
 #FDIR=~/asgs/branches/2014stable/input/sample_advisories/2018
@@ -52,6 +74,8 @@ FORECASTLENGTH=84                     # hours of NAM forecast to run (max 84)
 PTFILE="ptFile_oneEighth.txt"         # the lat/lons for the OWI background met
 ALTNAMDIR="/projects/ncfs/data/asgs5463","/projects/ncfs/data/asgs14174"
 VELOCITYMULTIPLIER=1.0
+SPATIALEXTRAPOLATIONRAMP=yes
+SPATIALEXTRAPOLATIONRAMPDISTANCE=1.0
 forecastSelection="latest"            # "latest" or "strict"
 forecastDownload="only-to-run"        # "only-to-run" or "all"
 #
@@ -88,9 +112,17 @@ RIVERSITE="ftp.nssl.noaa.gov"
 RIVERDIR="/projects/ciflow/adcirc_info"
 RIVERUSER="ldm"
 RIVERDATAPROTOCOL="scp"
+HINDCASTRIVERFLUX=null
+RIVERINIT=null           # mesh has no rivers ...
+RIVERFLUX=null
+VARFLUX=off
+USERIVERFILEONLY=no
+PERIODICFLUX=null
 #
 # Model coupling : SWAN
 #
+WAVES=off
 REINITIALIZESWAN="no"
 SWANHSCOMPRESSION="no"
 SWANHSFULL="yes"
+wave_model="SWAN"

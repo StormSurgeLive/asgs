@@ -1,0 +1,9 @@
+Nodal attributes template for Shinnecock Inlet mesh
+3070
+1
+sea_surface_height_above_geoid
+m
+1
+%sea_surface_height_above_geoid_default%
+sea_surface_height_above_geoid
+0
