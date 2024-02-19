@@ -186,9 +186,63 @@ case "$SELECTED_VERSION" in
 esac
 
 #
+# A S K  A B O U T  D E B U G  O P T I O N S  F I R S T
+#
+
+cat <<EOF
+Please choose a debug method [1-10]:
+  1. none (default)
+  2. trace
+  3. full
+  4. buserror
+  5. netcdf
+  6. netcdf_trace
+  7. valgrind
+  8. compiler-warnings 
+  9. full-not-fpe
+ 10. full-not-warnelev 
+EOF
+echo
+
+_DEBUG=1
+read -p "Choose 1-10 [${_DEBUG}]: " DEBUG
+
+if [[ -z "$DEBUG" ]]; then
+  DEBUG=$_DEBUG
+fi
+
+case "${DEBUG}" in
+  1) DEBUG=none
+    ;;
+  2) DEBUG=trace
+    ;;
+  3) DEBUG=full
+    ;;
+  4) DEBUG=buserror
+    ;;
+  5) DEBUG=netcdf
+    ;;
+  6) DEBUG=netcdf_trace
+    ;;
+  7) DEBUG=valgrind
+    ;;
+  8) DEBUG=compiler-warnings 
+    ;;
+  9) DEBUG=full-not-fpe
+    ;;
+ 10) DEBUG=full-not-warnelev 
+    ;;
+esac
+
+if [[ -n "${DEBUG}" && "${DEBUG}" != 'none' ]]; then
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}
+fi
+
+#
 # C H O O S E  A D C I R C  P R O F I L E  N A M E
 #
 
+echo
 read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
 if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
   ADCIRC_PROFILE_NAME=$_ADCIRC_PROFILE_NAME
@@ -323,16 +377,16 @@ SWANDIR=${ADCIRCBASE}/${SWANDIR}
 # + the SWAN=enable is only relevant to adcprep but
 #   should not cause any issues for the other targets
 ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
-ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME}"
+ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG}"
 
 # for building coupled adcswan/padcswan (include all netCDF flags, no 'SWAN=enable')
 ADCSWAN_BINS="adcswan padcswan"
-ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME}"
+ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} DEBUG=${DEBUG}"
 
 # SWAN related utilities other than adcswan/padcswan
 #  + do not include anything related to netCDF
 SWAN_UTIL_BINS="unhcat.exe"
-SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME}"
+SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG}"
 
 #
 # W R I T E   M E T A D A T A  &  B U I L D  A D C I R C
@@ -442,8 +496,9 @@ $patchJSON
     "adcirc.build.fortran.compiler"       : "$_FC",
     "adcirc.build.c.compiler"             : "$_CC",
     "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
-    "adcirc.build.modules.loaded"         : "$MODULE_LIST"
+    "adcirc.build.modules.loaded"         : "$MODULE_LIST",
     "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
+    "adcirc.build.debug"                  : "$DEBUG"
   }
 JSON
 export ADCIRC_SRC_TYPE=remote-zip
@@ -569,6 +624,14 @@ cat ${BUILDSCRIPT} | grep -v '#'
 echo
 echo Build command contained in file, ${BUILDSCRIPT}
 echo
+
+# dump JSON with build details into $ADCIRCBASE
+echo
+echo JSON build info in ${ADCIRC_BUILD_INFO}
+echo
+dumpJSON "$patchJSON" "$ADCIRC_BUILD_INFO"
+echo
+
 _answer=yes
 read -p "Proceed to build? [$_answer] " answer
 echo
@@ -589,9 +652,6 @@ if [ $EXIT -gt 0 ]; then
   echo "build failed ($EXIT)"
   exit $EXIT
 fi
-
-# dump JSON with build details into $ADCIRCBASE
-dumpJSON "$patchJSON" "$ADCIRC_BUILD_INFO"
 
 # create directory to track ADCIRC installations
 mkdir -p $ADCIRC_META_DIR 2> /dev/null
