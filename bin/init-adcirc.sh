@@ -501,7 +501,7 @@ $patchJSON
     "adcirc.build.fortran.compiler"       : "$_FC",
     "adcirc.build.c.compiler"             : "$_CC",
     "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
-    "adcirc.build.modules.loaded"         : "$MODULE_LIST"
+    "adcirc.build.modules.loaded"         : "$MODULE_LIST",
     "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
     "adcirc.build.debug"                  : "$DEBUG"
   }
