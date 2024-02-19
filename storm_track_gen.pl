@@ -38,7 +38,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2006--2021 Jason Fleming
+# Copyright(C) 2006--2024 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -238,12 +238,7 @@ if ( $match == 0 && $percent ne "null" ) {
    stderrMessage("INFO","The option '--percent' was specified at '$percent', but the ensemble member '$name' does not contain a match for any perturbations (either maxWindSpeed, overlandSpeed, or veer). The percent value will be ignored.");
 }
 #
-# open ATCF input files
-my $forecastATCF = "$dir/al$storm$year.fst";
-unless (open(FCST, "<", $forecastATCF)) {
-   stderrMessage("ERROR","Failed to open forecast ATCF file $forecastATCF for ensemble member '$name': $!.");
-   die;
-}
+# open ATCF BEST file
 my $hindcastATCF = "$dir/bal$storm$year.dat";
 unless (open(HCST, "<", $hindcastATCF)) {
    stderrMessage("ERROR","Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.");
@@ -456,6 +451,19 @@ my $old_consensus_angle=0;  # previous direction of consensus track
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E
 #---------------------------------------------------------------------
+#
+# open ATCF OFCL file, if it is present
+my $forecastATCF = "$dir/al$storm$year.fst";
+if ( -e $forecastATCF ) {
+   unless (open(FCST, "<", $forecastATCF)) {
+      stderrMessage("ERROR","Failed to open forecast ATCF file '$forecastATCF' for ensemble member '$name': $!.");
+      die;
+   }
+} else {
+   stderrMessage("INFO","The forecast ATCF file '$forecastATCF' for ensemble member '$name' was not found and will not be processed.");
+   close(MEMBER);
+   exit;
+}
 while(<FCST>) {
    my @fields = split(',',$_);
    my $line = $_;
