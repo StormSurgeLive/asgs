@@ -372,6 +372,10 @@ prep()
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then
         ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
     fi
+    # symbolically link control file (fort.15)
+    if [ ! -e $ADVISDIR/$ENSTORM/${ENSTORM}.fort.15 ]; then
+        ln -s $ADVISDIR/$ENSTORN/${ENSTORM}.fort.15 $ADVISDIR/$ENSTORM/fort.15 2>> ${SYSLOG}
+    fi
     # symbolically link self attraction / earth load tide file if needed
     if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
         ln -s $INPUTDIR/$selfAttractionEarthLoadTide $ADVISDIR/$ENSTORM/fort.24 2>> ${SYSLOG}
@@ -541,6 +545,21 @@ prep()
              THIS="asgs_main.sh>prep()"
           fi
        fi
+       # if there is a Wind10m layer, run prep15 for that as well;
+       # the subdomain fort.15 files for the Wind10m layer will be left
+       # in place in the PE* subdirectories, so that they will run
+       # first when the batch job runs ... the batch script will take care
+       # of managing the files so that the full layer job runs
+       # immediately after and the files are renamed properly etc
+       if [[ $createWind10mLayer == "yes" ]]; then
+         tar cvf $ENSTORM.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
+         logMessage "$ENSTORM: $THIS: Running adcprep to prepare ${ENSTORM}Wind10m.fort.15 file."
+         rm fort.15 2>> $SYSLOG
+         ln -s ${ENSTORM}Wind10m.fort.15 fort.15
+         prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+         THIS="asgs_main.sh>prep()"
+         tar cvf ${ENSTORM}Wind10m.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
+       fi
     else
        # this is a P A R A L L E L   H O T S T A R T
        #
@@ -575,6 +594,16 @@ prep()
                 PE=$(($PE + 1))
              done
           fi
+       fi
+       # if there is a Wind10m layer, run prep15 for that as well
+       if [[ $createWind10mLayer == "yes" ]]; then
+         tar cvf $ENSTORM.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
+         logMessage "$ENSTORM: $THIS: Running adcprep to prepare ${ENSTORM}Wind10m.fort.15 file."
+         rm fort.15 2>> $SYSLOG
+         ln -s ${ENSTORM}Wind10m.fort.15 fort.15
+         prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+         THIS="asgs_main.sh>prep()"
+         tar cvf ${ENSTORM}Wind10m.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
        fi
        # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
@@ -1359,6 +1388,7 @@ submitJob()
       -e "s?%adcircdir%?$ADCIRCDIR?" \
       -e "s/%wind10mlayer%/$wind10mlayer/" \
       -e "s/%scenario%/$SCENARIO/" \
+      -e "s/%wind10mlayer%/$createWind10mLayer/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
       -e "s/%qos%/$QOS/" \
