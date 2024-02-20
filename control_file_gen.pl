@@ -261,6 +261,9 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 0;
    $NHSINC = 99999;
 }
+if ( $hsformat eq "metonly" ) {
+   $NHSTAR = 0;
+}
 #
 # we always look for a fort.68 file, and since we only write one hotstart
 # file during the run, we know we will always be left with a fort.67 file.

@@ -368,9 +368,13 @@ prep()
     fi
     cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
     logMessage "Linking to full domain input files."
-    # symbolically link grid
+    # symbolically link mesh file (fort.14)
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then
         ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
+    fi
+    # symbolically link control file (fort.15)
+    if [ ! -e $ADVISDIR/$ENSTORM/${ENSTORM}.fort.15 ]; then
+        ln -s $ADVISDIR/$ENSTORN/${ENSTORM}.fort.15 $ADVISDIR/$ENSTORM/fort.15 2>> ${SYSLOG}
     fi
     # symbolically link self attraction / earth load tide file if needed
     if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
@@ -514,7 +518,6 @@ prep()
         # by tar) to scenario.log and any error messages to both scenario.log
         # and syslog with a time stamp
         tar xvf $UNCOMPRESSEDARCHIVE >> scenario.log 2> >(awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a ${SYSLOG})
-
         logMessage "$ENSTORM: $THIS: Removing $UNCOMPRESSEDARCHIVE"
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
     fi
@@ -543,6 +546,21 @@ prep()
              prepFile prep13 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
+       fi
+       # if there is a Wind10m layer, run prep15 for that as well;
+       # the subdomain fort.15 files for the Wind10m layer will be left
+       # in place in the PE* subdirectories, so that they will run
+       # first when the batch job runs ... the batch script will take care
+       # of managing the files so that the full layer job runs
+       # immediately after and the files are renamed properly etc
+       if [[ $createWind10mLayer == "yes" ]]; then
+         tar cvf $ENSTORM.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
+         logMessage "$ENSTORM: $THIS: Running adcprep to prepare ${ENSTORM}Wind10m.fort.15 file."
+         rm fort.15 2>> $SYSLOG
+         ln -s ${ENSTORM}Wind10m.fort.15 fort.15
+         prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+         THIS="asgs_main.sh>prep()"
+         tar cvf ${ENSTORM}Wind10m.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
        fi
     else
        # this is a P A R A L L E L   H O T S T A R T
@@ -578,6 +596,16 @@ prep()
                 PE=$(($PE + 1))
              done
           fi
+       fi
+       # if there is a Wind10m layer, run prep15 for that as well
+       if [[ $createWind10mLayer == "yes" ]]; then
+         tar cvf $ENSTORM.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
+         logMessage "$ENSTORM: $THIS: Running adcprep to prepare ${ENSTORM}Wind10m.fort.15 file."
+         rm fort.15 2>> $SYSLOG
+         ln -s ${ENSTORM}Wind10m.fort.15 fort.15
+         prepFile prep15 $NCPU $ACCOUNT $WALLTIME
+         THIS="asgs_main.sh>prep()"
+         tar cvf ${ENSTORM}Wind10m.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
        fi
        # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
@@ -833,19 +861,12 @@ prepFile()
    parallelism=serial
    forncpu=$NCPU
    DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
-   # keep sed from getting confused by escaping slashes
-   escSCRIPTDIR=${SCRIPTDIR////'\/'}
-   escADCIRCDIR=${ADCIRCDIR////'\/'}
-   escQSCRIPTTEMPLATE=${QSCRIPTTEMPLATE////'\/'}
-   escADVISDIR=${ADVISDIR////'\/'}
-   escSYSLOG=${SYSLOG////'\/'}
-   escSCENARIOLOG=${SCENARIOLOG////'\/'}
    #
    # create queue script request by filling in template
    # with data needed to create queue script
    sed \
       -e "s/%jobtype%/$JOBTYPE/" \
-      -e "s/%qscripttemplate%/$escQSCRIPTTEMPLATE/" \
+      -e "s?%qscripttemplate%?$QSCRIPTTEMPLATE?" \
       -e "s/%parallelism%/$parallelism/" \
       -e "s/%ncpu%/$NCPU/" \
       -e "s/%forncpu%/$NCPU/" \
@@ -857,15 +878,16 @@ prepFile()
       -e "s/%queuename%/$QUEUENAME/" \
       -e "s/%serqueue%/$SERQUEUE/" \
       -e "s/%account%/$ACCOUNT/" \
-      -e "s/%advisdir%/$escADVISDIR/" \
-      -e "s/%scriptdir%/$escSCRIPTDIR/" \
-      -e "s/%adcircdir%/$escADCIRCDIR/" \
+      -e "s?%advisdir%?$ADVISDIR?" \
+      -e "s?%scriptdir%?$SCRIPTDIR?" \
+      -e "s?%adcircdir%?$ADCIRCDIR?" \
+      -e "s/%wind10mlayer%/$createWind10mLayer/" \
       -e "s/%scenario%/$SCENARIO/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
       -e "s/%qos%/$QOS/" \
-      -e "s/%syslog%/$escSYSLOG/" \
-      -e "s/%scenariolog%/$escSCENARIOLOG/" \
+      -e "s?%syslog%?$SYSLOG?" \
+      -e "s?%scenariolog%?$SCENARIOLOG?" \
       -e "s/%hotstartcomp%/$HOTSTARTCOMP/" \
       -e "s/%queuesys%/$QUEUESYS/" \
       -e "s/%hpcenvshort%/$HPCENVSHORT/" \
@@ -1348,19 +1370,12 @@ submitJob()
       parallelism=parallel
    fi
    DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
-   # keep sed from getting confused by escaping slashes
-   escSCRIPTDIR=${SCRIPTDIR////'\/'}
-   escADCIRCDIR=${ADCIRCDIR////'\/'}
-   escQSCRIPTTEMPLATE=${QSCRIPTTEMPLATE////'\/'}
-   escADVISDIR=${ADVISDIR////'\/'}
-   escSYSLOG=${SYSLOG////'\/'}
-   escSCENARIOLOG=${SCENARIOLOG////'\/'}
    #
    # create queue script request by filling in template
    # with data needed to create queue script
    sed \
       -e "s/%jobtype%/$JOBTYPE/" \
-      -e "s/%qscripttemplate%/$escQSCRIPTTEMPLATE/" \
+      -e "s?%qscripttemplate%?$QSCRIPTTEMPLATE?" \
       -e "s/%parallelism%/$parallelism/" \
       -e "s/%ncpu%/$NCPU/" \
       -e "s/%forncpu%/$NCPU/" \
@@ -1372,15 +1387,16 @@ submitJob()
       -e "s/%queuename%/${_QUEUENAME}/" \
       -e "s/%serqueue%/$SERQUEUE/" \
       -e "s/%account%/$ACCOUNT/" \
-      -e "s/%advisdir%/$escADVISDIR/" \
-      -e "s/%scriptdir%/$escSCRIPTDIR/" \
-      -e "s/%adcircdir%/$escADCIRCDIR/" \
+      -e "s?%advisdir%?$ADVISDIR?" \
+      -e "s?%scriptdir%?$SCRIPTDIR?" \
+      -e "s?%adcircdir%?$ADCIRCDIR?" \
       -e "s/%scenario%/$SCENARIO/" \
+      -e "s/%wind10mlayer%/$createWind10mLayer/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
       -e "s/%qos%/$QOS/" \
-      -e "s/%syslog%/$escSYSLOG/" \
-      -e "s/%scenariolog%/$escSCENARIOLOG/" \
+      -e "s?%syslog%?$SYSLOG?" \
+      -e "s?%scenariolog%?$SCENARIOLOG?" \
       -e "s/%hotstartcomp%/$HOTSTARTCOMP/" \
       -e "s/%queuesys%/$QUEUESYS/" \
       -e "s/%hpcenvshort%/$HPCENVSHORT/" \
@@ -2017,16 +2033,13 @@ if [[ $START = coldstart ]]; then
       logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
-
-   CONTROLOPTIONS="--name $ENSTORM --advisorynum $ADVISORY --cst $CSDATE --dt $TIMESTEPSIZE --nws $NWS --hsformat $HOTSTARTFORMAT --advisorynum 0 --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+   CONTROLOPTIONS="--name $ENSTORM --advisorynum $ADVISORY --cst $CSDATE --hsformat $HOTSTARTFORMAT --advisorynum 0"
    CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
    CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    if [[ $NOFORCING = true ]]; then
       CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
-   else
-      CONTROLOPTIONS="$CONTROLOPTIONS --nws $NWS  --advisorynum 0"
    fi
    #
    logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
@@ -2286,7 +2299,7 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS=" --name $ENSTORM --advisorynum $ADVISORY --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
@@ -2492,7 +2505,7 @@ while [ true ]; do
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
@@ -2528,7 +2541,7 @@ while [ true ]; do
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
 
       "OWI")
@@ -2576,7 +2589,7 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "off")
          # don't need to download any data
@@ -2610,9 +2623,9 @@ while [ true ]; do
       fi
       mv $RUNDIR/run.properties $NOWCASTDIR 2>> run.properties
       writeScenarioProperties $NOWCASTDIR
-      CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
+      CONTROLOPTIONS="--advisorynum $ADVISORY"
       CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
-      CONTROLOPTIONS="$CONTROLOPTIONS --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+      CONTROLOPTIONS="$CONTROLOPTIONS --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
       logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
    fi
    # activate padcswan based on ASGS configuration
@@ -2624,7 +2637,6 @@ while [ true ]; do
    CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
    CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    # generate fort.15 file
-   logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
    runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
    # uses parameters described above as well as control-parameters.yaml
    # to generate tide_fac.out, fort.13, fort.15, and fort.26
@@ -2950,7 +2962,7 @@ while [ true ]; do
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          writeTropicalCycloneForecastProperties $STORMDIR
-         CONTROLOPTIONS="--cst $CSDATE --dt $TIMESTEPSIZE --nws $NWS --advisorynum $ADVISORY --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="--cst $CSDATE --advisorynum $ADVISORY --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
          tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
@@ -3069,13 +3081,13 @@ while [ true ]; do
             echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
             echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
-         CONTROLOPTIONS=" --advisorynum $ADVISORY --name $ENSTORM --dt $TIMESTEPSIZE --nws $NWS --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS=" --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
       fi
       # if there is no forcing from an external data source, set control options
       if [[ $NOFORCING = true ]]; then
-         CONTROLOPTIONS="--nws 0 --advisorynum $ADVISORY"
+         CONTROLOPTIONS="--advisorynum $ADVISORY"
          CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --name $ENSTORM --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT $OUTPUTOPTIONS"
+         CONTROLOPTIONS="${CONTROLOPTIONS} --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
       fi
       if [[ $WAVES = on ]]; then
          CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
@@ -3084,7 +3096,6 @@ while [ true ]; do
       CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
       CONTROLOPTIONS="$CONTROLOPTIONS --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
       CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
-      logMessage "$ENSTORM: $THIS: Generating ADCIRC Control File (fort.15) for $ENSTORM with the following options: $CONTROLOPTIONS."
       runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
       # uses parameters described above as well as control-parameters.yaml
       # to generate tide_fac.out, fort.13, fort.15, and fort.26
@@ -3174,7 +3185,6 @@ while [ true ]; do
       #
       executeHookScripts "SUBMIT_FORECAST_SCENARIO"
       consoleMessage "$I $(head fort.15 | awk 'NR==2 { print $0 }')"
-
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $FORECASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
       # monitor for completion and post process in a subshell running

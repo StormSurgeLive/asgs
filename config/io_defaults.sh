@@ -62,6 +62,8 @@ fi
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
+createWind10mLayer="yes"  # yes|no ; applies to all scenarios that have meteorological forcing
+#
 if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
    scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
    ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh

@@ -215,6 +215,8 @@ while(<$TEMPLATE>) {
     s/%scenario%/$jshash_ref->{"scenario"}/g;
     # name of overall asgs log file
     s/%syslog%/$jshash_ref->{"syslog"}/g;
+    # whether to generate a Wind10m layer
+    s/%createWind10mLayer%/$jshash_ref->{"wind10mlayer"}/g;
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # fill in command to be executed
