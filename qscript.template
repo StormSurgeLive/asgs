@@ -63,14 +63,45 @@ if [[ -e "%adcircdir%/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinf
    cp "%adcircdir%/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
    echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
 fi
-echo "time.hpc.job.%jobtype%.start : $DATETIME" >> run.properties
-echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> run.properties
-echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> run.properties
-echo "hpc.job.%jobtype%.hostname : $HOSTNAME" >> run.properties
-echo "hpc.job.%jobtype%.qnnodes : $%JOBNNODES%" >> run.properties
-echo "hpc.job.%jobtype%.qntasks-per-node : $%JOBNTASKSPERNODE%" >> run.properties
-echo "hpc.job.%jobtype%.qntasks : $%JOBNTASKS%" >> run.properties
-echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> run.properties
+echo "time.hpc.job.%jobtype%.start : $DATETIME" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.hostname : $HOSTNAME" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.qnnodes : $%JOBNNODES%" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.qntasks-per-node : $%JOBNTASKSPERNODE%" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.qntasks : $%JOBNTASKS%" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> $SCENARIO.run.properties
+#
+#----------------------------------------------------------------------------
+#                  W I N D 1 0 M   L A Y E R
+#----------------------------------------------------------------------------
+#
+jobtype="%jobtype%"
+createWind10mLayer="%wind10mlayer%"
+if [[ $createWind10mLayer == "yes" && ${jobtype:0:4} != "prep" ]]; then
+   # duplicate the original meteorological output files for use with Wind10m layer
+   for file in $(ls fort.7*); do
+      cp $file orig.$file
+   done
+   CMD="%cmd%"
+   echo "cycle $CYCLE: $SCENARIO: $THIS: %jobtype%.Wind10m.%scenario% job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+   $CMD
+   ERROVALUE=$?  # capture exit status
+   if [[ $ERROVALUE -ne 0 ]]; then
+      ERROMSG="$ERROMSG The %jobtype%.Wind10m.%scenario% job ended with an exit status that indicates an error occurred."
+      echo $ERROMSG
+   fi
+   # rename meteorological output files to indicate Wind10m layer
+   for file in $(ls fort.7*); do
+      mv $file Wind10m.$file
+   done
+   # restore empty meteorological output files copied earlier for use in recording full layer data
+   for file in $(ls orig.fort.7*); do
+      mv $file ${file#orig.}
+   done
+   # unpack subdomain fort.15 files for use in generating full layer
+   tar xvf $SCENARIO.fort.15.tar
+fi
 #
 #----------------------------------------------------------------------------
 #                  E X E C U T E   T H E   J O B
@@ -120,5 +151,5 @@ else
    echo "\"jobtype\" : \"%jobtype%\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> jobs.status
    echo "\"$RUNSUFFIX\" : \"$DATETIME\"" > %jobtype%.%scenario%.run.$RUNSUFFIX
 fi
-echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> run.properties
+echo "time.hpc.job.%jobtype%.${RUNSUFFIX} : $DATETIME" >> $SCENARIO.run.properties
 echo "-----------------------------------------------------------------------"
