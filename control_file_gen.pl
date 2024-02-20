@@ -638,7 +638,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
       # parse out the number of nodal attributes from the 3rd line
       if ( $line == 3 ) {
          $headerLine =~ /^\s*(\d)*/;
-         $numNodalAttr = $1; 
+         $numNodalAttr = $1;
          ASGSUtil::stderrMessage("INFO","There are '$numNodalAttr' nodal attributes in the fort.13 file.");
       }
    }
@@ -648,7 +648,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
       $headerLines .= <$nafi>;
       $numLines++;
    }
-   # s/// on header as a block 
+   # s/// on header as a block
    foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
       my $tag   = "%"."$key"."_default"."%";
       my $value = $p->{nodal_attributes}->{default_values}->{$key};
