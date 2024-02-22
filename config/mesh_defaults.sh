@@ -323,6 +323,46 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
+      "NCv6d")
+      #
+      nodes=295328
+      elements=575512
+      INPUTDIR=$SCRIPTDIR/input/meshes/nc_v6b
+      GRIDFILE=nc_inundation_v6d_rivers_msl.grd
+      MESHPROPERTIES=${GRIDFILE}.properties
+      CONTROLTEMPLATE=NCv6d_2024.fort.15.template
+      # wind at 10m fort.15 template
+      CONTROLTEMPLATENOROUGH=NCv6d_2024.nowindreduction.fort.15.template
+      ELEVSTATIONS=v6brivers_elev_stations.txt
+      VELSTATIONS=${ELEVSTATIONS}
+      METSTATIONS=v6brivers_met_stations.txt
+      NAFILE=v6brivers_rlevel.13
+      RIVERINIT=v6brivers.88
+      RIVERFLUX=v6brivers_fort.20_default
+      HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
+      VARFLUX=default
+      # interaction between mesh and models:
+      TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # numerics/physics
+      advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+      solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
+      time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+      lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
+      eddy_viscosity_coefficient="10.0"     # ESLM
+      bottom_friction_limit=0.003           # min when using Manning's n (CF/FFACTOR)
+      h0=0.02                               # min depth (m) to be considered wet
+      velmin=0.02
+      nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
+      nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
+      nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
+      nodal_attribute_activate+=( initial_river_elevation )
+      ;;
+      #
    "nc_inundation_v9.99_w_rivers"|"NCv999")
       #
       nodes=624782
