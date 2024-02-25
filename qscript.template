@@ -78,7 +78,7 @@ jobtype="%jobtype%"
 createWind10mLayer="%wind10mlayer%"
 declare -a layers=( $SCENARIO )
 if [[ $createWind10mLayer == "yes" && $jobtype != "partmesh" && $jobtype != "prep20" && $jobtype != "prep13" ]]; then
-   layers=( ${SCENARIO}Wind10m ${layers[@]} )
+   layers=( wind10m ${layers[@]} )
 fi
 #
 #----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ for layer in ${layers[@]}; do
       #echo "$THIS: $layer: unpacking ${layer}.fort.15.tar" # jgfdebug
       tar xvf ${layer}.fort.15.tar 2>> $SCENARIOLOG 2>&1
       # link to empty meteorological output files created in prep phase
-      for layerFile in $(ls ${layer}.fort.7*); do
+      for layerFile in $(ls ${layer}.fort.7* ${layer}.maxwvel* ${layer}.minpr*); do
          if [[ -e ${layerFile#$layer.} ]]; then
             #echo "$THIS: $layer: unpacking ${layer}.fort.15.tar" # jgfdebug
             rm ${layerFile#$layer.} 2>> $SCENARIOLOG
@@ -163,7 +163,7 @@ for layer in ${layers[@]}; do
    if [[ $jobtype == "prepall" || $jobtype == "prep15" ]]; then
       tar cvf ${layer}.fort.15.tar PE*/fort.15 2>>$SYSLOG 2>&1
       rm PE*/fort.15 2>> $SYSLOG
-      for file in $(ls fort.7*); do
+      for file in $(ls fort.7* maxwvel* minpr*); do
          mv $file ${layer}.$file
       done
    fi
@@ -177,11 +177,11 @@ if [[ -e "fort.15" ]]; then
 fi
 ln -s $SCENARIO.fort.15 fort.15 2>> $SCENARIOLOG
 #
-for file in $(ls fort.7*); do
+for file in $(ls fort.7* maxwvel* minpr*); do
    if [[ -e $file ]]; then
       rm $file 2>> $SCENARIOLOG
    fi
 done
-for file in $(ls ${SCENARIO}.fort.7*); do
+for file in $(ls ${SCENARIO}.fort.7* ${SCENARIO}.maxwvel* ${SCENARIO}.minpr*); do
    ln -s $file ${file#$SCENARIO.} 2>> $SCENARIOLOG
 done
