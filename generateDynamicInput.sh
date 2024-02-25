@@ -59,26 +59,28 @@ generateDynamicInput()
     fi
     for layer in ${layers[@]}; do
         na_activate_list=""  # clear out list of nodal attributes that will be activated for this layer
+        layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
+        outputInventory="full"
         if [[ $layer == $SCENARIO ]]; then
-            layerOptions=" --nws $NWS --dt $TIMESTEPSIZE --controltemplate ${INPUTDIR}/${CONTROLTEMPLATE} $OUTPUTOPTIONS"
+            layerOptions+=" --nws $NWS --dt $TIMESTEPSIZE $OUTPUTOPTIONS"
+            for k in ${nodal_attribute_activate[@]}; do
+                na_activate_list="$na_activate_list\n      - \"$k\""
+            done
         fi
         if [[ $layer == "${SCENARIO}Wind10m" ]]; then
-            layerOptions=" --nws $BASENWS --dt 300.0"      # 15 minute time steps
-            layerOptions+=" --controltemplate ${INPUTDIR}/$CONTROLTEMPLATENOROUGH"
+            outputInventory="metonly"
+            layerOptions+=" --nws $BASENWS --dt 300.0"      # 15 minute time steps
             layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
             layerOptions+=" --fort7172freq 300.0 --fort7172netcdf"
             layerOptions+=" --fort7374freq 3600.0 --fort7374netcdf"
-            layerOptions+=" --netcdf4 --hsformat metonly"
-        fi
-        # list of nodal attributes to activate, depending on the layer to be generated
-        for k in ${nodal_attribute_activate[@]}; do
-            if [[ $layer == "${SCENARIO}Wind10m" ]]; then
+            layerOptions+=" --netcdf4"
+            for k in ${nodal_attribute_activate[@]}; do
                 if [[ $k == "surface_directional_effective_roughness_length" || $k == "surface_canopy_coefficient" ]]; then
                     continue  # deactivate nodal attributes that reduce wind to ground level
                 fi
-            fi
-            na_activate_list="$na_activate_list\n      - \"$k\""
-        done
+                na_activate_list="$na_activate_list\n      - \"$k\""
+            done
+        fi
         sed \
         -e "s/%ADCIRCVER%/$(adcirc -v)/" \
         -e "s/%IM_ETC%/$solver_time_integration/" \
@@ -103,6 +105,7 @@ generateDynamicInput()
         -e "s/%FFACTOR%/$bottom_friction_limit/" \
         -e "s/%advection%/$advection/" \
         -e "s/%WTIMINC%/$WTIMINC/" \
+        -e "s/%metresults%/$WTIMINC/" \
         -e "s/%storm_name%/$storm_name/" \
         -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
         -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
@@ -130,15 +133,16 @@ generateDynamicInput()
         -e "s?%nodal_attributes_template_file%?$INPUTDIR/$NAFILE?" \
         -e "s/%nodal_attribute_activate_list%/$na_activate_list/" \
         -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
+        -e "s/%inventory%/$outputInventory/" \
             < $controlParametersTemplate \
             > $SCENARIODIR/${layer}.control_parameters.yaml
         if [[ $? != 0 ]]; then
             echo "$THIS: Failed to fill in control parameters template with sed."
         fi
-        #BOB
+        #
         controlFile="$SCENARIODIR/${layer}.fort.15"
         swanFile="$SCENARIODIR/fort.26"
-        logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File ({$layer}.fort.15) for $SCENARIO with the following options: $CONTROLOPTIONS $layerOptions."
+        logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File (${layer}.fort.15) for $SCENARIO with the following options: $CONTROLOPTIONS $layerOptions."
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS $layerOptions < $SCENARIODIR/${layer}.control_parameters.yaml > $controlFile 2>> ${SYSLOG}
         controlExitStatus=$?
         if [[ $controlExitStatus != 0 ]]; then
@@ -158,9 +162,9 @@ generateDynamicInput()
             warn "$THIS: $SCENARIO: $controlMsg The $SCENARIO run will be abandoned."
             echo "$THIS: $SCENARIO: $controlMsg The $SCENARIO run will be abandoned." >> jobFailed
         fi
-        #BOB
+        #
         mv $SCENARIODIR/run-control.properties $SCENARIODIR/${layer}.run-control.properties 2>>$SYSLOG
-    fi
+    done
     cat $SCENARIODIR/${SCENARIO}.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
 }
 

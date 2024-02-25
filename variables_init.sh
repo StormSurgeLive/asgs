@@ -26,6 +26,8 @@ variables_init()
    HPCENVSHORT=${HPCENVSHORT:-null}
    HPCENV=${HPCENV:-null}
    BACKGROUNDMET=on
+   NWS=0
+   BASENWS=0
    # tides
    TIDEFAC=off
    selfAttractionEarthLoadTide="notprovided"
@@ -145,7 +147,7 @@ variables_init()
    PYTHONVENV=null # path to python virtual environment, e.g., ~/asgs/asgspy/venv
    # mesh coordinate system
    zNorth="northpole"
-   tcEnd=1970010100 # end of tc run according to track data 
+   tcEnd=1970010100 # end of tc run according to track data
    #
    #  H O O K S
    #

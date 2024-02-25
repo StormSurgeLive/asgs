@@ -350,8 +350,7 @@ prep()
     #
     THIS="asgs_main.sh>prep()"
     #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
-    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
+    echo "time.adcprep.start : ($date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then
@@ -371,10 +370,6 @@ prep()
     # symbolically link mesh file (fort.14)
     if [ ! -e $ADVISDIR/$ENSTORM/fort.14 ]; then
         ln -s $INPUTDIR/$GRIDFILE $ADVISDIR/$ENSTORM/fort.14 2>> ${SYSLOG}
-    fi
-    # symbolically link control file (fort.15)
-    if [ ! -e $ADVISDIR/$ENSTORM/${ENSTORM}.fort.15 ]; then
-        ln -s $ADVISDIR/$ENSTORN/${ENSTORM}.fort.15 $ADVISDIR/$ENSTORM/fort.15 2>> ${SYSLOG}
     fi
     # symbolically link self attraction / earth load tide file if needed
     if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
@@ -494,9 +489,7 @@ prep()
     # C O N T I N U E   W I T H   A D C P R E P
     # F O R   P A R A L L E L   R U N
     #
-    TIMESTAMP=`date +%d%b%Y:%H:%M:%S`
-    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.adcprep.start : ${DATETIME}" >> ${STORMDIR}/run.properties
+    echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then
@@ -547,21 +540,6 @@ prep()
              THIS="asgs_main.sh>prep()"
           fi
        fi
-       # if there is a Wind10m layer, run prep15 for that as well;
-       # the subdomain fort.15 files for the Wind10m layer will be left
-       # in place in the PE* subdirectories, so that they will run
-       # first when the batch job runs ... the batch script will take care
-       # of managing the files so that the full layer job runs
-       # immediately after and the files are renamed properly etc
-       if [[ $createWind10mLayer == "yes" ]]; then
-         tar cvf $ENSTORM.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
-         logMessage "$ENSTORM: $THIS: Running adcprep to prepare ${ENSTORM}Wind10m.fort.15 file."
-         rm fort.15 2>> $SYSLOG
-         ln -s ${ENSTORM}Wind10m.fort.15 fort.15
-         prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-         THIS="asgs_main.sh>prep()"
-         tar cvf ${ENSTORM}Wind10m.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
-       fi
     else
        # this is a P A R A L L E L   H O T S T A R T
        #
@@ -596,16 +574,6 @@ prep()
                 PE=$(($PE + 1))
              done
           fi
-       fi
-       # if there is a Wind10m layer, run prep15 for that as well
-       if [[ $createWind10mLayer == "yes" ]]; then
-         tar cvf $ENSTORM.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
-         logMessage "$ENSTORM: $THIS: Running adcprep to prepare ${ENSTORM}Wind10m.fort.15 file."
-         rm fort.15 2>> $SYSLOG
-         ln -s ${ENSTORM}Wind10m.fort.15 fort.15
-         prepFile prep15 $NCPU $ACCOUNT $WALLTIME
-         THIS="asgs_main.sh>prep()"
-         tar cvf ${ENSTORM}Wind10m.fort.15.tar PE*/fort.15 >> scenario.log 2>>$SYSLOG
        fi
        # bring in hotstart file(s)
        if [[ $HOTSTARTCOMP = fulldomain ]]; then
@@ -814,8 +782,7 @@ EOF
           rm ${SCRATCHDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
        fi
     fi
-    DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.adcprep.finish : $DATETIME" >> ${STORMDIR}/run.properties
+    echo "time.adcprep.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
 }
 #
@@ -860,7 +827,6 @@ prepFile()
    QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
    parallelism=serial
    forncpu=$NCPU
-   DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
    #
    # create queue script request by filling in template
    # with data needed to create queue script
@@ -893,7 +859,7 @@ prepFile()
       -e "s/%hpcenvshort%/$HPCENVSHORT/" \
       -e "s/%asgsadmin%/$ASGSADMIN/" \
       -e "s/%NULLLASTUPDATER%/$THIS/" \
-      -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
+      -e "s/%NULLLASTUPDATETIME%/$(date +'%Y-%h-%d-T%H:%M:%S%z')/" \
       < $qScriptRequestTemplate \
       > $qScriptRequest \
     2>> $SYSLOG
@@ -926,20 +892,19 @@ prepFile()
       # succeeded, and if not, retry
       local jobSubmitInterval=60
       while [ true ];  do
-         DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
-         echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> run.properties
+         echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
          # submit job , capture stdout from sbatch and direct it
          # to scenario.log; capture stderr and send to all logs
          $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
          if [[ $? == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
             awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
             logMessage "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in '$jobSubmitInterval' seconds."
             consoleMessage "$W Submission of ${JOBTYPE}.${queuesyslc} failed. Waiting to retry."
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             spinner $jobSubmitInterval
 
          fi
@@ -949,19 +914,10 @@ prepFile()
       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
       ;;
    *)
-      logMessage "Submitting job with $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} >> $ADVISDIR/$ENSTORM/scenario.log 2>&1"
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-      $ADCIRCDIR/adcprep --np $NCPU --${JOBTYPE} --strict-boundaries >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : \"$!\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-      # check to see if adcprep completed successfully
-      if [[ $? != 0 ]]; then
-         error "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details."
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : null, \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-         echo "$ENSTORM: $THIS: The adcprep ${JOBTYPE} job failed. See the file $ADVISDIR/$ENSTORM/scenario.log for details." >> jobFailed
-      fi
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+      # make the queue script executable and execute it
+      chmod +x ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+      ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
       ;;
    esac
 }
@@ -1369,7 +1325,9 @@ submitJob()
    else
       parallelism=parallel
    fi
-   DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   if [[ $QUEUESYS == "mpiexec" ]]; then
+      JOBLAUNCHER="mpiexec -n %totalcpu%"
+   fi
    #
    # create queue script request by filling in template
    # with data needed to create queue script
@@ -1390,8 +1348,8 @@ submitJob()
       -e "s?%advisdir%?$ADVISDIR?" \
       -e "s?%scriptdir%?$SCRIPTDIR?" \
       -e "s?%adcircdir%?$ADCIRCDIR?" \
-      -e "s/%scenario%/$SCENARIO/" \
       -e "s/%wind10mlayer%/$createWind10mLayer/" \
+      -e "s/%scenario%/$SCENARIO/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
       -e "s/%qos%/$QOS/" \
@@ -1402,7 +1360,7 @@ submitJob()
       -e "s/%hpcenvshort%/$HPCENVSHORT/" \
       -e "s/%asgsadmin%/$ASGSADMIN/" \
       -e "s/%NULLLASTUPDATER%/$THIS/" \
-      -e "s/%NULLLASTUPDATETIME%/$DATETIME/" \
+      -e "s/%NULLLASTUPDATETIME%/$(date +'%Y-%h-%d-T%H:%M:%S%z')/" \
       < $qScriptRequestTemplate \
       > $qScriptRequest \
     2>> $SYSLOG
@@ -1505,39 +1463,23 @@ submitJob()
    # No queueing system, just mpiexec (used on standalone computers
    # and small clusters)
    "mpiexec")
-      if [[ -e "$ADCIRCDIR/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
-         cp "$ADCIRCDIR/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
-         echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
-      fi
-      DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S'%z)
-      echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
-      echo "[${DATETIME}] Starting ${JOBTYPE}.${ENSTORM} job in $PWD." >> ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start
+      DATETIME=
+      echo "time.${JOBTYPE}.start : $(date +'%Y-%h-%d-T%H:%M:%S'%z)" >> run.properties
       CPUREQUEST=$(($NCPU + $NUMWRITERS))
-      logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       (
-         $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
-         ERROVALUE=$?
-         RUNSUFFIX="finish"
-         DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-         if [ $ERROVALUE != 0 ] ; then
-            RUNSUFFIX="error"
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : null, \"finish\" : null, \"error\" : \"$DATETIME\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-         else
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$PPID\", \"start\" : null, \"finish\" : \"$DATETIME\", \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-         fi
-         echo "\"$RUNSUFFIX\" : \"$DATETIME\", \"jobid\" : \"$PPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.$RUNSUFFIX #<-OVERWRITE
-         echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
+         # make the queue script executable and execute it
+         chmod +x ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+         ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
          # terminate redirect processes for centralized logging
-         sleep 30 # give buffers a chance to flush to the filesystem
+         sleep 3 # give buffers a chance to flush to the filesystem
       ) &
       local pid=$!
       spinner 0 $pid
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
       echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
-      echo "\"start\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\"" > ${ADVISDIR}/${ENSTORM}/${JOBTYPE}.${ENSTORM}.run.start #<-OVERWRITE
-      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    *)
       fatal "$ENSTORM: $THIS: Queueing system $QUEUESYS unrecognized."
@@ -2197,6 +2139,7 @@ while [ true ]; do
    # run.properties file
    writeProperties $RUNDIR
    if [[ $BACKGROUNDMET != off ]]; then
+      BASENWS=-12
       case $BACKGROUNDMET in
          "on"|"NAM")
             writeNAMProperties $RUNDIR
@@ -2650,7 +2593,7 @@ while [ true ]; do
    fi
    # load properties
    declare -A properties
-   loadProperties run-control.properties
+   loadProperties ${SCENARIO}.run-control.properties
    if [[ ${properties['RunEndTime']} != ${properties['RunStartTime']} ]]; then
       logMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
 

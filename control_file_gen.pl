@@ -261,7 +261,7 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 0;
    $NHSINC = 99999;
 }
-if ( $hsformat eq "metonly" ) {
+if ( $p->{output}->{inventory} eq "metonly" ) {
    $NHSTAR = 0;
 }
 #
@@ -772,6 +772,8 @@ printf RUNPROPS "ColdStartTime : $csdate\n";
 #
 printf RUNPROPS "Model : $model\n";
 # model parameters
+# jgfdebug FIXME Add activated nodal attributes
+# jgfdebug FIXME Change wind10m output file names??
 printf RUNPROPS "adcirc.control.numerics.im : $im\n";
 printf RUNPROPS "adcirc.control.numerics.a00b00c00 : ( $a00b00c00 )\n";
 printf RUNPROPS "adcirc.control.physics.nolica : $nolica\n";
@@ -1024,11 +1026,11 @@ sub getStations {
 sub getPeriodicFlux {
    my $flux_file=shift;
    if ($flux_file =~ /null/){
-      ASGSUtil::stderrMessage("INFO","No periodic inflow boundary data file was specified/");
+      ASGSUtil::stderrMessage("INFO","No periodic inflow boundary data file was specified.");
       return
    }
    unless (open(FLUXFILE,"<$flux_file")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open $flux_file for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$flux_file' for reading: $!.");
       die;
    }
    my $fluxdata='';
@@ -1036,7 +1038,7 @@ sub getPeriodicFlux {
        $fluxdata.=$_;
    }
    close(FLUXFILE);
-   ASGSUtil::stderrMessage("INFO","Inserting periodic inflow boundary data from $flux_file.");
+   ASGSUtil::stderrMessage("INFO","Inserting periodic inflow boundary data from '$flux_file'.");
    chomp $fluxdata;
    return $fluxdata;
 }
@@ -1137,7 +1139,6 @@ sub owiParameters {
    my $owiend = $p->{meteorology}->{owi_win_pre}->{enddatetime};
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend OWI ASCII ";
-   print "cs:'$csdate' cy:'$owistart'";
    # compute RNDAY and NHSINC
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $ey = $1;
