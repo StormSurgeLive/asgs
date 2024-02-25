@@ -55,7 +55,7 @@ generateDynamicInput()
     local na_activate_list
     layers=( $SCENARIO )
     if [[ $createWind10mLayer == "yes" && $NWS != "0" ]]; then
-        layers+=( "${SCENARIO}Wind10m" )
+        layers+=( "wind10m" )
     fi
     for layer in ${layers[@]}; do
         na_activate_list=""  # clear out list of nodal attributes that will be activated for this layer
@@ -67,7 +67,7 @@ generateDynamicInput()
                 na_activate_list="$na_activate_list\n      - \"$k\""
             done
         fi
-        if [[ $layer == "${SCENARIO}Wind10m" ]]; then
+        if [[ $layer == "wind10m" ]]; then
             outputInventory="metonly"
             layerOptions+=" --nws $BASENWS --dt 300.0"      # 15 minute time steps
             layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
