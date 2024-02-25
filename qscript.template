@@ -87,21 +87,17 @@ fi
 #
 for layer in ${layers[@]}; do
    if [[ -e "fort.15" ]]; then
-      echo "$THIS: $layer: deleting fort.15" # jgfdebug
       rm fort.15 2>> $SCENARIOLOG
    fi
-   #echo "$THIS: $layer: linking ${layer}.fort.15" # jgfdebug
    ln -s ${layer}.fort.15 fort.15 2>> $SCENARIOLOG
    # if this is not a prep job, untar the corresponding fort.15 files
    # and link to the proper meteorological output files
    if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
       # unpack subdomain fort.15 files for use in generating the layer
-      #echo "$THIS: $layer: unpacking ${layer}.fort.15.tar" # jgfdebug
       tar xvf ${layer}.fort.15.tar 2>> $SCENARIOLOG 2>&1
       # link to empty meteorological output files created in prep phase
       for layerFile in $(ls ${layer}.fort.7* ${layer}.maxwvel* ${layer}.minpr*); do
          if [[ -e ${layerFile#$layer.} ]]; then
-            #echo "$THIS: $layer: unpacking ${layer}.fort.15.tar" # jgfdebug
             rm ${layerFile#$layer.} 2>> $SCENARIOLOG
          fi
          ln -s $layerFile ${layerFile#$layer.} 2>> $SCENARIOLOG

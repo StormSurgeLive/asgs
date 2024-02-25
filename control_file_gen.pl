@@ -772,8 +772,6 @@ printf RUNPROPS "ColdStartTime : $csdate\n";
 #
 printf RUNPROPS "Model : $model\n";
 # model parameters
-# jgfdebug FIXME Add activated nodal attributes
-# jgfdebug FIXME Change wind10m output file names??
 printf RUNPROPS "adcirc.control.numerics.im : $im\n";
 printf RUNPROPS "adcirc.control.numerics.a00b00c00 : ( $a00b00c00 )\n";
 printf RUNPROPS "adcirc.control.physics.nolica : $nolica\n";
