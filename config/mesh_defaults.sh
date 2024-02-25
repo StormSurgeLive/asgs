@@ -329,8 +329,6 @@ case $GRIDNAME in
       GRIDFILE=nc_inundation_v6d_rivers_msl.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=NCv6d_2024.fort.15.template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=NCv6d_2024.nowindreduction.fort.15.template
       ELEVSTATIONS=v6brivers_elev_stations.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=v6brivers_met_stations.txt
