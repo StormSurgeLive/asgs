@@ -896,8 +896,9 @@ Q1
   0.004000    -61.7000
   0.005000    -59.6000
   0.005000    -58.9000
-90.0              ! ANGINN : INNER ANGLE THRESHOLD
-%NFFR%             ! NFFR
+90.0                 ! ANGINN : INNER ANGLE THRESHOLD
+%NFFR%               ! %NFFR-Line%
+%PERIODICFLUX%       ! %PERIODICFLUX-Lines%
 %FORT61%             ! %NOUTE-Line%
 %NUMELEVSTATIONS%    ! %NSTAE-Line%
 %FORT62%             ! %NOUTV-Line%

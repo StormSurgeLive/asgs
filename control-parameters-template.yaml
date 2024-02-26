@@ -27,6 +27,9 @@
    tidefac_file: "%tidefac_file%"
    tidal_potential_comment: "%tidal_potential_comment%"
    tidal_boundary_comment: "%tidal_boundary_comment%"
+ flux:
+   periodicity: "%periodicity%"
+   file: "%periodic_flux_file%"
  metControl:
    DragLawString: "%DragLawString%"
    WindDragLimit: %WindDragLimit%
