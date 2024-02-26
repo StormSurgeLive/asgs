@@ -190,7 +190,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan,
-           "periodicflux=s" => \$periodicflux,
            "pureVortex=s" => \$pureVortex,
            "pureBackground=s" => \$pureBackground
            );
