@@ -44,6 +44,15 @@ generateDynamicInput()
         tidefac_file="notset"
     fi
     #
+    # flux boundary forcing
+    periodicity="null"
+    if [[ $VARFLUX == "on" || $VARFLUX == "default" ]]; then
+        periodicity="aperiodic"
+    fi
+    if [[ $PERIODICFLUX != "null" ]]; then
+        periodicity="periodic"
+    fi
+    #
     # nodal attribute default values to be written to nodal attributes (fort.13) file
     na_defaults="\n"
     for k in ${!nodal_attribute_default_values[@]}; do
@@ -107,6 +116,8 @@ generateDynamicInput()
         -e "s/%WTIMINC%/$WTIMINC/" \
         -e "s/%metresults%/$WTIMINC/" \
         -e "s/%storm_name%/$storm_name/" \
+        -e "s/%periodicity%/$periodicity/" \
+        -e "s/%periodic_flux_file%/$PERIODICFLUX/" \
         -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
         -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
         -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \

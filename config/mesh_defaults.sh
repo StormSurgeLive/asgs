@@ -336,9 +336,9 @@ case $GRIDNAME in
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
       HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
-      VARFLUX=default
+      VARFLUX=default             # mesh has aperiodic flux boundary
       # interaction between mesh and models:
-      TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
+      TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
