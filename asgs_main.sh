@@ -827,6 +827,10 @@ prepFile()
    QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
    parallelism=serial
    forncpu=$NCPU
+   wind10mlayer=$createWind10mLayer
+   if [[ $NWS == "0" ]]; then
+      wind10mlayer="no"
+   fi
    #
    # create queue script request by filling in template
    # with data needed to create queue script
@@ -847,7 +851,7 @@ prepFile()
       -e "s?%advisdir%?$ADVISDIR?" \
       -e "s?%scriptdir%?$SCRIPTDIR?" \
       -e "s?%adcircdir%?$ADCIRCDIR?" \
-      -e "s/%wind10mlayer%/$createWind10mLayer/" \
+      -e "s/%wind10mlayer%/$wind10mlayer/" \
       -e "s/%scenario%/$SCENARIO/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
@@ -1328,6 +1332,10 @@ submitJob()
    if [[ $QUEUESYS == "mpiexec" ]]; then
       JOBLAUNCHER="mpiexec -n %totalcpu%"
    fi
+   wind10mlayer=$createWind10mLayer
+   if [[ $NWS == "0" ]]; then
+      wind10mlayer="no"
+   fi
    #
    # create queue script request by filling in template
    # with data needed to create queue script
@@ -1348,7 +1356,7 @@ submitJob()
       -e "s?%advisdir%?$ADVISDIR?" \
       -e "s?%scriptdir%?$SCRIPTDIR?" \
       -e "s?%adcircdir%?$ADCIRCDIR?" \
-      -e "s/%wind10mlayer%/$createWind10mLayer/" \
+      -e "s/%wind10mlayer%/$wind10mlayer/" \
       -e "s/%scenario%/$SCENARIO/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
