@@ -28,7 +28,7 @@ generateDynamicInput()
     #
     # tidal forcing
     tidefac_file="$SCENARIODIR/tide_fac.out"
-    tidefac_cmd="tide_fac.x --length $runLength --year ${CSDATE:0:4} --month ${CSDATE:4:2} --day ${CSDATE:6:2} --hour ${CSDATE:8:2} -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $SCENARIODIR 2>> $SYSLOG"
+    tidefac_cmd="tide_fac.x --length $runLength --year ${CSDATE:0:4} --month ${CSDATE:4:2} --day ${CSDATE:6:2} --hour ${CSDATE:8:2} -n ${#tidalConstituents[@]} ${tidalConstituents[@]} --outputformat simple --outputdir $SCENARIODIR 2>> $SYSLOG"
     tidal_potential_comment="Tide nodal factors and equilibrium arguments generated with the command '$tidefac_cmd'."
     tidal_boundary_comment=$tidal_potential_comment
     if [[ $TIDEFAC == "on" ]]; then
