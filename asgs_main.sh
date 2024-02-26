@@ -899,7 +899,7 @@ prepFile()
          echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
          # submit job , capture stdout from sbatch and direct it
          # to scenario.log; capture stderr and send to all logs
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
          if [[ $? == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
@@ -1446,7 +1446,7 @@ submitJob()
       while [ true ];  do
          DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr >jobID | tee -a scenario.log
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
          if [[ $? == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
