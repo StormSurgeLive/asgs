@@ -25,6 +25,7 @@ THIS=$(basename -- $0)
 # Tidal forcing
 #
 TIDEFAC="on"
+tidalConstituents=( "m2" "s2" "n2" "k1" "k2" "o1" "q1" "p1" )
 tidal_forcing=$TIDEFAC
 tidefac_file="tide_fac.out" # need full path
 tidal_potential_comment="tidal_potential_comment:notset"
