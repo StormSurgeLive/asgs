@@ -1873,7 +1873,7 @@ checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
 
 #
 if [[ $PERIODICFLUX != null ]]; then
-   if [[ $FLUXCALCULATOR == "static" ]];
+   if [[ $FLUXCALCULATOR == "static" ]]; then
       # $PERIODICFLUX is a static file to insert into fort.15
       logMessage "$THIS: checking for static PERIODICFLUX file."
       checkFileExistence $INPUTDIR "static file for periodic flux boundary" $PERIODICFLUX
