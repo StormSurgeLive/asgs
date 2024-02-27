@@ -149,6 +149,10 @@ case $GRIDNAME in
       nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
       nodal_attribute_activate+=( elemental_slope_limiter average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
       nodal_attribute_activate+=( surface_submergence_state sea_surface_height_above_geoid )
+      # tidal forcing
+      tidalConstituents=( "q1" "o1" "p1" "k1" "n2" "m2" "s2" "k2" )
+      # river boundary forcing
+      PERIODICFLUX=$INPUTDIR/LAv20a_10kcms.txt
       # nodal attributes file
       NAFILE=LA_v20a-WithUpperAtch_chk.13.template
       nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
@@ -350,6 +354,7 @@ case $GRIDNAME in
       ELEVSTATIONS=v6brivers_elev_stations.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=v6brivers_met_stations.txt
+      # river boundary forcing
       NAFILE=v6brivers_rlevel.13
       RIVERINIT=v6brivers.88
       RIVERFLUX=v6brivers_fort.20_default
