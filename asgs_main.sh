@@ -116,6 +116,7 @@ checkFileExistence()
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
      else
+        logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was not found. Attempting to download it."
         # If this is a mesh (fort.14), nodal attributes (fort.13), static water level correction,
         # or self attracting / earth load tide (fort.24) file, attempt to download and uncompress it.
         # If the URL starts with "scp://" then the Operator's ssh configuration must support
