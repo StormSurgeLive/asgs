@@ -114,11 +114,12 @@ RIVERDIR="/projects/ciflow/adcirc_info"
 RIVERUSER="ldm"
 RIVERDATAPROTOCOL="scp"
 HINDCASTRIVERFLUX=null
-RIVERINIT=null       # file (fort.88) containing cold start river water elevations
-RIVERFLUX=null       # file containing aperiodic flux boundary condition data
-VARFLUX=off          # off|on|default (on|default specifies aperiodic flux)
+RIVERINIT=null        # file (fort.88) containing cold start river water elevations
+RIVERFLUX=null        # file containing aperiodic flux boundary condition data
+VARFLUX=off           # off|on|default (on|default specifies aperiodic flux)
 USERIVERFILEONLY=no
-PERIODICFLUX=null    # file containing periodic flux boundary condition
+PERIODICFLUX=null     # static file containing periodic flux boundary condition
+FLUXCALCULATOR=static # static|%filename%.pl (static if a static file should be used)
 #
 # Model coupling : SWAN
 #
