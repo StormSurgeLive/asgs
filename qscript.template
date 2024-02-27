@@ -109,7 +109,7 @@ for layer in ${layers[@]}; do
    CMD="%cmd%"
    echo "cycle $CYCLE: $SCENARIO: $THIS: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > $jobtype.${layer}.run.start # <-OVERWRITE
-   echo "\"jobtype\" : \"$jopbtype\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
+   echo "\"jobtype\" : \"$jopbtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
    $CMD
    ERROVALUE=$?  # capture exit status
    #
@@ -145,12 +145,12 @@ for layer in ${layers[@]}; do
    if [ $ERROVALUE != 0 ]; then
       echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
       echo "\"$RUNSUFFIX\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"message\" : \"$ERROMSG\"" > $jobtype.${layer}.run.${RUNSUFFIX}  # <-OVERWRITE
-      echo "\"jobtype\" : \"$jobtype\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" >> jobs.status
+      echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" >> jobs.status
    else
-      echo "\"jobtype\" : \"$jobtype\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"error\" : null" >> jobs.status
-      echo "\"$RUNSUFFIX\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" > $jobtype.%scenario%.run.$RUNSUFFIX
+      echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"error\" : null" >> jobs.status
+      echo "\"$RUNSUFFIX\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" > $jobtype.${layer}.run.$RUNSUFFIX
    fi
-   echo "time.hpc.job.$jobtype.${RUNSUFFIX} : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> $SCENARIO.run.properties
+   echo "time.hpc.job.$jobtype.$layer.${RUNSUFFIX} : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> $SCENARIO.run.properties
    echo "-----------------------------------------------------------------------"
    #
    # if this is a prepall or prep15 job, tar up the subdomain fort.15 files
