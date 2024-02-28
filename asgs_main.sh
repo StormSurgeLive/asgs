@@ -1877,7 +1877,7 @@ if [[ $PERIODICFLUX != null ]]; then
    if [[ $FLUXCALCULATOR == "static" ]]; then
       # $PERIODICFLUX is a static file to insert into fort.15
       logMessage "$THIS: checking for static PERIODICFLUX file."
-      checkFileExistence $INPUTDIR "static file for periodic flux boundary" $PERIODICFLUX
+      checkFileExistence "/" "static file for periodic flux boundary" $PERIODICFLUX
    else
       logMessage "$THIS: checking for FLUXCALCULATOR script"
       checkFileExistence $SCRIPTDIR/bin "perl script for calculating periodic flux boundary" $FLUXCALCULATOR

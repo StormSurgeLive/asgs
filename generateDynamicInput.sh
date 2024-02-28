@@ -117,7 +117,7 @@ generateDynamicInput()
         -e "s/%metresults%/$WTIMINC/" \
         -e "s/%storm_name%/$storm_name/" \
         -e "s/%periodicity%/$periodicity/" \
-        -e "s/%periodic_flux_file%/$PERIODICFLUX/" \
+        -e "s?%periodic_flux_file%?$PERIODICFLUX?" \
         -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
         -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
         -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
