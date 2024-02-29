@@ -64,12 +64,19 @@ fi
 MINMAX=reset
 #
 createWind10mLayer="yes"  # yes|no ; applies to all scenarios that have meteorological forcing
+if [[ $CONTROLTEMPLATENOROUGH != "null" ]]; then
+   createWind10mLayer="no"
+fi
 #
-if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
+if [[ ${ENSTORM:(-7)} == "Wind10m" ]]; then
+   if [[ $CONTROLTEMPLATENOROUGH == "null" ]]; then
+      error "A '$ENSTORM' scenario was specified but CONTROLTEMPLATENOROUGH is set to '$CONTROLTEMPLATENOROUGH'."
+   else
+      CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
+   fi
    scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
    ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="01:00:00" # forecast wall clock time
-   CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
    TIMESTEPSIZE=300.0          # 15 minute time steps
    NCPU=15                     # dramatically reduced resource requirements
    NUMWRITERS=1                # multiple writer procs might collide
