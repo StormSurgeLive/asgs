@@ -454,6 +454,7 @@ do fi=1,numFiles
    !
    ! Check to make sure that all the files have the same number of datasets
    if ( fileMetaData(fi)%timeVarying .eqv..true. ) then
+      call initNamesXDMF(fileMetaData(fi))
       !
       ! Write meta data for time varying data snapshots to XML.
       write(scratchMessage,'(a,i0,a,a,a)') 'There are ',fileMetaData(fi)%nSnaps, &
@@ -559,6 +560,7 @@ use logging, only : allMessage, ERROR
 use ioutil, only : check, HOTSTART, NODALATTRIBF
 implicit none
 type(fileMetaData_t) :: fmd
+character(len=NF90_MAX_NAME) :: standard_name
 integer :: i, j, q
 !
 ! netcdf file exists; open it
@@ -572,14 +574,20 @@ end do
 i=1 ! netcdf variable counter
 j=1 ! xdmf variable counter
 do
-   ! for vector data, the name will be replaced in the calling routine anyway
    ! the standard_name attribute is missing for noff in some netcdf hotstart files
    if (trim(fmd%ncds(i)%varNameNetCDF).ne."noff") then
-      ! multicomponent nodal attributes will already have their XDMF names
-      if (((fmd%dataFileCategory.eq.NODALATTRIBF).and.(abs(fmd%xds(j)%numComponents).gt.1)).eqv..false.) then
-         ! set the name of the XDMF var in the common case that this is not a multicomponent
-         ! nodal attribute
-         call check(nf90_get_att(fmd%nc_id, fmd%ncds(i)%nc_varID, 'standard_name', fmd%xds(j)%varNameXDMF))
+      ! grab the standard name to a string
+      call check(nf90_get_att(fmd%nc_id, fmd%ncds(i)%nc_varID, 'standard_name',standard_name))
+      ! multicomponent nodal attributes and XDMF Vector quantities will already have their XDMF names
+      if ( abs(fmd%xds(j)%numComponents).eq.1 ) then
+         ! disambiguate fort.63 water surface elevation from nodal attribute
+         if ( trim(fmd%ncds(i)%varNameNetCDF).eq."zeta" ) then
+            fmd%xds(j)%varNameXDMF = "sea_surface_height_above_datum"
+         else
+            ! set the name of the XDMF var in the common case that this is not a multicomponent
+            ! nodal attribute or vector quantity
+            fmd%xds(j)%varNameXDMF = trim(standard_name)
+         endif
       endif
    endif
    !
@@ -609,9 +617,9 @@ do
    if ( fmd % ncds(i)%isElemental .eqv. .true. ) then   ! noff<---element/cell centered
       fmd%xds(j)%dataCenter="Cell"
    endif
-   !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF)
-   !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)
-   !write(6,'(a,i0,a,i0)') 'DEBUG: generateXDMF: nc_varType(',i,')=',fmd%ncds(i)%nc_varType
+   write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF) ! jgfdebug
+   write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)      ! jgfdebug
+   write(6,'(a,i0,a,i0)') 'DEBUG: generateXDMF: nc_varType(',i,')=',fmd%ncds(i)%nc_varType           ! jgfdebug
    select case(fmd%dataFileCategory)
    case(HOTSTART) ! hotstart files don't have irtype
       i = i + fmd % xds(j) % numComponents
@@ -1016,7 +1024,7 @@ do
    !
    ! Vector attribute
    else
-      do n=1,2
+      do n=1,1    ! 2 jgf: SQRT function does not work in the paraview xdmf reader, omit the 2nd pass through this block
          functionType = 'JOIN($0, $1, 0*$0)'     ! 2D result vector
          if ( n.eq.2 ) then
             functionType = 'SQRT($0*$0 + $1*$1)' ! 2D vector magnitude
