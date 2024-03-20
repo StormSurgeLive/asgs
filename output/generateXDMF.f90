@@ -580,14 +580,15 @@ do
       call check(nf90_get_att(fmd%nc_id, fmd%ncds(i)%nc_varID, 'standard_name',standard_name))
       ! multicomponent nodal attributes and XDMF Vector quantities will already have their XDMF names
       if ( abs(fmd%xds(j)%numComponents).eq.1 ) then
-         ! disambiguate fort.63 water surface elevation from nodal attribute
-         if ( trim(fmd%ncds(i)%varNameNetCDF).eq."zeta" ) then
+         ! disambiguate fort.63 and the maxele.63 water surface elevation from the nodal attribute
+         select case(trim(fmd%ncds(i)%varNameNetCDF))
+         case("zeta")
             fmd%xds(j)%varNameXDMF = "sea_surface_height_above_datum"
-         else
+         case default
             ! set the name of the XDMF var in the common case that this is not a multicomponent
             ! nodal attribute or vector quantity
             fmd%xds(j)%varNameXDMF = trim(standard_name)
-         endif
+         end select
       endif
    endif
    !
@@ -617,9 +618,9 @@ do
    if ( fmd % ncds(i)%isElemental .eqv. .true. ) then   ! noff<---element/cell centered
       fmd%xds(j)%dataCenter="Cell"
    endif
-   write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF) ! jgfdebug
-   write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)      ! jgfdebug
-   write(6,'(a,i0,a,i0)') 'DEBUG: generateXDMF: nc_varType(',i,')=',fmd%ncds(i)%nc_varType           ! jgfdebug
+   !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameNetCDF(',i,')='//trim(fmd%ncds(i)%varNameNetCDF) ! jgfdebug
+   !write(6,'(a,i0,a)') 'DEBUG: generateXDMF: varNameXDMF(',j,')='//trim(fmd%xds(j)%varNameXDMF)      ! jgfdebug
+   !write(6,'(a,i0,a,i0)') 'DEBUG: generateXDMF: nc_varType(',i,')=',fmd%ncds(i)%nc_varType           ! jgfdebug
    select case(fmd%dataFileCategory)
    case(HOTSTART) ! hotstart files don't have irtype
       i = i + fmd % xds(j) % numComponents
