@@ -459,8 +459,12 @@ if ( $p->{advection} eq "off" ) {
 #
 # count the number of activated nodal attributes and form the
 # associated list of nodal attributes
-my @nodal_attributes_activate = @{$p->{nodal_attributes}->{activate}};
-my $nwp = scalar @nodal_attributes_activate;
+my $nwp = 0;
+my @nodal_attributes_activate = "";
+if ( defined $p->{nodal_attributes}->{activate} ) {
+   @nodal_attributes_activate = @{$p->{nodal_attributes}->{activate}};
+   $nwp = scalar @nodal_attributes_activate;
+}
 #
 ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
@@ -597,7 +601,7 @@ close(TEMPLATE);
 #
 #  A D C I R C   N O D A L   A T T R I B U T E S   F I L E
 #
-if ( "$p->{nodal_attributes}->{template}" ne "null" && "$p->{nodal_attributes}->{template}" ne "notset" ) {
+if ( ! $p->{nodal_attributes}->{template} =~ /null$/ && ! $p->{nodal_attributes}->{template} =~ /notset$/ ) {
    my $nafi;
    if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
       ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
