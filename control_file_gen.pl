@@ -602,6 +602,7 @@ close(TEMPLATE);
 #  A D C I R C   N O D A L   A T T R I B U T E S   F I L E
 #
 if ( ! $p->{nodal_attributes}->{template} =~ /null$/ && ! $p->{nodal_attributes}->{template} =~ /notset$/ ) {
+   ASGSUtil::stderrMessage("INFO","Reading nodal attributes (fort.13) template and writing fort.13 file.");
    my $nafi;
    if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
       ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
@@ -614,6 +615,7 @@ if ( ! $p->{nodal_attributes}->{template} =~ /null$/ && ! $p->{nodal_attributes}
    }
    #
    # fill in nodal attribute default values from hash
+   my $numLines = 0;
    while(<$nafi>) {
       foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
          my $tag = "%"."$key"."_default"."%";
@@ -621,10 +623,14 @@ if ( ! $p->{nodal_attributes}->{template} =~ /null$/ && ! $p->{nodal_attributes}
          s/$tag/$value/;
       }
       print $nafo $_;
+      $numLines++;
    }
    #
    close($nafi); # nodal attributes file template
    close($nafo); # nodal attributes file (filled template)
+   ASGSUtil::stderrMessage("INFO","Wrote '$numLines' lines to the fort.13 file.");
+} else {
+   ASGSUtil::stderrMessage("INFO","There is no nodal attributes (fort.13) template; the fort.13 file will not be written.");
 }
 #
 #
