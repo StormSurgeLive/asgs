@@ -30,6 +30,20 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
 endif
+ifeq ($(compiler),intel-llvm)
+   FC := ifx
+   FFLAGS := -cpp -shared-intel -fpp
+   ifeq ($(DEBUG),trace)
+      FFLAGS := -g -O0 -fpp -traceback 
+   endif
+   ifeq ($(DEBUG),full)
+      FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
+   endif
+   # jgf20150616: Added to implement nld's -heap-arrays fix.
+   ifeq ($(HEAP_ARRAYS),fix)
+      FFLAGS := $(FFLAGS) -heap-arrays
+   endif
+endif
 #
 # specify compiler=intel on the make command line
 ifeq ($(compiler),intel)

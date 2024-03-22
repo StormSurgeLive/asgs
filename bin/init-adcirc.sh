@@ -239,6 +239,21 @@ if [[ -n "${DEBUG}" && "${DEBUG}" != 'none' ]]; then
 fi
 
 #
+# C H O O S E  P A R A L L E L  O R  S E R I A L
+#
+
+echo
+_BUILD_PARALLEL_ADCIRC=yes
+read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC 
+if [ -z "$BUILD_PARALLEL_ADCIRC" ]; then
+  BUILD_PARALLEL_ADCIRC=$_BUILD_PARALLEL_ADCIRC 
+fi
+if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
+  BUILD_PARALLEL_ADCIRC=no
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}-serial-only
+fi
+
+#
 # C H O O S E  A D C I R C  P R O F I L E  N A M E
 #
 
@@ -376,11 +391,19 @@ SWANDIR=${ADCIRCBASE}/${SWANDIR}
 # first class ADCIRC related binaries
 # + the SWAN=enable is only relevant to adcprep but
 #   should not cause any issues for the other targets
-ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
+if [ "$BUILD_PARALLEL_ADCIRC" == "yes" ]; then
+  ADCIRC_BINS="padcirc adcirc adcprep hstime aswip"
+else
+  ADCIRC_BINS="adcirc adcprep hstime aswip"
+fi
 ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG}"
 
 # for building coupled adcswan/padcswan (include all netCDF flags, no 'SWAN=enable')
-ADCSWAN_BINS="adcswan padcswan"
+if [ "$BUILD_PARALLEL_ADCIRC" == "yes" ]; then
+  ADCSWAN_BINS="adcswan padcswan"
+else
+  ADCSWAN_BINS="adcswan"
+fi
 ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=${NETCDFHOME} DEBUG=${DEBUG}"
 
 # SWAN related utilities other than adcswan/padcswan
@@ -409,11 +432,16 @@ function dumpJSON()
     local MODULE_LIST=$(module list 2>&1 | grep '1)');
 
     # get compiler info
-    local _FC=$(which ifort)
-    local _CC=$(which icc)
+    local _FC=$(which ifort 2> /dev/null)
+    local _CC=$(which icc   2> /dev/null)
     case "$ADCIRC_COMPILER" in
     intel)
       # default, above
+    ;;
+    intel-llvm)
+      # default, above
+      local _FC=$(which ifort 2> /dev/null)
+      local _CC=$(which icx   2> /dev/null)
     ;;
     gfortran)
       _FC=$(which gfortran)
@@ -469,7 +497,7 @@ $patchJSON
     "env.adcirc.build.ASGS_MACHINE_NAME"  : "$ASGS_MACHINE_NAME",
     "env.adcirc.build.NETCDFHOME"         : "$NETCDFHOME",
     "env.adcirc.build.ADCIRCBASE"         : "$ADCIRCBASE",
-    "env.adcirc.build.ADCIRCDIR"    : "$ADCIRCDIR",
+    "env.adcirc.build.ADCIRCDIR"          : "$ADCIRCDIR",
     "env.adcirc.build.SWANDIR"            : "$SWANDIR",
     "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}",
     "env.adcirc.build.ADCIRC_COMPILER"    : "${ADCIRC_COMPILER:-0}",
@@ -492,6 +520,7 @@ $patchJSON
     "env.adcirc.build.PATH"               : "$PATH",
     "env.adcirc.build.LD_LIBRARY_PATH"    : "$LD_LIBRARY_PATH",
     "env.adcirc.build.LD_INCLUDE_PATH"    : "$LD_INCLUDE_PATH",
+    "adcirc.build.built_parallel_adcirc"  : "$BUILD_PARALLEL_ADCIRC",
     "adcirc.build.fortran.mpif90"         : "$MPIF90",
     "adcirc.build.fortran.compiler"       : "$_FC",
     "adcirc.build.c.compiler"             : "$_CC",

@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Util::H2O::More qw/d2o ddd/;
+use JSON::XS qw/decode_json/;
+
+my $build_file = shift @ARGV // q{./adcirc.bin.buildinfo.json};
+
+my $build_info = do { local $/; open my $FH, q{<}, $build_file; decode_json <$FH> };
+
+my @patches = @{$build_info->{'adcirc.source.asgs.patches.applied'}};
+
+print<<EOF;
+Patches applied according to, "$build_file":
+
+EOF
+my $i = 1;
+foreach my $patch (@patches) {
+  print qq{$i. $patch\n};
+  ++$i;
+}
+
+print <<EOF
+
+EOF
+
+__END__
+
+
