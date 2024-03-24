@@ -134,7 +134,7 @@ if (argcount.gt.0) then
    if (numFiles.eq.0) then
       call allMessage(ERROR,'Must specify at least one data file with "--datafile ...".')
    endif
-#ifndef OLDGFORTRAN
+#if !defined(OLDGFORTRAN)
    ! gfortran v4.6.3 (2011) chokes on this allocate statement
    allocate(fileMetaData(numFiles))
 #endif

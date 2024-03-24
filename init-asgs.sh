@@ -229,7 +229,6 @@ if [ -z "$BATCH" ]; then
   echo "WORK                : $WORK"
   echo "SCRATCH             : $SCRATCH"
   echo "ASGS build directory: $ASGS_TMPDIR"
-  echo "Default compiler    : $DEFAULT_COMPILER"
   if [ "$QSYSASK" == "YES" ]; then
     echo "Batch queue system  : $QUEUESYS"
     echo "Batch queue check   : $QCHECKCMD"
@@ -265,7 +264,7 @@ if [ -z "$BATCH" ]; then
     echo "skipping 'git checkout', branch untouched ..."
   fi
   echo
-  read -p "Which compiler 'family' would you like to use, 'gfortran' or 'intel'? [$_compiler] " compiler
+  read -p "Which compiler 'family' would you like to use, 'gfortran', 'intel', 'intel-llvm'? [$_compiler] " compiler
   if [ -z "$compiler" ]; then
     compiler=$_compiler
   fi
@@ -273,9 +272,9 @@ else
   compiler=$_compiler # BATCH is set here
 fi
 
-if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" ]]; then
+if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" && "$compiler" != "intel-llvm" ]]; then
   echo
-  echo "'$compiler' is not valid, compiler must be 'gfortran' or 'intel'"
+  echo "'$compiler' is not valid, compiler must be 'gfortran', 'intel', 'intel-llvm'"
   exit 1
 fi
 

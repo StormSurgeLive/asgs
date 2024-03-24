@@ -44,6 +44,25 @@ ifeq ($(compiler),intel)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
+# specify compiler=intel on the make command line
+ifeq ($(compiler),intel-llvm)
+   export FC := ifx
+   export CC := icx
+   export COMP_SYS := oneapi_linux
+   FFLAGS := -132
+   ifeq ($(DEBUG),full)
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all
+   endif
+endif
+ifeq ($(compiler),intel-llvm)
+   export FC := ifort
+   export CC := icx
+   export COMP_SYS := intel_linux
+   FFLAGS := -132
+   ifeq ($(DEBUG),full)
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all
+   endif
+endif
 #
 INCLUDES :=
 #
@@ -70,11 +89,7 @@ awip_lambert_interp.x : input/awip_lambert_interp.F
 lambertInterpRamp.x : input/lambertInterpRamp.f
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o lambertInterpRamp.x input/lambertInterpRamp.f $(LDFLAGS)
 
-# Ref: https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/compile_questions.html
-wgrib2 : wgrib2-3.1.1.tgz cleano
-	tar xvzf wgrib2-3.1.1.tgz
+wgrib2 : cleano
+	cd wgrib2
 	$(MAKE) -C grib2
 	cp grib2/wgrib2/wgrib2 ./bin
-
-wgrib2-3.1.1.tgz :
-	curl -sO  https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/wgrib2-3.1.1.tgz
