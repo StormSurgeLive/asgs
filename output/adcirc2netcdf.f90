@@ -86,7 +86,7 @@ meshonly = .false.
 dataonly = .false.
 lineNum=1
 SS=1
-#if NETCDF_CAN_DEFLATE
+#ifdef NETCDF_CAN_DEFLATE
    deflate = .true.
 #else
    deflate = .false.

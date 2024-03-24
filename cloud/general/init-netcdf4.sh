@@ -34,6 +34,11 @@ if [ $COMPILER == "intel" ]; then
   export FC=ifort
   export CXX=icpc
 fi
+if [ $COMPILER == "intel-llvm" ]; then
+  export CC=icx
+  export FC=ifort
+  export CXX=icx
+fi
 if [ $COMPILER == "gfortran" ]; then
   export CC=gcc
   export FC=gfortran

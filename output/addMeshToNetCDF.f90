@@ -40,7 +40,7 @@ integer :: i
 if (loggingInitialized.eqv..false.) then
    call initLogging(availableUnitNumber(),'adcirc2netcdf.f90')
 endif
-#if NETCDF_CAN_DEFLATE
+#ifdef NETCDF_CAN_DEFLATE
    deflate = .true.
 #else
    deflate = .false.
