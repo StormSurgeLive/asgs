@@ -175,6 +175,7 @@ while(<$TEMPLATE>) {
         s/%JOBID%/\$/g;
         s/%JOBDIR%/PWD/g;
         s/{%JOBHOST%}/(hostname)/g;
+        s/QUEUEONLY/noLineHere/g;
     }
     # fill in the lower case name of the queueing system
     s/%queuesyslc%/$queuesyslc/g;
@@ -208,6 +209,8 @@ while(<$TEMPLATE>) {
     s/%scenario%/$jshash_ref->{"scenario"}/g;
     # name of overall asgs log file
     s/%syslog%/$jshash_ref->{"syslog"}/g;
+    # whether to generate a Wind10m layer
+    s/%wind10mlayer%/$jshash_ref->{"wind10mlayer"}/g;
     # fill in command line options
     s/%cloptions%/$cloptions/;
     # fill in command to be executed

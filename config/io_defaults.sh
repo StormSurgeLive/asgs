@@ -25,6 +25,7 @@ THIS=$(basename -- $0)
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
 nfover=${nfover:-"1 20.0 1 20 100.0"}       # nonfatal override; warnelev and errorelev
 log_level=${log_level:-"INFO"}              # NABOUT (DEBUG=-1, ECHO=0, INFO=1, WARNING=2, ERROR=3)
+outputInventory=${outputInventory:-"full"}  # full|metonly
 # io
 ELEVSTATIONS=${ELEVSTATIONS:-"null"}
 VELSTATIONS=${VELSTATIONS:-"null"}
@@ -62,11 +63,17 @@ fi
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
-if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
+createWind10mLayer="yes"  # yes|no ; applies to all scenarios that have meteorological forcing
+#
+if [[ ${ENSTORM:(-7)} == "Wind10m" ]]; then
+   if [[ $CONTROLTEMPLATENOROUGH == "null" ]]; then
+      error "A '$ENSTORM' scenario was specified but CONTROLTEMPLATENOROUGH is set to '$CONTROLTEMPLATENOROUGH'."
+   else
+      CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
+   fi
    scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
    ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
    FORECASTWALLTIME="01:00:00" # forecast wall clock time
-   CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
    TIMESTEPSIZE=300.0          # 15 minute time steps
    NCPU=15                     # dramatically reduced resource requirements
    NUMWRITERS=1                # multiple writer procs might collide

@@ -123,12 +123,10 @@ my $tau=0; # forecast period
 my $dir=getcwd();
 my $nws=0;
 my $advisorynum="0";
-my $particles;  # flag to produce fulldomain current velocity files at an
-                # increment of 30 minutes
+my $particles;  # flag to produce fulldomain current velocity files at an increment of 30 minutes
 our $NHSINC;    # time step increment at which to write hot start files
 our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
-my $nffr = -1;  # for flux boundaries; -1: top of fort.20 corresponds to hs
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
 my $fdcv;       # line that controls full domain current velocity output
 our $wtiminc_line;   # parameters related to met and wave timing
@@ -137,8 +135,10 @@ our $scenarioid; # run id, 2nd line in fort.15
 our $specifiedRunLength; # time in days for run if there is no externally specified forcing
 my ($m2nf, $s2nf, $n2nf, $k2nf, $k1nf, $o1nf, $p1nf, $q1nf); # nodal factors
 my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqarg); # equilibrium arguments
-my $periodicflux="null";  # the name of a file containing the periodic flux unit discharge data for constant inflow boundaries
-my $fluxdata;
+# flux boundary conditions
+my $fluxdata = "NO LINE HERE";  # data from the $periodic_flux file
+my $nffr = "NO LINE HERE";      # for flux boundaries; -1: top of fort.20 corresponds to hs
+#
 my $staticoffset = "null";
 my $unitoffsetfile = "null";
 our $addHours; # duration of the run (hours)
@@ -190,7 +190,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan,
-           "periodicflux=s" => \$periodicflux,
            "pureVortex=s" => \$pureVortex,
            "pureBackground=s" => \$pureBackground
            );
@@ -261,6 +260,9 @@ if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
    $NHSTAR = 0;
    $NHSINC = 99999;
 }
+if ( $p->{output}->{inventory} eq "metonly" ) {
+   $NHSTAR = 0;
+}
 #
 # we always look for a fort.68 file, and since we only write one hotstart
 # file during the run, we know we will always be left with a fort.67 file.
@@ -274,7 +276,6 @@ if ( defined $hstime ) {
    }
 } else {
    $ihot = 0;
-   $nffr = 0;
 }
 # [de]activate output files with time step increment and with(out) appending.
 my $fort61specifier = getSpecifier($fort61freq,$fort61append,$fort61netcdf);
@@ -375,7 +376,19 @@ if ( $nws eq "0" ) {
 }
 #
 # load up the periodicflux data
-$fluxdata = getPeriodicFlux($periodicflux);
+if ( $p->{flux}->{periodicity} eq "periodic" ) {
+   # use the name of a file containing the periodic flux unit discharge
+   # data for constant inflow boundaries
+   $fluxdata = getPeriodicFlux($p->{flux}->{file});
+   $nffr = 1;
+}
+if ( $p->{flux}->{periodicity} eq "aperiodic") {
+   if ( $ihot == 0 ) {
+      $nffr = 0;
+   } else {
+      $nffr = -1;
+   }
+}
 #
 # construct metControl namelist line
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
@@ -516,7 +529,8 @@ while(<TEMPLATE>) {
     s/%VELMIN%/$p->{velmin}/;
     # bottom friction lower limit
     s/%FFACTOR%/$p->{bottom_friction_limit}/;
-    # number of forcing frequencies on periodic flux boundaries
+    # number of forcing frequencies (or indicator to look to a separate
+    # input file) for flux boundaries
     s/%NFFR%/$nffr/;
     # fill in nodal factors and equilibrium arguments
     if ( $p->{tides}->{tidal_forcing} eq "on" ) {
@@ -624,7 +638,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
       # parse out the number of nodal attributes from the 3rd line
       if ( $line == 3 ) {
          $headerLine =~ /^\s*(\d)*/;
-         $numNodalAttr = $1; 
+         $numNodalAttr = $1;
          ASGSUtil::stderrMessage("INFO","There are '$numNodalAttr' nodal attributes in the fort.13 file.");
       }
    }
@@ -634,7 +648,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
       $headerLines .= <$nafi>;
       $numLines++;
    }
-   # s/// on header as a block 
+   # s/// on header as a block
    foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
       my $tag   = "%"."$key"."_default"."%";
       my $value = $p->{nodal_attributes}->{default_values}->{$key};
@@ -1021,11 +1035,11 @@ sub getStations {
 sub getPeriodicFlux {
    my $flux_file=shift;
    if ($flux_file =~ /null/){
-      ASGSUtil::stderrMessage("INFO","No periodic inflow boundary data file was specified/");
+      ASGSUtil::stderrMessage("INFO","No periodic inflow boundary data file was specified.");
       return
    }
    unless (open(FLUXFILE,"<$flux_file")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open $flux_file for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$flux_file' for reading: $!.");
       die;
    }
    my $fluxdata='';
@@ -1033,7 +1047,7 @@ sub getPeriodicFlux {
        $fluxdata.=$_;
    }
    close(FLUXFILE);
-   ASGSUtil::stderrMessage("INFO","Inserting periodic inflow boundary data from $flux_file.");
+   ASGSUtil::stderrMessage("INFO","Inserting periodic inflow boundary data from '$flux_file'.");
    chomp $fluxdata;
    return $fluxdata;
 }
@@ -1134,7 +1148,6 @@ sub owiParameters {
    my $owiend = $p->{meteorology}->{owi_win_pre}->{enddatetime};
    # create run description
    $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend OWI ASCII ";
-   print "cs:'$csdate' cy:'$owistart'";
    # compute RNDAY and NHSINC
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $ey = $1;

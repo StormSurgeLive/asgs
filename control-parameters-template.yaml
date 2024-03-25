@@ -27,6 +27,9 @@
    tidefac_file: "%tidefac_file%"
    tidal_potential_comment: "%tidal_potential_comment%"
    tidal_boundary_comment: "%tidal_boundary_comment%"
+ flux:
+   periodicity: "%periodicity%"
+   file: "%periodic_flux_file%"
  metControl:
    DragLawString: "%DragLawString%"
    WindDragLimit: %WindDragLimit%
@@ -57,6 +60,8 @@
    mxitns: %MXITNS%
    npnts: %NPNTS%
  nodal_attributes:
-    template: "%nodal_attributes_template_file%"
-    activate: %nodal_attribute_activate_list%
-    default_values: %nodal_attribute_default_values_hash%
+   template: "%nodal_attributes_template_file%"
+   activate: %nodal_attribute_activate_list%
+   default_values: %nodal_attribute_default_values_hash%
+ output:
+   inventory: "%inventory%"
