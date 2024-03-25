@@ -228,21 +228,6 @@ init_lonestar5()
   MAKEJOBS=8
 }
 
-init_Poseidon()
-{
-  HPCENV=poseidon.vsnet.gmu.edu
-  QUEUESYS=mpiexec
-  QCHECKCMD="ps -aux | grep mpiexec "
-  SUBMITSTRING="mpiexec -n"
-  SCRATCH=/home/fhrl/Documents/asgs_processing
-  ADCOPTIONS='compiler=gfortran MACHINENAME=desktop'
-  SWANMACROSINC=macros.inc.gfortran
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  MAKEJOBS=1
-}
-
 init_test()
 { #<- can replace the following with a custom script
   QUEUESYS=Test
@@ -396,14 +381,6 @@ set_hpc() {
    if [[ ${fqdn:0:4} == "smic" ]]; then
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic
-   fi
-   if [ 1 -eq $(hostname --fqdn | grep -c soldier) ]; then
-      HPCENV=soldier.seahorsecoastal.com
-      HPCENVSHORT=desktop
-   fi
-   if [ 1 -eq $(hostname --fqdn | grep -c kitt) ]; then
-      HPCENV=kitt.seahorsecoastal.com
-      HPCENVSHORT=desktop
    fi
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then

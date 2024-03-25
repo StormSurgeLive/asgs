@@ -459,8 +459,12 @@ if ( $p->{advection} eq "off" ) {
 #
 # count the number of activated nodal attributes and form the
 # associated list of nodal attributes
-my @nodal_attributes_activate = @{$p->{nodal_attributes}->{activate}};
-my $nwp = scalar @nodal_attributes_activate;
+my $nwp = 0;
+my @nodal_attributes_activate = "";
+if ( defined $p->{nodal_attributes}->{activate} ) {
+   @nodal_attributes_activate = @{$p->{nodal_attributes}->{activate}};
+   $nwp = scalar @nodal_attributes_activate;
+}
 #
 ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
@@ -597,7 +601,10 @@ close(TEMPLATE);
 #
 #  A D C I R C   N O D A L   A T T R I B U T E S   F I L E
 #
-if ( "$p->{nodal_attributes}->{template}" ne "null" && "$p->{nodal_attributes}->{template}" ne "notset" ) {
+if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->{template} =~ /.*notset$/ ) {
+   ASGSUtil::stderrMessage("INFO","There is no nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}'; the fort.13 file will not be written.");
+} else {
+   ASGSUtil::stderrMessage("INFO","Reading nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}' and writing fort.13 file.");
    my $nafi;
    if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
       ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
@@ -608,19 +615,42 @@ if ( "$p->{nodal_attributes}->{template}" ne "null" && "$p->{nodal_attributes}->
       ASGSUtil::stderrMessage("ERROR","Failed to open 'fort.13': $!.");
       die;
    }
-   #
-   # fill in nodal attribute default values from hash
-   while(<$nafi>) {
-      foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
-         my $tag = "%"."$key"."_default"."%";
-         my $value = "$p->{nodal_attributes}->{default_values}->{$key}";
-         s/$tag/$value/;
+   my $numLines = 0;
+   my $numNodalAttr = 0;
+   for my $line (1 .. 3) {
+      my $headerLine = <$nafi>;
+      print $nafo $headerLine;
+      $numLines++;
+      # parse out the number of nodal attributes from the 3rd line
+      if ( $line == 3 ) {
+         $headerLine =~ /^\s*(\d)*/;
+         $numNodalAttr = $1; 
+         ASGSUtil::stderrMessage("INFO","There are '$numNodalAttr' nodal attributes in the fort.13 file.");
       }
-      print $nafo $_;
+   }
+   # accumulate the nodal attributes file header into a single string
+   my $headerLines;
+   for my $line (1 .. ($numNodalAttr*4)) {
+      $headerLines .= <$nafi>;
+      $numLines++;
+   }
+   # s/// on header as a block 
+   foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
+      my $tag   = "%"."$key"."_default"."%";
+      my $value = $p->{nodal_attributes}->{default_values}->{$key};
+      $headerLines =~ s/$tag/$value/g;
+   }
+   # write header to the file
+   print $nafo $headerLines;
+   # now append nodal attributes body
+   foreach my $line (<$nafi>) {
+      print $nafo $line;
+      $numLines++;
    }
    #
    close($nafi); # nodal attributes file template
    close($nafo); # nodal attributes file (filled template)
+   ASGSUtil::stderrMessage("INFO","Wrote '$numLines' lines to the fort.13 file.");
 }
 #
 #
