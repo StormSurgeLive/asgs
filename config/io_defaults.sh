@@ -64,9 +64,6 @@ fi
 MINMAX=reset
 #
 createWind10mLayer="yes"  # yes|no ; applies to all scenarios that have meteorological forcing
-if [[ $CONTROLTEMPLATENOROUGH != "null" ]]; then
-   createWind10mLayer="no"
-fi
 #
 if [[ ${ENSTORM:(-7)} == "Wind10m" ]]; then
    if [[ $CONTROLTEMPLATENOROUGH == "null" ]]; then

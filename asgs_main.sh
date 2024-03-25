@@ -1363,7 +1363,6 @@ submitJob()
       -e "s?%adcircdir%?$ADCIRCDIR?" \
       -e "s/%wind10mlayer%/$wind10mlayer/" \
       -e "s/%scenario%/$SCENARIO/" \
-      -e "s/%wind10mlayer%/$createWind10mLayer/" \
       -e "s/%reservation%/${_RESERVATION}/" \
       -e "s/%constraint%/$CONSTRAINT/" \
       -e "s/%qos%/$QOS/" \
