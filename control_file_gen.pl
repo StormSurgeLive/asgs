@@ -615,16 +615,36 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
       ASGSUtil::stderrMessage("ERROR","Failed to open 'fort.13': $!.");
       die;
    }
-   #
-   # fill in nodal attribute default values from hash
    my $numLines = 0;
-   while(<$nafi>) {
-      foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
-         my $tag = "%"."$key"."_default"."%";
-         my $value = "$p->{nodal_attributes}->{default_values}->{$key}";
-         s/$tag/$value/;
+   my $numNodalAttr = 0;
+   for my $line (1 .. 3) {
+      my $headerLine = <$nafi>;
+      print $nafo $headerLine;
+      $numLines++;
+      # parse out the number of nodal attributes from the 3rd line
+      if ( $line == 3 ) {
+         $headerLine =~ /^\s*(\d)*/;
+         $numNodalAttr = $1; 
+         ASGSUtil::stderrMessage("INFO","There are '$numNodalAttr' nodal attributes in the fort.13 file.");
       }
-      print $nafo $_;
+   }
+   # accumulate the nodal attributes file header into a single string
+   my $headerLines;
+   for my $line (1 .. ($numNodalAttr*4)) {
+      $headerLines .= <$nafi>;
+      $numLines++;
+   }
+   # s/// on header as a block 
+   foreach my $key (keys %{$p->{nodal_attributes}->{default_values}}) {
+      my $tag   = "%"."$key"."_default"."%";
+      my $value = $p->{nodal_attributes}->{default_values}->{$key};
+      $headerLines =~ s/$tag/$value/g;
+   }
+   # write header to the file
+   print $nafo $headerLines;
+   # now append nodal attributes body
+   foreach my $line (<$nafi>) {
+      print $nafo $line;
       $numLines++;
    }
    #
