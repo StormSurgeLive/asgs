@@ -690,6 +690,12 @@ do i=1,f%nvar
       f % fileTypeDesc = "a SWAN wave direction (swan_DIR.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
       exit
+   case("swan_DIR_max")
+      f%defaultFileName = 'swan_DIR_max.63'
+      f % dataFileCategory = MINMAX
+      f % fileTypeDesc = "a SWAN wave direction at maximum (swan_DIR_max.63) file"
+      call initMinMaxFileMetaData(f, thisVarName, .true.)
+      exit
    case("swan_HS")
       f%defaultFileName = 'swan_HS.63'
       f % fileTypeDesc = "a SWAN significant wave height (swan_HS.63) file"
@@ -706,15 +712,33 @@ do i=1,f%nvar
       f % fileTypeDesc = "a SWAN mean absolute wave period (swan_TMM10.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
       exit
+   case("swan_TMM10_max")
+      f%defaultFileName = 'swan_TMM10_max.63'
+      f % dataFileCategory = MINMAX
+      f % fileTypeDesc = "a SWAN maximum mean absolute wave period (swan_TMM10_max.63) file"
+      call initMinMaxFileMetaData(f, thisVarName, .true.)
+      exit
    case("swan_TM01")
-      f%defaultFileName = 'swan_TMM01.63'
+      f%defaultFileName = 'swan_TM01.63'
       f % fileTypeDesc = "SWAN mean absolute wave period (swan_TM01.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
       exit
+   case("swan_TM01_max")
+      f%defaultFileName = 'swan_TM01_max.63'
+      f % dataFileCategory = MINMAX
+      f % fileTypeDesc = "a SWAN maximum mean absolute wave period (swan_TM01_max.63) file"
+      call initMinMaxFileMetaData(f, thisVarName, .true.)
+      exit
    case("swan_TM02")
-      f%defaultFileName = 'swan_TMM02.63'
+      f%defaultFileName = 'swan_TM02.63'
       f % fileTypeDesc = "a SWAN mean absolute zero crossing period (swan_TM02.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
+      exit
+   case("swan_TM02_max")
+      f%defaultFileName = 'swan_TM02_max.63'
+      f % dataFileCategory = MINMAX
+      f % fileTypeDesc = "a SWAN maximum mean absolute wave period (swan_TM02_max.63) file"
+      call initMinMaxFileMetaData(f, thisVarName, .true.)
       exit
    case("swan_TPS")
       f%defaultFileName = 'swan_TPS.63'
