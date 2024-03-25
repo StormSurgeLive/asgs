@@ -4,13 +4,6 @@ PWD=$(pwd)
 PWD=${PWD##*/}
 BKPTGZ=${1:-$HOME/ASGS-SAVE-${PWD}.tgz}
 
-# NOTE: purges directory of anything not in the git repo
-git clean -x -d -f
-
-# remove directories that are known to contain git repos
-rm -rvf git/
-rm -rvf opt/models/adcircs
-
 # untar/gunzip
 tar zxvf $BKPTGZ
 

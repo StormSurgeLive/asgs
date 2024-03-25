@@ -14,3 +14,6 @@ echo "git/"               >> ASGS-MANIFEST
 # tar/gzip + generation of the contents, each file is checksum'd with MD5
 tar zcvf $BKPTGZ -T ./ASGS-MANIFEST | grep -v '\/$' | xargs md5sum | tee $BKPTGZ.MD5 
 
+# compress MD5 manifest
+gzip $BKPTGZ.MD5
+

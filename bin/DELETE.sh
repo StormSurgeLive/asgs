@@ -4,6 +4,7 @@ read -p "Type in the word 'DELETE' if you really wish to delete all non-repo fil
 
 if [ "$PURGE" != "DELETE" ]; then
   echo PURGE cancelled...
+  exit
 fi
 
 PWD=$(pwd)
