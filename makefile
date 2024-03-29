@@ -90,6 +90,6 @@ lambertInterpRamp.x : input/lambertInterpRamp.f
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o lambertInterpRamp.x input/lambertInterpRamp.f $(LDFLAGS)
 
 wgrib2 : cleano
-	cd wgrib2
+	cd grib2
 	$(MAKE) -C grib2
 	cp grib2/wgrib2/wgrib2 ./bin
