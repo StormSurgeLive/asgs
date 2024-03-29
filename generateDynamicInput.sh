@@ -63,7 +63,12 @@ generateDynamicInput()
     declare -a layers
     local na_activate_list
     layers=( $SCENARIO )
-    if [[ $createWind10mLayer == "yes" && $NWS != "0" ]]; then
+    if [[               $createWind10mLayer == "yes"       && \
+                                       $NWS != "0"         && \
+                                  $SCENARIO != *"Wind10m"  && \
+           ${#nodal_attribute_activate[@]} -ne 0           && \
+                                    $NAFILE != *"null"     && \
+                                    $NAFILE != *"notset"   ]]; then
         layers+=( "wind10m" )
     fi
     for layer in ${layers[@]}; do

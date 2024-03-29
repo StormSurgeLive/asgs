@@ -63,7 +63,7 @@ fi
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
-createWind10mLayer="yes"  # yes|no ; applies to all scenarios that have meteorological forcing
+createWind10mLayer="no"  # yes|no ; applies to all scenarios that have meteorological forcing
 #
 if [[ ${ENSTORM:(-7)} == "Wind10m" ]]; then
    if [[ $CONTROLTEMPLATENOROUGH == "null" ]]; then
