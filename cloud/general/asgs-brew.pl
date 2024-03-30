@@ -789,9 +789,6 @@ sub get_steps {
             name        => q{Step for wgrib2},
             description => q{Downloads and builds wgrib2 on all platforms for ASGS. Note: gfortran is required, so any compiler option passed is overridden.},
             pwd         => qq{$scriptdir},
-
-            # -j > 1 breaks this makefile
-	    #command             => qq{make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=gfortran},
 	    command             => qq{bash init-wgrib2.sh $asgs_install_path gfortran},
 	    clean               => qq{bash init-wgrib2.sh $asgs_install_path clean},
             skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./bin/wgrib2}; },
