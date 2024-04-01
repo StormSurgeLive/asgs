@@ -832,9 +832,14 @@ prepFile()
    QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
    parallelism=serial
    forncpu=$NCPU
-   wind10mlayer=$createWind10mLayer
-   if [[ $NWS == "0" ]]; then
-      wind10mlayer="no"
+   wind10mlayer="no"
+   if [[                $createWind10mLayer == "yes"       && \
+                                       $NWS != "0"         && \
+                                  $SCENARIO != *"Wind10m"  && \
+           ${#nodal_attribute_activate[@]} -ne 0           && \
+                                    $NAFILE != *"null"     && \
+                                    $NAFILE != *"notset"   ]]; then
+      wind10mlayer="yes"
    fi
    #
    # create queue script request by filling in template
@@ -1337,9 +1342,14 @@ submitJob()
    if [[ $QUEUESYS == "mpiexec" ]]; then
       JOBLAUNCHER="mpiexec -n %totalcpu%"
    fi
-   wind10mlayer=$createWind10mLayer
-   if [[ $NWS == "0" ]]; then
-      wind10mlayer="no"
+   wind10mlayer="no"
+   if [[                $createWind10mLayer == "yes"       && \
+                                       $NWS != "0"         && \
+                                  $SCENARIO != *"Wind10m"  && \
+           ${#nodal_attribute_activate[@]} -ne 0           && \
+                                    $NAFILE != *"null"     && \
+                                    $NAFILE != *"notset"   ]]; then
+      wind10mlayer="yes"
    fi
    #
    # create queue script request by filling in template
