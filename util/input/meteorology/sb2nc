@@ -1,0 +1,200 @@
+#!/usr/bin/env perl
+#
+# Perl script for converting CSV-type text NASA/GSFC-OBPG SeaBASS files into netCDF4 files with limited CF-compliance.
+# 
+# author: Joel Scott, SAIC / NASA GSFC OBPG
+# syntax: sb2nc [input_filename]
+# 
+# 
+# Function: sb2nc is designed to open and read data files that are in a SeaBASS 
+# format (http://seabass.gsfc.nasa.gov/), having passed FCHECK-verification and
+# convert them to netCDF4 files that are *mostly* CF-compliant.
+# 
+# Notes:
+# * This function is designed to work with files that have been properly
+#   formatted according to SeaBASS guidelines (i.e. Files that passed FCHECK).
+#   Some error checking is performed, but improperly formatted input files
+#   could cause this script to error or behave unexpectedly. Files
+#   downloaded from the SeaBASS database should already be properly formatted, 
+#   however, please email seabass@seabass.gsfc.nasa.gov and/or the contact listed
+#   in the metadata header if you identify problems with specific files.
+# 
+# * A preliminary effort has been made to make the output netCDF files CF-compliant.
+#   However, certain attributes are known to not strictly adhere to CF-compliance 
+#   standards. If true CF-compliance is desired, modification should be made to 
+#   some global attributes and some variable attributes, including but not limited to,
+#   as long_name and standard_name properties.
+# 
+# * It is always HIGHLY recommended that you check for and read any metadata
+#   header comments and/or documentation accompanying data files. Information 
+#   from those sources could impact your analysis.
+# 
+# * Compatibility: sb2nc requires Perl modules: SeaBASS and PDL (built with netCDF support)
+# 
+# /*=====================================================================*/
+#                  NASA Goddard Space Flight Center (GSFC) 
+#          Software distribution policy for Public Domain Software
+# 
+#  The readsb code is in the public domain, available without fee for 
+#  educational, research, non-commercial and commercial purposes. Users may 
+#  distribute this code to third parties provided that this statement appears
+#  on all copies and that no charge is made for such copies.
+# 
+#  NASA GSFC MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THE SOFTWARE
+#  FOR ANY PURPOSE. IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR IMPLIED
+#  WARRANTY. NEITHER NASA GSFC NOR THE U.S. GOVERNMENT SHALL BE LIABLE FOR
+#  ANY DAMAGE SUFFERED BY THE USER OF THIS SOFTWARE.
+# /*=====================================================================*/
+# 
+# 
+# Changelog:
+# 	created 2016/01/10, jlefler
+#	updated 2016/05/13, jscott, upgraded to nc4, simplified dims, and added standard CF fields
+#
+
+use strict;
+use warnings; 
+
+use Fcntl qw(O_CREAT);
+
+use SeaBASS::File;
+use PDL;
+use PDL::NetCDF;
+use PDL::Core;
+use PDL::Char;
+
+use Scalar::Util qw(looks_like_number);
+use List::MoreUtils;
+use List::Util;
+
+use Data::Dumper;
+
+PDL::NetCDF::defaultFormat(PDL::NetCDF::NC_FORMAT_NETCDF4);
+
+sub main {
+	my @args = @_;
+	for my $input (@args){
+		my $outn = substr $input, 0, rindex( $input, q{.} );
+		my $o = SeaBASS::File->new($input, {missing_data_to_undef => 0});
+		my $nc = PDL::NetCDF->new("$outn.nc", {MODE => O_CREAT, REVERSE_DIMS => 1});
+
+		$nc->putatt('CF-1.6', 'Conventions');
+#		$nc->putatt('NASA/GSFC', 'institute_id');
+#		$nc->putatt('NASA Goddard Space Flight Center (GSFC)', 'institution');
+		$nc->putatt('available for public use with proper citation', 'license');
+		$nc->putatt('v1.0', 'product_version');
+		$nc->putatt('4.2', 'netcdf_version');
+		$nc->putatt('point_observation', 'data_structure');
+		$nc->putatt('degrees_north', 'geospatial_lat_units');
+		$nc->putatt('degrees_east', 'geospatial_lon_units');
+		$nc->putatt('SeaBASS Data Archive', 'title');
+		$nc->putatt('netCDF generated from original data using sb2nc Perl script by NASA/GSFC OBPG SeaBASS', 'history');
+		$nc->putatt('SeaWiFS Bio-Optical Archive and Storage System (SeaBASS) data archive containing 
+				in situ measurements of bio-optical and pigment ocean properties', 'description');
+		$nc->putatt('netCDF export copy of SeaBASS text data-file format via sb2nc Perl script. 
+				This netCDF4, internally-compressed archive file contains SeaWiFS Bio-Optical 
+				Archive and Storage System (SeaBASS) data from in situ measurements of 
+				bio-optical and pigment ocean properties', 'summary');
+#		$nc->putatt('NASA GSFC Ocean Biology Processing Group (OBPG)', 'creator_name');
+#		$nc->putatt('seabass@seabass.gsfc.nasa.gov', 'creator_email');
+#		$nc->putatt('http//seabass.gsfc.nasa.gov/', 'creator_url');
+		$nc->putatt('SeaWiFS Bio-optical Archive and Storage System (SeaBASS)', 'project');
+		$nc->putatt('NASA GSFC Ocean Biology Processing Group', 'publisher_name');
+		$nc->putatt('seabass@seabass.gsfc.nasa.gov', 'publisher_email');
+		$nc->putatt('http//seabass.gsfc.nasa.gov/', 'publisher_url');
+		$nc->putatt('P.J. Werdell, S.W. Bailey, C.W. Proctor, J.P. Scott, J.T. Lefler', 'contributor_name');
+		$nc->putatt('Lead Scientist, Lead Developer, Developer, Developer, Software Engineer', 'contributor_role');
+		$nc->putatt('L1&L2', 'processing_level');
+		$nc->putatt('ocean color, ocean biology, bio-optical, pigment, validation, biogeochemistry, biodiversity, in situ', 
+				'keywords');
+		$nc->putatt('GCMD Science Keywords', 'keywords_vocabulary');
+		$nc->putatt('P.J. Werdell, S.W. Bailey, G.S. Fargion, C. Pietras, K.D. Knobelspiesse, G.C. Feldman, 
+				and C.R. McClain, EOS Trans. AGU, 2003; P.J. Werdell and S.W. Bailey, NASA Tech. Memo. 
+				2002-211617, 2002; S.W. Bailey and P.J. Werdell, Rem. Sens. Environ., 2006', 'references');
+		$nc->putatt('Original SeaBASS data-format text-file header follows:', 'comment');
+
+		while (my ($k, $v) = each(%{$o->headers})){
+			if ($k !~ /^(?:begin|end)_header$/){
+				$nc->putatt($v, $k);
+			}
+		}
+
+		my %field_to_unit;
+		@field_to_unit{$o->fields} = $o->units;
+
+		my $i=1;
+		foreach my $comment (@{$o->{comments}}){
+			if ($comment !~ /^!\s*$/){
+				$nc->putatt($comment, "COMMENT$i");
+				$i++;
+			}
+		}
+
+		foreach my $field ($o->find_fields(qr//)){
+			my @all = $o->get_all($field);
+
+			if (List::MoreUtils::all { looks_like_number($_) } @all){
+				$nc->put($field, ["n_obs"], pdl(\@all), {DEFLATE => 9});
+				$nc->putatt($field, "standard_name", $field);
+				$nc->putatt($field, "long_name", $field);
+				$nc->putatt($field_to_unit{$field}, "units", $field);
+				if (defined($o->below_detection_limit) && defined($o->above_detection_limit)) {
+					my $min = List::Util::min(grep(defined($_) 
+						&& $_ != $o->missing 
+						&& $_ != $o->below_detection_limit 
+						&& $_ != $o->above_detection_limit, @all));
+					my $max = List::Util::max(grep(defined($_) 
+						&& $_ != $o->missing 
+						&& $_ != $o->below_detection_limit 
+						&& $_ != $o->above_detection_limit, @all));
+					$nc->putatt(double([$max]), "valid_max", $field);
+					$nc->putatt(double([$min]), "valid_min", $field);
+				} elsif (defined($o->below_detection_limit)) {
+					my $min = List::Util::min(grep(defined($_) 
+						&& $_ != $o->missing 
+						&& $_ != $o->below_detection_limit, @all));
+					my $max = List::Util::max(grep(defined($_) 
+						&& $_ != $o->missing 
+						&& $_ != $o->below_detection_limit, @all));
+					$nc->putatt(double([$max]), "valid_max", $field);
+					$nc->putatt(double([$min]), "valid_min", $field);
+				} elsif (defined($o->above_detection_limit)) {
+					my $min = List::Util::min(grep(defined($_) 
+						&& $_ != $o->missing 
+						&& $_ != $o->above_detection_limit, @all));
+					my $max = List::Util::max(grep(defined($_) 
+						&& $_ != $o->missing 
+						&& $_ != $o->above_detection_limit, @all));
+					$nc->putatt(double([$max]), "valid_max", $field);
+					$nc->putatt(double([$min]), "valid_min", $field);
+				} else {
+					my $min = List::Util::min(grep(defined($_) 
+						&& $_ != $o->missing, @all));
+					my $max = List::Util::max(grep(defined($_) 
+						&& $_ != $o->missing, @all));
+					$nc->putatt(double([$max]), "valid_max", $field);
+					$nc->putatt(double([$min]), "valid_min", $field);
+				}
+				$nc->putatt(double([$o->missing]), "_Fillvalue", $field);
+				if (defined($o->above_detection_limit)){
+					$nc->putatt(double([$o->above_detection_limit]), "Fillvalue_above_detection_limit", $field);
+				}
+				if (defined($o->below_detection_limit)){
+					$nc->putatt(double([$o->below_detection_limit]), "Fillvalue_below_detection_limit", $field);
+				}
+			} else {
+				my $max = List::Util::max(map {length($_)} @all);
+				my $pdl = PDL::Char->new(\@all);
+				$nc->put($field, ["time_char_ind", "n_obs"], $pdl);
+				$nc->putatt($field_to_unit{$field}, "units", $field);
+			}
+		}
+
+		$nc->close();
+	}
+}
+
+unless (caller){
+	exit(main(@ARGV) || 0);
+}
+
