@@ -739,8 +739,6 @@ case $GRIDNAME in
       GRIDFILE=shinnecock_inlet_coarse.grd
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=shinnecock-parameters.fort.15.template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=${CONTROLTEMPLATE}
       ELEVSTATIONS=shinnecock_stations.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS

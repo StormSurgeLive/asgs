@@ -74,20 +74,25 @@ generateDynamicInput()
     for layer in ${layers[@]}; do
         na_activate_list=""  # clear out list of nodal attributes that will be activated for this layer
         layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
-        outputInventory="full"
-        if [[ $layer == $SCENARIO ]]; then
+        if [[ $layer == $SCENARIO && $SCENARIO != *"Wind10m" ]]; then
+            outputInventory="full"
             layerOptions+=" --nws $NWS --dt $TIMESTEPSIZE $OUTPUTOPTIONS"
             for k in ${nodal_attribute_activate[@]}; do
                 na_activate_list="$na_activate_list\n      - \"$k\""
             done
         fi
-        if [[ $layer == "wind10m" ]]; then
+        if [[ $layer == "wind10m" || ( $layer == $SCENARIO && $SCENARIO == *"Wind10m" ) ]]; then
+            if [[ $layer == $SCENARIO && $SCENARIO == *"Wind10m" && $CONTROLTEMPLATENOROUGH != "null" ]]; then
+                layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATENOROUGH}"
+            fi
             outputInventory="metonly"
             layerOptions+=" --nws $BASENWS --dt 300.0"      # 15 minute time steps
             layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
             layerOptions+=" --fort7172freq 300.0 --fort7172netcdf"
             layerOptions+=" --fort7374freq 3600.0 --fort7374netcdf"
-            layerOptions+=" --netcdf4"
+            if [[ $OUTPUTOPTIONS =~ "--netcdf4" ]]; then
+                layerOptions+=" --netcdf4"
+            fi
             for k in ${nodal_attribute_activate[@]}; do
                 if [[ $k == "surface_directional_effective_roughness_length" || $k == "surface_canopy_coefficient" ]]; then
                     continue  # deactivate nodal attributes that reduce wind to ground level
