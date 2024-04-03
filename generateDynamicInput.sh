@@ -99,6 +99,7 @@ generateDynamicInput()
                 fi
                 na_activate_list="$na_activate_list\n      - \"$k\""
             done
+            WAVES="off"
         fi
         sed \
         -e "s/%ADCIRCVER%/$(adcirc -v)/" \
@@ -173,7 +174,7 @@ generateDynamicInput()
             controlExitStatus=1
             controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
         fi
-        if [[ $layer == $SCENARIO && $WAVES == "on" && $NWS != "0" ]]; then
+        if [[ $layer == $SCENARIO && $WAVES == "on" && $NWS != "0" && $SCENARIO != *"Wind10m" ]]; then
             if [[ ! -e $swanFile || ! -s $swanFile ]]; then
                 controlExitStatus=1
                 controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."

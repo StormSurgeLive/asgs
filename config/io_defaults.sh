@@ -65,29 +65,8 @@ MINMAX=reset
 #
 createWind10mLayer="no"  # yes|no ; applies to all scenarios that have meteorological forcing
 #
-if [[ ${ENSTORM:(-7)} == "Wind10m" ]]; then
-   if [[ $CONTROLTEMPLATENOROUGH == "null" ]]; then
-      error "A '$ENSTORM' scenario was specified but CONTROLTEMPLATENOROUGH is set to '$CONTROLTEMPLATENOROUGH'."
-   else
-      CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
-   fi
-   scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
-   ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="01:00:00" # forecast wall clock time
-   TIMESTEPSIZE=300.0          # 15 minute time steps
-   NCPU=15                     # dramatically reduced resource requirements
-   NUMWRITERS=1                # multiple writer procs might collide
+if [[ $ENSTORM == *"Wind10m" ]]; then
    WAVES=off                   # deactivate wave forcing
-   FORT61="--fort61freq 0"     # turn off water surface elevation station output
-   FORT62="--fort62freq 0"     # turn off water current velocity station output
-   FORT63="--fort63freq 0"     # turn off full domain water surface elevation output
-   FORT64="--fort64freq 0"     # turn off full domain water current velocity output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"    # met station output
-   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"   # full domain meteorological output
-   #SPARSE="--sparse-output"
-   SPARSE=""
-   NETCDF4="--netcdf4"
-   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    POSTPROCESS=( null_post.sh )
    OPENDAPNOTIFY="null"
 fi
