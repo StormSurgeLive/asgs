@@ -87,14 +87,25 @@ readConfig()
    # set default values related to forcing URLs etc
    source ${SCRIPTDIR}/config/forcing_defaults.sh
    # pick up config parameters, set by the Operator, that differ from the defaults
+   local e=$ENSTORM
+   local s=$SCENARIO
+   local ez=$ENSEMBLESIZE
    source ${CONFIG}
    # ensure single digit STORM numbers issued by NHC are zero-padded
    if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then
      STORM=$(printf "%02d" "$STORM")
    fi
+   #
    # maintain backward compatibility with old config files
-   if [[ $ENSEMBLESIZE != "null" ]]; then
-       SCENARIOPACKAGESIZE=$ENSEMBLESIZE
+   if [[ $ENSEMBLESIZE != $ez ]]; then
+      SCENARIOPACKAGESIZE=$ENSEMBLESIZE   # ENSEMBLESIZE is deprecated
+      ENSEMBLESIZE="null"
+   fi
+   if [[ $ENSTORM != $e ]]; then
+      SCENARIO=$ENSTORM                   # ENSTORM is deprecated
+   fi
+   if [[ $SCENARIO != $s ]]; then
+      ENSTORM=$SCENARIO                   # ENSTORM is still used in ASGS, pending removal via refactoring
    fi
    #
    RUNARCHIVEBASE=$SCRATCHDIR
