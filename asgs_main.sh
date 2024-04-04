@@ -276,6 +276,10 @@ checkHotstart()
    # composition, and location rather than assuming it based on the
    # current ASGS configuration file.
    local THIS="asgs_main.sh>checkHotstart()"
+   if [[ $FROMDIR == *"Wind10m" ]]; then 
+      logMessage "$THIS: The nowcast directory '$FROMDIR' is only for producing a Wind10m layer and will not contain hotstart information. Shutting down gracefully."
+      exit $OK
+   fi
    # set name and specific file location based on format (netcdf or binary)
    HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
    if [[ $HOTSTARTFORMAT == binary ]]; then
@@ -2170,8 +2174,6 @@ while [ true ]; do
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
-   SCENARIO=nowcast
-   ENSTORM=nowcast
    RUNNOWCAST=yes
    NOWCASTDIR=null    # directory with hotstart files to be used in forecast
    # write the properties associated with asgs configuration to the
