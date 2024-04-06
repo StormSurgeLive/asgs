@@ -27,7 +27,6 @@
 # set the name of the asgs log file
 setSyslogFileName()
 {
-   local DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
    if [[ ! -d $WORK/log ]]; then
       mkdir -p $WORK/log
       consoleMessage "$I Created log directory '$WORK/log'"
@@ -39,8 +38,8 @@ setSyslogFileName()
 #
 # write an INFO-level message to the main asgs log file
 logMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $1"
+{
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $1"
   for syslogfile in $SYSLOG $2 ; do
     if [[ -f $syslogfile ]]; then
       echo ${MSG} >> $syslogfile
@@ -50,8 +49,8 @@ logMessage()
 #
 # write an INFO-level message to the cycle (or advisory log file)
 cycleMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $1"
+{
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $1"
   for cyclelogfile in $CYCLELOG $2 ; do
     if [[ -e $cyclelogfile ]]; then
       echo ${MSG} >> $cyclelogfile
@@ -64,8 +63,7 @@ scenarioMessage()
 {
   LOGMESSAGE=$1
   EXTRALOGFILE=$2
-  local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] INFO: $LOGMESSAGE"
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $LOGMESSAGE"
   for scenariologfile in $SCENARIOLOG $EXTRALOGFILE ; do
      if [[ -e $scenariologfile ]]; then
         echo "${MSG}" >> $scenariologfile
@@ -81,8 +79,7 @@ appMessage()
 {
   LOGMESSAGE=$1
   APPLOGFILE=$2
-  local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] DEBUG: $LOGMESSAGE"
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] DEBUG: $LOGMESSAGE"
   if [[ -e $RUNDIR ]]; then
      echo ${MSG} >> $APPLOGFILE
   fi
@@ -92,8 +89,8 @@ appMessage()
 # (these should be strategic to enable real time progress monitoring,
 # not forensic troubleshooting or focused debugging)
 consoleMessage()
-{ local DATETIME=`date +'%Y%m%d-%H%M%S'`
-  MSG="[${DATETIME}] $1"
+{
+  MSG="[$(date +'%Y%m%d-%H%M%S')] $1"
   echo ${MSG}
   if [[ -e $2 ]]; then
      echo ${MSG} >> $2
@@ -112,8 +109,8 @@ allMessage()
 #
 # log a warning message, execution continues
 warn()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] WARNING: $1"
+{
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $1"
   for warnlogfile in $SYSLOG $2 ; do
     if [[ -e $warnlogfile ]]; then
       local frame=0
@@ -129,8 +126,8 @@ warn()
 #
 # log an error message, notify Operator
 error()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] ERROR: $1"
+{
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] ERROR: $1"
   echo ${MSG}  # send to console
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
   for errorlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
@@ -151,8 +148,8 @@ error()
 #
 # log an error message, execution halts
 fatal()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] FATAL ERROR: $1"
+{
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] FATAL ERROR: $1"
   for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $fatallogfile ]]; then
       local frame=0
@@ -172,8 +169,8 @@ fatal()
 #
 # log a debug message
 debugMessage()
-{ local DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-  MSG="[${DATETIME}] DEBUG: $1"
+{
+  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] DEBUG: $1"
   for debuglogfile in $SCENARIOLOG $2; do
      if [[ -e $debuglogfile ]]; then
         echo ${MSG} >> $debuglogfile
@@ -188,13 +185,13 @@ writeASGSInstanceStatus()
     local THIS="asgs_main->monitoring/logging.sh->writeASGSInstanceStatus()"
     local statfile="$statusDir/asgs.instance.status.properties"
     local jsonfile="$statusDir/asgs.instance.status.json"
-    logMessage "$THIS: Writing status associated with ASGS configuration and situation to $statfile."
     local logfile=$(basename -- $SYSLOG)
     local textlog="${logfile%.*}.txt" # directly viewable in web browser
+    local STATUSLOG=$RUNDIR/status.log
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Writing status associated with ASGS configuration and situation to $statfile." >> $STATUSLOG
     #
     # update time stamp
-    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-    echo "time.status.lastupdated : $dateTime" > $statfile  # <--<< OVERWRITE
+    echo "time.status.lastupdated : $(date +'%Y-%h-%d-T%H:%M:%S%z')" > $statfile  # <--<< OVERWRITE
     # basic asgs configuration
     echo "config.file : $CONFIG" >> $statfile
     echo "instancename : $INSTANCENAME" >> $statfile
@@ -278,9 +275,10 @@ writeASGSInstanceStatus()
 # post the asgs instance status and hook status files to opendap
 postStatus() {
     local THIS="asgs_main->monitoring/logging.sh->postStatus()"
-    statfile="$statusDir/asgs.instance.status.properties"
+    local statfile="$statusDir/asgs.instance.status.properties"
+    local STATUSLOG=$RUNDIR/status.log
     if [[ -s $statfile ]]; then
-        logMessage "$THIS: Posting status associated with ASGS configuration and hooks in '$statfile' to opendap."
+        echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Posting status associated with ASGS configuration and hooks in '$statfile' to opendap." >> $STATUSLOG
         # redact username from log file and rename with .txt extension so
         # we can review it directly in a web browser
         local logfile=$(basename -- $SYSLOG)
@@ -291,7 +289,7 @@ postStatus() {
         # the list of $POSTPROCESS scripts defined in the ASGS config being used
         $SCRIPTDIR/output/$OPENDAPPOST $statfile
     else
-        logMessage "$THIS: Status file '$statfile' does not exist."
+        logMessage "$THIS: Status file '$statfile' does not exist." $STATUSLOG
     fi
 }
 
@@ -322,7 +320,8 @@ initFileStatusMonitoring() {
 nullifyFilesFirstTimeUpdated()
 {
     local THIS="asgs_main->monitoring/logging.sh->nullifyFilesFirstTimeUpdated()"
-    logMessage "$THIS: Nullifying the first updated times associated with each output file."
+    local STATUSLOG=$RUNDIR/status.log
+    echo "$THIS: Nullifying the first updated times associated with each output file." >> $STATUSLOG
     for k in ${fileStatusList[@]} ${fileStatusCheckList[@]} ; do
         filesFirstTimeUpdated[$k]="null"
     done
@@ -341,14 +340,13 @@ writeScenarioFilesStatus()
    local cycleJSON=$(expr $ADVISORY + 0) # strip leading zero (if any) before writing to json format
    #
    # update time stamp
-   dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
    # write the status associated with each file
    echo "{" > $jsonfile # <-<< OVERWRITE
    echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
    echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
    echo \""cycle\" : $cycleJSON," >> $jsonfile
    echo \""scenario\" : \"$SCENARIO\"," >> $jsonfile
-   echo \""time.files.status.lastupdated\" : \"$dateTime\"," >> $jsonfile
+   echo \""time.files.status.lastupdated\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"," >> $jsonfile
    echo \""files.status\" : {" >> $jsonfile
    # these are all netcdf files
    for f in ${fileStatusList[@]} ; do
@@ -415,8 +413,9 @@ writeScenarioFilesStatus()
 # post the asgs instance status and hook status files to opendap
 postScenarioStatus() {
     local THIS="asgs_main->monitoring/logging.sh->postScenarioStatus()"
+    local STATUSLOG=$RUNDIR/status.log
     scenarioStatusDir=$SCENARIODIR/status
-    logMessage "$THIS: Posting status associated with scenario $SCENARIO in $scenarioStatusDir for opendap service."
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Posting status associated with scenario $SCENARIO in $scenarioStatusDir for opendap service." >> $STATUSLOG
     if [[ ! -d $scenarioStatusDir ]]; then
        mkdir -p $scenarioStatusDir 2>> $SYSLOG
     fi
