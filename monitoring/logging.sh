@@ -6,7 +6,7 @@
 # requires logging capabilities.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2012--2023 Jason Fleming
+# Copyright(C) 2012--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -24,78 +24,6 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-# Log file will be in the directory where the asgs was executed
-#
-#
-# set up logging so that output from various processes within a scenario
-# is also sent to scenario.log file for centralized logging
-initCentralizedScenarioLogging() {
-   unset logFiles
-   unset subshellPIDs
-   if [[ "$JOBTYPE" =~ prep || $JOBTYPE = partmesh ]]; then
-      logFiles=( fort.6 fort.16 ${JOBTYPE}.out )
-   fi
-   if [[ $JOBTYPE = padcirc ]]; then
-      logFiles=( fort.6 fort.16 adcirc.log ${JOBTYPE}.out )
-   fi
-   if [[ $JOBTYPE = padcswan ]]; then
-      logFiles=( fort.6 fort.16 adcirc.log PE0000/asgs_swan.prt PE0000/Errfile  ${JOBTYPE}.out )
-   fi
-   #
-   # initialize log files if they do not exist so tail doesn't exit immediately
-   for file in ${logFiles[*]} ; do
-      echo "Initializing $file file." | awk -v level=INFO -v this="logging.sh" -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
-      if [[ -e $file ]]; then
-         rm $file
-      fi
-      # make a zero length file
-      touch $file
-      # execute logs monitoring in the background
-      (
-         tail -f $file >> scenario.log 2>&1
-      ) &
-      # add this process ID to the list of background subshell jobs
-      subshellPIDs+=($!)
-   done
-   # write the logging PIDs to the run.properties file so they can be
-   # cleaned up later
-   SUBSHELLPIDSTRING="("
-   for string in ${subshellPIDs[*]}; do
-      SUBSHELLPIDSTRING="$SUBSHELLPIDSTRING $string"
-   done
-   SUBSHELLPIDSTRING="$SUBSHELLPIDSTRING )"
-   echo "hpc.job.${JOBTYPE}.subshellpids : $SUBSHELLPIDSTRING" >> $STORMDIR/run.properties
-}
-
-# terminate centralized logging subshell processes
-finalizeCentralizedScenarioLogging() {
-   unset subshellPIDs
-   # grab list of associated subshell PIDs from run.properties file
-   declare -a subshellPIDs=`grep hpc.job.$JOBTYPE.subshellpids run.properties | cut -d':' -f 2- | sed -n 's/^\s*//p'`
-   # loop over subshell processes
-   for pid in ${subshellPIDs[*]}; do
-      # terminate each one
-      echo "Terminating previously spawned subshell process ID ${pid}." | awk -v level=INFO -v this=logging.sh -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
-      kill -TERM $pid 2>&1 | awk -v this=logging.sh -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk >> scenario.log 2>&1
-   done
-   unset subshellPIDs
-}
-
-# send SIGTERM to tail processes owned by this Operator that are children
-# of init (i.e., process)
-# NOTE: this `ps` command is required because it outputs the parent process id, which is
-# "1" if an orphan - which is what we are looking to kill here UNLESS we're in a docker
-# environment. This is filtered with the "grep -v '/dev/null'" and is needed due to the fact
-# that the "official" docker container used for ASGS stays alive via a 'tail -f /dev/null'
-# call that can be seen in the /docker-entrypoint.sh script.
-
-findAndClearOrphans() {
-   for pid in $(ps -eo pid,ppid,user,command | grep [t]ail | grep -v '/dev/null' | awk -v user=$USER '$3==user && $2==1 { print $1 } '); do
-      logMessage "Found orphan 'tail -f' process ID $pid and now clearing it."
-      kill $pid
-   done
-}
-
 # set the name of the asgs log file
 setSyslogFileName()
 {

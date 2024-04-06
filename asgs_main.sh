@@ -825,9 +825,6 @@ prepFile()
    echo "hpc.slurm.job.${JOBTYPE}.constraint : $CONSTRAINT" >> $STORMDIR/run.properties
    echo "hpc.slurm.job.${JOBTYPE}.qos : $QOS" >> $STORMDIR/run.properties
    #
-   # start log redirect processes for centralized logging
-   initCentralizedScenarioLogging
-   #
    # build queue script
    qScriptRequestTemplate=$SCRIPTDIR/qscript_request_template.json
    qScriptRequest=$SCENARIODIR/qscript_request_$JOBTYPE.json
@@ -1297,7 +1294,6 @@ monitorJobs()
       postScenarioStatus
    fi
    sleep 30 # give buffers a chance to flush to the filesystem
-   finalizeCentralizedScenarioLogging
    #
    # final messages
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
@@ -1432,8 +1428,6 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting ${JOBTYPE}.${ENSTORM} job in $PWD via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the serial job in a subshell
       (
-         # initialize log files so they can be centralized
-         initCentralizedScenarioLogging
          $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/serial-adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
@@ -1449,7 +1443,6 @@ submitJob()
          # terminate redirect processes for centralized logging
          consoleMessage "$I Job has completed, waiting for job i/o to finalize."
          sleep 30 # give buffers a chance to flush to the filesystem
-         finalizeCentralizedScenarioLogging
       ) &
       local pid=$!
       spinner 0 $pid
@@ -1465,7 +1458,6 @@ submitJob()
       queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
-      initCentralizedScenarioLogging
       local jobSubmitInterval=60
       #
       # submit job, check to make sure qsub succeeded, and if not, retry (forever)
@@ -1508,8 +1500,6 @@ submitJob()
       logMessage "$ENSTORM: $THIS: Submitting job via $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the parallel job in a subshell
       (
-         # initialize log files so they can be centralized
-         initCentralizedScenarioLogging
          $SUBMITSTRING -n $CPUREQUEST $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${ADVISDIR}/${ENSTORM}/adcirc.log 2>&1
          ERROVALUE=$?
          RUNSUFFIX="finish"
@@ -1524,7 +1514,6 @@ submitJob()
          echo "time.${JOBTYPE}.${RUNSUFFIX} : $DATETIME" >> run.properties
          # terminate redirect processes for centralized logging
          sleep 30 # give buffers a chance to flush to the filesystem
-         finalizeCentralizedScenarioLogging
       ) &
       local pid=$!
       spinner 0 $pid
@@ -1664,9 +1653,6 @@ trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' U
 trap 'sigint' INT
 trap 'sigterm' TERM
 trap 'sigexit' EXIT
-#
-# clear orphaned logging processes
-findAndClearOrphans
 #
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
@@ -2146,9 +2132,6 @@ while [ true ]; do
    ENSTORM=nowcast
    SCENARIO=$ENSTORM
    SCENARIODIR="null" # don't know the path until we have the forcing for this cycle
-
-   # clear orphaned logging processes (if any)
-   findAndClearOrphans
 
    si=-1
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
@@ -2770,9 +2753,6 @@ while [ true ]; do
    #
    ENSTORM="forecast"
    logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
-
-   # clear orphaned logging processes (if any)
-   findAndClearOrphans
 
    checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
    THIS="asgs_main.sh"
