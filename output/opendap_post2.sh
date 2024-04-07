@@ -30,26 +30,31 @@ SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
 if [[ $# -eq 1 ]]; then
    RUNPROPERTIES=$1
-   SCENARIODIR=`dirname $RUNPROPERTIES`
-   MANUAL=1
+   SCENARIODIR=$(dirname $RUNPROPERTIES)
+fi
+if [[ $# -eq 2 ]]; then
+   MANUAL=1   # provide an extra command line argument to execute manually, suggest "manual" or "auto"
 fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
-echo "Loading properties."
+#
 # get loadProperties function
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+SCRIPTDIR=$(sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES)
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
-echo "Finished loading properties."
+# establish ssh log file
+RUNDIR=${properties['path.rundir']}
+SSHLOG=$RUNDIR/ssh.log
+#
 if [ -z "$OPENDAPNOTIFY" ]; then
-  echo "Loading OPENDAPNOTIFY address from run.properties..."
+  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Loading OPENDAPNOTIFY address from '$RUNPROPERTIES' file ..." >> $SSHLOG
   OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
 fi
-echo "Email list via 'OPENDAPNOTIFY' is '$OPENDAPNOTIFY'"
+echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Email list via 'OPENDAPNOTIFY' is '$OPENDAPNOTIFY'" >> $SSHLOG
 CONFIG=${properties['config.file']}
 COLDSTARTDATE=${properties["adcirc.time.coldstartdate"]} # used for the hindcast path
-RUNDIR=${properties['path.rundir']}
+#
 CYCLEDIR=${properties['path.advisdir']}
 CYCLE=${properties['advisory']}
 # if this is an initialization, there is no advisory number
@@ -65,11 +70,10 @@ SCENARIO=${properties['scenario']}
 SYSLOG=${properties['monitoring.logging.file.syslog']}
 CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
 SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
-local SSHLOG=$RUNDIR/ssh.log
+#
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh
-
-
+#
 #+ vvvvv
 # BEGIN - get list of servers for scp'ing files, uses
 # a key in the scenarios run.properties,
@@ -87,7 +91,7 @@ if [[ ${#SERVERS[@]} -eq 0 ]]; then
    if [ "$MANUAL" == 1 ]; then
      echo "$MSG"
    else
-     warn "$MSG" $SSHLOG
+     echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
    fi
    exit
 fi
@@ -150,7 +154,7 @@ for _file in ${_FILES[*]}; do
     FILES+=($_file)
   else
     MSG="cycle $CYCLE: $SCENARIO: $THIS: Can't find '$_file', which is listed in in $RUNPROPERTIES."
-    warn "$MSG" $SSHLOG
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
     consoleMessage "$MSG"
   fi
 done
@@ -160,7 +164,7 @@ done
 # send when done with all files ...
 if [[ -z $sendNotification ]]; then
     MSG="cycle $CYCLE: $SCENARIO: $THIS: 'sendNotification' tracer not found in file list."
-    warn "$MSG" $SSHLOG
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
     consoleMessage "$MSG"
 fi
 
@@ -168,9 +172,9 @@ fi
 if [[ ${#_FILES[@]} -eq 0 ]]; then
    MSG="cycle $CYCLE: $SCENARIO: $THIS: No files to post to opendap servers in $RUNPROPERTIES."
    if [ "$MANUAL" == 1 ]; then
-     echo "$MSG"
+      echo "$MSG"
    else
-     warn "$MSG" $SSHLOG
+      echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
    fi
    exit
 fi
@@ -444,7 +448,7 @@ SSHCMD
             if [ "$MANUAL" == 1 ]; then
                echo "$MSG"
             else
-               warn "$MSG" $SSHLOG
+               echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
             fi
             unset MSG
             threddsPostStatus=fail
@@ -656,7 +660,7 @@ SSHCMD
                if [ "$MANUAL" == 1 ]; then
                  echo "$MSG"
                else
-                 warn "$MSG" $SSHLOG
+                 echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
                fi
                unset MSG
             else
@@ -703,9 +707,9 @@ SSHCMD
                threddsPostStatus=fail
                MSG="$SCENARIO: $_THIS: Failed to give the file $fname read permissions in ${OPENDAPHOST}:${OPENDAPDIR}."
                if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
+                  echo "$MSG"
                else
-                 warn "$MSG" $SSHLOG
+                  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
                fi
                unset MSG
             else
@@ -746,9 +750,9 @@ SSHCMD
       if [[ $? != 0 ]]; then
          MSG="$SCENARIO: $_THIS: Failed to create the directory $OPENDAPDIR on the remote machine ${OPENDAPHOST}."
          if [ "$MANUAL" == 1 ]; then
-           echo "$MSG"
+          echo "$MSG"
          else
-           warn "$MSG" $SSHLOG
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
          fi
          unset MSG
          threddsPostStatus=fail
@@ -760,7 +764,7 @@ SSHCMD
          retry=0
          while [[ $retry -lt $timeoutRetryLimit ]]; do
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] (WAL: remote cmd) ssh $OPENDAPHOST \"chmod a+wx $partialPath\"" >> $SSHLOG
-            ssh $OPENDAPHOST bash >> $SSHLOG 2>&1
+            ssh $OPENDAPHOST bash <<SSHCMD >> $SSHLOG 2>&1
 # this block will be executed on the remote server,
 # variables are interpolated locally unless escaped
 # with a backslash, '\'
@@ -773,9 +777,9 @@ SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory $partialPath on the remote machine ${OPENDAPHOST}."
                if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
+                  echo "$MSG"
                else
-                 warn "$MSG" $SSHLOG
+                  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
                fi
                unset MSG
                threddsPostStatus=fail
@@ -798,16 +802,15 @@ SSHCMD
          echo "Processing $file (sendEmail? $sendEmail)" >> $SSHLOG 2>&1
          # send opendap posting notification email early if directed
          if [[ $file = "sendNotification"  && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
-            logMessage "$SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY." $SSHLOG
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $SCENARIO: $_THIS: Sending 'results available' email to the following addresses before the full set of results has been posted: $OPENDAPNOTIFY." >> $SSHLOG 2>&1
             cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | asgs-sendmail  --subject "$subject" --to "$OPENDAPNOTIFY" 2>> ${SYSLOG} 2>&1
             ERR=$?
             if [[ $ERR != $EXIT_SUCCESS ]]; then
               MSG="$THIS: Failed to send email to '$OPENDAPNOTIFY'"
               if [ "$MANUAL" == 1 ]; then
-                echo "$MSG"
+                  echo "$MSG"
               else
-                warn "$MSG" $SSHLOG
+                  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
               fi
               unset MSG
             else
@@ -817,14 +820,14 @@ SSHCMD
          fi
          chmod +r "$file" 2>> $SYSLOG
          echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}." >> $SSHLOG
-         rsync ${rsyncOptions} ./${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+         rsync ${rsyncOptions} ./${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SSHLOG 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             MSG="$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
             if [ "$MANUAL" == 1 ]; then
               echo "$MSG"
             else
-              warn "$MSG" $SSHLOG
+              echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
             fi
             unset MSG
          fi
@@ -860,9 +863,9 @@ SSHCMD
             if [[ $? != 0 ]]; then
                MSG="$SCENARIO: $_THIS: Failed to change permissions on the directory ${partialPath}."
                if [ "$MANUAL" == 1 ]; then
-                 echo "$MSG"
+                  echo "$MSG"
                else
-                 warn "$MSG" $SSHLOG
+                  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" $SSHLOG
                fi
                unset MSG
                threddsPostStatus=fail
@@ -872,9 +875,9 @@ SSHCMD
             fi
             retry=`expr $retry + 1`
             if [[ $retry -lt $timeoutRetryLimit ]]; then
-               logMessage "$SCENARIO: $_THIS: Trying again." $SSHLOG
+               echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $SCENARIO: $_THIS: Trying again." >> $SSHLOG
             else
-               logMessage "$SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation." $SSHLOG
+               echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $SCENARIO: $_THIS: Maximum number of retries has been reached. Moving on to the next operation." >> $SSHLOG
             fi
          done
          # cut off the end of the partial path and keep going until we get down

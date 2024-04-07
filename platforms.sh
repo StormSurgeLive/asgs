@@ -163,70 +163,7 @@ init_frontera()
   TDS=( tacc_tds3 )
   MAKEJOBS=8
 }
-#
-init_stampede2()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_stampede2()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=stampede2.tacc.utexas.edu
-  QUEUESYS=SLURM
-  QUEUENAME=skx-normal # same as SLURM partition
-  SERQUEUE=skx-normal
-  PPN=48
-  CONSTRAINT=null
-  RESERVATION=null
-  QOS=null
-  QCHECKCMD=sacct
-  JOBLAUNCHER='ibrun '
-  ACCOUNT=null
-  SUBMITSTRING=sbatch
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  GROUP="G-803086"
-  QSUMMARYCMD=null
-  QUOTACHECKCMD=null
-  ALLOCCHECKCMD=null
-  local THIS="platforms.sh>env_dispatch()>init_stampede2()"
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2020
-  TDS=( tacc_tds3 )
-  MAKEJOBS=8
-}
-#
-init_lonestar5()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_lonestar5()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=lonestar5.tacc.utexas.edu
-  QUEUESYS=SLURM
-  QUEUENAME=normal # same as SLURM partition
-  SERQUEUE=normal
-  CONSTRAINT=null
-  RESERVATION=null
-  QCHECKCMD=squeue
-  JOBLAUNCHER='ibrun '
-  ACCOUNT=null
-  PPN=24
-  SUBMITSTRING=sbatch
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  UMASK=006
-  GROUP="G-803086"
-  QSUMMARYCMD=null
-  QUOTACHECKCMD=null
-  ALLOCCHECKCMD=null
-  # matlab
-  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
-  local THIS="platforms.sh>env_dispatch()>init_lonestar5()"
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2020
-  TDS=(tacc_tds3)
-  MAKEJOBS=8
-}
+
 
 init_test()
 { #<- can replace the following with a custom script
@@ -240,7 +177,7 @@ init_test()
 
 #                                                                #
 # D O  N O T  A D D  N E W  T H R E D D S  S E R V E R S H E R E #
-#          please us the ./thredds-servers directory             #
+#          please us the ./ssh-servers directory                 #
 #                                                                #
 writeTDSProperties()
 {
@@ -277,45 +214,6 @@ writeTDSProperties()
       echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
       echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> $RUNPROPERTIES
       ;;
-
-   # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU Center for Coastal Resiliency
-   "lsu_ccr_tds")
-      THREDDSHOST=chenier.cct.lsu.edu # WWW hostname for emailed links
-      OPENDAPHOST=lsu_ccr_tds         # alias in $HOME/.ssh/config
-      OPENDAPPORT=":8080"
-      OPENDAPPROTOCOL="http"
-      CATALOGPREFIX=/asgs/ASGS-2019
-      DOWNLOADPREFIX=/asgs/ASGS-2019
-      OPENDAPBASEDIR=/data/thredds/ASGS/ASGS-2019
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( null )" >> $RUNPROPERTIES
-      ;;
-   #
-   # THREDDS Data Server (TDS, i.e., OPeNDAP server) at Texas
-   # Advanced Computing Center (TACC)
-   "tacc_tds")
-      THREDDSHOST=adcircvis.tacc.utexas.edu # WWW hostname for emailed links
-      OPENDAPINDEX=catalog.html
-      OPENDAPHOST=tacc_tds                  # alias in $HOME/.ssh/config
-      OPENDAPPORT=":8080"
-      OPENDAPPROTOCOL="http"
-      DOWNLOADPREFIX=/asgs
-      CATALOGPREFIX=/asgs
-      OPENDAPBASEDIR=/corral-tacc/utexas/hurricane/ASGS
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( ls6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
-      ;;
-   "tacc_tds2")
-      THREDDSHOST=chg-1.oden.tacc.utexas.edu # WWW hostname for emailed links
-      OPENDAPHOST=tacc_tds2                  # alias in $HOME/.ssh/config
-      OPENDAPPORT=":80"                      # ':80' can be an empty string, but for clarity it's here
-      OPENDAPPROTOCOL="http"
-      DOWNLOADPREFIX=/asgs
-      CATALOGPREFIX=/asgs
-      OPENDAPBASEDIR=/hurricane
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( ls6 lonestar5 stampede2 frontera )" >> $RUNPROPERTIES
-      ;;
    *) # if not found, look in $SCRIPTDIR/ssh-servers where we add new servers now
       local SERVERDEF="${SCRIPTDIR}/ssh-servers/${SERVER}.sh"
       # if not found in ./ssh-servers and ASGS_LOCAL_DIR is defined, look in $ASGS_LOCAL_DIR/ssh-servers/
@@ -351,16 +249,7 @@ set_hpc() {
    echo "$THIS: The fully qualified domain name is ${fqdn}."
    HPCENV=null
    HPCENVSHORT=null
-   if [[ ${fqdn:(-25)} = "stampede2.tacc.utexas.edu" ]]; then
-      HPCENV=${fqdn:(-25)}
-      HPCENVSHORT=stampede2
-      return
-   fi
-   if [[ ${fqdn:(-19)} = "ls5.tacc.utexas.edu" ]]; then
-      HPCENV=lonestar5.tacc.utexas.edu
-      HPCENVSHORT=lonestar5
-      return
-   fi
+
    if [[ ${fqdn:(-24)} = "frontera.tacc.utexas.edu" ]]; then
       HPCENV=frontera.tacc.utexas.edu
       HPCENVSHORT=frontera
@@ -401,6 +290,13 @@ set_hpc() {
 init_platform()
 {
   local INIT=${1:-"$PLATFORM_INIT"}
+  local STATUSLOG=$RUNDIR/status.log
+  if [[ $RUNDIR == "null" || -z $RUNDIR ]]; then
+     if [[ ! -d $WORK/log ]]; then
+        mkdir -p $WORK/log
+     fi
+     STATUSLOG=$WORK/log/status.log
+  fi
   if [ -z "${INIT}" ]; then
     consoleMessage "${W} platform init script must be specified as the first argument! No platform init.sh known."
     return
@@ -410,10 +306,10 @@ init_platform()
     consoleMessage "${W} Can't find init script, '$INIT'! No platform selected."
     return
   fi
-  logMessage "... attempting to load '$INIT' ... "
+  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] attempting to load '$INIT' ... " >> $STATUSLOG
   source $INIT
   if [ $? -eq 0 ]; then
-    logMessage "OK"
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] OK" >> $STATUSLOG
   else
     echo
     logMessage "${W} Failed to load '$INIT'! No platform selected."
@@ -438,18 +334,10 @@ env_dispatch() {
   "queenbeeC") consoleMessage "$I QueenbeeC (LONI) configuration found."
           init_queenbeeC
           ;;
-  "lonestar5") consoleMessage "$I Lonestar (TACC) configuration found."
-          init_lonestar5
-          ;;
-  "stampede2") consoleMessage "$I Stampede2 (TACC) configuration found."
-          init_stampede2
-          ;;
   "frontera") consoleMessage "$I Frontera (TACC) configuration found."
           init_frontera
           ;;
-  "poseidon") consoleMessage "$I Poseidon configuration found."
-          init_Poseidon
-          ;;
+
   "test") consoleMessage "$I test environment (default) configuration found."
           init_test
           ;;
