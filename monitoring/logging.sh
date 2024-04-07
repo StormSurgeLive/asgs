@@ -204,6 +204,7 @@ writeASGSInstanceStatus()
     echo "forcing.schedule.cycletimelimit : $CYCLETIMELIMIT" >> $statfile
     echo "forcing.tropicalcyclone : $TROPICALCYCLONE" >> $statfile
     echo "forcing.backgroundmet : $BACKGROUNDMET" >> $statfile
+    echo "forcing.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $statfile
     echo "coupling.waves : $WAVES" >> $statfile
     # static hpc environment properties
     echo "hpc.hpcenv : $HPCENV" >> $statfile
