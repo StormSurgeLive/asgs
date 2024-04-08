@@ -25,10 +25,14 @@
 nullifyHooks()
 {
     local THIS="asgs_main->manageHooks->nullifyHooks()"
-    logMessage "$THIS: Nullifying the time values associated with each hook."
+    local STATUSLOG=$RUNDIR/status.log
+    if [[ $RUNDIR == "null" ]]; then
+        STATUSLOG=$WORK/log/status.log
+    fi
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Nullifying the time values associated with each hook." >> $STATUSLOG
     for k in ${allHooks[@]} ; do
         hooksTimes[$k]="null"
-        logMessage "$THIS: Setting hooksTimes['$k'] to '${hooksTimes[$k]}'."
+        echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Setting hooksTimes['$k'] to '${hooksTimes[$k]}'." >> $STATUSLOG
     done
 }
 #
@@ -37,10 +41,14 @@ nullifyHooks()
 nullifyNowcastForecastHooks()
 {
     local THIS="asgs_main->manageHooks->nullifyNowcastForecastHooks()"
-    logMessage "$THIS: Nullifying the time values associated with each nowcast and forecast hook."
+    local STATUSLOG=$RUNDIR/status.log
+    if [[ $RUNDIR == "null" ]]; then
+        STATUSLOG=$WORK/log/status.log
+    fi
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Nullifying the time values associated with each nowcast and forecast hook." >> $STATUSLOG
     for k in "${nowcastHooks[@]}" "${forecastHooks[@]}" ; do
         hooksTimes["$k"]="null"
-        logMessage "$THIS: Setting hooksTimes['$k'] to '${hooksTimes[$k]}'."
+        echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Setting hooksTimes['$k'] to '${hooksTimes[$k]}'." >> $STATUSLOG
     done
 }
 #
@@ -49,8 +57,11 @@ timestampHook()
 {
     hook=$1
     local THIS="asgs_main->manageHooks->timestampHook()"
-    logMessage "$THIS: Updating timestamp for the '$hook' hook."
-    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+    local STATUSLOG=$RUNDIR/status.log
+    if [[ $RUNDIR == "null" ]]; then
+        STATUSLOG=$WORK/log/status.log
+    fi
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Updating timestamp for the '$hook' hook." >> $STATUSLOG
     local status="null"
     local statusURL="null"
     case $hook in
@@ -106,7 +117,7 @@ timestampHook()
     if [[ $mypath != "null" ]]; then
         mypath=\"$mypath\"
     fi
-    json="{ \"time\" : \"$dateTime\", \"path\" : $mypath, \"statusfile\" : $status, \"statusURL\" : $statusURL }"
+    json="{ \"time\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"path\" : $mypath, \"statusfile\" : $status, \"statusURL\" : $statusURL }"
     # determine number of spaces required to get the status objects to line up
     longestHookKey=0
     for h in ${allHooks[@]} ; do
@@ -128,8 +139,9 @@ timestampHook()
 writeHookStatus()
 {
     local THIS="asgs_main->manageHooks.sh->writeHookStatus()"
+    local STATUSLOG=$RUNDIR/status.log
     local jsonfile="$statusDir/hook.status.json"
-    logMessage "$THIS: Writing status associated with ASGS hooks to '$jsonfile'."
+    echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Writing status associated with ASGS hooks to '$jsonfile'." >> $STATUSLOG
     #
     # write the time value(s) associated with each hook; will be null
     # if that hook has not been reached for this cycle
@@ -158,10 +170,9 @@ writeHookStatus()
     done
     echo "}," >> $jsonfile
     # update time stamp
-    dateTime=`date +'%Y-%h-%d-T%H:%M:%S%z'`
     echo "\"asgs.instance.status.file\" : \"asgs.instance.status.json\"," >> $jsonfile
     echo "\"asgs.instance.status.url\" : \"$asgsInstanceStatusURL\","   >> $jsonfile
-    echo "\"time.hook.status.lastupdated\" : \"$dateTime\","            >> $jsonfile
+    echo "\"time.hook.status.lastupdated\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"," >> $jsonfile
     echo "\"hook.status.url\" : \"$hookStatusURL\","                    >> $jsonfile
     echo "\"hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
     echo "\"hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
@@ -176,9 +187,10 @@ executeHookScripts()
 {
     hook=$1
     local THIS="asgs_main->manageHooks->executeHookScripts()"
+    local STATUSLOG=$RUNDIR/status.log
     timestampHook $hook
     if [[ $hook != "START_INIT" ]]; then
-        logMessage "$THIS: Executing scripts for the $hook hook."
+        echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Executing scripts for the $hook hook." >> $STATUSLOG
         consoleMessage "$I ${hook}"
         # write status immediately, in case one of the hook scripts
         # wants to post the status file somewhere
@@ -197,7 +209,7 @@ executeHookScripts()
     fi
     for hs in ${hooksScripts[$hook]} ; do
         if [[ $hook != "START_INIT" ]]; then
-           logMessage "$THIS: Executing $hook hook script $SCRIPTDIR/$hs."
+           echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Executing $hook hook script $SCRIPTDIR/$hs." >> $STATUSLOG
         fi
         $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
     done
