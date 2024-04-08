@@ -2420,7 +2420,7 @@ while [ true ]; do
          ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
          fort22="owi_fort.22"
-         echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+         echo "${owiWinPre["NWSET"]} ! NWSET" > $fort22
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          ;;
@@ -2501,7 +2501,7 @@ while [ true ]; do
          ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
          ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
          fort22="fort.22"
-         echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+         echo "${owiWinPre["NWSET"]} ! NWSET" > $fort22
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
@@ -3081,7 +3081,7 @@ while [ true ]; do
             ln -s $(basename $preFile) fort.221 2>> ${SYSLOG}
             ln -s $(basename $winFile) fort.222 2>> ${SYSLOG}
             fort22="fort.22"
-            echo "${owiWinPre["NDSET"]} ! NDSET" > $fort22
+            echo "${owiWinPre["NWSET"]} ! NWSET" > $fort22
             echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
             echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
