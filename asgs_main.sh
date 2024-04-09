@@ -1869,16 +1869,20 @@ if [[ $HOTORCOLD = hotstart ]]; then
       # check to make sure the COLDSTARTDATE was not set to "auto" in the
       # asgs config file (unless the run.properties file was also supplied)
       if [[ $COLDSTARTDATE = auto ]]; then
-         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory ${LASTSUBDIR}. The COLDSTARTDATE will therefore be determined from the ColdStartTime property in the $LASTSUBDIR/run.properties file."
-         for dir in nowcast hindcast; do
-            if [[ -d $LASTSUBDIR/$dir ]]; then
-               checkFileExistence $LASTSUBDIR/$dir "run properties file" run.properties
-               COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${LASTSUBDIR}/$dir/run.properties`
-               logMessage "The cold start datetime from the run.properties file is ${COLDSTARTDATE}."
-               break
-            fi
-         done
+         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory ${LASTSUBDIR}. The COLDSTARTDATE will therefore be determined from the ColdStartTime property in the $LASTSUBDIR (nowcast or hindcast) run.properties file."
       fi
+      for dir in nowcast hindcast; do
+         if [[ -d $LASTSUBDIR/$dir ]]; then
+            configColdStartDate=$COLDSTARTDATE
+            checkFileExistence $LASTSUBDIR/$dir "run properties file" run.properties
+            COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${LASTSUBDIR}/$dir/run.properties`
+            logMessage "The cold start datetime from the run.properties file is ${COLDSTARTDATE}."
+            if [[ $configColdStartDate != $COLDSTARTDATE ]]; then
+               logMessage "The ASGS config file set the COLDSTARTDATE to '$configColdStartDate' but the value found from the '$LASTSUBDIR/$dir/run.properties' file was '$COLDSTARTDATE'. The value from the run.properties file will be used."
+            fi 
+            break
+         fi
+      done
       checkHotstart $hotstartPath $HOTSTARTFORMAT 67
    fi
 fi
@@ -2381,7 +2385,7 @@ while [ true ]; do
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
          WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
-         tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+         tlimits=( $( head -n 1 $preFile | awk '{ print $(NF-1)" "($NF) }' ) )
          owiWinPre["startDateTime"]=${tlimits[0]}
          owiWinPre["endDateTime"]=${tlimits[1]}
          # determine the number of blank snaps (if any)
@@ -2462,7 +2466,7 @@ while [ true ]; do
          preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json)
          winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json)
          WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
-         tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+         tlimits=( $( head -n 1 $preFile | awk '{ print $(NF-1)" "($NF) }' ) )
          owiWinPre["startDateTime"]=${tlimits[0]}
          owiWinPre["endDateTime"]=${tlimits[1]}
          # determine the number of blank snaps (if any)
@@ -3040,7 +3044,7 @@ while [ true ]; do
             preFile=$(bashJSON.pl --key winPrePressureFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
             winFile=$(bashJSON.pl --key winPreVelocityFile < NAMtoOWIRamp.pl.json 2>> $SYSLOG)
             WTIMINC=$(bashJSON.pl --key winPreWtimincSeconds < NAMtoOWIRamp.pl.json)
-            tlimits=( $( head -n 1 $preFile | awk '{ print ($NF-1)" "(NF) }' ) )
+            tlimits=( $( head -n 1 $preFile | awk '{ print $(NF-1)" "($NF) }' ) )
             owiWinPre["startDateTime"]=${tlimits[0]}
             owiWinPre["endDateTime"]=${tlimits[1]}
             # determine the number of blank snaps (if any)
