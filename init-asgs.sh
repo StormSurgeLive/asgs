@@ -412,6 +412,8 @@ fi
 echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"                    > adcirclive/etc/bashrc
 echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive"                   >> adcirclive/etc/bashrc
 echo "export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile" >> adcirclive/etc/bashrc
+echo "alias adcl='pushd \$ADCIRCLIVE_ROOT'; dirs -c"                  >> adcirclive/etc/bashrc
+echo "alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"               >> adcirclive/etc/bashrc
 
 ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
 
