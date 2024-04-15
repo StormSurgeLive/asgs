@@ -407,3 +407,14 @@ else
   printf "\t$cmd\n"
   echo
 fi
+
+echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"  > adcirclive/etc/bashrc
+echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR"            >> adcirclive/etc/bashrc
+ln -s ./asgsh $SCRIPTDIR/adcirclive/bin
+
+echo
+echo "** ADCIRC Live Users, take note:"
+echo "You may wish to add the following to your shell's start up file:"
+echo
+echo "  source $SCRIPTDIR/adcirclive/etc/bashrc"
+echo
