@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+PWD=$(pwd)
+PWD=${PWD##*/}
+BKPTGZ=${1:-$HOME/ASGS-SAVE-${PWD}.tgz}
+BKPMD5=${2:-./ASGS-SAVE-MANIFEST.MD5}
+BKPMETA=./ASGS-SAVE-META.txt
+BKPMAN=ASGS-MANIFEST
+
+if [[ -e "$BKPMD5" || -e "$BKPMETA" ]]; then
+  echo Directory appears to have been restored previously or in the middle of a backup, run DELETE and retore again if your intent ...
+  exit 1
+fi
+
+USE_SSH=no
+if [[ $BKPTGZ =~ ":" ]]; then
+  USE_SSH=yes
+fi
+
+# check metafile
+echo Retrieving meta data ...
+if [ "$USE_SSH" == "yes" ]; then
+  HOST=$(echo "$BKPTGZ" | awk -F: '{print $1}')
+  FILE=$(echo "$BKPTGZ" | awk -F: '{print $2}')
+  ssh $HOST "cat $FILE" | tar zxvf - $BKPMETA $BKPMD5
+else
+  tar zxvf $BKPTGZ $BKPMETA $BKPMD5
+fi
+
+# read meta data file
+BKP_DATE=$(head -n 2 $BKPMETA | tail -n 1)
+BKP_GITSHA=$(head -n 3 $BKPMETA | tail -n 1)
+BKP_PWD=$(head -n 4 $BKPMETA | tail -n 1)
+BKP_MACHINE=$(head -n 5 $BKPMETA | tail -n 1)
+BKP_MD5HASH=$(head -n 6 $BKPMETA | tail -n 1)
+
+# verify meta
+THIS_DATE=$(date "+%s %z")                            # date as unix epoch (local time)
+THIS_GITSHA=$(git log | head -n 1 | awk '{print $2}') # ASGS SHA
+THIS_PWD=$(pwd)                                       # ASGS absolute path location
+THIS_MACHINE=$(bin/guess platform)                    # machine name (bin/guess platform)
+THIS_MD5HASH=$(md5sum $BKPMD5 | awk '{print $1}')     # md5 of the digest file, $BKPMD5
+
+FATAL=0
+WARNING=0
+if [ "$BKP_PWD" != "$THIS_PWD" ]; then
+  echo
+  echo "FATAL: ASGS original directory mismatch, need to be in: $BKP_PWD"
+  echo "  to fix, create this directory path or cd into and rerun the restore,"
+  FATAL=$(($FATAL+1))
+fi
+
+if [ "$BKP_MD5HASH" != "$THIS_MD5HASH" ]; then
+  echo
+  echo "FATAL: original $BKPMD5 not detected, requires file with `md5sum` of: $BKP_MD5HASH"
+  echo "  to fix, manually verify the $BKPTGZ contains the expected set of files."
+  FATAL=$(($FATAL+1))
+fi
+
+if [ "$FATAL" -gt 0 ]; then
+  echo
+  echo $FATAL FATALs detected.
+  read -p "Type in the word 'PROCEED' if you really wish to continue with the restoration: " PROCEED 
+  if [ "$PROCEED" != "PROCEED" ]; then
+    echo restoration has been cancelled...
+    rm -v $BKPMETA $BKPMD5 ./$BKPMAN 2> /dev/null
+    exit 1
+  fi
+fi
+
+if [ "$BKP_GITSHA" != "$THIS_GITSHA" ]; then
+  echo
+  echo "WARNING: ASGS version mismatch, backed up with ASGS commit SHA#: '$BKP_GITSHA'"
+  echo "  this is usually ok, but to fix, checkout correct version with the following command, then run restore again:"
+  echo
+  echo "    git checkout $BKP_GITSHA"
+  WARNING=$(($WARNING+1))
+fi
+
+if [ "$BKP_MACHINE" != "$THIS_MACHINE" ]; then
+  echo
+  echo "WARNING: host machine mismatch, original machine: $BKP_MACHINE"
+  echo "  to fix, goto to the original machine or ignore if no fatal errors are present,"
+  echo "  however if the original machine is a different architecture things probably won't"
+  echo "  work."
+  WARNING=$(($WARNING+1))
+fi
+
+PROCEED=
+if [ "$WARNING" -gt 0 ]; then
+  echo
+  echo $WARNING WARNINGs detected.
+  read -p "Type in the word 'PROCEED' if you really wish to continue with the restoration: " PROCEED 
+  if [ "$PROCEED" != "PROCEED" ]; then
+    echo restoration has been cancelled...
+    rm -v $BKPMETA $BKPMD5 ./$BKPMAN 2> /dev/null
+    exit 1
+  fi
+fi
+
+PROCEED=
+echo
+read -p "Type in the word 'CONFIRM' if you really wish to continue with the restoration: " CONFIRM 
+if [ "$CONFIRM" != "CONFIRM" ]; then
+  echo restoration has been cancelled...
+  rm -v $BKPMETA $BKPMD5 ./$BKPMAN 2> /dev/null
+  echo
+  exit 1
+fi
+
+# untar/gunzip
+if [ "$USE_SSH" == "yes" ]; then
+  HOST=$(echo "$BKPTGZ" | awk -F: '{print $1}')
+  FILE=$(echo "$BKPTGZ" | awk -F: '{print $2}')
+  ssh $HOST "cat $FILE" | tar zxvf -
+else
+  tar zxvf $BKPTGZ
+fi
+
+# verify checksums 
+echo Verifying the integrity of the restored files $BKPMD5 ...
+FAILED=0
+if [ -e "$BKPMD5" ]; then
+  OLDIFS=$IFS
+  IFS=$'\n'
+  for line in $(cat $BKPMD5 | grep -v $BKPMAN); do
+    HASH=$(echo $line    | awk '{print $1}')
+    FILE=$(echo $line    | awk '{print $2}')
+    if [ ! -e $FILE ]; then
+      echo "file not found, bad restore? $FILE"
+    fi
+    VHASH=$(md5sum $FILE | awk '{print $1}')
+    if [ "$HASH" != "$VHASH" ]; then
+      echo verification failed for $FILE
+      FAILED=$(($FAILED+1))
+    fi
+  done
+  if [ $FAILED -gt 0 ]; then
+    echo $'\u274c' $FAILED files failed integrity verification
+  else
+    echo cleaning up ...
+    rm -v $BKPMETA $BKPMD5  ./$BKPMAN
+    echo $'\u2714' All files listed in $BKPMD5 were verified successfully
+  fi
+  IFS=$OLDIF
+fi
