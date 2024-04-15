@@ -35,6 +35,8 @@ B=$(tput bold)
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
 
+SCRIPTDIR=$(pwd)
+
 # preflight checkes and warnings
 if [ -n "$_ASGSH_PID" ]; then
   echo
@@ -223,7 +225,6 @@ if [ -z "$BATCH" ]; then
     fi
     echo
   fi
-  SCRIPTDIR=$(pwd)
 
   echo
   echo "Platform name       : $platform"
@@ -408,9 +409,11 @@ else
   echo
 fi
 
-echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"  > adcirclive/etc/bashrc
-echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR"            >> adcirclive/etc/bashrc
-ln -s ./asgsh $SCRIPTDIR/adcirclive/bin
+echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"                    > adcirclive/etc/bashrc
+echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive"                   >> adcirclive/etc/bashrc
+echo "export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile" >> adcirclive/etc/bashrc
+
+ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
 
 echo
 echo "** ADCIRC Live Users, take note:"

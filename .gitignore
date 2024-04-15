@@ -39,3 +39,4 @@ profiles/
 git/
 asgs_config*
 adcirclive/etc/bashrc
+adcirclive/bin/asgsh
