@@ -1,19 +1,26 @@
 #!/usr/bin/env perl
 package local::bin::adcirclive;
 
+# from core
 use v5.010;
 use strict;
 use warnings;
+use Getopt::Long qw(GetOptionsFromArray);
 use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
-use Getopt::Long qw(GetOptionsFromArray);
+
+# from local lib (should be fatpack'd for distribution)
+use Config::Tiny;
 use App::Perlbrew::HTTP qw(http_user_agent_program http_download http_get http_postJSON);
 
 use constant {
     FORCE        => 1,
     EXIT_SUCCESS => 0,
     EXIT_ERROR   => 255,
+    HOME         => ( getpwuid($<) )[7],
 };
+
+my $config = Config::Tiny->read(sprintf(qq{%s/asgs-global.conf}, HOME));
 
 #http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
 #my $url  = q{https://api.restful-api.dev/objects};
@@ -28,10 +35,11 @@ my $subcommand = shift @ARGV;
 
 my $subcommands = {
     asgs   => sub { cmd_asgs( \@ARGV ) },     # general passthrough command to asgs (run anything without a direct command)
-    auth   => sub { },                        # set config information, default is to store it in ~/asgs-global.conf
     build  => sub { cmd_build( \@ARGV ) },    # primarily access to "asgs build adcirc"
-    config => sub { },                        # general setting of configs (like, "git config")
     list   => sub { cmd_list( \@ARGV ) },     # primarily to list adcirc versions
+
+    auth   => sub { },                        # set config information, default is to store it in ~/asgs-global.conf
+    config => sub { },                        # general setting of configs (like, "git config")
     use    => sub { },                        # primarily to select and adcirc version to load
     xdmf   => sub { },                        # tools.adcirc.live API call
     xdmftv => sub { },                        # tools.adcirc.live API call
@@ -61,11 +69,12 @@ EOCMD
     return $exit_code;
 }
 
+# direct asgsh's "build adcirc"
 sub cmd_build {
     my $ARGV = shift;
     my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
     my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
-    my $profile = $opts->{profile};
+    my $profile         = $opts->{profile};
     system(<<EOCMD);
       asgsh -A "build adcirc" -p $profile        # run ADCIRC wizard directly
 EOCMD
@@ -76,9 +85,9 @@ sub cmd_list {
     my $thing = shift @$ARGV // q{adcirc};
     my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
     my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
-    my $profile = $opts->{profile};
+    my $profile         = $opts->{profile};
     system(<<EOCMD);
-      asgsh -A "list $thing" | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers 
+      asgsh -A "list $thing" --profile $profile | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers 
 EOCMD
 }
 
