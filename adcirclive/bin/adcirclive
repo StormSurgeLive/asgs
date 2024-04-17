@@ -4,21 +4,83 @@ package local::bin::adcirclive;
 use v5.010;
 use strict;
 use warnings;
-use FindBin qw/$Bin/;
+use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
+use Getopt::Long qw(GetOptionsFromArray);
 use App::Perlbrew::HTTP qw(http_user_agent_program http_download http_get http_postJSON);
 
 use constant {
-  FORCE => 1,
+    FORCE        => 1,
+    EXIT_SUCCESS => 0,
+    EXIT_ERROR   => 255,
 };
+
+#http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
+#my $url  = q{https://api.restful-api.dev/objects};
+#my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
+#print http_postJSON($url, $json);
+
+#my $ret  = GetOptionsFromArray($ARGV, $opts, qw/foo=s/);
+#require Data::Dumper;
+#print Data::Dumper::Dumper($opts);
 
 my $subcommand = shift @ARGV;
 
-#http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
+my $subcommands = {
+    asgs   => sub { cmd_asgs( \@ARGV ) },     # general passthrough command to asgs (run anything without a direct command)
+    auth   => sub { },                        # set config information, default is to store it in ~/asgs-global.conf
+    build  => sub { cmd_build( \@ARGV ) },    # primarily access to "asgs build adcirc"
+    config => sub { },                        # general setting of configs (like, "git config")
+    list   => sub { cmd_list( \@ARGV ) },     # primarily to list adcirc versions
+    use    => sub { },                        # primarily to select and adcirc version to load
+    xdmf   => sub { },                        # tools.adcirc.live API call
+    xdmftv => sub { },                        # tools.adcirc.live API call
+};
 
-my $url  = q{https://api.restful-api.dev/objects};
-my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
+if ( $subcommands->{$subcommand} ) {
+    exit $subcommands->{$subcommand}->();
+}
+warn qq{"$subcommand" is not a supported subcommand!\n};
+exit EXIT_ERROR;
 
-print http_postJSON($url, $json);
+# subcommand to run any ASGS script available via a profile's PATH
+sub cmd_asgs {
+    my $ARGV            = shift;
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
+    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
+    my $command = join q{ }, @$ARGV; # command is everything left on the commandline
+    if (not $command) {
+      warn qq{Usage:\n\tadcirclive asgs <COMMAND>"\n};
+      return EXIT_ERROR;
+    }
+    my $profile = $opts->{profile};
+    my $exit_code = system(<<EOCMD);
+      source profiles/$profile        # assumed default profile
+      asgsh -A "$command" -p $profile # quotes around the command variable are necessary
+EOCMD
+    return $exit_code;
+}
+
+sub cmd_build {
+    my $ARGV = shift;
+    system(<<EOCMD);
+      source profiles/default-asgs # assumed default profile
+      init-adcirc.sh               # run ADCIRC wizard directly
+EOCMD
+}
+
+# access to asgsh's "list" command
+sub cmd_list {
+    my $ARGV            = shift;
+    my $opts->{profile} = q{default-asgs};                                      # set a reasonable default for the profile to 'source' first
+    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
+    $ENV{_ASGSH_PID} = $$;
+    my $thing = shift @$ARGV // q{adcirc};
+    my $profile = $opts->{profile};
+    system(<<EOCMD);
+      source profiles/$profile        # assumed default profile
+      list $thing | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers 
+EOCMD
+}
 
 1;

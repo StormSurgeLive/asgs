@@ -325,6 +325,14 @@ sub _install_asgs_shell {
     print $fh $env_summary;
     close $fh;
 
+    # writes a seperate profile for "adcirclive", unless the file already
+    # exists 
+    if (! -e qq{$asgs_meta_dir/adcirclive} ) {
+      open my $fh, q{>}, qq{$asgs_meta_dir/adcirclive} || die $!;
+      print $fh $env_summary;
+      close $fh;
+    }
+
     # this file supplies the functionality of asgsh
     my $rcfile = qq{$scriptdir/cloud/general/DOT-asgs-brew.sh};
 
@@ -410,13 +418,23 @@ if [ -n "\$_ASGSH_PID" ]; then
 fi
 
 export _asgsh_splash=1
+export profile=$asgs_default_profile
 
 # process options passed directly to `asgsh`
-options=\$(getopt -u -o "dhl:p:rvx" -- "\$@")
+options=\$(getopt -u -o "A:dhl:p:rvx" -- "\$@")
 eval set -- "\$options"
 while true
   do
     case \$1 in
+      -A) # added to support generic commands, requires the form;
+          #  asgsh -A "full command to run"
+        shift
+        export _asgsh_flag_do_cmd=\$1
+        shift
+        _asgsh_flag_do_cmd="\$_asgsh_flag_do_cmd \$@"
+        export _asgsh_flag_do=run_any
+        unset  _asgsh_splash
+        ;;
       -d) set -x
           export _asgs_debug_mode=1
           ;;
@@ -468,7 +486,6 @@ fi
 
 # denotes we're in an active asgsh session
 export _ASGSH_PID=\$\$
-export profile=$asgs_default_profile
 export HDF5_USE_FILE_LOCKING=FALSE
 
 # denotes which environmental variables are saved with a profile - includes variables that
