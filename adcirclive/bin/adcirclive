@@ -40,6 +40,7 @@ my $subcommands = {
 if ( $subcommands->{$subcommand} ) {
     exit $subcommands->{$subcommand}->();
 }
+
 warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
 
@@ -48,38 +49,36 @@ sub cmd_asgs {
     my $ARGV            = shift;
     my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
     my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
+    my $profile = $opts->{profile};
     my $command = join q{ }, @$ARGV; # command is everything left on the commandline
     if (not $command) {
       warn qq{Usage:\n\tadcirclive asgs <COMMAND>"\n};
       return EXIT_ERROR;
     }
-    my $profile = $opts->{profile};
     my $exit_code = system(<<EOCMD);
-      source profiles/$profile        # assumed default profile
-      asgsh -A "$command" -p $profile # quotes around the command variable are necessary
+      asgsh -A "$command" -p $profile            # quotes around the command variable are necessary
 EOCMD
     return $exit_code;
 }
 
 sub cmd_build {
     my $ARGV = shift;
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
+    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
+    my $profile = $opts->{profile};
     system(<<EOCMD);
-      source profiles/default-asgs # assumed default profile
-      init-adcirc.sh               # run ADCIRC wizard directly
+      asgsh -A "build adcirc" -p $profile        # run ADCIRC wizard directly
 EOCMD
 }
 
 # access to asgsh's "list" command
 sub cmd_list {
-    my $ARGV            = shift;
-    my $opts->{profile} = q{default-asgs};                                      # set a reasonable default for the profile to 'source' first
-    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
-    $ENV{_ASGSH_PID} = $$;
     my $thing = shift @$ARGV // q{adcirc};
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
+    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
     my $profile = $opts->{profile};
     system(<<EOCMD);
-      source profiles/$profile        # assumed default profile
-      list $thing | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers 
+      asgsh -A "list $thing" | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers 
 EOCMD
 }
 
