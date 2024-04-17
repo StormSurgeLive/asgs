@@ -384,7 +384,7 @@ save() {
   # includes an 'export' line for each variable asgsh cares about; this
   # is defined as part of the shell installation by asgs-brew.pl
   for e in $_ASGS_EXPORTED_VARS; do
-    echo "export ${e}='"${!e}"'"  >> "$ASGS_META_DIR/${NAME}.$$.tmp"
+    echo "export ${e}=\"${!e}\""      >> "$ASGS_META_DIR/${NAME}.$$.tmp"
   done
   mv "$ASGS_META_DIR/${NAME}.$$.tmp" "$ASGS_META_DIR/${NAME}"
 

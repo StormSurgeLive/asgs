@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Needed for ./init-asgs.sh, bin/guess
-export WORK=${WORK:-/work}
-export SCRATCH=${SCRATCH:-/scratch}
+export WORK=${WORK:-$HOME/work}
+export SCRATCH=${SCRATCH:-$HOME/scratch}
 export DEFAULT_COMPILER=gfortran
 export HPCENV=debian.local
 export HPCENVSHORT=debian
