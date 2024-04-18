@@ -20,7 +20,14 @@ use constant {
     HOME         => ( getpwuid($<) )[7],
 };
 
-my $config = Config::Tiny->read(sprintf(qq{%s/asgs-global.conf}, HOME));
+my $config_file = sprintf(qq{%s/asgs-global.conf}, HOME);
+my $config = undef;
+if (-e $config_file) {
+  $config = Config::Tiny->read($config_file);
+}
+else {
+  warn qq{Configuration file, "$config_file", not found. Functionality will be limited.};
+}
 
 #http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
 #my $url  = q{https://api.restful-api.dev/objects};
@@ -34,7 +41,7 @@ my $config = Config::Tiny->read(sprintf(qq{%s/asgs-global.conf}, HOME));
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
-    asgs   => sub { cmd_asgs( \@ARGV ) },     # general passthrough command to asgs (run anything without a direct command)
+    asgsh  => sub { cmd_asgs( \@ARGV ) },     # general passthrough command to asgs (run anything without a direct command)
     build  => sub { cmd_build( \@ARGV ) },    # primarily access to "asgs build adcirc"
     list   => sub { cmd_list( \@ARGV ) },     # primarily to list adcirc versions
 
