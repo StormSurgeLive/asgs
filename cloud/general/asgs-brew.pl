@@ -537,7 +537,7 @@ sub _get_env_summary {
         # filter stuff in local %ENV here that we don't want
         # dumped into the profiles
         next GETENV if grep { m/^$envar$/ } (qw/SCRIPTDIR HDF5_USE_FILE_LOCKING/);
-        $summary .= sprintf( qq{export %s=%s\n}, $envar, $ENV{$envar} // q{} );
+        $summary .= sprintf( qq{export %s="%s"\n}, $envar, $ENV{$envar} // q{} );
 
         # save to generate list of exported variables added to the locally
         # generated ./asgsh
@@ -683,7 +683,7 @@ sub get_steps {
                 PERL5LIB           => { value => qq{$scriptdir/PERL},                    how => q{append} },               # place for distributed Perl libraries
                 ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta},            how => q{replace} },              # where to track ADCIRC builds (always)
                 ASGS_META_DIR      => { value => qq{$asgs_home/profiles},                how => q{replace} },              # where to track ASGS profiles (always)
-                ASGS_BREW_FLAGS    => { value => qq{'$brewflags'},                       how => q{replace} },              # make brew flags available for later use
+                ASGS_BREW_FLAGS    => { value => qq{$brewflags},                         how => q{replace} },              # make brew flags available for later use
                 ASGS_HOME          => { value => qq{$asgs_home},                         how => q{replace} },              # used in preference of $HOME in most cases
                 ASGS_TMPDIR        => { value => qq{$asgs_tmpdir},                       how => q{replace} },              # used in preference of $TMPDIR in most cases
                 ASGS_MACHINE_NAME  => { value => qq{$asgs_machine_name},                 how => q{replace} },              # machine referred to as in platforms.sh & cmplrflags.mk
