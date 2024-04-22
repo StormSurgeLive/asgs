@@ -473,7 +473,7 @@ export HDF5_USE_FILE_LOCKING=FALSE
 
 # denotes which environmental variables are saved with a profile - includes variables that
 # are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
-export _ASGS_EXPORTED_VARS="$exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT"
+export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -536,8 +536,8 @@ sub _get_env_summary {
 
         # filter stuff in local %ENV here that we don't want
         # dumped into the profiles
-        next GETENV if grep { m/^$envar$/ } (qw/SCRIPTDIR HDF5_USE_FILE_LOCKING/);
-        $summary .= sprintf( qq{export %s="%s"\n}, $envar, $ENV{$envar} // q{} );
+        next GETENV if grep { m/^$envar$/ } (qw/HDF5_USE_FILE_LOCKING/);
+        $summary .= sprintf( qq{export %s=%s\n}, $envar, $ENV{$envar} // q{} );
 
         # save to generate list of exported variables added to the locally
         # generated ./asgsh

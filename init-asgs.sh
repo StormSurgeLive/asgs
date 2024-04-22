@@ -43,17 +43,9 @@ if [ -n "$_ASGSH_PID" ]; then
   exit 1
 fi
 
-while getopts "bL:mp:x:" optname; do
+while getopts "AbL:mp:x:" optname; do
    case $optname in
       b) BATCH=1
-         ;;
-      m) # invokes minimal asgs-brew.pl command using "--run-steps setup-env"
-         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
-           EXTRA_ASGSBREW_OPTS="--run-steps setup-env"
-         else
-           echo "-m can't be used with -x"
-           exit 1
-         fi
          ;;
       L|p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
@@ -62,6 +54,22 @@ while getopts "bL:mp:x:" optname; do
            EXTRA_ASGSBREW_OPTS=${OPTARG}
          else
            echo "-x can't be used with -m"
+           exit 1
+         fi
+         ;;
+      A) # invokes minimal asgs-brew.pl to support ADCIRC 
+         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
+           EXTRA_ASGSBREW_OPTS="--run-steps setup-env,openmpi,hdf5,netcdf4"
+         else
+           echo "-A can't be used with -x"
+           exit 1
+         fi
+         ;;
+      m) # invokes minimal asgs-brew.pl command using "--run-steps setup-env"
+         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
+           EXTRA_ASGSBREW_OPTS="--run-steps setup-env"
+         else
+           echo "-m can't be used with -x"
            exit 1
          fi
          ;;
@@ -215,6 +223,7 @@ if [ -z "$BATCH" ]; then
     fi
     echo
   fi
+  SCRIPTDIR=$(pwd)
 
   echo
   echo "Platform name       : $platform"
@@ -224,7 +233,7 @@ if [ -z "$BATCH" ]; then
   if [ -n "$PLATFORM_INIT" ]; then
     echo "Platform Init       : $PLATFORM_INIT"
   fi
-  echo "SCRIPTDIR           : $(pwd)"
+  echo "SCRIPTDIR           : $SCRIPTDIR"
   echo "ASGS HOME           : $ASGS_HOME"
   echo "WORK                : $WORK"
   echo "SCRATCH             : $SCRATCH"
