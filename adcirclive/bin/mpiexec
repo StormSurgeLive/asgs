@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+#
+# This wrapper find the next mpiexec in PATH, after itself if
+# one exists ... 
+#
+
+this=$(which mpiexec)
+ACTUAL_MPIEXEC=$this
+for path in $(adcirclive show path); do
+  if [[ -e "$path/mpiexec" && "$path/mpiexec" != "$this" ]]; then
+    ACTUAL_MPIEXEC=$(echo $path/mpiexec | sed "s/\/\//\//g")
+    break
+  fi
+done
+
+_PWD=$(pwd)
+adcirclive exec "cd $_PWD && $ACTUAL_MPIEXEC $@"

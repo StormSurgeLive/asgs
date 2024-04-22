@@ -39,3 +39,5 @@ profiles/
 git/
 asgs_config*
 bin/asgs-lint
+adcirclive/etc/bashrc
+adcirclive/bin/asgsh
