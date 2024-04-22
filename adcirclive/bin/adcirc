@@ -1,0 +1,5 @@
+#!/usr/bin/env bash 
+
+BIN=$(adcirclive which adcirc)
+
+$BIN $@
