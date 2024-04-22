@@ -28,6 +28,8 @@ _guess_platform()
     default_platform=frontera
   elif [ 1 -eq $(echo $HOSTNAME | grep -c soldier) ]; then
     default_platform=desktop
+  elif [ "$WSL_DISTRO_NAME" == "Ubuntu" ]; then
+    default_platform=wsl-ubuntu
   fi
 
   # return if platform is not unknown 
@@ -115,7 +117,11 @@ _guess_platform()
   elif [ -e /etc/debian_version ]; then
     default_platform=debian
   elif [ -e /etc/redhat-release ]; then
-    default_platform=rhel
+    if [[ $(cat /etc/redhat-release | grep -ic CentOS) == 1 ]]; then 
+      default_platform=centos7
+    else
+      default_platform=rhel
+    fi
   fi
 
   # return if platform is not unknown 

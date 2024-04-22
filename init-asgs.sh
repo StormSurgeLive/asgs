@@ -429,7 +429,9 @@ if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
   echo "alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                          >> adcirclive/etc/bashrc
   echo "alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                        >> adcirclive/etc/bashrc
 
+  # gives access to "asgsh" via updated PATH
   ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
+
   cp adcirclive/etc/bashrc adcirclive/etc/initial-bashrc
 
   echo "adcirclive build v55.02"                                                 >> adcirclive/etc/initial-bashrc
@@ -445,7 +447,7 @@ if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "The following line was added to your ~/.bashrc file:"                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "  source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                    >> adcirclive/etc/initial-bashrc
+  echo "  source $SCRIPTDIR/adcirclive/etc/bashrc           "                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "To get started, type the command                    "                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc

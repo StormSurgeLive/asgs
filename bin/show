@@ -12,6 +12,13 @@ _show() {
     return 
   fi
   case "${1}" in
+    adcirc)
+      if [ -n "${ADCIRC_PROFILE_NAME}" ]; then
+        echo ${ADCIRC_PROFILE_NAME}
+      else
+        echo "${W} ADCIRC_PROFILE_NAME is not defined as anything. Try, 'define config /path/to/asgs/config.sh' first"
+      fi
+      ;;
     config)
       if [ -n "${ASGS_CONFIG}" ]; then
         echo "${I} ASGS_CONFIG is defined as '${ASGS_CONFIG}'"
@@ -123,7 +130,6 @@ _show() {
       ;;
     ld_include_path)
       if [ -n "${LD_INCLUDE_PATH}" ]; then
-        echo "${I} LD_INCLUDE_PATH is consists of the following paths:"
         echo -e ${LD_INCLUDE_PATH//:/\\n}
       else
         echo "${W} LD_INCLUDE_PATH is not defined, which is concerning. Did you complete installation of ASGS?"
@@ -131,7 +137,6 @@ _show() {
       ;;
     ld_library_path)
       if [ -n "${LD_LIBRARY_PATH}" ]; then
-        echo "${I} LD_LIBRARY_PATH is consists of the following paths:"
         echo -e ${LD_LIBRARY_PATH//:/\\n}
       else
         echo "${W} LD_LIBRARY_PATH is not defined, which is concerning. Did you complete installation of ASGS?"
@@ -139,7 +144,6 @@ _show() {
       ;;
     path)
       if [ -n "${PATH}" ]; then
-        echo "${I} PATH is consists of the following paths:"
         echo -e ${PATH//:/\\n}
       else
         echo "${W} PATH is not defined, which is concerning. Did you complete installation of ASGS?"
