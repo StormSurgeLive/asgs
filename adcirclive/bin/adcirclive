@@ -5,6 +5,7 @@ package local::bin::adcirclive;
 use v5.010;
 use strict;
 use warnings;
+use Fcntl ':mode';
 use Getopt::Long qw(GetOptionsFromArray);
 use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
@@ -23,6 +24,15 @@ use constant {
 my $config_file = sprintf(qq{%s/asgs-global.conf}, HOME);
 my $config = undef;
 if (-e $config_file) {
+  my $_mode         = (stat($config_file))[2];
+  my $user_rwx      = ($_mode & S_IRWXU) >> 6;
+  my $group_read    = ($_mode & S_IRGRP) >> 3;
+  my $other_execute = $_mode & S_IXOTH;
+  my $mode = sprintf "%d%d%d", $user_rwx, $group_read, $other_execute;
+  if ($mode ne 600) {
+    warn qq{"$config_file" found, but not set to 0600. Fixing. ...\n};
+    chmod 0600, $config_file; 
+  }
   $config = Config::Tiny->read($config_file);
 }
 else {
@@ -41,14 +51,14 @@ else {
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
-    asgsh  => sub { cmd_asgsh( \@ARGV ) },   # general passthrough command to asgs (run anything without a direct command)
-    build  => sub { cmd_build( \@ARGV ) },   # primarily access to "asgs build adcirc"
-    list   => sub { cmd_list(  \@ARGV ) },   # primarily to list adcirc versions
-    shell  => sub { cmd_shell( \@ARGV ) },   # run asgsh (ASGS Shell)
-    update => sub { cmd_update(\@ARGV ) },   # run "update-asgs"
+    asgsh  => sub {cmd_asgsh(\@ARGV)  },   # general passthrough command to asgs (run anything without a direct command)
+    build  => sub {cmd_build(\@ARGV)  },   # primarily access to "asgs build adcirc"
+    config => sub {cmd_config(\@ARGV) },   # general setting of configs (like, "git config")
+    list   => sub {cmd_list(\@ARGV)   },   # primarily to list adcirc versions
+    shell  => sub {cmd_shell(\@ARGV)  },   # run asgsh (ASGS Shell)
+    update => sub {cmd_update(\@ARGV) },   # run "update-asgs"
 
     auth   => sub { },                       # set config information, default is to store it in ~/asgs-global.conf
-    config => sub { },                       # general setting of configs (like, "git config")
     use    => sub { },                       # primarily to select and adcirc version to load
     xdmf   => sub { },                       # tools.adcirc.live API call
     xdmftv => sub { },                       # tools.adcirc.live API call
@@ -60,6 +70,109 @@ if ( $subcommands->{$subcommand} ) {
 
 warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
+
+# subcommand add a configuration to $config_file 
+sub cmd_config {
+    my $ARGV    = shift;
+    my $action  = shift @$ARGV; # looking for 'get' or 'set'
+
+    # dump help section if no supported $action is specified
+    if (not $action or not grep {/$action/} qw/delete dump get set/) {
+      cmd_config_help();
+      return EXIT_ERROR;
+    }
+
+    # catch "dump" early, do it, the return success
+    if ($action eq "dump") {
+      print $config->write_string;
+      return EXIT_SUCCESS;
+    }
+
+    my $command = join " ", @$ARGV; # command is everything left on the commandline
+    my ($var, $value)    = split / +/, $command;
+
+    my ($section, $name) = split /\./, $var;
+    if (not $section or not $name) {
+      my $msg = qq{"$var" is not a valid configuration variable identifier, requires the form: SECTION.NAME};
+      cmd_config_help($msg);
+      return EXIT_ERROR;
+    } 
+
+    # perform actions
+    if ($action eq "get") {
+      if (not exists $config->{$section}->{$name}) {
+        my $msg = qq{"$section.$name" does not exist in $config_file};
+        cmd_config_help($msg);
+        return EXIT_ERROR;
+      } 
+      printf qq{%s: %s\n}, $var, $config->{$section}->{$name};
+    }
+    elsif ($action eq "delete") {
+      if (not exists $config->{$section}->{$name}) {
+        my $msg = qq{"$section.$name" does not exist in $config_file};
+        cmd_config_help($msg);
+        return EXIT_ERROR;
+      } 
+      delete $config->{$section}->{$name};
+      printf qq{%s: deleted!\n}, $var;
+      $config->write($config_file);
+    }
+    elsif ($action eq "set" and $value) {
+      if (not exists $config->{$section}->{$name}) {
+        my $msg = qq{"$section.$name" does not exist in $config_file};
+        cmd_config_help($msg);
+        return EXIT_ERROR;
+      } 
+      my $old = $config->{$section}->{$name};
+      $config->{$section}->{$name} = $value;
+      printf qq{%s: %s -> %s\n}, $var, $old, $config->{$section}->{$name};
+      $config->write($config_file);
+    }
+    return EXIT_SUCCESS;
+}
+
+sub cmd_config_help(;$) {
+      my $message = shift // q{};
+      my $header  = q{};
+      if ($message) {
+        $header = <<EOF;
+Message:
+  $message
+EOF
+      }
+      warn <<EOF;
+$header
+Usage:
+  adcirclive delete|dump|get|set [section.setting [VALUE]]
+
+To see all values, use the 'dump' action,
+
+  adcirclive config dump
+
+To set a value, use the 'set' action,
+
+  adcirclive config set adcirclive.key "some value"
+  adcirclive config set adcirclive.secret "some other value"
+
+To show a specific value, use the 'get' action,
+
+  adcirclive config get adcirclive.key
+
+To delete a variable or whole section, use the 'delete' action,
+
+  adcirclive config delete adcirclive.secret
+
+  note: if you want to delete an entire section, you will have to manually edit
+  the configuration file, "$config_file".
+
+For more information, contact us at:
+
+ paid priority support: tools-help\@support.adcirc.live
+ free general support:  hello\@support.adcirc.live
+
+EOF
+}
+
 
 # subcommand to run any ASGS script available via a profile's PATH
 sub cmd_asgsh {
