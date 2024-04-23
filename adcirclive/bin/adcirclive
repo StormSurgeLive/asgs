@@ -69,11 +69,6 @@ EOF
   chmod 0600, $config_file; 
 }
 
-#http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
-#my $url  = q{https://api.restful-api.dev/objects};
-#my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
-#print http_postJSON($url, $json);
-
 #my $ret  = GetOptionsFromArray($ARGV, $opts, qw/foo=s/);
 #require Data::Dumper;
 #print Data::Dumper::Dumper($opts);
@@ -106,6 +101,20 @@ if ( $subcommands->{$subcommand} ) {
 
 warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
+
+sub cmd_auth {
+    my $ARGV    = shift;
+
+# http_postJSON ...:q
+
+
+   #http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
+#my $url  = q{https://api.restful-api.dev/objects};
+#my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
+#print http_postJSON($url, $json);
+
+
+}
 
 sub cmd_activate {
   print qq{Please enter your user key from https://tools.adcirc.live: };
