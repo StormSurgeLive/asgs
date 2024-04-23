@@ -46,6 +46,13 @@ _is_a_num()
   return
 }
 
+# ctrl-c handler
+_exit() {
+  echo
+  echo
+  exit 1
+}
+
 #
 # M E N U  D I S P L A Y  &  S E L E C T I O N  L O G I C
 #
@@ -79,9 +86,12 @@ _show_supported_versions()
       printf "|%-2s) %-33s | %-66s |\n" $num $VERSION "$about"
     done
   fi
+  trap _exit INT
   # final menu entry for custom directory
   num=$(($num+1))
   printf "|%-2s) %-33s | %-66s |\n" $num custom "select this option for custom directory"
+  num=$(($num+1))
+  printf "|%-2s) %-33s | %-66s |\n" $num quit "type 'quit', 'q', or 'ctrl-c' to quit"
   echo  "--"
   echo
   ADCIRCS=($_ADCIRCS custom)
@@ -114,6 +124,9 @@ echo
 
 # Handle selection by number
 if [ -n "$_SELECTED_VERSION" ]; then
+  if [[ "$_SELECTED_VERSION" == "q" || "$_SELECTED_VERSION" == "quit" ]]; then
+    exit
+  fi
   # check for number selection
   _isnum=$(_is_a_num $_SELECTED_VERSION)
   if [ $_isnum -gt -1 ]; then
@@ -198,9 +211,9 @@ Please choose a debug method [1-10]:
   5. netcdf
   6. netcdf_trace
   7. valgrind
-  8. compiler-warnings 
+  8. compiler-warnings
   9. full-not-fpe
- 10. full-not-warnelev 
+ 10. full-not-warnelev
 EOF
 echo
 
@@ -226,11 +239,11 @@ case "${DEBUG}" in
     ;;
   7) DEBUG=valgrind
     ;;
-  8) DEBUG=compiler-warnings 
+  8) DEBUG=compiler-warnings
     ;;
   9) DEBUG=full-not-fpe
     ;;
- 10) DEBUG=full-not-warnelev 
+ 10) DEBUG=full-not-warnelev
     ;;
 esac
 
@@ -244,9 +257,9 @@ fi
 
 echo
 _BUILD_PARALLEL_ADCIRC=yes
-read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC 
+read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC
 if [ -z "$BUILD_PARALLEL_ADCIRC" ]; then
-  BUILD_PARALLEL_ADCIRC=$_BUILD_PARALLEL_ADCIRC 
+  BUILD_PARALLEL_ADCIRC=$_BUILD_PARALLEL_ADCIRC
 fi
 if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
   BUILD_PARALLEL_ADCIRC=no

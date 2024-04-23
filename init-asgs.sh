@@ -59,7 +59,7 @@ while getopts "AbL:mp:x:" optname; do
            exit 1
          fi
          ;;
-      A) # invokes minimal asgs-brew.pl to support ADCIRC 
+      A) # invokes minimal asgs-brew.pl to support ADCIRC
          if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
            EXTRA_ASGSBREW_OPTS="--run-steps setup-env,openmpi,hdf5,netcdf4"
          else

@@ -41,15 +41,17 @@ else {
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
-    asgsh  => sub { cmd_asgs( \@ARGV ) },     # general passthrough command to asgs (run anything without a direct command)
-    build  => sub { cmd_build( \@ARGV ) },    # primarily access to "asgs build adcirc"
-    list   => sub { cmd_list( \@ARGV ) },     # primarily to list adcirc versions
+    asgsh  => sub { cmd_asgsh( \@ARGV ) },   # general passthrough command to asgs (run anything without a direct command)
+    build  => sub { cmd_build( \@ARGV ) },   # primarily access to "asgs build adcirc"
+    list   => sub { cmd_list(  \@ARGV ) },   # primarily to list adcirc versions
+    shell  => sub { cmd_shell( \@ARGV ) },   # run asgsh (ASGS Shell)
+    update => sub { cmd_update(\@ARGV ) },   # run "update-asgs"
 
-    auth   => sub { },                        # set config information, default is to store it in ~/asgs-global.conf
-    config => sub { },                        # general setting of configs (like, "git config")
-    use    => sub { },                        # primarily to select and adcirc version to load
-    xdmf   => sub { },                        # tools.adcirc.live API call
-    xdmftv => sub { },                        # tools.adcirc.live API call
+    auth   => sub { },                       # set config information, default is to store it in ~/asgs-global.conf
+    config => sub { },                       # general setting of configs (like, "git config")
+    use    => sub { },                       # primarily to select and adcirc version to load
+    xdmf   => sub { },                       # tools.adcirc.live API call
+    xdmftv => sub { },                       # tools.adcirc.live API call
 };
 
 if ( $subcommands->{$subcommand} ) {
@@ -60,18 +62,18 @@ warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
 
 # subcommand to run any ASGS script available via a profile's PATH
-sub cmd_asgs {
+sub cmd_asgsh {
     my $ARGV            = shift;
-    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
     my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
     my $profile = $opts->{profile};
     my $command = join q{ }, @$ARGV; # command is everything left on the commandline
     if (not $command) {
-      warn qq{Usage:\n\tadcirclive asgs <COMMAND>"\n};
+      warn qq{Usage:\n\tadcirclive asgsh <COMMAND>"\n};
       return EXIT_ERROR;
     }
     my $exit_code = system(<<EOCMD);
-      asgsh -A "$command" -p $profile            # quotes around the command variable are necessary
+      asgsh -p $profile -A "$command"      # quotes around the command variable are necessary
 EOCMD
     return $exit_code;
 }
@@ -79,7 +81,7 @@ EOCMD
 # direct asgsh's "build adcirc"
 sub cmd_build {
     my $ARGV = shift;
-    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
     my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
     my $profile         = $opts->{profile};
     system(<<EOCMD);
@@ -90,11 +92,22 @@ EOCMD
 # access to asgsh's "list" command
 sub cmd_list {
     my $thing = shift @$ARGV // q{adcirc};
-    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile 
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
     my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
     my $profile         = $opts->{profile};
     system(<<EOCMD);
-      asgsh -A "list $thing" --profile $profile | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers 
+      asgsh -A "list $thing" -p $profile | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers
+EOCMD
+}
+
+# direct asgsh's "build adcirc"
+sub cmd_update {
+    my $ARGV = shift;
+    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
+    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
+    my $profile         = $opts->{profile};
+    system(<<EOCMD);
+      update-asgs --update-shell
 EOCMD
 }
 
