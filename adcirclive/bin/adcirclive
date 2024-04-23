@@ -51,9 +51,9 @@ EOF
   print $fh <<EOF;
 ;
 ; please update with proper information, either manually or
-; by using the "adcirclive config set" command
+; by using the "adcirclive config define" command
 ;
-[adcirclive]
+[authentication]
 apikey=<get from tools.adcirc.live>
 secretkey=<get from tools.adcirc.live>
 
@@ -72,27 +72,36 @@ EOF
 #my $ret  = GetOptionsFromArray($ARGV, $opts, qw/foo=s/);
 #require Data::Dumper;
 #print Data::Dumper::Dumper($opts);
+sub cmd_auth {
+    my $ARGV    = shift;
+
+# http_postJSON ...:q
+#http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
+#my $url  = q{https://api.restful-api.dev/objects};
+#my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
+#print http_postJSON($url, $json);
+
+}
 
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
 
     # in progress
-    auth     => sub {cmd_auth(\@ARGV)},       # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
-    activate => sub {cmd_activate(\@ARGV)},   # initialization wizard
-    asgsh    => sub {cmd_asgsh(\@ARGV)   },   # general passthrough command to asgs (run anything without a direct command)
-    shell    => sub {cmd_shell(\@ARGV)   },   # run asgsh (ASGS Shell)
-
-    # pmuch done
-    build  => sub {cmd_build(\@ARGV)  },   # primarily access to "asgs build adcirc"
-    config => sub {cmd_config(\@ARGV) },   # general setting of configs (like, "git config")
-    list   => sub {cmd_list(\@ARGV)   },   # primarily to list adcirc versions
+    show     => sub {cmd_show(\@ARGV) },
+    define   => sub {cmd_define(\@ARGV) },
 
     # TODO; not started
-    use    => sub { },                       # primarily to select and adcirc version to load
-    xdmf   => sub { },                       # tools.adcirc.live API call
-    xdmftv => sub { },                       # tools.adcirc.live API call
-    update => sub {cmd_update(\@ARGV) },   # run "update-asgs"
+    activate => sub {cmd_activate(\@ARGV)},             # initialization wizard
+    auth     => sub {cmd_auth(\@ARGV)},                 # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
+    asgsh    => sub {cmd_asgsh(\@ARGV)   },             # general passthrough command to asgs (run anything without a direct command)
+    shell    => sub {cmd_shell(\@ARGV)   },             # run asgsh (ASGS Shell)
+    build    => sub {cmd_build(\@ARGV)  },   # primarily access to "asgsh build adcirc"
+    list     => sub {cmd_list(\@ARGV)   },   # primarily to list adcirc versions
+    use      => sub { },                       # primarily to select and adcirc version to load
+    xdmf     => sub { },                       # tools.adcirc.live API call
+    xdmftv   => sub { },                       # tools.adcirc.live API call
+    update   => sub {cmd_update(\@ARGV) },   # run "update-asgs"
 };
 
 if ( $subcommands->{$subcommand} ) {
@@ -102,145 +111,87 @@ if ( $subcommands->{$subcommand} ) {
 warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
 
-sub cmd_auth {
+# subcommand add a configuration to $config_file 
+sub cmd_define {
     my $ARGV    = shift;
 
-# http_postJSON ...:q
+    # expecting only 2 more things, full config variable name and new value
+    if (@$ARGV != 2) {
+      warn qq{(error) expecting exactly 2 arguments\n\t  adcirclive define section.variable value\n};
+      return EXIT_ERROR;
+    }
 
+    my ($var, $value)    = @$ARGV; # everything left on the commandline
+    my @var_parts = split /\./, $var;
 
-   #http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
-#my $url  = q{https://api.restful-api.dev/objects};
-#my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
-#print http_postJSON($url, $json);
+    # expecting only parts of a fully defined config variable name; SECTION.VARNAME
+    if (@var_parts != 2) {
+      warn qq{(error) expecting a fully qualified config variable name\n\t  adcirclive define section.variable value\n};
+      return EXIT_ERROR;
+    }
 
+    my ($section, $varname) = @var_parts;
 
+    if (not exists $config->{$section}->{$varname}) {
+      warn sprintf(qq{(warn) variable %s doesn't exist, creating ...\n}, $var);
+    }
+    
+    my $oldvalue = $config->{$section}->{$varname} // q{};
+
+    $config->{$section}->{$varname} = $value;
+    $config->write($config_file);
+    printf qq{defined %s: "%s" -> "%s"\n}, $var, $oldvalue, $value;
+    return EXIT_SUCCESS;
 }
+
+# subcommand add a configuration to $config_file 
+sub cmd_show {
+    my $ARGV    = shift;
+
+    my $var     = shift @$ARGV // q{}; # everything left on the commandline
+    my ($section, $name) = split /\./, $var;
+
+    if (not $section or not $name) {
+      print qq{;;;; $config_file ;;;;\n};
+      print $config->write_string();
+      print qq{;;;; $config_file ;;;;\n};
+    } 
+    elsif ($section and $name) {
+      if (not exists $config->{$section}->{$name}) {
+        my $msg = qq{"$section.$name" does not exist in $config_file};
+        cmd_define_help($msg);
+        return EXIT_ERROR;
+      } 
+      printf qq{%s: %s\n}, $var, $config->{$section}->{$name};
+    }
+    return EXIT_SUCCESS
+}
+
+__END__
 
 sub cmd_activate {
   print qq{Please enter your user key from https://tools.adcirc.live: };
   my $userkey = <STDIN>; 
   chomp $userkey;
-  my $stty_orig = `stty -g`;
-  `stty -echo`;
+  my $stty_orig = `stty -g`; # using backticks to capture STDOUT from command
+  system qw/stty -echo/;
   print qq{Please enter your secret key from https://tools.adcirc.live: };
   my $secretkey = <STDIN>; 
   chomp $secretkey;
-  `stty $stty_orig`;
+  `stty $stty_orig`;         # reset back to visible echo
 
   # update $config_file
   $config->{adcirclive}->{userkey}   = $userkey;
   $config->{adcirclive}->{secretkey} = $secretkey;
   $config->write($config_file);
 
+  ## TODO...
   # make curl-based call here to verify - maybe equivalent to "cmd_auth"
 
   print qq{\nConfiguration updated!\n};
 
   return EXIT_SUCCESS;
 }
-
-# subcommand add a configuration to $config_file 
-sub cmd_config {
-    my $ARGV    = shift;
-    my $action  = shift @$ARGV; # looking for 'get' or 'set'
-
-    # dump help section if no supported $action is specified
-    if (not $action or not grep {/$action/} qw/delete dump get set/) {
-      cmd_config_help();
-      return EXIT_ERROR;
-    }
-
-    # catch "dump" early, do it, the return success
-    if ($action eq "dump") {
-      print $config->write_string;
-      return EXIT_SUCCESS;
-    }
-
-    my $command = join " ", @$ARGV; # command is everything left on the commandline
-    my ($var, $value)    = split /[ =]+/, $command;
-
-    my ($section, $name) = split /\./, $var;
-    if (not $section or not $name) {
-      my $msg = qq{"$var" is not a valid configuration variable identifier, requires the form: SECTION.NAME};
-      cmd_config_help($msg);
-      return EXIT_ERROR;
-    } 
-
-    # perform actions
-    if ($action eq "get") {
-      if (not exists $config->{$section}->{$name}) {
-        my $msg = qq{"$section.$name" does not exist in $config_file};
-        cmd_config_help($msg);
-        return EXIT_ERROR;
-      } 
-      printf qq{%s: "%s"\n}, $var, $config->{$section}->{$name};
-    }
-    elsif ($action eq "delete") {
-      if (not exists $config->{$section}->{$name}) {
-        my $msg = qq{"$section.$name" does not exist in $config_file};
-        cmd_config_help($msg);
-        return EXIT_ERROR;
-      } 
-      delete $config->{$section}->{$name};
-      printf qq{%s: deleted!\n}, $var;
-      $config->write($config_file);
-    }
-    elsif ($action eq "set" and $value) {
-      if (not exists $config->{$section}->{$name}) {
-        my $msg = qq{"$section.$name" does not exist in $config_file};
-        cmd_config_help($msg);
-        return EXIT_ERROR;
-      } 
-      my $old = $config->{$section}->{$name};
-      $config->{$section}->{$name} = $value;
-      printf qq{%s: "%s" -> "%s"\n}, $var, $old, $config->{$section}->{$name};
-      $config->write($config_file);
-    }
-    return EXIT_SUCCESS;
-}
-
-sub cmd_config_help(;$) {
-      my $message = shift // q{};
-      my $header  = q{};
-      if ($message) {
-        $header = <<EOF;
-Message:
-  $message
-EOF
-      }
-      warn <<EOF;
-$header
-Usage:
-  adcirclive delete|dump|get|set [section.setting [VALUE]]
-
-To see all values, use the 'dump' action,
-
-  adcirclive config dump
-
-To set a value, use the 'set' action,
-
-  adcirclive config set adcirclive.key "some value"
-  adcirclive config set adcirclive.secret "some other value"
-
-To show a specific value, use the 'get' action,
-
-  adcirclive config get adcirclive.key
-
-To delete a variable or whole section, use the 'delete' action,
-
-  adcirclive config delete adcirclive.secret
-
-  note: if you want to delete an entire section, you will have to manually edit
-  the configuration file, "$config_file".
-
-For more information, contact us at:
-
- paid priority support: tools-help\@support.adcirc.live
- free general support:  hello\@support.adcirc.live
-
-EOF
-}
-
 
 # subcommand to run any ASGS script available via a profile's PATH
 sub cmd_asgsh {
