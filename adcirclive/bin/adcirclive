@@ -6,7 +6,6 @@ use v5.010;
 use strict;
 use warnings;
 use Fcntl ':mode';
-use Term::ReadKey;
 use Getopt::Long qw(GetOptionsFromArray);
 use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
@@ -112,11 +111,12 @@ sub cmd_activate {
   print qq{Please enter your user key from https://tools.adcirc.live: };
   my $userkey = <STDIN>; 
   chomp $userkey;
-  ReadMode('noecho'); # hide password text from prying eyes ...
+  my $stty_orig = `stty -g`;
+  `stty -echo`;
   print qq{Please enter your secret key from https://tools.adcirc.live: };
   my $secretkey = <STDIN>; 
   chomp $secretkey;
-  ReadMode('normal');
+  `stty $stty_orig`;
 
   # update $config_file
   $config->{adcirclive}->{userkey}   = $userkey;
