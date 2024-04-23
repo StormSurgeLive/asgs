@@ -6,6 +6,7 @@ use v5.010;
 use strict;
 use warnings;
 use Fcntl ':mode';
+use Term::ReadKey;
 use Getopt::Long qw(GetOptionsFromArray);
 use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
@@ -21,6 +22,9 @@ use constant {
     HOME         => ( getpwuid($<) )[7],
 };
 
+#
+# Config file - read or initialize
+#
 my $config_file = sprintf(qq{%s/asgs-global.conf}, HOME);
 my $config = undef;
 if (-e $config_file) {
@@ -36,7 +40,34 @@ if (-e $config_file) {
   $config = Config::Tiny->read($config_file);
 }
 else {
-  warn qq{Configuration file, "$config_file", not found. Functionality will be limited.};
+  warn <<EOF;
+
+Configuration file, "$config_file", not found. Creating empty
+file, "$config_file". Functionality will be limited until
+valid credentials are added.
+
+EOF
+
+  open my $fh, q{>}, $config_file or die $!;
+  print $fh <<EOF;
+;
+; please update with proper information, either manually or
+; by using the "adcirclive config set" command
+;
+[adcirclive]
+apikey=<get from tools.adcirc.live>
+secretkey=<get from tools.adcirc.live>
+
+[email]
+from_address=your\@email.address
+reply_to_address=your\@email.address
+smtp_host=email-smtp.us-east-1.amazonaws.com
+smtp_password=<get from ASGS lead operator>
+smtp_port=587
+smtp_username=<get from ASGS lead operator>
+EOF
+  close $fh;
+  chmod 0600, $config_file; 
 }
 
 #http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
@@ -51,17 +82,23 @@ else {
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
-    asgsh  => sub {cmd_asgsh(\@ARGV)  },   # general passthrough command to asgs (run anything without a direct command)
+
+    # in progress
+    auth     => sub {cmd_auth(\@ARGV)},       # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
+    activate => sub {cmd_activate(\@ARGV)},   # initialization wizard
+    asgsh    => sub {cmd_asgsh(\@ARGV)   },   # general passthrough command to asgs (run anything without a direct command)
+    shell    => sub {cmd_shell(\@ARGV)   },   # run asgsh (ASGS Shell)
+
+    # pmuch done
     build  => sub {cmd_build(\@ARGV)  },   # primarily access to "asgs build adcirc"
     config => sub {cmd_config(\@ARGV) },   # general setting of configs (like, "git config")
     list   => sub {cmd_list(\@ARGV)   },   # primarily to list adcirc versions
-    shell  => sub {cmd_shell(\@ARGV)  },   # run asgsh (ASGS Shell)
-    update => sub {cmd_update(\@ARGV) },   # run "update-asgs"
 
-    auth   => sub { },                       # set config information, default is to store it in ~/asgs-global.conf
+    # TODO; not started
     use    => sub { },                       # primarily to select and adcirc version to load
     xdmf   => sub { },                       # tools.adcirc.live API call
     xdmftv => sub { },                       # tools.adcirc.live API call
+    update => sub {cmd_update(\@ARGV) },   # run "update-asgs"
 };
 
 if ( $subcommands->{$subcommand} ) {
@@ -70,6 +107,28 @@ if ( $subcommands->{$subcommand} ) {
 
 warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
+
+sub cmd_activate {
+  print qq{Please enter your user key from https://tools.adcirc.live: };
+  my $userkey = <STDIN>; 
+  chomp $userkey;
+  ReadMode('noecho'); # hide password text from prying eyes ...
+  print qq{Please enter your secret key from https://tools.adcirc.live: };
+  my $secretkey = <STDIN>; 
+  chomp $secretkey;
+  ReadMode('normal');
+
+  # update $config_file
+  $config->{adcirclive}->{userkey}   = $userkey;
+  $config->{adcirclive}->{secretkey} = $secretkey;
+  $config->write($config_file);
+
+  # make curl-based call here to verify - maybe equivalent to "cmd_auth"
+
+  print qq{\nConfiguration updated!\n};
+
+  return EXIT_SUCCESS;
+}
 
 # subcommand add a configuration to $config_file 
 sub cmd_config {
@@ -89,7 +148,7 @@ sub cmd_config {
     }
 
     my $command = join " ", @$ARGV; # command is everything left on the commandline
-    my ($var, $value)    = split / +/, $command;
+    my ($var, $value)    = split /[ =]+/, $command;
 
     my ($section, $name) = split /\./, $var;
     if (not $section or not $name) {
@@ -105,7 +164,7 @@ sub cmd_config {
         cmd_config_help($msg);
         return EXIT_ERROR;
       } 
-      printf qq{%s: %s\n}, $var, $config->{$section}->{$name};
+      printf qq{%s: "%s"\n}, $var, $config->{$section}->{$name};
     }
     elsif ($action eq "delete") {
       if (not exists $config->{$section}->{$name}) {
@@ -125,7 +184,7 @@ sub cmd_config {
       } 
       my $old = $config->{$section}->{$name};
       $config->{$section}->{$name} = $value;
-      printf qq{%s: %s -> %s\n}, $var, $old, $config->{$section}->{$name};
+      printf qq{%s: "%s" -> "%s"\n}, $var, $old, $config->{$section}->{$name};
       $config->write($config_file);
     }
     return EXIT_SUCCESS;
