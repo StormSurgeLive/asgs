@@ -4,7 +4,7 @@ use warnings;
 use 5.008;
  
 use Exporter 'import';
-our @EXPORT_OK = qw(http_user_agent_program http_user_agent_command http_get http_download http_postJSON);
+our @EXPORT_OK = qw/http_user_agent_program http_user_agent_command http_get http_download http_postJSON http_getJSON/;
  
 our $HTTP_VERBOSE = 0;
 our $HTTP_USER_AGENT_PROGRAM;
@@ -14,7 +14,8 @@ my %commands = (
         test     => '--version >/dev/null 2>&1',
         get      => '--insecure --silent --location --fail -o - {url}',
         download => '--insecure --silent --location --fail -o {output} {url}',
-        postJSON => "--insecure --silent --location --fail -o - -X POST https://api.restful-api.dev/objects -H 'Content-Type: application/json' -d {json} {url}",
+        postJSON => "--insecure --silent --location --fail -o - -X POST -H 'Content-Type: application/json' {headerstr} -d {json} {url}",
+        getJSON  => "--insecure --silent --location --fail -o - -X GET {headerstr} {url}",
         order    => 1,
  
         # Exit code is 22 on 404s etc
@@ -51,7 +52,7 @@ sub http_user_agent_command {
     my $ua = http_user_agent_program;
     my $cmd = $commands{ $ua }->{ $purpose };
     for (keys %$params) {
-        $cmd =~ s!{$_}!\Q$params->{$_}\E!g;
+        $cmd =~ s/{$_}/$params->{$_}/g;
     }
  
     if ($HTTP_VERBOSE) {
@@ -61,6 +62,7 @@ sub http_user_agent_command {
     }
  
     $cmd = $ua . " " . $cmd;
+
     return ($ua, $cmd) if wantarray;
     return $cmd;
 }
@@ -126,14 +128,37 @@ sub http_get {
 }
 
 sub http_postJSON {
-    my ($url, $JSON, $header, $cb) = @_;
- 
-    if (ref($header) eq 'CODE') {
-        $cb = $header;
-        $header = undef;
+    my ($url, $JSON, $extra_headers, $cb) = @_;
+
+    my @extra_headers = ();
+    foreach my $header (keys %$extra_headers) {
+      push @extra_headers, sprintf(qq{-H '%s: %s'}, $header, $extra_headers->{$header});
     }
  
-    my ($program, $command) = http_user_agent_command(postJSON => { url =>  $url, json => $JSON });
+    my ($program, $command) = http_user_agent_command(postJSON => { url =>  $url, json => $JSON, headerstr => join(q{ }, @extra_headers) });
+ 
+    open my $fh, '-|', $command
+    or die "open() pipe for '$command': $!";
+ 
+    local $/;
+    my $body = <$fh>;
+    close $fh;
+ 
+    # check if the download has failed and die automatically
+    $commands{ $program }{ die_on_error }->($?);
+ 
+    return $cb ? $cb->($body) : $body;
+}
+
+sub http_getJSON {
+    my ($url, $extra_headers, $cb) = @_;
+
+    my @extra_headers = ();
+    foreach my $header (keys %$extra_headers) {
+      push @extra_headers, sprintf(qq{-H '%s: %s'}, $header, $extra_headers->{$header});
+    }
+ 
+    my ($program, $command) = http_user_agent_command(getJSON => { url =>  $url, headerstr => join(q{ }, @extra_headers) });
  
     open my $fh, '-|', $command
     or die "open() pipe for '$command': $!";

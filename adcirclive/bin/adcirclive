@@ -7,12 +7,15 @@ use strict;
 use warnings;
 use Fcntl ':mode';
 use Getopt::Long qw(GetOptionsFromArray);
+use Digest::SHA qw/sha256_hex/;
+use MIME::Base64 qw/encode_base64/;
+use Time::HiRes qw//;
 use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
 
 # from local lib (should be fatpack'd for distribution)
 use Config::Tiny;
-use App::Perlbrew::HTTP qw(http_user_agent_program http_download http_get http_postJSON);
+use App::Perlbrew::HTTP qw/http_user_agent_program http_download http_get http_postJSON http_getJSON/;
 
 use constant {
     FORCE        => 1,
@@ -62,6 +65,7 @@ from_address=your\@email.address
 reply_to_address=your\@email.address
 smtp_host=email-smtp.us-east-1.amazonaws.com
 smtp_password=<get from ASGS lead operator>
+ 
 smtp_port=587
 smtp_username=<get from ASGS lead operator>
 EOF
@@ -72,28 +76,18 @@ EOF
 #my $ret  = GetOptionsFromArray($ARGV, $opts, qw/foo=s/);
 #require Data::Dumper;
 #print Data::Dumper::Dumper($opts);
-sub cmd_auth {
-    my $ARGV    = shift;
-
-# http_postJSON ...:q
-#http_download('https://cpan.metacpan.org/authors/id/L/LO/LORtN/LWP-Curl-0.14.tar.gz', '/tmp/test.tar.gz', FORCE);
-#my $url  = q{https://api.restful-api.dev/objects};
-#my $json = '{"name":"Apple MacBook Pro 16","data":{"year":2019,"price":2049.99,"CPU model":"Intel Core i9","Hard disk size":"1 TB","color":"silver"}}';
-#print http_postJSON($url, $json);
-
-}
-
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
 
-    # in progress
     show     => sub {cmd_show(\@ARGV) },
     define   => sub {cmd_define(\@ARGV) },
 
+    # in progress
+    auth     => sub {cmd_auth(\@ARGV)},                 # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
+
     # TODO; not started
     activate => sub {cmd_activate(\@ARGV)},             # initialization wizard
-    auth     => sub {cmd_auth(\@ARGV)},                 # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
     asgsh    => sub {cmd_asgsh(\@ARGV)   },             # general passthrough command to asgs (run anything without a direct command)
     shell    => sub {cmd_shell(\@ARGV)   },             # run asgsh (ASGS Shell)
     build    => sub {cmd_build(\@ARGV)  },   # primarily access to "asgsh build adcirc"
@@ -165,6 +159,45 @@ sub cmd_show {
       printf qq{%s: %s\n}, $var, $config->{$section}->{$name};
     }
     return EXIT_SUCCESS
+}
+
+sub _get_signed_headers($) {
+    my ($config) = @_;
+    my $key    = $config->{authentication}->{userkey};
+    my $secret = $config->{authentication}->{secretkey};
+
+    # add $secret to string, get SHA256 hash
+    my $nonce          = Time::HiRes::time * 100_000;
+    my $signature      = sha256_hex( $nonce . $secret );
+    my $_authorization = sprintf( qq{%s:%s}, $key, $signature );
+    my $authorization  = encode_base64( $_authorization, q{} );
+
+    my $default_headers = {
+        q{x-adcirclive-api-version} => q{1.0},
+        q{x-auth-nonce}             => $nonce,
+        q{Authorization}            => $authorization,
+        q{Content-Type}             => q{application/json},
+    };
+
+    return $default_headers;
+}
+
+# internal authorization check
+sub _auth() {
+  my $auth_headers = _get_signed_headers($config);
+  my $url  = q{https://tools.adcirc.live/licensecheck};
+  local $@;
+  my $resp = eval { App::Perlbrew::HTTP::http_getJSON($url, $auth_headers) } or undef;
+  return ($@) ? undef : q{valid};
+}
+
+sub cmd_auth {
+  if (!_auth) {
+    print STDERR qq{\nADCIRC Live 2024. License Check Failed.\nwebsite: https://tools.adcirc.live\nemail: tools-help\@support.adcirc.live\n\n};
+    return EXIT_ERROR;
+  }
+  print STDERR qq{\nADCIRC Live 2024. License Valid.\n};
+  return EXIT_SUCCESS;
 }
 
 __END__
