@@ -191,21 +191,23 @@ sub _auth() {
   return ($@) ? undef : q{valid};
 }
 
-sub cmd_auth {
+sub __ASSERT_VALID_SUPPORT_LICENSE__() {
   if (!_auth) {
-    print STDERR qq{\nADCIRC Live 2024. License Check Failed.\nwebsite: https://tools.adcirc.live\nemail: tools-help\@support.adcirc.live\n\n};
-    return EXIT_ERROR;
+    die qq{\nADCIRC Live 2024. License Check Failed.\nwebsite: https://tools.adcirc.live\nemail: tools-help\@support.adcirc.live\n\n};
   }
-  print STDERR qq{\nADCIRC Live 2024. License Valid.\n};
+  return;
+}
+
+sub cmd_auth {
+  __ASSERT_VALID_SUPPORT_LICENSE__;
+  print STDERR qq{ADCIRC Live 2024. License Valid.\n};
   return EXIT_SUCCESS;
 }
 
 # direct asgsh's "build adcirc"
 sub cmd_build {
-  if (!_auth) {
-    print STDERR qq{\nADCIRC Live 2024. License Check Failed.\nwebsite: https://tools.adcirc.live\nemail: tools-help\@support.adcirc.live\n\n};
-    return EXIT_ERROR;
-  }
+  my $ARGV = shift;
+  __ASSERT_VALID_SUPPORT_LICENSE__;
   my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
   my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
   my $profile         = $opts->{profile};
