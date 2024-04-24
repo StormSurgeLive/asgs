@@ -200,6 +200,20 @@ sub cmd_auth {
   return EXIT_SUCCESS;
 }
 
+# direct asgsh's "build adcirc"
+sub cmd_build {
+  if (!_auth) {
+    print STDERR qq{\nADCIRC Live 2024. License Check Failed.\nwebsite: https://tools.adcirc.live\nemail: tools-help\@support.adcirc.live\n\n};
+    return EXIT_ERROR;
+  }
+  my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
+  my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
+  my $profile         = $opts->{profile};
+  system(<<EOCMD);
+    asgsh -A "build adcirc" -p $profile        # run ADCIRC wizard directly
+EOCMD
+}
+
 __END__
 
 sub cmd_activate {
@@ -241,17 +255,6 @@ sub cmd_asgsh {
       asgsh -p $profile -A "$command"      # quotes around the command variable are necessary
 EOCMD
     return $exit_code;
-}
-
-# direct asgsh's "build adcirc"
-sub cmd_build {
-    my $ARGV = shift;
-    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
-    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
-    my $profile         = $opts->{profile};
-    system(<<EOCMD);
-      asgsh -A "build adcirc" -p $profile        # run ADCIRC wizard directly
-EOCMD
 }
 
 # access to asgsh's "list" command
