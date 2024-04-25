@@ -421,19 +421,16 @@ export _asgsh_splash=1
 export profile=$asgs_default_profile
 
 # process options passed directly to `asgsh`
-options=\$(getopt -u -o "A:dhl:p:rvx" -- "\$@")
+options=\$(getopt -o "A:dhl:p:rvx" -- "\$@")
 eval set -- "\$options"
 while true
   do
     case \$1 in
-      -A) # added to support generic commands, requires the form;
-          #  asgsh -A "full command to run"
-        shift
-        export _asgsh_flag_do_cmd=\$1
-        shift
-        _asgsh_flag_do_cmd="\$_asgsh_flag_do_cmd \$@"
+      -A) # capture what's in quotes following -A
+        export _asgsh_flag_do_cmd="\$2"
         export _asgsh_flag_do=run_any
         unset  _asgsh_splash
+        shift 2
         ;;
       -d) set -x
           export _asgs_debug_mode=1

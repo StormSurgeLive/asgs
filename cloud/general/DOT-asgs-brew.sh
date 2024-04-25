@@ -1244,7 +1244,7 @@ done
 
 # when started, ASGS Shell loads the 'default' profile,
 # this can be made variable at some point
-load profile ${profile-default}
+load profile ${profile:-"default-asgs"}
 
 if [ -n "$_asgsh_splash" ]; then
   show scratchdir
@@ -1270,6 +1270,7 @@ fi
 # construct to handle "autorun" options
 case "$_asgsh_flag_do" in
   run_any)
+    load profile $profile
     ${_asgsh_flag_do_cmd}
     exit
   ;;

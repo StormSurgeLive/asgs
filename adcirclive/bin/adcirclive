@@ -79,22 +79,19 @@ EOF
 my $subcommand = shift @ARGV;
 
 my $subcommands = {
-
-    show     => sub {cmd_show(\@ARGV) },
+    show     => sub {cmd_show(\@ARGV)   },
     define   => sub {cmd_define(\@ARGV) },
-
-    # in progress
-    auth     => sub {cmd_auth(\@ARGV)},                 # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
+    auth     => sub {cmd_auth(\@ARGV)   },   # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
+    list     => sub {cmd_list(\@ARGV)   },   # primarily to list adcirc versions
+    load     => sub {cmd_load(\@ARGV)   },   # primarily to load adcirc versions
 
     # TODO; not started
-    activate => sub {cmd_activate(\@ARGV)},             # initialization wizard
-    asgsh    => sub {cmd_asgsh(\@ARGV)   },             # general passthrough command to asgs (run anything without a direct command)
-    shell    => sub {cmd_shell(\@ARGV)   },             # run asgsh (ASGS Shell)
+    activate => sub {cmd_activate(\@ARGV)},  # initialization wizard
+    asgsh    => sub {cmd_asgsh(\@ARGV)   },  # general passthrough command to asgs (run anything without a direct command)
+    shell    => sub {cmd_shell(\@ARGV)   },  # run asgsh (ASGS Shell)
     build    => sub {cmd_build(\@ARGV)  },   # primarily access to "asgsh build adcirc"
-    list     => sub {cmd_list(\@ARGV)   },   # primarily to list adcirc versions
-    use      => sub { },                       # primarily to select and adcirc version to load
-    xdmf     => sub { },                       # tools.adcirc.live API call
-    xdmftv   => sub { },                       # tools.adcirc.live API call
+    xdmf     => sub { },                     # tools.adcirc.live API call
+    xdmftv   => sub { },                     # tools.adcirc.live API call
     update   => sub {cmd_update(\@ARGV) },   # run "update-asgs"
 };
 
@@ -104,6 +101,22 @@ if ( $subcommands->{$subcommand} ) {
 
 warn qq{"$subcommand" is not a supported subcommand!\n};
 exit EXIT_ERROR;
+
+# access to asgsh's "list" command
+sub cmd_list {
+    my $ARGV  = shift;
+    my $thing = shift @$ARGV // q{adcirc};
+    system(<<EOCMD);
+      asgsh -A "list $thing" -p adcirclive | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers
+EOCMD
+}
+
+# access to asgsh's "load adcirc" command
+sub cmd_load {
+    system(<<EOCMD);
+      asgsh -A "load adcirc" -p adcirclive
+EOCMD
+}
 
 # subcommand add a configuration to $config_file 
 sub cmd_define {
@@ -257,17 +270,6 @@ sub cmd_asgsh {
       asgsh -p $profile -A "$command"      # quotes around the command variable are necessary
 EOCMD
     return $exit_code;
-}
-
-# access to asgsh's "list" command
-sub cmd_list {
-    my $thing = shift @$ARGV // q{adcirc};
-    my $opts->{profile} = q{adcirclive}; # initially, "adcirclive" is a copy of the default profile
-    my $ret             = GetOptionsFromArray( $ARGV, $opts, qw/profile=s/ );
-    my $profile         = $opts->{profile};
-    system(<<EOCMD);
-      asgsh -A "list $thing" -p $profile | awk '{print \$2}' # list "things" - uses 'awk' to strip out enumerated numbers
-EOCMD
 }
 
 # direct asgsh's "build adcirc"
