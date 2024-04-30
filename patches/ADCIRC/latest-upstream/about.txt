@@ -1,1 +1,1 @@
-Latest upstream development HEAD (bleeding edge)
+Attempts to build the latest upstream development branch (main)
