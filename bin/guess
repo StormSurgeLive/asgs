@@ -19,6 +19,8 @@ _guess_platform()
     default_platform=queenbee
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qbc) ]; then
     default_platform=queenbeeC
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c qbd) ]; then
+    default_platform=queenbeeD
   elif [ 1 -eq $(echo $HOSTNAME | grep -c smic) ]; then
     default_platform=supermic
   elif [ 1 -eq $(echo $HOSTNAME | grep -c ls5) ]; then
