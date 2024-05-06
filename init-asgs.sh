@@ -35,6 +35,11 @@ B=$(tput bold)
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
 
+SCRIPTDIR=$(pwd)
+
+# check to see if we're installing from a .zip (no .git directory will exist)
+[[ ! -d "./.git" ]] && ADCIRCLIVE=1
+
 # preflight checkes and warnings
 if [ -n "$_ASGSH_PID" ]; then
   echo
@@ -43,17 +48,9 @@ if [ -n "$_ASGSH_PID" ]; then
   exit 1
 fi
 
-while getopts "bL:mp:x:" optname; do
+while getopts "AbL:mp:x:" optname; do
    case $optname in
       b) BATCH=1
-         ;;
-      m) # invokes minimal asgs-brew.pl command using "--run-steps setup-env"
-         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
-           EXTRA_ASGSBREW_OPTS="--run-steps setup-env"
-         else
-           echo "-m can't be used with -x"
-           exit 1
-         fi
          ;;
       L|p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
@@ -62,6 +59,22 @@ while getopts "bL:mp:x:" optname; do
            EXTRA_ASGSBREW_OPTS=${OPTARG}
          else
            echo "-x can't be used with -m"
+           exit 1
+         fi
+         ;;
+      A) # invokes minimal asgs-brew.pl to support ADCIRC
+         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
+           EXTRA_ASGSBREW_OPTS="--run-steps setup-env,openmpi,hdf5,netcdf4"
+         else
+           echo "-A can't be used with -x"
+           exit 1
+         fi
+         ;;
+      m) # invokes minimal asgs-brew.pl command using "--run-steps setup-env"
+         if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
+           EXTRA_ASGSBREW_OPTS="--run-steps setup-env"
+         else
+           echo "-m can't be used with -x"
            exit 1
          fi
          ;;
@@ -224,7 +237,7 @@ if [ -z "$BATCH" ]; then
   if [ -n "$PLATFORM_INIT" ]; then
     echo "Platform Init       : $PLATFORM_INIT"
   fi
-  echo "SCRIPTDIR           : $(pwd)"
+  echo "SCRIPTDIR           : $SCRIPTDIR"
   echo "ASGS HOME           : $ASGS_HOME"
   echo "WORK                : $WORK"
   echo "SCRATCH             : $SCRATCH"
@@ -241,14 +254,18 @@ if [ -z "$BATCH" ]; then
     echo Set up aborted. Ensure platform is supported, then try again. exiting...
     exit
   fi
-  echo
-  read -p "If you'd like to checkout a specific branch, specify here. [<enter> if you don't know] " repo
 
-  if [ -z "$repo" ]; then
-    repo=current
+  # skip if not a git repo (can't find ./.git)
+  if [[ -z "$ADCIRCLIVE" ]]; then
+    echo
+    read -p "If you'd like to checkout a specific branch, specify here. [<enter> if you don't know] " repo
+    if [ -z "$repo" ]; then
+      repo=current
+    fi
   fi
 
-  if [[ "$repo" != "." && ${repo,,} != "current" ]]; then
+  # skip if not a git repo (can't find ./.git)
+  if [[ -z "$ADCIRCLIVE" && "$repo" != "." && ${repo,,} != "current" ]]; then
     git checkout $repo 2> /dev/null
     if [ $? -gt 0 ]; then
      echo
@@ -259,11 +276,12 @@ if [ -z "$BATCH" ]; then
        exit
      fi
     fi
-  else
+  elif [[ -z "$ADCIRCLIVE" ]]; then
     echo
     echo "skipping 'git checkout', branch untouched ..."
   fi
   echo
+
   read -p "Which compiler 'family' would you like to use, 'gfortran', 'intel', 'intel-llvm'? [$_compiler] " compiler
   if [ -z "$compiler" ]; then
     compiler=$_compiler
@@ -279,7 +297,7 @@ if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" && "$compiler" != "int
 fi
 
 _default_profile=default-$(basename "$(pwd)")
-if [ -z "$BATCH" ]; then
+if [[ -z "$BATCH" && -z "$ADCIRCLIVE" ]]; then
   echo
   read -p "Name of this installation? [\"$_default_profile\"] " profile
 fi
@@ -288,7 +306,7 @@ if [ -z "$profile" ]; then
   profile=$_default_profile
 fi
 
-if [ -z "$BATCH" ]; then
+if [[ -z "$BATCH" && -z "$ADCIRCLIVE" ]]; then
   if [ -e $ASGS_HOME/profiles/$profile ]; then
     echo
     read -p "${W} it appears an '$profile' profile already exists from a previous installation. Is it okay to proceed and overwrite? [y/N] " overwrite
@@ -333,7 +351,11 @@ if [ -z "$BATCH" ]; then
   echo
   echo $cmd
   echo
-  read -p "Run command above, [y/N]? " run
+  _run=y
+  read -p "Run command above, [Y/n]? " run
+  if [[ -z "$run" ]]; then
+    run=$_run
+  fi
 fi
 
 rm -v $HOME/bin/asgsh       2> /dev/null
@@ -397,4 +419,40 @@ else
   echo
   printf "\t$cmd\n"
   echo
+fi
+
+# For ADCIRC pro's who up their game with ADCIRC Live (c) #
+#   via https://tools.adcirc.live                         #
+if [[ -d $SCRIPTDIR/adcirclive ]]; then
+  echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"                             > adcirclive/etc/bashrc
+  echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive"                            >> adcirclive/etc/bashrc
+  echo "export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile"          >> adcirclive/etc/bashrc
+  echo "alias adl='adcirclive'"                                                  >> adcirclive/etc/bashrc
+  echo "alias adcl='pushd \$ADCIRCLIVE_ROOT; dirs -c'"                           >> adcirclive/etc/bashrc
+  echo "alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                          >> adcirclive/etc/bashrc
+  echo "alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                        >> adcirclive/etc/bashrc
+
+  ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
+  cp adcirclive/etc/bashrc adcirclive/etc/initial-bashrc
+
+  echo "adcirclive build v55.02"                                                 >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc 
+  echo "adcirclive load adcirc"                                                  >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "adcirclive verify adcirc"                                                >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "cat<<EOF"                                                                >> adcirclive/etc/initial-bashrc
+  echo "ADCIRC v55.02 and the ADCIRC Live (c) cli is now installed and ready:"   >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "If you have any questions, please email us at help@support.adcirc.live"  >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "The following line was added to your ~/.bashrc file:"                    >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "  source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                    >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "To get stsarted, type the command                   "                    >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "  adcirclive help                                   "                    >> adcirclive/etc/initial-bashrc
+  echo                                                                           >> adcirclive/etc/initial-bashrc
+  echo "EOF"                                                                     >> adcirclive/etc/initial-bashrc
 fi
