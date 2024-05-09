@@ -1,18 +1,3 @@
-Host renci_tds
-  Hostname ht4.renci.org
-  # Note: RENCI's THREDDS server uses a single account login, so
-  # the User field below is likely to need no modification
-  User ncfs 
-  # IdentityFile is the private key used for passwordless authentication
-  # to the remote server; change it if you've created separate keys
-  # for this purpose using a name different than the default generated
-  # by ssh-keygen
-  IdentityFile ~/.ssh/id_rsa
-  Port 22
-  ServerAliveInterval 10
-  StrictHostKeyChecking=no
-  ConnectTimeout=60
-
 Host lsu_tds
   HostName fortytwo.cct.lsu.edu
   # operators must ensure their username is correct below
@@ -26,20 +11,9 @@ Host lsu_tds
   ServerAliveInterval 10
   StrictHostKeyChecking=no
   ConnectTimeout=60
-
-Host lsu_ccr_tds
-  Hostname chenier.cct.lsu.edu
-  # operators must ensure their username is correct below
-  User USERNAME
-  # IdentityFile is the private key used for passwordless authentication
-  # to the remote server; change it if you've created separate keys
-  # for this purpose using a name different than the default generated
-  # by ssh-keygen
-  IdentityFile ~/.ssh/id_rsa
-  Port 2525
-  ServerAliveInterval 10
-  StrictHostKeyChecking=no
-  ConnectTimeout=60
+  ControlMaster auto                  # if no ssh master is running, starts up current ssh with "-M", making it master
+  ControlPath ~/.ssh/ssh_mux_%h_%p_%r # control file, defines socket and path to current connection
+  ControlPersist yes                  # keeps master running until it's killed (can be a timeout)
 
 Host tacc_tds
   Hostname adcircvis.tacc.utexas.edu

@@ -10,7 +10,7 @@ _sq() {
   OLDIFS=$IFS
   IFS=
   platform=$(guess platform);
-  if [[ $(echo 'supermic queenbee queenbeeC' | grep -c "$platform") -gt 0 ]]; then
+  if [[ $(echo 'supermic queenbee queenbeeC queenbeeD' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(showq | grep $USER)
   elif [[ $(echo 'frontera stampede2 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(squeue -u $USER | tail -n +2)
