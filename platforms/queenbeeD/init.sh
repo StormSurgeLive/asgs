@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-WORK=${WORK:-/work/$USER}
-SCRATCH=${SCRATCH:-/work/$USER}
-HPCENV=qbd.loni.org
+PPN=64
+HPCENVSHORT=qbd1
+HPCENV=qbd1.loni.org
 QUEUESYS=SLURM
 QCHECKCMD=sacct
 QUEUENAME=workq
 SERQUEUE=single
-PPN=64
+WORK=${WORK:-/work/$USER}
+SCRATCH=${SCRATCH:-/work/$USER}
 JOBLAUNCHER='srun '
 SUBMITSTRING=sbatch
 QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
@@ -16,5 +17,5 @@ OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
 ARCHIVE=enstorm_pedir_removal.sh
 ARCHIVEBASE=$SCRATCH
 ARCHIVEDIR=$SCRATCH
-TDS=( lsu_tds )
+TDS=(lsu_tds)
 MAKEJOBS=8

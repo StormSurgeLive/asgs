@@ -13,14 +13,15 @@ _guess_platform()
   default_platform=unknown
   HOSTNAME=$(hostname --fqdn)
 
+# !!!
+# add new platforms to platforms/platforms-lookup.txt
+# !!!
   if [ 1 -eq $(echo $HOSTNAME | grep -c qb1) ]; then
     default_platform=queenbee
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qb2) ]; then
     default_platform=queenbee
   elif [ 1 -eq $(echo $HOSTNAME | grep -c qbc) ]; then
     default_platform=queenbeeC
-  elif [ 1 -eq $(echo $HOSTNAME | grep -c qbd) ]; then
-    default_platform=queenbeeD
   elif [ 1 -eq $(echo $HOSTNAME | grep -c smic) ]; then
     default_platform=supermic
   elif [ 1 -eq $(echo $HOSTNAME | grep -c ls5) ]; then
