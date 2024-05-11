@@ -1333,9 +1333,9 @@ submitJob()
    echo "hpc.job.${JOBTYPE}.cloptions : \"$CLOPTIONS\"" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.localhotstart : $LOCALHOTSTART" >> $ADVISDIR/$ENSTORM/run.properties
    _CPUREQUEST=$(($NCPU + $NUMWRITERS))
+   _QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
    _PPN=$(HPC_PPN_Hint "parallel" "$QUEUENAME" "$HPCENV" "$QOS" "$PPN" )
    _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
-   _QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
    #
    # build queue script
    qScriptRequestTemplate=$SCRIPTDIR/qscript_request_template.json
