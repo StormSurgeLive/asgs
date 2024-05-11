@@ -427,8 +427,8 @@ HPC_PPN_Hint()
      fi
    ;;
    "mike.hpc.lsu.edu")
-     if [[ "$QUEUENAME" == "single" && "$NCPU" -lt 64 ]]; then
-       echo $NCPU
+   if [[ "$QUEUENAME" == "single" && "$(($NCPU + $NUMWRITERS))" -lt 64 ]]; then
+       echo $(($NCPU + $NUMWRITERS))
      else
        echo $DEFAULT_PPN
      fi
