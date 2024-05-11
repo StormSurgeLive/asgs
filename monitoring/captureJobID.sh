@@ -52,7 +52,7 @@ case $HPCENVSHORT in
    # job is submitted:
    # <asgsh> sbatch prep13.slurm 2>stderr >stdout
    # <asgsh> cat stderr
-   #  sbatch: Email specified differs from email associated with account. Using jason.fleming@seahorsecoastal.com
+   #  sbatch: Email specified differs from email associated with account. Using xxx@xxxx.com
    #  sbatch: Job estimates 2.00 SUs for -p single --nodes=1 --ntasks=1 --cpus-per-task=1
    #  sbatch: lua: Submitted job 274100
    # <asgsh> cat stdout
