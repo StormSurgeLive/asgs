@@ -1,0 +1,125 @@
+#!/usr/bin/env perl
+#--------------------------------------------------------------------------
+# etc/asgs-mon-plugins/001-instance-status-check
+#--------------------------------------------------------------------------
+# Copyright(C) 2024 Brett Estrade
+# Copyright(C) 2024 Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#--------------------------------------------------------------------------
+
+use v5.12;
+# Note: 'use v5.12' implies: use strict; use warnings; use feature 'say'
+
+package bin::instance_check;
+
+#
+# Check name:
+#
+#   001-instance-status-check
+#
+# Purpose:
+#
+#   checks the integrity of the instance JSON file, doesn't inspect
+#   any of the content, other than 'time.status.lastupdate'; this is
+#   done in other checks
+#
+
+use ASGSUtil        qw//;
+use Util::H2O::More qw/ddd h2o/;
+
+# get file name without preceding path
+$0 =~ /(.*\/)*(.+)/; # puts the filename into $2
+my $THIS = $2;
+
+use constant {
+  OK       => 0,
+  WARNING  => 1,
+  CRITICAL => 2,
+  UNKNOWN  => 3,
+  NOTIFY   => 4,
+};
+
+my ($oldout, $oldexit, $count, $delay, $profile, $configfile, $statefile, $verbose) = @ARGV;
+
+my $asgs_pid     = $ENV{ASGS_PID};
+my $state        = h2o ASGSUtil::state_from_file( $statefile );
+my $instancefile = sprintf qq{%s/status/asgs.instance.status.json}, $state->rundir;
+
+# gets old output, if not the first run when it is an empty string
+if ($oldout) {
+  $oldout = decode_json $oldout;
+}
+
+my $instance    = eval { ASGSUtil::decode_json_from_file($instancefile) } or undef;
+my $hpcenvshort = $ENV{HPCENVSHORT};
+
+if (!$instance or $@) {
+  my $rundir      = $state->rundir;
+  my $scriptdir   = $state->scriptdir;
+  my $oldsubdir   = $state->oldsubdir;
+  my $syslog      = $state->syslog;
+  my $advisory    = $state->advisory;
+  
+  $@ = ($@) ? $@ : qq{An unknown error has occured when reading instance JSON!};
+  # the message is essentially an email format - first line is the subject;
+  # second line is blank
+  # 3rd line begins the message body
+  print STDERR <<EOF;
+($hpcenvshort $profile - $THIS) WARNING
+
+Message:
+$@
+
+Information:
+The instance file, "$instancefile"
+could not be opened for inspection. It could be that ASGS has not yet been started.
+But also indicates that ASGS is probably not currently running as expected.
+
+Details:
+
+RUNDIR=$rundir
+SCRIPTDIR=$scriptdir
+LASTSUBDIR=$oldsubdir
+SYSLOG=$syslog
+ADVISORY=$advisory
+
+EOF
+  exit WARNING;
+}
+
+# asgs-mon only prints output to STDOUT if the exit code is not OK, so this
+# following output will not be printed but is available for asgs-mon to remember
+# or post process in some way ...
+
+my $newout = {
+  lastupdated => $instance->{'time.status.lastupdated'},
+};
+
+# terminal output for observer
+if ($oldout and $oldout->{lastupdated} ne $newout->{lastupdated}) {
+  printf STDERR qq{\ttime.status.lastupdate' went from %s to %s\n}, $oldout->{lastupdated}, $newout->{lastupdated};
+}
+elsif ($verbose) {
+  printf STDERR qq{(%s %s - %s) current update date: %s\n}, $hpcenvshort, colored($profile,'cyan'), colored($THIS, 'green'), $newout->{lastupdated}
+}
+
+# capture by asgs-mon and passed back in via first param
+print encode_json $newout;
+
+exit OK;
+
+1;

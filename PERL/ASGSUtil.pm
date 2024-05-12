@@ -25,8 +25,40 @@ use warnings;
 use File::Basename qw(basename);
 use Date::Calc;
 use JSON::PP;
+use Term::ANSIColor qw/:constants colored colorstrip/;
+use Util::H2O::More qw/ddd h2o/;
 
 package ASGSUtil;
+
+#
+# build up state info as a hash reference ##
+sub state_from_file {
+  my $statefile = shift;
+  my $content = eval {
+    local $@;
+    open my $fh, q{<}, $statefile || die $!;
+    local $/;
+    return <$fh>;
+  } or undef;
+
+  my @lines = split /\n/, $content;
+  # make keys lowercase
+  my %state  = map { my @x=split /=/, $_; $x[0] = lc $x[0]; @x } @lines;
+  # return just the reference
+  return \%state;
+}
+
+#
+# takes a file name and returns a Perl reference containing
+# the data in the JSON
+sub decode_json_from_file {
+  my $file = shift;
+  local $/;
+  local $@;
+  my $json  = do { open my $fh, q{<}, $file || die $!; <$fh> };
+  my $ref   = JSON::PP::decode_json $json;
+  return $ref;
+}
 
 #
 # stringify array - this is needed for numbers with
