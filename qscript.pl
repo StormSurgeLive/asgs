@@ -97,10 +97,17 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
     }
     # determine number of compute nodes to request
     if ( $ppn ne "noLineHere" ) {
-        $nnodes = int($totalcpu/$ppn);
-        if ( ($totalcpu%$ppn) != 0 ) {
-            $nnodes++;
-        }
+	if ( $totalcpu > $ppn ) {
+           $nnodes = int($totalcpu/$ppn);
+           if ( ($totalcpu%$ppn) != 0 ) {
+               $nnodes++;
+           }
+        } else { 
+	   # the number of parallel tasks is less than 
+	   # the maximum tasks per node
+	   # so just request one node
+	   $nnodes = 1;
+	}
     } else {
       $nnodes = "noLineHere";
     }
