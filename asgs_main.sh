@@ -817,7 +817,7 @@ prepFile()
    # $PPN is not adjusted so the original value is preserved; yet the "corrected" value
    # is written to $STORMDIR/run.properties, which is where ./qscript.pl gets the value
    # for "$ppn"
-   _PPN=$(HPC_PPN_Hint "serial" "$SERQUEUE" "$HPCENV" "$QOS" "1")
+   _PPN=$(HPC_PPN_Hint "serial" "$SERQUEUE" "$HPCENV" "$QOS" "1" "1")
    echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR/run.properties
    # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
    _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "1")
@@ -1334,7 +1334,7 @@ submitJob()
    echo "hpc.job.${JOBTYPE}.localhotstart : $LOCALHOTSTART" >> $ADVISDIR/$ENSTORM/run.properties
    _CPUREQUEST=$(($NCPU + $NUMWRITERS))
    _QUEUENAME=$(HPC_Queue_Hint "$QUEUENAME" "$HPCENV" "$QOS" "$CPUREQUEST")
-   _PPN=$(HPC_PPN_Hint "parallel" "$QUEUENAME" "$HPCENV" "$QOS" "$PPN" )
+   _PPN=$(HPC_PPN_Hint "parallel" "$QUEUENAME" "$HPCENV" "$QOS" "$PPN" "$CPUREQUEST")
    _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
    #
    # build queue script

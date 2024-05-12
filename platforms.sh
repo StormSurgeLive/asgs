@@ -411,6 +411,7 @@ HPC_PPN_Hint()
    local HPCENV=$3
    local QOS=$4
    local DEFAULT_PPN=$5 # default, returned if conditions not met
+   local CPUREQUEST=$6
    case "$HPCENV" in
    "supermic.hpc.lsu.edu")
      if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
@@ -427,8 +428,8 @@ HPC_PPN_Hint()
      fi
    ;;
    "mike.hpc.lsu.edu")
-   if [[ "$QUEUENAME" == "single" && "$(($NCPU + $NUMWRITERS))" -lt 64 ]]; then
-       echo $(($NCPU + $NUMWRITERS))
+   if [[ "$QUEUENAME" == "single" && "$CPUREQUEST" -lt 64 ]]; then
+       echo $CPUREQUEST
      else
        echo $DEFAULT_PPN
      fi
