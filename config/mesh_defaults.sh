@@ -133,7 +133,7 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
       ;;
       #
-   "LA_v20a-WithUpperAtch_chk"|"LAv20a")
+   "LA_v20a-WithUpperAtch_chk-parameters"|"LAv20a-parameters")
       #
       nodes=1593485
       elements=3102441
@@ -351,7 +351,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-      "NCv6d")
+      "NCv6d-parameters")
       #
       nodes=295328
       elements=575512
@@ -398,7 +398,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       ;;
       #
-   "nc_inundation_v9.99_w_rivers"|"NCv999")
+   "nc_inundation_v9.99_w_rivers-parameters"|"NCv999-parameters")
       #
       nodes=624782
       elements=1234231
@@ -831,6 +831,51 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       UNITOFFSETFILE=null
+      ;;
+   "hsofs-parameters"|"HSOFS-parameters")
+      #
+      nodes=1813443
+      elements=3564104
+      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
+      GRIDFILE=hsofs.14  # mesh (fort.14) file
+      MESHPROPERTIES=${GRIDFILE}.nc.properties
+      CONTROLTEMPLATE=hsofs-parameters.15.template
+      ELEVSTATIONS=hsofs_stations_20180907.txt
+      VELSTATIONS=$ELEVSTATIONS
+      METSTATIONS=$ELEVSTATIONS
+      # interaction between mesh and models:
+      SWANDT=1800                 # swan timestep / coupling interval (seconds)
+      # tidal forcing
+      tidalConstituents=( "k1" "o1" "p1" "q1" "n2" "m2" "s2" "k2" )
+      # numerics/physics
+      TIMESTEPSIZE=2.0                          # adcirc time step size (seconds)
+      advection="off"                           # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+      solver_time_integration="explicit"        # implicit|explicit|full-gravity-wave-implicit
+      time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+      lateral_turbulence="eddy_viscosity"       # "smagorinsky" or "eddy_viscosity"
+      eddy_viscosity_coefficient="10.0"         # ESLM
+      bottom_friction_limit=0.0025              # min when using Manning's n (CF/FFACTOR)
+      h0=0.05                                   # min depth (m) to be considered wet
+      velmin=0.05                               # pseudovelocity threshold
+      metControl["WindDragLimit"]="0.0028"      # max wind drag coefficient, unitless
+      # nodal attributes
+      NAFILE=hsofs-parameters.13
+      nodal_attribute_activate=( mannings_n_at_sea_floor )
+      nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
+      nodal_attribute_activate+=( surface_canopy_coefficient )
+      nodal_attribute_activate+=( surface_directional_effective_roughness_length  )
+      nodal_attribute_activate+=( surface_submergence_state )
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
+      nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
+      nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
+      nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
+      nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+      nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+      # intersection between mesh, models, hpc platform, and number of compute cores:
+      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
+      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
+      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
+      FORECASTWALLTIME="07:00:00" # forecast wall clock time
       ;;
    *)
       LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
