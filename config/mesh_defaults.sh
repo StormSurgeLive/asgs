@@ -56,30 +56,28 @@ zNorth="northpole"
 selfAttractionEarthLoadTide="notprovided"
 #
 case $GRIDNAME in
-   "CPRA23v01c")
+   "CPRA23v05b")
       #
-      nodes=1577152
-      elements=3071945
+      nodes=1577268
+      elements=3072131     
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23
-      GRIDFILE=cpra_2023mp_2023_realtime_v01c_chk.grd  # mesh (fort.14) file
+      GRIDFILE=cpra_2023_hurricane_v05b_chk.grd  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       CONTROLTEMPLATE=CPRA23v01c_5kcms_fort.15.template
       # wind at 10m fort.15 template
       CONTROLTEMPLATENOROUGH=CPRA23v01c_nowindreduction_fort.15.template
-      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.3621"
+      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.362102"
       ELEVSTATIONS=combined_stations_20230824.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      NAFILE=cpra_2023mp_2023_realtime_v01c.13
+      NAFILE=cpra_2023_hurricane_v05b.13
       SWANTEMPLATE=CPRA23v01c_fort.26.template
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
       ;;
-
    "AGT")
       # adcirc-global-test mesh, from ADCIRC test suite repository
       # https://github.com/adcirc/adcirc-testsuite
