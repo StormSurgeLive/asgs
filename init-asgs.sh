@@ -450,7 +450,7 @@ if [[ -d $SCRIPTDIR/adcirclive ]]; then
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "  source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "To get stsarted, type the command                   "                    >> adcirclive/etc/initial-bashrc
+  echo "To get started, type the command                    "                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "  adcirclive help                                   "                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
