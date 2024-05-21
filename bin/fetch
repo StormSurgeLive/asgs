@@ -22,7 +22,7 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-configs ]; then
-      echo "${W} $SCRIPTDIR/git/asgs-configs exists ... nothing done"
+      echo "${W} $SCRIPTDIR/git/asgs-configs exists"
       popd > /dev/null 2>&1 
       exit 1
     fi
@@ -33,7 +33,7 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs.wiki ]; then
-      echo "${W} $SCRIPTDIR/git/asgs.wiki exists ... nothing done"
+      echo "${W} $SCRIPTDIR/git/asgs.wiki exists"
       popd > /dev/null 2>&1 
       exit 1
     fi
@@ -43,14 +43,8 @@ case "${ITEM}" in
   cera)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
-    if [ -d ./cera-local-asgs-assets ]; then
-      echo "${W} $SCRIPTDIR/git/cera-local-asgs-assets exists ... nothing done"
-    else
-      git clone git@github.com:CERA-GROUP/local-asgs-assets.git $SCRIPTDIR/git/cera-local-asgs-assets
-    fi
-
     if [ -d ./cera-asgs-environment ]; then
-      echo "${W} $SCRIPTDIR/git/cera-asgs-environment exists ... nothing done"
+      echo "${W} $SCRIPTDIR/git/cera-asgs-environment exists"
       popd > /dev/null 2>&1 
       exit 1
     fi
@@ -62,7 +56,7 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./storm-archive ]; then
-      echo "${W} $SCRIPTDIR/git/storm-archive exists ... nothing done"
+      echo "${W} $SCRIPTDIR/git/storm-archive exists"
       popd > /dev/null 2>&1 
       exit 1
     fi
@@ -73,7 +67,7 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./adcirc-testsuite ]; then
-      echo "${W} $SCRIPTDIR/git/adcirc-testsuite exists ... nothing done"
+      echo "${W} $SCRIPTDIR/git/adcirc-testsuite exists"
       popd > /dev/null 2>&1 
       exit 1
     fi

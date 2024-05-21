@@ -1058,8 +1058,22 @@ move() {
        echo "move of state file cancelled."
      fi
     ;;
+    syslog)
+     load profile $_ASGSH_CURRENT_PROFILE
+     if [[ -z "${SYSLOG}" || ! -e "${SYSLOG}" ]]; then
+       echo "${W} '${SYSLOG}' is not set or doesn't exist."
+       return
+     fi
+     read -p "Move syslog file, \"${SYSLOG}\" [y/N]? " MOVE_SYSLOG
+     if [ 'y' == "${MOVE_SYSLOG}" ]; then
+       _epoch=$(date +%s)
+       mv -vf "${SYSLOG}" "${SYSLOG}.$$.${_epoch}"
+     else
+       echo "move of syslog file cancelled."
+     fi
+    ;;
     *)
-      echo "only 'move statefile' is supported at this time ..."
+      echo "'move' only supports 'statefile', 'syslog' at this time ..."
       return
   esac
 }
