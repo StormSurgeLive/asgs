@@ -1,0 +1,136 @@
+asgs-mon - The ASGS Monitor
+
+Usage:
+
+  asgs-mon --pid <ASGS_PID> [--delay N] [-v]
+
+Required:
+
+  --pid           PID of the asgs_main.sh that's running
+
+Optional
+
+   --delay N      sleep in seconds between rounds of checks
+   --hush  M      modify the HUSHLIMIT window for suppressing repeating notifications
+   -v             turn verbosity on
+
+I. Introduction
+
+bin/asgs-mon is a supervisory or watchdog program that is meant to be run
+by operators who wish to keep a vigilant eye on their ASGS instance.
+
+The main executable, bin/asgs-mon, does not do any checks. Instead it runs
+any executable file that resides in etc/asgs-mon-plugins. So each "check"
+must be a script or executable program that's been placed in that directory.
+
+asgs-mon expects sends in a fixed set of parameters to each plugin script,
+It also expects a certain range of meaningful exit code. If you are familiar
+with the NAGIOS monitoring tool, asgs-mon is modeled to work the same way.
+
+II. Plugin Input
+
+II. a. Importanted Environmental Variables
+
+In addition to all the variables available when an ASGS Profile is loaded,
+asgs-mon adds the following:
+
+ASGS_PID      # holds the PID of the asgs_main.sh that is listed in the `ps`
+              # output as running with the current $ASGS_CONFIG
+
+II. b. Input Parameters Passed to Plugins
+
+It is best to take a look at the simpler checks that are written in Bash to
+get a clear understand of what gets passed into each plugin scripe when it
+is run:
+
+# standard parameters
+OLDOUT=$1     # asgs-mon saves the first line of STDOUT for each check, on the next run it gets passed back
+OLDEXIT=$2    # the previous exit code is also saved and passed back 
+COUNT=$3      # iternation count of asgs-mon
+DELAY=$4      # number of seconds asgs-mon waits before checks 
+PROFILE=$5    # this is the ASGS profile name underwhich asgs-mon is running
+CONFIGFILE=$6 # config file associated with the $PROFILE 
+STATEFILE=$7  # path to the statefile associated with the $PROFILE
+VERBOSE=$8    # value of the "-v" flag passed t asgs-mon, so the plugin can use it if needed
+
+Some of the variables are available in the environment. Bash scripts can
+refer directly that's in `env` when asgs-mon is started. Similarly, Perl
+scripts are able to inspect the %ENV hash.
+
+However other things like the HOOKFILE and INSTANCEFILE need to be derived,
+and being the main source of info for the initial checks, figuring out these
+paths is better done by asgs-mon than the plugin.
+
+COUNT and DELAY are there so that the plugin can decide to actually check at
+an interval based on the check iteration count and/or the amount of time between
+checks.
+
+III. Plugin Exit Codes and STDOUT
+
+  OK=0              # everything is A-okay, no email sent
+  WARNING=1         # something is not quite right, email alert sent
+  CRITICAL=2        # something is very bad, email alert sent
+  UNKNOWN=3         # unable to determine severity, email alert is sent
+  NOTIFY=4          # used for notification
+
+Ideally, all checks will be returning OK all the time.
+
+As mentioned in Section II, asgs-mon passes in the first line of the STDOUT
+received the previous run of the plugin. This is to allow for a plugin to
+have some sort of way to remember something about the previous run without
+have to worry about private output files. STOUT can be any number of lines,
+but asgs-mon only really cares about the first line when the exit code or
+status is OK. All warning messages or important information sent when it's
+not OK should be done so as STDOUT. As we shall see in the next section,
+STDERR is reserved internally for the plugin itself.
+
+Any STDOUT that is printed by the plugin is handled as follows, give the status:
+
+a. OK            - first line is stored and passed back to the plugin the next time it's run
+b. anything else - the first line is saved like; then the entire body of what's printed
+                   via STDOUT is used to create the notification email, see below.
+
+The notification email, if the exit code or status code is not OK, uses the
+STDOUT as follows:
+
+a. the first line is turned into the SUBJECT of the email
+b. the second line is discarded (standard email, same as a git commit also)
+c. everything else is sent as the BODY of the email
+
+IV. Plugins and STDERR
+
+STDERR is reserved for use by each plugin to print status messages to the
+terminal. asgs-mon can be run in the background, but really it's meant to
+run in the foreground within some view of the operator. Email alerts are
+there because an op can't be there 24/7.
+
+As illustrated in Section II, each plugin is passed in the value of the
+"verbosity" that may be turned on when running asgs-mon using the "-v"
+flag. The plugin may wish to respect that and it is recommended that it do
+so. There are no shortage of cases where the plugin will output to STDERR
+unconditionally, but this should be done sparingly to maintain a high
+signal/noise ratio for any op who is monitoring things on a terminal.
+
+V. Creating New Plugins
+
+Please look at what is in etc/asgs-mon-plugins. There are examples that use
+Perl and Bash. Early experience is suggesting that plugins should favor being
+created in Bash, and that Perl should only be considered if you only need the
+power of it for things like processing JSON, communicating to webservers, etc.
+
+In the case of plugins, simpler is better. They should be designed to do
+one very specific check. And a good rule of thumb is that they should not
+be more than 75 or 100 lines in length.
+
+VI. APPENDIX A. Helper Libraries for Common Needs:
+
+Bash - etc/asgs-mon-plugins/_bash-helper-functions.sh 
+
+   source $SCRIPTDIR/etc/asgs-mon-plugins/_bash-helper-functions.sh 
+   ...
+
+Perl - PERL/ASGSUtils.pm
+
+   use ASGSUtils;
+   ...
+
