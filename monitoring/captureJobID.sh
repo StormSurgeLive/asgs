@@ -47,7 +47,7 @@ case $HPCENVSHORT in
    cat jobID.tmp | awk '$1~/[0-9]+/ { print $1 }' > jobID
    rm jobID.tmp
    ;;
-"mike")
+"mike"|"qbd")
    # SLURM returns information similar to the following when a
    # job is submitted:
    # <asgsh> sbatch prep13.slurm 2>stderr >stdout
