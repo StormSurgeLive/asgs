@@ -49,16 +49,31 @@ use constant {
 
 local %ENV = %ENV;
 
-my $ASGS_CONFIG = $ENV{ASGS_CONFIG};
-my $ASGS_PID = `ps aux | grep [a]sgs_main.sh | grep "\$ASGS_CONFIG" | awk '{ print \$2 }'`;
-my $retcode  = $? >> 8;
+sub find_asgs_main_pid($) {
+    my $ASGS_CONFIG = shift;
+    my $ASGS_PID = `ps aux | grep [a]sgs_main.sh | grep '$ASGS_CONFIG' | awk '{ print \$2 }'`;
+    my $retcode  = $? >> 8;
 
-if ($retcode != EXIT_SUCCESS) {
-  say STDERR (<<EOF);
+    if ( $retcode != EXIT_SUCCESS ) {
+        say STDERR (<<EOF);
 Error finding asgs_main.sh PID. Exiting ...
 EOF
-  exit $retcode; 
+        exit $retcode;
+    }
+    my @PIDS = split /\n/, $ASGS_PID;
+    if ( @PIDS > 1 ) {
+        say STDERR (<<EOF);
+Found too many PIDs. Make sure you don't have more than one instance of this configuration file,
+$ASGS_CONFIG, running. Exiting ...
+EOF
+        exit EXIT_ERROR;
+    }
+    return $ASGS_PID;
 }
+
+my $ASGS_CONFIG = $ENV{ASGS_CONFIG};
+my $ASGS_PID    = find_asgs_main_pid $ASGS_CONFIG;
+
 chomp $ASGS_PID;
 
 my $o = Getopt2h2o \@ARGV, { delay => 30, pid => $ASGS_PID }, qw/delay=i foreground hush=i pid=i trace v/;
