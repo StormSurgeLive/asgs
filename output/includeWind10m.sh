@@ -3,7 +3,7 @@
 # includeWind10m.sh : Make symbolic links to results from corresponding
 # Wind10m results.
 #-----------------------------------------------------------------------
-# Copyright(C) 2018--2019 Jason Fleming
+# Copyright(C) 2018--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -34,7 +34,7 @@ fi
 # full path to the run.properties file
 # echo "Loading properties."
 # get loadProperties function
-SCRIPTDIR=`sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES`
+SCRIPTDIR=$(sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES)
 source $SCRIPTDIR/properties.sh
 # load run.properties file into associative array
 loadProperties $RUNPROPERTIES
@@ -79,39 +79,47 @@ cd ${SCENARIODIR} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could n
 #-----------------------------------------------------------------------
 # If winds at 10m (i.e., wind velocities that do not include the effect
 # of land interaction from nodal attributes line directional wind roughness
-# and canopy coefficient) were produced by another ensemble member,
+# and canopy coefficient) were produced by another scenario in the package,
 # then include these winds in the post processing
 wind10mFound=no
 dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
 if [[ -d $dirWind10m ]]; then
-   scenarioMessage "$THIS: Corresponding 10m wind ensemble member was found."
+   scenarioMessage "$THIS: Corresponding 10m wind scenario was found in the directory '$dirWind10m'."
    wind10mFound=yes
+   # copy the relevant files to this scenario directory
    for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       if [[ -e $dirWind10m/$file && ! -e ./wind10m.${file} ]]; then
          scenarioMessage "$THIS: Found $dirWind10m/${file}."
-         cp $dirWind10m/${file} ./wind10m.${file} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not copy from Wind10m directory: `cat $errmsg`"
-         # update the run.properties file
-         case $file in
-         "fort.72.nc")
-            echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
-            echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
-            ;;
-         "fort.74.nc")
-            echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
-            echo "Wind Velocity 10m Format : netcdf" >> run.properties
-            ;;
-         "maxwvel.63.nc")
-            echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
-            echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
-            ;;
-         *)
-            warn "cycle $CYCLE: $SCENARIO: $THIS: The file $file was not recognized."
-         ;;
-         esac
+         cp $dirWind10m/${file} ./wind10m.${file} 2>&1 > errmsg || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not copy from Wind10m directory: $(cat $errmsg)"
       else
          warn "cycle $CYCLE: $SCENARIO: $THIS: The file $dirWind10m/${file} was not found."
       fi
    done
 else
-   warn "cycle $CYCLE: $SCENARIO: $THIS: Corresponding 10m wind ensemble member was not found."
+   scenarioMessage "cycle $CYCLE: $SCENARIO: $THIS: Corresponding 10m wind scenario directory was not found."
 fi
+# if these files were produced as an integral part of another scenario, or were copied
+# from a wind10m scenario directory, add the files to the run.properties file
+for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
+   if [[ -e ./wind10m.${file} ]]; then
+      # update the run.properties file
+      scenarioMessage "$THIS: Adding 'wind10m.${file}' to run.properties."
+      case $file in
+      "fort.72.nc")
+         echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
+         echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
+         ;;
+      "fort.74.nc")
+         echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
+         echo "Wind Velocity 10m Format : netcdf" >> run.properties
+         ;;
+      "maxwvel.63.nc")
+         echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
+         echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
+         ;;
+      *)
+         scenarioMessage "cycle $CYCLE: $SCENARIO: $THIS: The file wind10m.${file} was not found."
+      ;;
+      esac
+   fi
+done
