@@ -92,7 +92,7 @@ fi
 firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc 2>> $SCENARIOLOG) )
 # wind layer files
 for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
-   if [[ -e ./wind10m.${file} ]]; do
+   if [[ -e ./wind10m.${file} ]]; then
       firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls wind10m.${file} 2>> $SCENARIOLOG) )
       secondPriorityFiles=( ${secondPriorityFiles[*]} $(ls $file 2>> $SCENARIOLOG) )
    else
