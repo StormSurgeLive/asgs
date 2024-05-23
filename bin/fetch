@@ -12,11 +12,23 @@ ITEM=${1}
 
 case "${ITEM}" in
   all)
+    fetch asgs-mon
     fetch configs
     fetch cera
     fetch docs
     fetch storm-archive
     fetch adcirc-testsuite
+    ;;
+  asgs-mon)
+    mkdir $SCRIPTDIR/git 2> /dev/null
+    pushd $SCRIPTDIR/git  > /dev/null  2>&1
+    if [ -d ./asgs-mon ]; then
+      echo "${W} $SCRIPTDIR/git/asgs-mon exists"
+      popd > /dev/null 2>&1 
+      exit 1
+    fi
+    git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
+    popd > /dev/null 2>&1 
     ;;
   configs)
     mkdir $SCRIPTDIR/git 2> /dev/null
@@ -81,6 +93,7 @@ case "${ITEM}" in
 
  Supported:
   * adcirc-testsuite - git clones ADCIRC's test-suite        (public)
+  * asgs-mon         - git clones ASGS' monitor              (public)
   * cera             - git clones CERA local-asgs-assets     (private)
   * configs          - git clones ASGS asgs-config           (public)
   * docs             - git clones ASGS asgs.wiki             (public)
