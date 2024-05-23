@@ -67,7 +67,7 @@ case $GRIDNAME in
    "CPRA23v05b")
       #
       nodes=1577268
-      elements=3072131     
+      elements=3072131
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23
       GRIDFILE=cpra_2023_hurricane_v05b_chk.grd  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -133,49 +133,63 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
       ;;
       #
-   "LA_v20a-WithUpperAtch_chk-parameters"|"LAv20a-parameters")
+   "LA_v20a-WithUpperAtch_chk"|"LAv20a")
       #
       nodes=1593485
       elements=3102441
       INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a
       GRIDFILE=LA_v20a-WithUpperAtch_chk.grd   # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.ASGS2024.1.template
       ELEVSTATIONS=combined_stations_20200929.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      # numerics/physics (fort.15)
-      advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-      solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
-      time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
-      lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
-      eddy_viscosity_coefficient="50.0"     # ESLM
-      bottom_friction_limit=0.0             # min when using Manning's n (CF/FFACTOR)
-      h0=0.1                                # min depth (m) to be considered wet
-      velmin=0.01
-      nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
-      nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
-      nodal_attribute_activate+=( elemental_slope_limiter average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
-      nodal_attribute_activate+=( surface_submergence_state sea_surface_height_above_geoid )
-      # tidal forcing
-      tidalConstituents=( "q1" "o1" "p1" "k1" "n2" "m2" "s2" "k2" )
-      # river boundary forcing
-      PERIODICFLUX=$INPUTDIR/LAv20a_10kcms.txt
-      # nodal attributes file
-      NAFILE=LA_v20a-WithUpperAtch_chk.13.template
-      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
-      nodal_attribute_default_values["surface_submergence_state"]="0.0"
-      nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
-      nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="20.0"
-      nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
-      nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
-      nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.022"
-      nodal_attribute_default_values["elemental_slope_limiter"]="0.05"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      case $parameterPackage in
+      "hardcoded")
+         CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template
+         # wind at 10m fort.15 template
+         CONTROLTEMPLATENOROUGH=LA_v20a-WithUpperAtch.nowindreduction.15.template
+         NAFILE=LA_v20a-WithUpperAtch_chk.13
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
+         ;;
+      "default")
+         CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.ASGS2024.1.template
+         # numerics/physics (fort.15)
+         advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
+         time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
+         lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
+         eddy_viscosity_coefficient="50.0"     # ESLM
+         bottom_friction_limit=0.0             # min when using Manning's n (CF/FFACTOR)
+         h0=0.1                                # min depth (m) to be considered wet
+         velmin=0.01
+         nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
+         nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
+         nodal_attribute_activate+=( elemental_slope_limiter average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
+         nodal_attribute_activate+=( surface_submergence_state sea_surface_height_above_geoid )
+         # tidal forcing
+         tidalConstituents=( "q1" "o1" "p1" "k1" "n2" "m2" "s2" "k2" )
+         # river boundary forcing
+         PERIODICFLUX=$INPUTDIR/LAv20a_10kcms.txt
+         # nodal attributes file
+         NAFILE=LA_v20a-WithUpperAtch_chk.13.template
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
+         nodal_attribute_default_values["surface_submergence_state"]="0.0"
+         nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
+         nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="20.0"
+         nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
+         nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+         nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.022"
+         nodal_attribute_default_values["elemental_slope_limiter"]="0.05"
+         ;;
+      *)
+         fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
+         ;;
+         esac
       ;;
    "LAERDCv5k")
       #
@@ -302,7 +316,7 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
- "TXLA22a")
+   "TXLA22a")
       #
       nodes=1947485
       elements=3832707
@@ -351,100 +365,128 @@ case $GRIDNAME in
       # FIXME: no unit offset url
       ;;
       #
-      "NCv6d-parameters")
+   "NCv6d")
       #
       nodes=295328
       elements=575512
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v6b
       GRIDFILE=nc_inundation_v6d_rivers_msl.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=NCv6d_2024.fort.15.template
       ELEVSTATIONS=v6brivers_elev_stations.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=v6brivers_met_stations.txt
-      # tidal forcing
-      tidalConstituents=( "m2" "s2" "n2" "k1" "k2" "o1" "q1" "p1" )
-      # river boundary forcing
-      RIVERFLUX=v6brivers_fort.20_default
-      HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
-      VARFLUX=default             # mesh has aperiodic flux boundary
-      # numerics/physics
-      TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
-      advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-      solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
-      time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
-      lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
-      eddy_viscosity_coefficient="10.0"     # ESLM
-      bottom_friction_limit=0.003           # min when using Manning's n (CF/FFACTOR)
-      h0=0.02                               # min depth (m) to be considered wet
-      velmin=0.02
-      # nodal attributes
-      NAFILE=v6brivers_rlevel.13.template
-      nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
-      nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
-      nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
-      nodal_attribute_activate+=( initial_river_elevation )
-      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
-      nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
-      nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
-      nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
-      nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
-      nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
-      nodal_attribute_default_values["initial_river_elevation"]="-99999"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      case $parameterPackage in
+      "hardcoded"|"default")
+         # we don't have a hardcoded template set up for NCv6d
+         CONTROLTEMPLATE=NCv6d_2024.fort.15.template
+         # tidal forcing
+         tidalConstituents=( "m2" "s2" "n2" "k1" "k2" "o1" "q1" "p1" )
+         # river boundary forcing
+         RIVERFLUX=v6brivers_fort.20_default
+         HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
+         VARFLUX=default             # mesh has aperiodic flux boundary
+         # numerics/physics
+         TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
+         advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
+         time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+         lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
+         eddy_viscosity_coefficient="10.0"     # ESLM
+         bottom_friction_limit=0.003           # min when using Manning's n (CF/FFACTOR)
+         h0=0.02                               # min depth (m) to be considered wet
+         velmin=0.02
+         # nodal attributes
+         NAFILE=v6brivers_rlevel.13.template
+         nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
+         nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
+         nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
+         nodal_attribute_activate+=( initial_river_elevation )
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
+         nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
+         nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
+         nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
+         nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+         nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+         nodal_attribute_default_values["initial_river_elevation"]="-99999"
+         ;;
+      *)
+         fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
+         ;;
+         esac
       ;;
       #
-   "nc_inundation_v9.99_w_rivers-parameters"|"NCv999-parameters")
+   "nc_inundation_v9.99_w_rivers"|"NCv999")
       #
       nodes=624782
       elements=1234231
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       GRIDFILE=nc_inundation_v9.99a_w_rivers.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
       ELEVSTATIONS=ncv999_stations_20180907.txt
       VELSTATIONS=${ELEVSTATIONS}
       METSTATIONS=${ELEVSTATIONS}
-      # tidal forcing
-      tidalConstituents=( "m2" "s2" "n2" "k1" "k2" "o1" "q1" )
-      # river boundary forcing
-      RIVERFLUX=v6brivers_fort.20_default
-      HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
-      VARFFLUX=default
-      # numerics/physics
-      TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
-      advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-      solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
-      time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
-      lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
-      eddy_viscosity_coefficient="2.0"      # ESLM
-      bottom_friction_limit=0.003           # min when using Manning's n (CF/FFACTOR)
-      h0=0.1                                # min depth (m) to be considered wet
-      velmin=0.01
-      # nodal attributes
-      NAFILE=nc_inundation_v9.99_rivers.13.template
-      nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
-      nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
-      nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
-      nodal_attribute_activate+=( initial_river_elevation sea_surface_height_above_geoid )
-      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
-      nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
-      nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
-      nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
-      nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
-      nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
-      nodal_attribute_default_values["initial_river_elevation"]="0.0"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
+      UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
+      case $parameterPackage in
+      "hardcoded")
+         CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+         # wind at 10m fort.15 template
+         CONTROLTEMPLATENOROUGH=nc_9.99wrivers.nowindreduction.fort.15.template
+         NAFILE=nc_inundation_v9.99_rivers.13
+         RIVERINIT=v6brivers.88
+         RIVERFLUX=v6brivers_fort.20_default
+         HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
+         # interaction between mesh and models:
+         TIMESTEPSIZE=0.5           # adcirc time step size (seconds)
+         ;;
+      "default")
+         CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
+         # tidal forcing
+         tidalConstituents=( "m2" "s2" "n2" "k1" "k2" "o1" "q1" )
+         # river boundary forcing
+         RIVERFLUX=v6brivers_fort.20_default
+         HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
+         VARFFLUX=default
+         # numerics/physics
+         TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
+         advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
+         time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+         lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
+         eddy_viscosity_coefficient="2.0"      # ESLM
+         bottom_friction_limit=0.003           # min when using Manning's n (CF/FFACTOR)
+         h0=0.1                                # min depth (m) to be considered wet
+         velmin=0.01
+         # nodal attributes
+         NAFILE=nc_inundation_v9.99_rivers.13.template
+         nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
+         nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
+         nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
+         nodal_attribute_activate+=( initial_river_elevation sea_surface_height_above_geoid )
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
+         nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
+         nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
+         nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
+         nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+         nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+         nodal_attribute_default_values["initial_river_elevation"]="0.0"
+         ;;
+      *)
+         fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
+         ;;
+      esac
       ;;
-"uriv18"|"URIv18")
+   "uriv18"|"URIv18")
       nodes=2617704
       elements=5149248
       INPUTDIR=$SCRIPTDIR/input/meshes/uriv18
@@ -475,17 +517,10 @@ case $GRIDNAME in
       INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
       GRIDFILE=hsofs.14  # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.nc.properties
-      CONTROLTEMPLATE=hsofs_explicit.15.template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
-      h0=0.05
       ELEVSTATIONS=hsofs_stations_20180907.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      NAFILE=hsofs.13
-      # interaction between mesh and models:
       TIMESTEPSIZE=2.0            # adcirc time step size (seconds)
-      SWANDT=1800                 # swan timestep / coupling interval (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
@@ -493,6 +528,49 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
+      case $parameterPackage in
+      "hardcoded")
+         CONTROLTEMPLATE=hsofs_explicit.15.template
+         # wind at 10m fort.15 template
+         CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
+         NAFILE=hsofs.13
+         # interaction between mesh and models:
+         SWANDT=1800                 # swan timestep / coupling interval (seconds)
+         ;;
+      "default")
+         CONTROLTEMPLATE=hsofs-parameters.15.template
+         # interaction between mesh and models:
+         SWANDT=1800                 # swan timestep / coupling interval (seconds)
+         # tidal forcing
+         tidalConstituents=( "k1" "o1" "p1" "q1" "n2" "m2" "s2" "k2" )
+         # numerics/physics
+         advection="off"                           # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration="explicit"        # implicit|explicit|full-gravity-wave-implicit
+         time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+         lateral_turbulence="eddy_viscosity"       # "smagorinsky" or "eddy_viscosity"
+         eddy_viscosity_coefficient="10.0"         # ESLM
+         bottom_friction_limit=0.0025              # min when using Manning's n (CF/FFACTOR)
+         h0=0.05                                   # min depth (m) to be considered wet
+         velmin=0.05                               # pseudovelocity threshold
+         metControl["WindDragLimit"]="0.0028"      # max wind drag coefficient, unitless
+         # nodal attributes
+         NAFILE=hsofs-parameters.13
+         nodal_attribute_activate=( mannings_n_at_sea_floor )
+         nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
+         nodal_attribute_activate+=( surface_canopy_coefficient )
+         nodal_attribute_activate+=( surface_directional_effective_roughness_length  )
+         nodal_attribute_activate+=( surface_submergence_state )
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
+         nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
+         nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
+         nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
+         nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+         nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+         ;;
+      *)
+         fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
+         ;;
+      esac
       ;;
    "SABv20a")
       #
@@ -714,54 +792,43 @@ case $GRIDNAME in
       INPUTDIR=${SCRIPTDIR}/input/meshes/shinnecock # grid and other input files
       GRIDFILE=shinnecock_inlet_coarse.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=shinnecock_asgs.fort.15.template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=shinnecock_asgs.fort.15.template
-      h0=0.05
       ELEVSTATIONS=shinnecock_stations.txt
       VELSTATIONS=$ELEVSTATIONS
       METSTATIONS=$ELEVSTATIONS
-      NAFILE="null"
-      # interaction between mesh and models:
       TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
+      case $parameterPackage in
+      "hardcoded")
+         CONTROLTEMPLATE=shinnecock_asgs.fort.15.template
+         # wind at 10m fort.15 template
+         CONTROLTEMPLATENOROUGH=shinnecock_asgs.fort.15.template
+         h0=0.05
+         NAFILE="null"
+         ;;
+      "default")
+         CONTROLTEMPLATE=shinnecock-parameters.fort.15.template
+         NAFILE=shinnecock_nodal_attributes.template
+         # default physics parameters (that differ from the settings in config/model_defaults.sh
+         eddy_viscosity_coefficient="5.0"  # ESLM
+         h0="0.05"                   # min depth (m) to be considered wet
+         velmin="0.02"               # min pseudovelocity (m/s) from wet to dry to change state
+         bottom_friction_limit="0.0025"  # min bottom friction when using Manning's n (CF/FFACTOR)
+         metControl["WindDragLimit"]="0.0025"   # max wind drag coefficient, unitless
+         # nodal attributes listed in fort.15 file
+         nodal_attribute_activate=( "sea_surface_height_above_geoid" )
+         # SWAN parameters (fort.26) template file
+         SWANTEMPLATE=adcirc_swan_v53_parameters_fort.26.template # found in input/meshes/common/swan
+         ;;
+      *)
+         fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
+         ;;
+      esac
       ;;
-   "Shinnecock-parameters")
       #
-      nodes=3070
-      elements=5780
-      INPUTDIR=${SCRIPTDIR}/input/meshes/shinnecock # grid and other input files
-      GRIDFILE=shinnecock_inlet_coarse.grd
-      MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=shinnecock-parameters.fort.15.template
-      ELEVSTATIONS=shinnecock_stations.txt
-      VELSTATIONS=$ELEVSTATIONS
-      METSTATIONS=$ELEVSTATIONS
-      NAFILE=shinnecock_nodal_attributes.template
-      # interaction between mesh and models:
-      TIMESTEPSIZE=6.0           # adcirc time step size (seconds)
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="01:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="01:00:00" # forecast wall clock time
-      # default physics parameters (that differ from the settings in config/model_defaults.sh
-      eddy_viscosity_coefficient="5.0"  # ESLM
-      h0="0.05"                   # min depth (m) to be considered wet
-      velmin="0.02"               # min pseudovelocity (m/s) from wet to dry to change state
-      bottom_friction_limit="0.0025"  # min bottom friction when using Manning's n (CF/FFACTOR)
-      metControl["WindDragLimit"]="0.0025"   # max wind drag coefficient, unitless
-      # nodal attributes listed in fort.15 file
-      nodal_attribute_activate=( "sea_surface_height_above_geoid" )
-      #
-      # SWAN parameters (fort.26) template file
-      SWANTEMPLATE=adcirc_swan_v53_parameters_fort.26.template # found in input/meshes/common/swan
-      ;;
    "ec2001_v2e"|"EC2001v2e")
       #
       nodes=254565
@@ -832,51 +899,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       UNITOFFSETFILE=null
       ;;
-   "hsofs-parameters"|"HSOFS-parameters")
-      #
-      nodes=1813443
-      elements=3564104
-      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
-      GRIDFILE=hsofs.14  # mesh (fort.14) file
-      MESHPROPERTIES=${GRIDFILE}.nc.properties
-      CONTROLTEMPLATE=hsofs-parameters.15.template
-      ELEVSTATIONS=hsofs_stations_20180907.txt
-      VELSTATIONS=$ELEVSTATIONS
-      METSTATIONS=$ELEVSTATIONS
-      # interaction between mesh and models:
-      SWANDT=1800                 # swan timestep / coupling interval (seconds)
-      # tidal forcing
-      tidalConstituents=( "k1" "o1" "p1" "q1" "n2" "m2" "s2" "k2" )
-      # numerics/physics
-      TIMESTEPSIZE=2.0                          # adcirc time step size (seconds)
-      advection="off"                           # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-      solver_time_integration="explicit"        # implicit|explicit|full-gravity-wave-implicit
-      time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
-      lateral_turbulence="eddy_viscosity"       # "smagorinsky" or "eddy_viscosity"
-      eddy_viscosity_coefficient="10.0"         # ESLM
-      bottom_friction_limit=0.0025              # min when using Manning's n (CF/FFACTOR)
-      h0=0.05                                   # min depth (m) to be considered wet
-      velmin=0.05                               # pseudovelocity threshold
-      metControl["WindDragLimit"]="0.0028"      # max wind drag coefficient, unitless
-      # nodal attributes
-      NAFILE=hsofs-parameters.13
-      nodal_attribute_activate=( mannings_n_at_sea_floor )
-      nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
-      nodal_attribute_activate+=( surface_canopy_coefficient )
-      nodal_attribute_activate+=( surface_directional_effective_roughness_length  )
-      nodal_attribute_activate+=( surface_submergence_state )
-      nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
-      nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
-      nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
-      nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
-      nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
-      nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
-      # intersection between mesh, models, hpc platform, and number of compute cores:
-      HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
-      ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
-      NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
-      FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      ;;
+
    *)
       LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
       if [[ -n "$ASGS_LOCAL_DIR" && -e "$LOCAL_MESH_DEFAULTS" ]]; then
