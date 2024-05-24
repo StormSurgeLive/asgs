@@ -432,8 +432,14 @@ if [[ -d $SCRIPTDIR/adcirclive ]]; then
   echo "alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                          >> adcirclive/etc/bashrc
   echo "alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                        >> adcirclive/etc/bashrc
 
+  # gives access to "asgsh" via updated PATH
   ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
+
   cp adcirclive/etc/bashrc adcirclive/etc/initial-bashrc
+
+  echo                                                                           >> ~/.bashrc
+  echo "#### ADDED BY ASGS Live (c) Installation ####"                           >> ~/.bashrc
+  echo "source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                      >> ~/.bashrc
 
   echo "adcirclive build v55.02"                                                 >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc 
