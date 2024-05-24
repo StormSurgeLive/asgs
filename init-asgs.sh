@@ -437,10 +437,6 @@ if [[ -d $SCRIPTDIR/adcirclive ]]; then
 
   cp adcirclive/etc/bashrc adcirclive/etc/initial-bashrc
 
-  echo                                                                           >> ~/.bashrc
-  echo "#### ADDED BY ASGS Live (c) Installation ####"                           >> ~/.bashrc
-  echo "source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                      >> ~/.bashrc
-
   echo "adcirclive build v55.02"                                                 >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc 
   echo "adcirclive load adcirc"                                                  >> adcirclive/etc/initial-bashrc
@@ -454,7 +450,7 @@ if [[ -d $SCRIPTDIR/adcirclive ]]; then
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "The following line was added to your ~/.bashrc file:"                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "  source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                    >> adcirclive/etc/initial-bashrc
+  echo "  source $SCRIPTDIR/adcirclive/etc/bashrc           "                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "To get started, type the command                    "                    >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
