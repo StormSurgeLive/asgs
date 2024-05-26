@@ -391,16 +391,21 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 }
 #
 # construct metControl namelist line
-# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
+# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue, invertedBarometerOnElevationBoundary=logicalValue /
 my $outputWindDrag = $p->{metControl}->{outputWindDrag} eq "yes" ? "T" : "F";
-my $met_control_line ="&metControl WindDragLimit=$p->{metControl}->{WindDragLimit}, DragLawString=\"$p->{metControl}->{DragLawString}\", outputWindDrag=$outputWindDrag /";
+my $invertedBarometerOnElevationBoundary = $p->{metControl}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
+my $met_control_line ="&metControl WindDragLimit=$p->{metControl}->{WindDragLimit}, DragLawString=\"$p->{metControl}->{DragLawString}\", outputWindDrag=$outputWindDrag, invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary /";
 #
 # construct wetDryControl namelist
-# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
+# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
+#        slim=floatValue, windlim=logicalValue, directvelWD=logicalValue, useHF=logicalValue /
 my $outputNodeCode = $p->{wetDryControl}->{outputNodeCode} eq 'yes' ? 'T' : 'F';
 my $outputNOFF = $p->{wetDryControl}->{outputNOFF} eq 'yes' ? 'T' : 'F';
 my $noffActive = $p->{wetDryControl}->{noffActive} eq 'on' ? 'T' : 'F';
-my $wetdry_control_line = "&wetDryControl outputNodeCode=$outputNodeCode, outputNOFF=$outputNOFF, noffActive=$noffActive /";
+my $windlim = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
+my $directvelWD = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
+my $useHF = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
+my $wetdry_control_line = "&wetDryControl outputNodeCode=$outputNodeCode, outputNOFF=$outputNOFF, noffActive=$noffActive, slim=$p->{wetDryControl}->{slim}, windlim=$windlim, directvelWD=$directvelWD, useHF=$useHF /";
 #
 # construct inundationOutput namelist
 # &inundationOutputControl inundationOutput=logicalValue0, inunThresh=floatValue /
@@ -408,6 +413,15 @@ my $inundationOutput = $p->{inundationOutputControl}->{inundationOutput} eq 'yes
 my $inundation_output_control_line = "&inundationOutputControl inundationOutput=$inundationOutput, inunThresh=$p->{inundationOutputControl}->{inunThresh} /";
 #
 my $dynamic_water_level_correction_line = 'NO LINE HERE';
+#
+# construct SWANOutputControl name list
+my $SWAN_OutputTPS = $p->{SWANOutputControl}->{SWAN_OutputTPS} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTM01 = $p->{SWANOutputControl}->{SWAN_OutputTM01} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputHS = $p->{SWANOutputControl}->{OutputHS} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputDIR = $p->{SWANOutputControl}->{OutputDIR} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTMM10 = $p->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTM02 = $p->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
+my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /"
 #
 # LINTER: check for consistency between solver time integration
 #         type and time weighting coefficients

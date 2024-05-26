@@ -144,14 +144,25 @@ generateDynamicInput()
         -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
         -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
         -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
+        -e "s/%invertedBarometerOnElevationBoundary%/${metControl["invertedBarometerOnElevationBoundary"]}/" \
         -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
         -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
         -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
+        -e "s/%slim%/${wetDryControl["slim"]}/" \
+        -e "s/%windlim%/${wetDryControl["windlim"]}/" \
+        -e "s/%directvelWD%/${wetDryControl["directvelWD"]}/" \
+        -e "s/%useHF%/${wetDryControl["useHF"]}/" \
         -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
         -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
         -e "s/%WAVES%/$WAVES/" \
         -e "s/%wave_model%/$wave_model/" \
         -e "s/%RSTIMINC%/$SWANDT/" \
+        -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \
+        -e "s/%SWAN_OutputTM01%/${SWANOutputControl["SWAN_OutputTM01"]}/" \
+        -e "s/%SWAN_OutputHS%/${SWANOutputControl["SWAN_OutputHS"]}/" \
+        -e "s/%SWAN_OutputDIR%/${SWANOutputControl["SWAN_OutputDIR"]}/" \
+        -e "s/%SWAN_OutputTMM10%/${SWANOutputControl["SWAN_OutputTMM10"]}/" \
+        -e "s/%SWAN_OutputTM02%/${SWANOutputControl["SWAN_OutputTM02"]}/" \
         -e "s/%MXITNS%/${swan["MXITNS"]}/" \
         -e "s/%NPNTS%/${swan["NPNTS"]}/" \
         -e "s?%nodal_attributes_template_file%?$INPUTDIR/$NAFILE?" \

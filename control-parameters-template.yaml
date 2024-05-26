@@ -34,10 +34,15 @@
    DragLawString: "%DragLawString%"
    WindDragLimit: %WindDragLimit%
    outputWindDrag: "%outputWindDrag%"
+   invertedBarometerOnElevationBoundary: "%invertedBarometerOnElevationBoundary%"
  wetDryControl:
    outputNodeCode: "%outputNodeCode%"
    outputNOFF: "%outputNOFF%"
    noffActive: "%noffActive%"
+   slim: %slim%
+   windlim: "%windlim%"
+   directvelWD: "%directvelWD%"
+   useHF: "%useHF%"
  inundationOutputControl:
    inundationOutput: "%inundationOutput%"
    inunThresh: %inunThresh%
@@ -59,6 +64,13 @@
  swan:
    mxitns: %MXITNS%
    npnts: %NPNTS%
+ SWANOutputControl:
+   SWAN_OutputTPS: "%SWAN_OutputTPS%"
+   SWAN_OutputTM01: "%SWAN_OutputTM01%"
+   SWAN_OutputHS: "%SWAN_OutputHS%"
+   SWAN_OutputDIR: "%$SWAN_OutputDIR%"
+   SWAN_OutputTMM10: "%$SWAN_OutputTMM10%"
+   SWAN_OutputTM02: "%SWAN_OutputTM02%"
  nodal_attributes:
    template: "%nodal_attributes_template_file%"
    activate: %nodal_attribute_activate_list%
