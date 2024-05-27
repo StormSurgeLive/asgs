@@ -417,8 +417,8 @@ my $dynamic_water_level_correction_line = 'NO LINE HERE';
 # construct SWANOutputControl name list
 my $SWAN_OutputTPS = $p->{SWANOutputControl}->{SWAN_OutputTPS} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTM01 = $p->{SWANOutputControl}->{SWAN_OutputTM01} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputHS = $p->{SWANOutputControl}->{OutputHS} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputDIR = $p->{SWANOutputControl}->{OutputDIR} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputHS = $p->{SWANOutputControl}->{SWAN_OutputHS} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputDIR = $p->{SWANOutputControl}->{SWAN_OutputDIR} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTMM10 = $p->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTM02 = $p->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
 my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /";
