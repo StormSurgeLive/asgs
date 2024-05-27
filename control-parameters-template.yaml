@@ -68,8 +68,8 @@
    SWAN_OutputTPS: "%SWAN_OutputTPS%"
    SWAN_OutputTM01: "%SWAN_OutputTM01%"
    SWAN_OutputHS: "%SWAN_OutputHS%"
-   SWAN_OutputDIR: "%$SWAN_OutputDIR%"
-   SWAN_OutputTMM10: "%$SWAN_OutputTMM10%"
+   SWAN_OutputDIR: "%SWAN_OutputDIR%"
+   SWAN_OutputTMM10: "%SWAN_OutputTMM10%"
    SWAN_OutputTM02: "%SWAN_OutputTM02%"
  nodal_attributes:
    template: "%nodal_attributes_template_file%"
