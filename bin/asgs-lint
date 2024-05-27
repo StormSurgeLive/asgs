@@ -59,17 +59,17 @@ my $assert_checks = {
 #--
 #    TRIGGER must be ftp, rss, rssembedded, or atcf.
 #    NCPUCAPACITY must be greater than or at least equal to NCPU plus NUMWRITERS for each individual scenario.
-#    BACKGROUNDMET set to something other than allowable values : on, NAM, OWI, namBlend, and off.
-#    BACKGROUNDMET parameter can only be set to off or namBlend when TROPICALCYCLONE is set to something other than off.
+#    BACKGROUNDMET set to something other than allowable values : on, NAM, OWI, namBlend,n GFS, gfsBlend, and off.
+#    BACKGROUNDMET parameter can only be set to off, namBlend, gfsBlend when TROPICALCYCLONE is set to something other than off.
 #    TROPICALCYCLONE and BACKGROUNDMET cannot both be on simultaneously
-#    TROPICALCYCLONE and BACKGROUNDMET cannot both be off simultaneousl
+#    TROPICALCYCLONE and BACKGROUNDMET cannot both be off simultaneously
 #    LASTSUBDIR cannot be set to null in the config file if the ASGS is trying to hotstart (i.e., HOTORCOLD=hotstart), and the STATEFILE does not exist.
 #    LASTSUBDIR cannot be set to null in the STATEFILE file if it exists and the ASGS is trying to hotstart (i.e., HOTORCOLD=hotstart).
 #
 #Done, Optional, if defined
 #    VORTEXMODEL parameter set to something other than SYMMETRIC, ASYMMETRIC, and GAHM.
 #    QUEUESYS must be serial, mpiexec, SLURM, or PBS.
-#    VORTEXMODEL parameter set to something other than GAHM when BACKGROUNDMET set to namBlend.
+#    VORTEXMODEL parameter set to something other than GAHM when BACKGROUNDMET set to namBlendor gfsBlend.
 #    if VARFLUX=on or VARFLUX=default for any ADCIRC version,
 #    if WAVES=on and SWANDT is sent in config, it must be in the range, 300 to 1200
 #    if WAVES=on and REINITIALIZESWAN is set in config, it must be either 'on' or 'off'
@@ -145,8 +145,8 @@ my $CONFIG_VARS = {
     BACKGROUNDMET => {
         ord   => 45,
         req   => 1,
-        check => [ sub { _IN( @_, qw/on off NAM OWI namBlend/ ) } ],
-        hint  => q{Must be: 'on', 'off', 'NAM', 'OWI', 'namBlend'},
+        check => [ sub { _IN( @_, qw/on off NAM OWI namBlend GFS gfsBlend/ ) } ],
+        hint  => q{Must be: 'on', 'off', 'NAM', 'OWI', 'namBlend', 'GFS', or 'gfsBlend'},
     },
     TROPICALCYCLONE => {
         ord   => 50,
@@ -409,10 +409,10 @@ sub fatal_configcheck_FORCINGS {
         $ASGS_CONFIG
     ) if ( $BACKGROUNDMET eq $TROPICALCYCLONE );
 
-    #asgswisdom: BACKGROUNDMET parameter can only be set to off or namBlend when TROPICALCYCLONE is set to something other than off.
-    if ( $TROPICALCYCLONE eq q{off} and grep { $_ =~ m/$BACKGROUNDMET/ } (qw/off namBlend/) ) {
+    #asgswisdom: BACKGROUNDMET parameter can only be set to off, namBlend, gfsBlend when TROPICALCYCLONE is set to something other than off.
+    if ( $TROPICALCYCLONE eq q{off} and grep { $_ =~ m/$BACKGROUNDMET/ } (qw/off namBlend gfsBlend/) ) {
         assert_FATAL(
-            sprintf qq{BACKGROUNDMET can't be set to 'off' or 'namBlend' if TROPICALCYCLONE is 'off' in '%s'},
+            sprintf qq{BACKGROUNDMET can't be set to 'off', 'namBlend', 'gfsBlend' if TROPICALCYCLONE is 'off' in '%s'},
             $ASGS_CONFIG
         );
     }
@@ -481,9 +481,9 @@ sub fatal_configcheck_VORTEXMODEL_if_DEFINED {
     return EXIT_SUCCESS if not $VORTEXMODEL;
 
     #asgswisdom: VORTEXMODEL parameter set to something other than GAHM when BACKGROUNDMET set to namBlend.
-    if ( $VORTEXMODEL eq q{GAHM} and $BACKGROUNDMET eq q{namBlend} ) {
+    if ( $VORTEXMODEL eq q{GAHM} and ($BACKGROUNDMET eq q{namBlend} or $BACKGROUNDMET eq q{gfsBlend} )) {
         assert_FATAL(
-            sprintf qq{VORTEXMODEL can't be 'GAHM' when BACKGROUNDMET is 'namBlend' in '%s'.},
+            sprintf qq{VORTEXMODEL can't be 'GAHM' when BACKGROUNDMET is 'namBlend' or 'gfsBlend' in '%s'.},
             $ASGS_CONFIG
         );
     }
@@ -597,12 +597,12 @@ sub fatal_configcheck_SCENARIOPACKAGESIZE_if_TROPICALCYCLONE_DEFINED {
             my ( $found_ENSTORM, $ENSTORM ) = $self->_extract_from_string( q{ENSTORM}, $CASE_block );    # attempt to find value of ENSTORM
             my ( $found_PERCENT, $PERCENT ) = $self->_extract_from_string( q{PERCENT}, $CASE_block );    # attempt to find value of PERCENT
 
-            # check for valid start patterns: 'nhcC', 'veerLeft', 'veerRight', 'namforecast'
+            # check for valid start patterns: 'nhcC', 'veerLeft', 'veerRight', 'namforecast', 'gfsforecast', 'vMax', 'rMax', 'nhcOfcl'
 	    my $_PERCENT = $PERCENT // q{};
 	    $_PERCENT =~ s/-//g;
-            if ( not $ENSTORM or $ENSTORM !~ m/^(nhcC|veerRight$_PERCENT|veerLeft$_PERCENT|namforecast)/ ) {
+            if ( not $ENSTORM or $ENSTORM !~ m/^(nhcC|veerRight$_PERCENT|veerLeft$_PERCENT|namforecast|gfsforecast|vMax|rMax|nhcOfcl)/ ) {
                 assert_FATAL(
-                    sprintf qq{Case "%s" - ENSTORM %s; typically starts with: 'nhcConsensus', 'veerRight$_PERCENT', 'veerLeft$_PERCENT', 'namforecast'. Please adjust '%s' and try again.},
+                    sprintf qq{Case "%s" - ENSTORM %s; typically starts with: 'nhcConsensus', 'veerRight$_PERCENT', 'veerLeft$_PERCENT', 'namforecast', 'gfsforecast', 'vMax', 'rMax', 'nhcOfcl'. Please adjust '%s' and try again.},
                     $i, ( not $found_ENSTORM ) ? q{is MISSING} : qq{'$ENSTORM' appears INVALID}, $ASGS_CONFIG
                 );
             }
