@@ -421,7 +421,7 @@ my $SWAN_OutputHS = $p->{SWANOutputControl}->{OutputHS} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputDIR = $p->{SWANOutputControl}->{OutputDIR} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTMM10 = $p->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTM02 = $p->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
-my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /"
+my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /";
 #
 # LINTER: check for consistency between solver time integration
 #         type and time weighting coefficients
