@@ -12,10 +12,11 @@ _sq() {
   platform=$(guess platform);
   if [[ $(echo 'supermic queenbee queenbeeC queenbeeD' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(showq | grep $USER)
-  elif [[ $(echo 'frontera stampede2 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
-    SQ=$(squeue -u $USER | tail -n +2)
+  elif [[ $(echo 'frontera stampede2 stampede3 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
+    SQ=$(squeue -u $USER 2>&1 | tail -n +2)
   else
-    SQ="Can't determine platform or command to use to report state of batch queues."
+    echo "Can't determine platform or command to use to report state of batch queues. Guessing:" >&2
+    SQ=$(squeue -u $USER 2>&1 | tail -n +2)
   fi
   # display result
   if [ -n "$SQ" ]; then

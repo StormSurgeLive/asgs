@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # Needed for ./init-asgs.sh, bin/guess
-export PPN=128
+export PPN=48
 export HPCENV=stampede3.tacc.utexas.edu
 export HPCENVSHORT=stampede3
 export QUEUESYS=SLURM
-export QUEUENAME=normal # 1-64 compute nodes (x128 ppn)
-export SERQUEUE=normal  # 1-64 compute nodes (x128 ppn)
+export QUEUENAME=skx
+export SERQUEUE=skx
 export QSUMMARYCMD=null
 export QUOTACHECKCMD=null
 export ALLOCCHECKCMD=null
