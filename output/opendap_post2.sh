@@ -72,7 +72,15 @@ CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
 SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
 #
 source $SCRIPTDIR/monitoring/logging.sh
+#
+# the platforms.sh sources ~/.asgsh_profile which may have
+# variables set in it (e.g., OPENDAPNOTIFY) that would override
+# the values read from the run.properties file. However, the
+# values read from the run.properties file should take
+# precedence.
+local rpOPENDAPNOTIFY=$OPENDAPNOTIFY
 source $SCRIPTDIR/platforms.sh
+OPENDAPNOTIFY=$rpOPENDAPNOTIFY      # restore value from run.properties to prevent override from ~/.asgsh_profile
 #
 #+ vvvvv
 # BEGIN - get list of servers for scp'ing files, uses

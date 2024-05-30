@@ -426,6 +426,10 @@ postScenarioStatus() {
     # files to be posted to opendap on any particular execution of
     # output/opendap_post.sh from the run.properties file
     echo "post.opendap.files : ( $SCENARIODIR/scenario.status.json sendNotification )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
+    # this would seem to count on the behavior that the last value
+    # of a property in the file will take precedence; this would fail
+    # if some other utility reads properties and writes them back
+    # out in random order (issue #1329)
     echo "notification.opendap.email.opendapnotify : null" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     $SCRIPTDIR/output/$OPENDAPPOST $scenarioStatusDir/run.properties
 }
