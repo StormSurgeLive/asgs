@@ -78,7 +78,7 @@ source $SCRIPTDIR/monitoring/logging.sh
 # the values read from the run.properties file. However, the
 # values read from the run.properties file should take
 # precedence.
-local rpOPENDAPNOTIFY=$OPENDAPNOTIFY
+rpOPENDAPNOTIFY=$OPENDAPNOTIFY
 source $SCRIPTDIR/platforms.sh
 OPENDAPNOTIFY=$rpOPENDAPNOTIFY      # restore value from run.properties to prevent override from ~/.asgsh_profile
 #
