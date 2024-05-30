@@ -47,9 +47,9 @@ loadProperties $RUNPROPERTIES
 RUNDIR=${properties['path.rundir']}
 SSHLOG=$RUNDIR/ssh.log
 #
+OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
 if [ -z "$OPENDAPNOTIFY" ]; then
-  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Loading OPENDAPNOTIFY address from '$RUNPROPERTIES' file ..." >> $SSHLOG
-  OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
+   OPENDAPNOTIFY="null"
 fi
 echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Email list via 'OPENDAPNOTIFY' is '$OPENDAPNOTIFY'" >> $SSHLOG
 CONFIG=${properties['config.file']}
