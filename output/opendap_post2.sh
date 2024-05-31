@@ -47,9 +47,9 @@ loadProperties $RUNPROPERTIES
 RUNDIR=${properties['path.rundir']}
 SSHLOG=$RUNDIR/ssh.log
 #
+OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
 if [ -z "$OPENDAPNOTIFY" ]; then
-  echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Loading OPENDAPNOTIFY address from '$RUNPROPERTIES' file ..." >> $SSHLOG
-  OPENDAPNOTIFY=${properties['notification.opendap.email.opendapnotify']}
+   OPENDAPNOTIFY="null"
 fi
 echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Email list via 'OPENDAPNOTIFY' is '$OPENDAPNOTIFY'" >> $SSHLOG
 CONFIG=${properties['config.file']}
@@ -72,7 +72,15 @@ CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
 SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
 #
 source $SCRIPTDIR/monitoring/logging.sh
+#
+# the platforms.sh sources ~/.asgsh_profile which may have
+# variables set in it (e.g., OPENDAPNOTIFY) that would override
+# the values read from the run.properties file. However, the
+# values read from the run.properties file should take
+# precedence.
+rpOPENDAPNOTIFY=$OPENDAPNOTIFY
 source $SCRIPTDIR/platforms.sh
+OPENDAPNOTIFY=$rpOPENDAPNOTIFY      # restore value from run.properties to prevent override from ~/.asgsh_profile
 #
 #+ vvvvv
 # BEGIN - get list of servers for scp'ing files, uses

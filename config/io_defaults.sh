@@ -82,4 +82,5 @@ if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
    NETCDF4="--netcdf4"
    OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
    POSTPROCESS=( null_post.sh )
+   OPENDAPNOTIFY="null"
 fi
