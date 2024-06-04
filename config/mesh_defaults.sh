@@ -810,20 +810,58 @@ case $GRIDNAME in
       INPUTDIR=${SCRIPTDIR}/input/meshes/EGOMv20b # grid and other input files
       GRIDFILE=EGOM-RT_v20b_chk.grd
       MESHPROPERTIES=${GRIDFILE}.properties
-      CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
-      # wind at 10m fort.15 template
-      CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
       ELEVSTATIONS=EGOM-RT_v20b_stations.txt
       VELSTATIONS=EGOM-RT_v20b_stations.txt
       METSTATIONS=EGOM-RT_v20b_stations.txt
-      NAFILE=EGOM-RT_v20b_asgs_chk.13
-      nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.106"
       # intersection between mesh, models, hpc platform, and number of compute cores:
       HINDCASTWALLTIME="18:00:00" # hindcast wall clock time
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
-      # FIXME: no unit offset url
+      case $parameterPackage in
+      "hardcoded")
+         CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
+         # wind at 10m fort.15 template
+         CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
+         NAFILE=EGOM-RT_v20b_asgs_chk.13
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.106"
+         ;;
+      "default")
+         CONTROLTEMPLATE=EGOMv20b.15.ASGS2024.1.template
+         # numerics/physics (fort.15)
+         advection="on"                            # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration="explicit"        # implicit|explicit|full-gravity-wave-implicit
+         time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+         lateral_turbulence="smagorinsky"          # "smagorinsky" or "eddy_viscosity"
+         eddy_viscosity_coefficient="20.0"         # ESLM
+         smagorinsky_coefficient="0.05"
+         bottom_friction_limit=0.001               # min when using Manning's n (CF/FFACTOR)
+         h0=0.1                                    # min depth (m) to be considered wet
+         velmin=0.01
+         nodal_attribute_activate=( sea_surface_height_above_geoid )
+         nodal_attribute_activate+=( advection_state )
+         nodal_attribute_activate+=( mannings_n_at_sea_floor )
+         nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
+         nodal_attribute_activate+=( surface_canopy_coefficient )
+         nodal_attribute_activate+=( surface_directional_effective_roughness_length )
+         # tidal forcing
+         tidalConstituents=( "k1" "o1" "p1" "q1" "n2" "m2" "s2" "k2" )
+         # nodal attributes file
+         NAFILE=EGOM-RT_v20b_asgs_chk.13.template
+         nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.106"
+         nodal_attribute_default_values["advection_state"]="-99999.0"
+         nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.025"
+         nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
+         nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
+         nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+         nodal_attribute_default_values["elemental_slope_limiter"]="0.02"
+         # meteorological forcing
+         metControl["WindDragLimit"]="0.003"  # max wind drag coefficient, unitless
+         ;;
+      *)
+         fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
+         ;;
+      esac
       ;;
       #
    "Shinnecock")
