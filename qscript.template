@@ -113,7 +113,7 @@ for layer in ${layers[@]}; do
    fi
    echo "cycle $CYCLE: $SCENARIO: $THIS: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > $jobtype.${layer}.run.start # <-OVERWRITE
-   echo "\"jobtype\" : \"$jopbtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
+   echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
    $CMD
    ERROVALUE=$?  # capture exit status
    #
