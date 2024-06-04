@@ -68,9 +68,8 @@ createWind10mLayer="no"  # yes|no ; applies to all scenarios that have meteorolo
 # settings to take care of explicitly defined Wind10m scenarios
 # old config files (or new config files copied from old config files)
 # may use the deprecated variable ENSTORM rather than the preferred
-# SCENARIO paramter
+# SCENARIO parameter. Wave coupling will be turned off in generateDynamicInput.sh.
 if [[ $ENSTORM == *"Wind10m" || $SCENARIO == *"Wind10m" ]]; then
-   WAVES=off                   # deactivate wave forcing
    POSTPROCESS=( null_post.sh )
    OPENDAPNOTIFY="null"
 fi

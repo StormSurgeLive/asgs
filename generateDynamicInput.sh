@@ -72,6 +72,7 @@ generateDynamicInput()
         layers+=( "wind10m" )
     fi
     for layer in ${layers[@]}; do
+        local layerWaves="$WAVES"
         na_activate_list=""  # clear out list of nodal attributes that will be activated for this layer
         layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
         if [[ $layer == $SCENARIO && $SCENARIO != *"Wind10m" ]]; then
@@ -101,7 +102,7 @@ generateDynamicInput()
                 fi
                 na_activate_list="$na_activate_list\n      - \"$k\""
             done
-            WAVES="off"
+            layerWaves="off"
         fi
         sed \
         -e "s/%ADCIRCVER%/$(adcirc -v)/" \
@@ -154,7 +155,7 @@ generateDynamicInput()
         -e "s/%useHF%/${wetDryControl["useHF"]}/" \
         -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
         -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-        -e "s/%WAVES%/$WAVES/" \
+        -e "s/%WAVES%/$layerWaves/" \
         -e "s/%wave_model%/$wave_model/" \
         -e "s/%RSTIMINC%/$SWANDT/" \
         -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \
@@ -187,7 +188,7 @@ generateDynamicInput()
             controlExitStatus=1
             controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
         fi
-        if [[ $layer == $SCENARIO && $WAVES == "on" && $NWS != "0" && $SCENARIO != *"Wind10m" ]]; then
+        if [[ $layer == $SCENARIO && $layerWaves == "on" && $NWS != "0" && $SCENARIO != *"Wind10m" ]]; then
             if [[ ! -e $swanFile || ! -s $swanFile ]]; then
                 controlExitStatus=1
                 controlMsg="$controlMsg Failed to generate the SWAN '$swanFile' file."
@@ -202,6 +203,3 @@ generateDynamicInput()
     done
     cat $SCENARIODIR/${SCENARIO}.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
 }
-
-
-
