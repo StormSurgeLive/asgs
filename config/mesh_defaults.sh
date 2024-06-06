@@ -716,6 +716,7 @@ case $GRIDNAME in
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
          ;;
       esac
+      ;;
       #
    "WFLv18")
       #
