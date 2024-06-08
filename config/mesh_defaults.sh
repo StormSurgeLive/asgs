@@ -911,8 +911,6 @@ case $GRIDNAME in
          nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
          # tidal forcing
          tidalConstituents=( "q1" "o1" "p1" "k1" "n2" "m2" "s2" "k2" )
-         # river boundary forcing
-         PERIODICFLUX=$INPUTDIR/CPRA23_default_river_flux.txt
          # nodal attributes file
          NAFILE=NAC2014_R01.13
          nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
