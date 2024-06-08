@@ -261,7 +261,7 @@ case $GRIDNAME in
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.228184"
          ;;
       "default")
-         CONTROLTEMPLATE=LAERDCv5.15.ASGS2024.1.template
+         CONTROLTEMPLATE=LAERDCv5k.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
          solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
@@ -297,7 +297,6 @@ case $GRIDNAME in
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
          ;;
       esac
-
       ;;
       #
    "ec95d"|"EC95d")
@@ -532,7 +531,7 @@ case $GRIDNAME in
       *)
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
          ;;
-         esac
+      esac
       ;;
       #
    "nc_inundation_v9.99_w_rivers"|"NCv999")
@@ -952,6 +951,7 @@ case $GRIDNAME in
          CONTROLTEMPLATENOROUGH=NGOM_RT_v19b.nowindreduction.15.template
          NAFILE=NGOM_RT_v19b_chk.13
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2"
+         ;;
       "default")
          CONTROLTEMPLATE=NGOMv19.15.ASGS2024.1.template
          # numerics/physics (fort.15)
