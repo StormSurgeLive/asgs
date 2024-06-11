@@ -64,7 +64,7 @@ CONTROLTEMPLATENOROUGH="null"
 #
 #
 case $GRIDNAME in
-   "CPRA23v05b")
+   "CPRA23v05b"|"CPRA23v05c")
       #
       nodes=1577268
       elements=3072131
@@ -87,6 +87,9 @@ case $GRIDNAME in
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.362102"
          NAFILE=cpra_2023_hurricane_v05b.13
          SWANTEMPLATE=CPRA23v01c_fort.26.template
+         if [[ $GRIDNAME == "CPRA23v05c" ]]; then
+            NAFILE=cpra_2023_hurricane_v05c.13
+         fi
          ;;
       "default")
          CONTROLTEMPLATE=CPRA23.15.ASGS2024.1.template
@@ -113,6 +116,9 @@ case $GRIDNAME in
          PERIODICFLUX=$INPUTDIR/CPRA23_default_river_flux.txt
          # nodal attributes file
          NAFILE=cpra_2023_hurricane_v05b.13.template
+         if [[ $GRIDNAME == "CPRA23v05c" ]]; then
+            NAFILE=cpra_2023_hurricane_v05c.13.template
+         fi
          nodal_attribute_default_values["surface_submergence_state"]="0.0"
          nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
          nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
@@ -121,6 +127,7 @@ case $GRIDNAME in
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.362102"
          nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
          nodal_attribute_default_values["elemental_slope_limiter"]="0.05"
+         nodal_attribute_default_values["advection_state"]="-9999.0"
          ;;
       *)
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
