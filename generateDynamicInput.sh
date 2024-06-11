@@ -97,8 +97,8 @@ generateDynamicInput()
                 layerOptions+=" --netcdf4"
             fi
             for k in ${nodal_attribute_activate[@]}; do
-                if [[ $k == "surface_directional_effective_roughness_length" || $k == "surface_canopy_coefficient" ]]; then
-                    continue  # deactivate nodal attributes that reduce wind to ground level
+                if [[ $k == "surface_directional_effective_roughness_length" || $k == "surface_canopy_coefficient" || $k == "elemental_slope_limiter" ]]; then
+                    continue  # deactivate nodal attributes that reduce wind to ground level (or update ESLNodes.63)
                 fi
                 na_activate_list="$na_activate_list\n      - \"$k\""
             done

@@ -266,7 +266,7 @@ case $GRIDNAME in
          advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
          solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
          time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
-         lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
+         lateral_turbulence="smagorinsky"      # "smagorinsky" or "eddy_viscosity"
          smagorinsky_coefficient="0.2"
          bottom_friction_limit=0.001           # min when using Manning's n (CF/FFACTOR)
          h0=0.1                                # min depth (m) to be considered wet
@@ -283,7 +283,7 @@ case $GRIDNAME in
          # river boundary forcing
          PERIODICFLUX=$INPUTDIR/LAERDC_default_river_flux.txt
          # nodal attributes file
-         NAFILE=cpra_2023_hurricane_v05b.13.template
+         NAFILE=LA_ERDC_v05k_chk.13.template
          nodal_attribute_default_values["surface_submergence_state"]="0.0"
          nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
          nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
