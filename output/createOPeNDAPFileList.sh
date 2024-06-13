@@ -3,7 +3,7 @@
 # createOPeNDAPFileList.sh : Construct a list of the files that
 # should be posted to OPeNDAP and write the list to run.properties.
 #-----------------------------------------------------------------------
-# Copyright(C) 2018--2022 Jason Fleming
+# Copyright(C) 2018--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -91,12 +91,26 @@ fi
 # wave coupling output files
 firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls swan_HS_max.63.nc swan_TPS_max.63.nc swan_HS.63.nc swan_TPS.63.nc 2>> $SCENARIOLOG) )
 # wind layer files
-dirWind10m=$CYCLEDIR/${SCENARIO}Wind10m
-if [[ -d $dirWind10m ]]; then
-   firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls wind10m.maxwvel.63.nc wind10m.fort.74.nc 2>> $SCENARIOLOG) )
-   secondPriorityFiles=( ${secondPriorityFiles[*]} $(ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG) )
-else
-   firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls maxwvel.63.nc fort.74.nc 2>> $SCENARIOLOG) )
-fi
+for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
+   if [[ -e ./wind10m.${file} ]]; then
+      firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls wind10m.${file} 2>> $SCENARIOLOG) )
+      secondPriorityFiles=( ${secondPriorityFiles[*]} $(ls $file 2>> $SCENARIOLOG) )
+   else
+      firstPriorityFiles=( ${firstPriorityFiles[*]} $(ls $file 2>> $SCENARIOLOG) )
+   fi
+done
+# if integrated wind10m files were generated, and the meteorological output
+# is named according to the scenario (along with a symbolic link that uses the
+# corresponding standard file name) then remove the symbolic link, rename
+# the file with standard name then create a symbolic link to it with the scenario
+# name ... we need to do this because opendap_post2.sh will dereference
+# symbolic links and post the files they are pointing at
+for file in fort.7*.nc maxwvel.63.nc minpr.63.nc fort.15 ; do
+   if [[ -L $file && -f ${SCENARIO}.${file} ]]; then
+      rm $file 2>> $SCENARIOLOG
+      mv ${SCENARIO}.${file} $file 2>> $SCENARIOLOG
+      ln -s $file ${SCENARIO}.${file} 2>> $SCENARIOLOG
+   fi
+done
 FILES=( ${firstPriorityFiles[*]} "sendNotification" ${secondPriorityFiles[*]} )
 echo "post.opendap.files : ( ${FILES[@]} )" >> run.properties

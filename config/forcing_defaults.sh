@@ -25,6 +25,7 @@ THIS=$(basename -- $0)
 # Tidal forcing
 #
 TIDEFAC="on"
+tidalConstituents=( "m2" "s2" "n2" "k1" "k2" "o1" "q1" "p1" )
 tidal_forcing=$TIDEFAC
 tidefac_file="tide_fac.out" # need full path
 tidal_potential_comment="tidal_potential_comment:notset"
@@ -113,11 +114,12 @@ RIVERDIR="/projects/ciflow/adcirc_info"
 RIVERUSER="ldm"
 RIVERDATAPROTOCOL="scp"
 HINDCASTRIVERFLUX=null
-RIVERINIT=null           # mesh has no rivers ...
-RIVERFLUX=null
-VARFLUX=off
+RIVERINIT=null        # file (fort.88) containing cold start river water elevations
+RIVERFLUX=null        # file containing aperiodic flux boundary condition data
+VARFLUX=off           # off|on|default (on|default specifies aperiodic flux)
 USERIVERFILEONLY=no
-PERIODICFLUX=null
+PERIODICFLUX=null     # static file containing periodic flux boundary condition
+FLUXCALCULATOR=static # static|%filename%.pl (static if a static file should be used)
 #
 # Model coupling : SWAN
 #

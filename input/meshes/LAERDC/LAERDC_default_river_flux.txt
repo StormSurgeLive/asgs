@@ -1,0 +1,32 @@
+ STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
+  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+0.665090249  .000000    !...River 1 Node 1 (Total River Flow: 4247.0000 cms, Avg Lat/Long: -91.801121,30.979759)
+1.383096429  .000000    !...River 1 Node 2
+1.486717187  .000000    !...River 1 Node 3
+1.582908083  .000000    !...River 1 Node 4
+1.684962723  .000000    !...River 1 Node 5
+1.771855013  .000000    !...River 1 Node 6
+1.802179714  .000000    !...River 1 Node 7
+1.80361291   .000000    !...River 1 Node 8
+1.813962135  .000000    !...River 1 Node 9
+1.835548362  .000000    !...River 1 Node 10
+1.853770355  .000000    !...River 1 Node 11
+1.8596959    .000000    !...River 1 Node 12
+1.860077987  .000000    !...River 1 Node 13
+1.860084854  .000000    !...River 1 Node 14
+1.858477536  .000000    !...River 1 Node 15
+1.847216009  .000000    !...River 1 Node 16
+1.824691976  .000000    !...River 1 Node 17
+1.807001177  .000000    !...River 1 Node 18
+1.783397096  .000000    !...River 1 Node 19
+1.70957475   .000000    !...River 1 Node 20
+1.587499019  .000000    !...River 1 Node 21
+0.760231508  .000000    !...River 1 Node 22
+3.657768786  .000000    !...River 2 Node 1 (Total River Flow: 10194.0000 cms, Avg Lat/Long: -91.573385,31.026883)
+9.920361487  .000000    !...River 2 Node 2
+13.0475775   .000000    !...River 2 Node 3
+11.00670394  .000000    !...River 2 Node 4
+7.016116343  .000000    !...River 2 Node 5
+4.595167746  .000000    !...River 2 Node 6
+1.800771042  .000000    !...River 2 Node 7

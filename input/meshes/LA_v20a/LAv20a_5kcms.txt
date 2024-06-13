@@ -1,0 +1,45 @@
+ STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
+  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+3.6 0.0   ! mississippi node 1; total flux set to 4.9 kcms to represent isaac 20120821
+4.2 0.0  ! mississippi node 2
+4.9 0.0  ! mississippi node 3
+5.2 0.0  ! mississippi node 4
+5.5 0.0  ! mississippi node 5
+5.7 0.0  ! mississippi node 6
+5.5 0.0  ! mississippi node 7
+4.9 0.0  ! mississippi node 8
+3.6 0.0  ! mississippi node 9
+2.6 0.0  ! mississippi node 10
+1.4 0.0  ! mississippi node 11
+1.1 0.0  ! mississippi node 12
+1.0 0.0  ! mississippi node 13
+0.0 0.0   ! morganza node 1; total flux set to 0.0 kcms
+0.0 0.0  ! morganza node 2
+0.0 0.0  ! morganza node 3
+0.0 0.0  ! morganza node 4
+0.0 0.0  ! morganza node 5
+0.0 0.0  ! morganza node 6
+0.0 0.0  ! morganza node 7
+0.8 0.0   ! atchafalaya node 1; total flux set to 2.5 kcms
+0.9 0.0  ! atchafalaya node 2
+1.0 0.0  ! atchafalaya node 3
+1.0 0.0  ! atchafalaya node 4
+1.1 0.0  ! atchafalaya node 5
+1.1 0.0  ! atchafalaya node 6
+1.1 0.0  ! atchafalaya node 7
+1.1 0.0  ! atchafalaya node 8
+1.2 0.0  ! atchafalaya node 9
+1.2 0.0  ! atchafalaya node 10
+1.2 0.0  ! atchafalaya node 11
+1.2 0.0  ! atchafalaya node 12
+1.2 0.0  ! atchafalaya node 13
+1.2 0.0  ! atchafalaya node 14
+1.2 0.0  ! atchafalaya node 15
+1.2 0.0  ! atchafalaya node 16
+1.2 0.0  ! atchafalaya node 17
+1.1 0.0  ! atchafalaya node 18
+1.1 0.0  ! atchafalaya node 19
+1.1 0.0  ! atchafalaya node 20
+1.0 0.0  ! atchafalaya node 21
+0.9 0.0  ! atchafalaya node 22

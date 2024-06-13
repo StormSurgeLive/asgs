@@ -1,0 +1,45 @@
+ STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
+  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+5.641724  .000000    !...River 1 Node 1 (Total River Flow: 12431.0000 cms, Avg Lat/Long: -91.198941,30.425086)
+12.177213  .000000    !...River 1 Node 2
+13.779589  .000000    !...River 1 Node 3
+14.969524  .000000    !...River 1 Node 4
+15.808853  .000000    !...River 1 Node 5
+16.144211  .000000    !...River 1 Node 6
+15.562916  .000000    !...River 1 Node 7
+13.643486  .000000    !...River 1 Node 8
+10.631483  .000000    !...River 1 Node 9
+7.426073  .000000    !...River 1 Node 10
+4.748850  .000000    !...River 1 Node 11
+3.288169  .000000    !...River 1 Node 12
+1.475260  .000000    !...River 1 Node 13
+.000000  .000000    !...River 2 Node 1 (Total River Flow: .0000 cms, Avg Lat/Long: -91.619574,30.776798)
+.000000  .000000    !...River 2 Node 2
+.000000  .000000    !...River 2 Node 3
+.000000  .000000    !...River 2 Node 4
+.000000  .000000    !...River 2 Node 5
+.000000  .000000    !...River 2 Node 6
+.000000  .000000    !...River 2 Node 7
+1.364926  .000000    !...River 3 Node 1 (Total River Flow: 4275.0000 cms, Avg Lat/Long: -91.801121,30.979759)
+2.838448  .000000    !...River 3 Node 2
+3.051102  .000000    !...River 3 Node 3
+3.248510  .000000    !...River 3 Node 4
+3.457950  .000000    !...River 3 Node 5
+3.636275  .000000    !...River 3 Node 6
+3.698509  .000000    !...River 3 Node 7
+3.701449  .000000    !...River 3 Node 8
+3.722688  .000000    !...River 3 Node 9
+3.766989  .000000    !...River 3 Node 10
+3.804384  .000000    !...River 3 Node 11
+3.816545  .000000    !...River 3 Node 12
+3.817330  .000000    !...River 3 Node 13
+3.817344  .000000    !...River 3 Node 14
+3.814045  .000000    !...River 3 Node 15
+3.790933  .000000    !...River 3 Node 16
+3.744709  .000000    !...River 3 Node 17
+3.708403  .000000    !...River 3 Node 18
+3.659962  .000000    !...River 3 Node 19
+3.508460  .000000    !...River 3 Node 20
+3.257932  .000000    !...River 3 Node 21
+1.560179  .000000    !...River 3 Node 22
