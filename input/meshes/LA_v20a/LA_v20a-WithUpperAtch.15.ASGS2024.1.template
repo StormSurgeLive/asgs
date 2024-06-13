@@ -1,75 +1,68 @@
- ASGS %StormName%
- %EnsembleID%
- 1   20.0   1   50   1000.0  ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
- 1  ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
-%NSCREEN%   ! output frequency (in time steps) to STDOUT or adcirc.log
-%IHOT% ! IHOT - HOT START PARAMETER
- 2  ! ICS - COORDINATE SYSTEM SELECTION PARAMETER
- 0  ! IM - MODEL SELECTION PARAMETER 
- 1  ! NOLIBF - BOTTOM FRICTION TERM SELECTION PARAMETER
- 2  ! NOLIFA - FINITE AMPLITUDE TERM SELECTION PARAMETER
- 0  ! NOLICA - SPATIAL DERIVATIVE CONVECTIVE SELECTION PARAMETER
- 0  ! NOLICAT - TIME DERIVATIVE CONVECTIVE TERM SELECTION PARAMETER
- 8  ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
-surface_submergence_state
-surface_directional_effective_roughness_length
-surface_canopy_coefficient
-mannings_n_at_sea_floor
-sea_surface_height_above_geoid
-primitive_weighting_in_continuity_equation
-average_horizontal_eddy_viscosity_in_sea_water_wrt_depth
-elemental_slope_limiter
- 1  ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
- 1  ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
-%NWS% ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
- 2  ! NRAMP - RAMP FUNCTION OPTION
- 9.81  ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
- -3.0 ! TAU0 - WEIGHTING FACTOR IN GWCE
-%DT%  ! DT - TIME STEP (IN SECONDS)
- 0.00  ! STATIM - STARTING TIME (IN DAYS)
- 0.00   ! REFTIM - REFERENCE TIME (IN DAYS)
-%WTIMINC%    ! WTIMINC
-%RNDAY%      ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 7.0 5.0 5.0     ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
- 0.35 0.30 0.35  ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
- 0.10 0 0 0.01    ! H0, NODEDRYMIN, NODEWETMIN, VELMIN
- 265.5 29.0 ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
- 0.000 2.0 10 1.33333 !  FFACTOR,HBREAK,FTHETA,FGAMMA
- 50.0 ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
- 0.0    ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
- 8   ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS
- Q1   ! ALPHANUMERIC DESCRIPTION
+ ASGS TEMPLATE15:2024.1 %StormName% ADCIRCVersion:%ADCIRCVER%
+ %ScenarioID%
+ %NFOVER%    ! %NFOVER-Line%
+ %NABOUT%    ! %NABOUT-Line%
+ %NSCREEN%   ! %NSCREEN-Line%
+ %IHOT%      ! %IHOT-Line%
+ 2           ! %ICS-Line%
+ %IM%        ! %IM-Line%
+ 1           ! %NOLIBF-Line%
+ 2           ! %NOLIFA-Line%
+ %NOLICA%    ! %NOLICA-Line%
+ %NOLICAT%   ! %NOLICAT-Line%
+ %NWP%       ! %NWP-Line%
+ %NALIST%    ! %NALIST-Line%
+ 1           ! %NCOR-Line%
+ 1           ! %NTIP-Line%
+ %NWS%       ! %NWS-Line%
+ 2           ! %NRAMP-Line%
+ 9.81        ! %G-Line%
+ -3          ! %TAU0-Line%
+ %DT%        ! %DTDP-Line%
+ 0.00        ! %STATIM-Line%
+ 0.00        ! %REFTIM-Line%
+ %WTIMINC%   ! %WTIMINC-Line%
+ %RNDAY%     ! %RNDAY-Line%
+ 7.0 5.0 5.0 ! %DRAMP-Line%
+ %A00B00C00% ! %A00B00C00-Line%
+ %H0% 12 12 %VELMIN%  ! %H0-Line%
+ 265.5 29.0           ! %SLAM0-Line%
+ %FFACTOR% 1.0  10.  0.33333 ! %FFACTOR-Line%
+ %ESLM%                      ! %ESLM-Line%
+ 0.00010                     ! %CORI-Line%
+ 8 ! %NTIFCOMMENT% %NTIF-Line%
+ Q1
  0.019256  0.000064958541129   0.695  %Q1NF% %Q1EQARG%
- O1  
+ O1
  0.100514  0.000067597744151   0.695  %O1NF% %O1EQARG%
- P1  
+ P1
  0.046843  0.000072522945975   0.706  %P1NF% %P1EQARG%
- K1  
+ K1
  0.141565  0.000072921158358   0.736  %K1NF% %K1EQARG%
- N2  
+ N2
  0.046398  0.000137879699487   0.693  %N2NF% %N2EQARG%
- M2  
+ M2
  0.242334  0.000140518902509   0.693  %M2NF% %M2EQARG%
- S2  
+ S2
  0.112841  0.000145444104333   0.693  %S2NF% %S2EQARG%
- K2  
+ K2
  0.030704  0.000145842317201   0.693  %K2NF% %K2EQARG%
- 8    ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARY
- Q1   ! ALPHANUMERIC DESCRIPTION OF OPEN BOUNDARY FORCING DATA
+ 8 ! %NBFRCOMMENT% %NBFR-Line%
+ Q1
  0.000064958541129  %Q1NF% %Q1EQARG%
- O1  
+ O1
  0.000067597744151  %O1NF% %O1EQARG%
- P1  
+ P1
  0.000072522945975  %P1NF% %P1EQARG%
- K1  
+ K1
  0.000072921158358  %K1NF% %K1EQARG%
- N2  
+ N2
  0.000137879699487  %N2NF% %N2EQARG%
- M2  
+ M2
  0.000140518902509  %M2NF% %M2EQARG%
- S2  
+ S2
  0.000145444104333  %S2NF% %S2EQARG%
- K2  
+ K2
  0.000145842317201  %K2NF% %K2EQARG%
 Q1
     0.015000     -144.800000         1     1
@@ -1016,77 +1009,34 @@ K2
     0.033000       23.100000         8   116
     0.033000       23.100000         8   117
  110.0 ! ANGINN : INNER ANGLE THRESHOLD
-1                     ! NFFR - TOTAL NUMBER OF FORCING FREQUENCIES ON FLUX BOUNDARIES
- STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
- 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
-  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-5.641724  .000000    !...River 1 Node 1 (Total River Flow: 12431.0000 cms, Avg Lat/Long: -91.198941,30.425086)
-12.177213  .000000    !...River 1 Node 2
-13.779589  .000000    !...River 1 Node 3
-14.969524  .000000    !...River 1 Node 4
-15.808853  .000000    !...River 1 Node 5
-16.144211  .000000    !...River 1 Node 6
-15.562916  .000000    !...River 1 Node 7
-13.643486  .000000    !...River 1 Node 8
-10.631483  .000000    !...River 1 Node 9
-7.426073  .000000    !...River 1 Node 10
-4.748850  .000000    !...River 1 Node 11
-3.288169  .000000    !...River 1 Node 12
-1.475260  .000000    !...River 1 Node 13
-.000000  .000000    !...River 2 Node 1 (Total River Flow: .0000 cms, Avg Lat/Long: -91.619574,30.776798)
-.000000  .000000    !...River 2 Node 2
-.000000  .000000    !...River 2 Node 3
-.000000  .000000    !...River 2 Node 4
-.000000  .000000    !...River 2 Node 5
-.000000  .000000    !...River 2 Node 6
-.000000  .000000    !...River 2 Node 7
-1.364926  .000000    !...River 3 Node 1 (Total River Flow: 4275.0000 cms, Avg Lat/Long: -91.801121,30.979759)
-2.838448  .000000    !...River 3 Node 2
-3.051102  .000000    !...River 3 Node 3
-3.248510  .000000    !...River 3 Node 4
-3.457950  .000000    !...River 3 Node 5
-3.636275  .000000    !...River 3 Node 6
-3.698509  .000000    !...River 3 Node 7
-3.701449  .000000    !...River 3 Node 8
-3.722688  .000000    !...River 3 Node 9
-3.766989  .000000    !...River 3 Node 10
-3.804384  .000000    !...River 3 Node 11
-3.816545  .000000    !...River 3 Node 12
-3.817330  .000000    !...River 3 Node 13
-3.817344  .000000    !...River 3 Node 14
-3.814045  .000000    !...River 3 Node 15
-3.790933  .000000    !...River 3 Node 16
-3.744709  .000000    !...River 3 Node 17
-3.708403  .000000    !...River 3 Node 18
-3.659962  .000000    !...River 3 Node 19
-3.508460  .000000    !...River 3 Node 20
-3.257932  .000000    !...River 3 Node 21
-1.560179  .000000    !...River 3 Node 22
-%FORT61%    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
-%NUMELEVSTATIONS%    ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
-%FORT62%
-%NUMVELSTATIONS%     ! NSTAV - NUMBER OF ELEVATION RECORDING STATIONS
-%FORT7172%
-%NUMMETSTATIONS%     ! NSTAM - NUMBER OF MET RECORDING STATIONS
-%FORT63%             ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE (UNIT  63)
-%FORT64%             ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV (UNIT  64)
-%FORT7374%           ! NOUTGM,TOUTSGM,TOUTFGM,NSPOOLGM (UNIT  73,74)
- 0                   ! NHARFR - NUMBER OF CONSTITUENTS HARMONIC ANALYSIS
- 40.0  50.0  5  0.0  ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS
- 0 0 0 0             ! NHASE,NHASV,NHAGE,NHAGV - UNITS 51,52,53,54
-%NHSTAR% %NHSINC%    ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS
- 1  0  1.E-7  25 0   ! ITITER, ISLDIA, CONVCR, ITMAX & ILUMP
-LA ASGS v19k
-Seahorse
-LONI
-ASGS Nowcast/Forecast
-http://www.seahorsecoastal.com
-Model time is relative to UTC.
-queenbee.loni.org   
-CF
-jason.fleming@seahorsecoastal.com
-%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00
- &SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTMM10=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputTM02=T SWAN_OutputDIR=T /
- &MetControl DragLawString='Powell' WindDragLimit=0.002 /
- &inundationOutputControl inundationOutput=.true. /
-%offsetline%
+%NFFR%               ! %NFFR-Line%
+%PERIODICFLUX%       ! %PERIODICFLUX-Lines%
+%FORT61%             ! %NOUTE-Line%
+%NUMELEVSTATIONS%    ! %NSTAE-Line%
+%FORT62%             ! %NOUTV-Line%
+%NUMVELSTATIONS%     ! %NSTAV-Line%
+%FORT7172%           ! %NOUTM-Line%
+%NUMMETSTATIONS%     ! %NSTAM-Line%
+%FORT63%             ! %NOUTGE-Line%
+%FORT64%             ! %NOUTGV-Line%
+%FORT7374%           ! %NOUTGW-Line%
+0                    ! %NHARF-Line%
+0.0 0.0 0 0.0        ! %THAS-Line%
+0 0 0 0              ! %NHASE-Line%
+%NHSTAR%  %NHSINC%   ! %NHSTAR-Line%
+%ITITER% 0 1.0E-7 25 ! %ITITER-Line%
+%NCPROJ%%NCPROJ-Line%
+%NCINST%%NCINST-Line%
+%NCSOUR%%NCSOUR-Line%
+%NCHIST%%NCHIST-Line%
+%NCREF%%NCREF-Line%
+%NCCOM%%NCCOM-Line%
+%NCHOST%%NCHOST-Line%
+%NCCONT%%NCCONT-Line%
+%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00%NCDATE-Line%
+!
+! namelists:
+%met_control_namelist%
+%wetdry_control_namelist%
+%inundation_output_control_namelist%
+%dynamic_water_level_correction_namelist%

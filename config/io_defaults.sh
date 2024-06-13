@@ -25,6 +25,7 @@ THIS=$(basename -- $0)
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
 nfover=${nfover:-"1 20.0 1 20 100.0"}       # nonfatal override; warnelev and errorelev
 log_level=${log_level:-"INFO"}              # NABOUT (DEBUG=-1, ECHO=0, INFO=1, WARNING=2, ERROR=3)
+outputInventory=${outputInventory:-"full"}  # full|metonly
 # io
 ELEVSTATIONS=${ELEVSTATIONS:-"null"}
 VELSTATIONS=${VELSTATIONS:-"null"}
@@ -62,25 +63,13 @@ fi
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
-if [[ ${ENSTORM:(-7)} = "Wind10m" ]]; then
-   scenarioMessage "$THIS: Setting parameters to trigger ADCIRC met-only mode for ${ENSTORM}."
-   ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
-   FORECASTWALLTIME="01:00:00" # forecast wall clock time
-   CONTROLTEMPLATE=$CONTROLTEMPLATENOROUGH  # CONTROLTEMPLATENOROUGH set in config/mesh_defaults.sh
-   TIMESTEPSIZE=300.0          # 15 minute time steps
-   NCPU=15                     # dramatically reduced resource requirements
-   NUMWRITERS=1                # multiple writer procs might collide
-   WAVES=off                   # deactivate wave forcing
-   FORT61="--fort61freq 0"     # turn off water surface elevation station output
-   FORT62="--fort62freq 0"     # turn off water current velocity station output
-   FORT63="--fort63freq 0"     # turn off full domain water surface elevation output
-   FORT64="--fort64freq 0"     # turn off full domain water current velocity output
-   FORT7172="--fort7172freq 300.0 --fort7172netcdf"    # met station output
-   FORT7374="--fort7374freq 3600.0 --fort7374netcdf"   # full domain meteorological output
-   #SPARSE="--sparse-output"
-   SPARSE=""
-   NETCDF4="--netcdf4"
-   OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
+createWind10mLayer="no"  # yes|no ; applies to all scenarios that have meteorological forcing
+#
+# settings to take care of explicitly defined Wind10m scenarios
+# old config files (or new config files copied from old config files)
+# may use the deprecated variable ENSTORM rather than the preferred
+# SCENARIO parameter. Wave coupling will be turned off in generateDynamicInput.sh.
+if [[ $ENSTORM == *"Wind10m" || $SCENARIO == *"Wind10m" ]]; then
    POSTPROCESS=( null_post.sh )
    OPENDAPNOTIFY="null"
 fi

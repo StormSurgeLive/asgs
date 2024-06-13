@@ -6,7 +6,7 @@
 # being driven by the ASGS.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2014--2023 Jason Fleming
+# Copyright(C) 2014--2024 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -25,6 +25,7 @@
 #----------------------------------------------------------------
 #
 # ADCIRC parameters (fort.15) file
+parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and static nodal attributes
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
 adcirc_version="notset"
 TIMESTEPSIZE="1.0"            # ADCIRC time step in seconds
@@ -39,7 +40,7 @@ solver_time_integration="implicit"          # implicit|explicit|full-gravity-wav
 time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
 lateral_turbulence="eddy_viscosity"         # "smagorinsky" or "eddy_viscosity"
     eddy_viscosity_coefficient="50.0"       # ESLM
-    smagorinsky_coefficient="0.2"           # ESLM
+    smagorinsky_coefficient="0.2"           # smagorinsky coef
 h0=0.1                        # min depth (m) to be considered wet
 velmin=0.1                    # min pseudovelocity (m/s) from wet to dry to change state
 bottom_friction_limit=0.001   # min bottom friction when using Manning's n (CF/FFACTOR)
@@ -68,17 +69,31 @@ declare -g -A metControl
 metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
 metControl["DragLawString"]="garratt" # "garratt" or "powell"
 metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
+metControl["invertedBarometerOnElevationBoundary"]="no" # yes|no to include inverse barometer effect on boundary
 #
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
 declare -g -A wetDryControl
 wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
 wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
 wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
+wetDryControl["slim"]=0.0004          # value of slope limiter for wet/dry
+wetDryControl["windlim"]="off"        # on|off to limit wind stress calculations in shallow water
+wetDryControl["directvelWD"]="off"    # on|off to apply direct velocity calculation in wetting
+wetDryControl["useHF"]="off"          # on|off to use high friction in shallow inundated areas
 #
-# &inundationOutputControl inundationOutput=logicalValue0, inunThresh =floatValue /
+# &inundationOutputControl inundationOutput=logicalValue, inunThresh =floatValue /
 declare -g -A inundationOutputControl
 inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
 inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
+#
+# &SWANOutputControl SWAN_OutputTPS=logicalValue, SWAN_OutputTM01=logicalValue, SWAN_OutputHS=logicalValue, SWAN_OutputDIR=logicalValue, SWAN_OutputTMM10=logicalValue, SWAN_OutputTM02=logicalValue /
+declare -g -A SWANOutputControl
+SWANOutputControl["SWAN_OutputTPS"]="yes"
+SWANOutputControl["SWAN_OutputTM01"]="yes"
+SWANOutputControl["SWAN_OutputHS"]="yes"
+SWANOutputControl["SWAN_OutputDIR"]="yes"
+SWANOutputControl["SWAN_OutputTMM10"]="yes"
+SWANOutputControl["SWAN_OutputTM02"]="yes"
 #
 # netCDF metadata at or near the bottom of the fort.15 file
 declare -g -A netcdf_metadata

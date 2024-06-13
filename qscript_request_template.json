@@ -1,5 +1,5 @@
 {
-    "version" : "0.1",
+    "version" : "0.2",
     "category" : "hpc",
     "hpc" : "job",
     "job" : "queuescript",
@@ -20,6 +20,7 @@
     "scriptdir" : "%scriptdir%",
     "adcircdir" : "%adcircdir%",
     "scenario" : "%scenario%",
+    "wind10mlayer" : "%wind10mlayer%",
     "reservation" : "%reservation%",
     "constraint" : "%constraint%",
     "qos" : "%qos%",
