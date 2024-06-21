@@ -107,7 +107,7 @@ for layer in ${layers[@]}; do
    #       E X E C U T E   T H E   J O B
    #
    CMD="%cmd%"
-   if [[ $layer == "wind10m" ]]; then
+   if [[ $layer == "wind10m" || $SCENARIO == *"Wind10m" ]]; then
       # the met only mode should not be run with the SWAN wave coupled executable
       CMD=$(echo "$CMD" | sed 's?adcswan ?adcirc ?')
    fi
