@@ -2948,7 +2948,7 @@ while [ true ]; do
          CONTROLOPTIONS="--cst $CSDATE --advisorynum $ADVISORY --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
-         tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
+         tcEnd=$(grep "forcing.tropicalcyclone.fcst.time.end" run.properties | sed 's/forcing.tropicalcyclone.fcst.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
          CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
          if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
