@@ -69,7 +69,10 @@ case $GRIDNAME in
       nodes=1577268
       elements=3072131
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23
-      GRIDFILE=cpra_2023_hurricane_v05b_chk.grd  # mesh (fort.14) file
+      GRIDFILE=cpra_2023_hurricane_v05b_chk.grd     # mesh (fort.14) file
+      if [[ $GRIDNAME == "CPRA23v05c" ]]; then
+         GRIDFILE=cpra_2023_hurricane_v05c_chk.grd  # mesh (fort.14) file
+      fi
       MESHPROPERTIES=${GRIDFILE}.properties
       ELEVSTATIONS=combined_stations_20230824.txt
       VELSTATIONS=$ELEVSTATIONS
