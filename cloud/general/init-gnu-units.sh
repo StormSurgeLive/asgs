@@ -19,13 +19,13 @@ if [ "$COMPILER" == "clean" ]; then
   exit
 fi
 
-UNITS_VERSION=2.21
+UNITS_VERSION=2.23
 UNITS_DIR=units-${UNITS_VERSION}
 UNITS_TGZ=${UNITS_DIR}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${UNITS_TGZ} ]; then
-  wget --no-check-certificate https://ftp.gnu.org/gnu/units/${UNITS_TGZ}
+  wget --no-check-certificate https://ftpmirror.gnu.org/units/${UNITS_TGZ}
 fi
 
 rm -rf ./$UNITS_DIR 2> /dev/null
