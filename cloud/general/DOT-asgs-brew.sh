@@ -464,9 +464,14 @@ clone() {
       fi
       read -p "Create new profile? [y] " create
       if [[ -z "$create" || "$create" = "y"  ]]; then
+        local DIR=$(dirname "${new_config}")
+        if [[ ! -d "$DIR" ]]; then
+          echo "${W} The directory, '$DIR', does not exist! Create this directory and start again."
+          return
+        fi
         cp -v $ASGS_CONFIG $new_config
-        define config $new_config
         save profile $new_profile_name
+        define config $new_config
         rl
         read -p "Would you like to edit the new configuration file? [y] " _edit
         if [[ -z "$_edit" || "$_edit" = "y" ]]; then
