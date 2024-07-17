@@ -47,7 +47,7 @@ case $HPCENVSHORT in
    cat jobID.tmp | awk '$1~/[0-9]+/ { print $1 }' > jobID
    rm jobID.tmp
    ;;
-"mike"|"qbd")
+"mike"|"qbd"|"supermic")
    # SLURM returns information similar to the following when a
    # job is submitted:
    # <asgsh> sbatch prep13.slurm 2>stderr >stdout
@@ -62,7 +62,7 @@ case $HPCENVSHORT in
    rm jobID.tmp
    ;;
 *)
-   # on queenbee2 and supermic at least, the jobID file contains only
+   # on queenbee2 at least, the jobID file contains only
    # the jobID, so nothing needs to be done.
    ;;
 esac
