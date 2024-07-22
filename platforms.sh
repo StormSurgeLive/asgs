@@ -76,20 +76,18 @@ init_supermic()
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   HPCENV=supermic.hpc.lsu.edu
-  QUEUESYS=PBS
+  QUEUESYS=SLURM
   PPN=20
-  QCHECKCMD=qstat
-  QSUMMARYCMD=showq
+  QCHECKCMD=sacct
   QUOTACHECKCMD=showquota
   ALLOCCHECKCMD=showquota
   QUEUENAME=workq
   SERQUEUE=single
-  SUBMITSTRING=qsub
+  SUBMITSTRING=sbatch
   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   QSCRIPTGEN=qscript.pl
   OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  ACCOUNT=null
+  JOBLAUNCHER='srun '
   PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
   REMOVALCMD="rmpurge"
