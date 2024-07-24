@@ -58,7 +58,7 @@ declare -A filesNumDataSets    # number of datasets in each file
 #----------------------------------------------------------------------------
 #        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
 #----------------------------------------------------------------------------
-echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+echo "Starting in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
 
 # record which cluster nodes we have to scenario.log
 echo "INFO: $THIS: %JOBNODES%: $%JOBNODES%"   #QUEUEONLY
@@ -125,7 +125,7 @@ for layer in ${layers[@]}; do
       # the met only mode should not be run with the SWAN wave coupled executable
       CMD=$(echo "$CMD" | sed 's?adcswan ?adcirc ?')
    fi
-   echo "cycle $CYCLE: $SCENARIO: $THIS: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > $jobtype.${layer}.run.start # <-OVERWRITE
    echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
    $CMD
@@ -142,7 +142,7 @@ for layer in ${layers[@]}; do
             if [ -e $file ]; then
                numMsg=$(grep WarnElev $file | wc -l)
                if [ $numMsg = 0 ]; then
-                  echo "$THIS: No numerical instability detected in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
+                  echo "cycle $CYCLE: $SCENARIO: No numerical instability detected in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
                else
                   ERROVALUE=1
                   ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'. "
@@ -153,8 +153,6 @@ for layer in ${layers[@]}; do
          # look for numerical results that indicate an error occurred
          # start by counting the number of nodes in the mesh using the maxele.63.nc file
          np=$(ncks --trd -m -M maxele.63.nc | grep -E -i ": node, size =" | cut -f 7 -d ' ' | tr -d "," | uniq)
-         # count the number of nodes that would be considered dry upon cold start based only on negative topobathy value
-         numLand=$(ncap2 -O -v -s "land_msk[node]=0.0;land_msk.set_miss(-99999.0);where(depth < 0.0) land_msk=-99999.0; elsewhere land_msk=depth; print(land_msk.number_miss(),\"%d\n\");" maxele.63.nc statistics.nc)
          # create a list of files that will be quality checked
          fileList=( )
          if [[ $layer == $SCENARIO && $SCENARIO != *"Wind10m" ]]; then
@@ -185,20 +183,20 @@ for layer in ${layers[@]}; do
                RUNSUFFIX="error"
                continue
             fi
-            echo "cycle $CYCLE: $SCENARIO: $THIS: '$jobtype.$layer' job '${%JOBID%}' output file '$file' contains '$ndset' data sets. Computing statistics." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+            echo "cycle $CYCLE: $SCENARIO: '$jobtype.$layer' job ID '${%JOBID%}' output file '$file' contains '${filesNumDataSets[$file]}' data set(s). Computing statistics." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
             # compute statistics
             if [[ -e statistics_${file}.txt ]]; then
                rm statistics_${file}.txt
             fi
             # compute min, max, avg, stdev, and number of missing (i.e., dry) values
             # over the full domain for each time step and write to file
-            for snap in $(seq 0 $(($ndset - 1))) ; do
+            for snap in $(seq 0 $((${filesNumDataSets[$file]} - 1))) ; do
                ncap2 -O -v -s "data[node]=0.0;data.set_miss(-99999.0);data=${netcdfVarName[$file]}($snap:$snap:1,0:$(($np - 1)):1);print(data.min(),\"%f \");print(data.max(),\"%f \");print(data.avg(),\"%f \");print((data-data.avg()).rmssdn(),\"%f \");print(data.number_miss(),\"%d\n\");" $file statistics.nc >> statistics_${file}.txt
             done
          done
-         echo "cycle $CYCLE: $SCENARIO: $THIS: Finished computing statistics for '$jobtype.$layer' job '${%JOBID%}' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+         echo "cycle $CYCLE: $SCENARIO: Finished computing statistics for '$jobtype.$layer' job ID '${%JOBID%}' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
          # perform quality checks
-         echo "cycle $CYCLE: $SCENARIO: $THIS: Checking quality of results for '$jobtype.$layer' job '${%JOBID%}' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+         echo "cycle $CYCLE: $SCENARIO: Checking quality of results for '$jobtype.$layer' job ID '${%JOBID%}' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
          for file in ${fileList[@]}; do
             if [[ ${filesNumDataSets[$file]} -eq 0 ]]; then
                continue   # skip checks on files known to be empty
@@ -206,12 +204,12 @@ for layer in ${layers[@]}; do
             # check for NaN values anywhere in the dataset
             nanFound=$(ncks --chk_nan $file)
             if [[ $nanFound == "" ]]; then
-               echo "cycle $CYCLE: $SCENARIO: $THIS: QUALITY CHECK PASSED: No NaN (not a number) values in output file '$file' for '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+               echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK PASSED: No NaN (not a number) values in output file '$file' for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
             else
-               echo "cycle $CYCLE: $SCENARIO: $THIS: QUALITY CHECK FAILED: Found NaN (not a number) value(s) in output file '$file'. Failure for '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+               echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK FAILED: Found NaN (not a number) value(s) in output file '$file'. Failure for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
                echo $nanFound > "nanFound_$file"
                ERROVALUE=1
-               ERROMSG="$ERROMSG QUALITY CHECK FAILED: Found NaN (not a number) value(s) in output file '$file'. Failure for '$jobtype.$layer' job '${%JOBID%}'. "
+               ERROMSG="$ERROMSG QUALITY CHECK FAILED: Found NaN (not a number) value(s) in output file '$file'. Failure for '$jobtype.$layer' job ID '${%JOBID%}'. "
                RUNSUFFIX="error"
             fi
             # the missing and zero quality checks are slightly different for the different file types
@@ -223,10 +221,17 @@ for layer in ${layers[@]}; do
                numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
                ;;
             "maxele.63.nc"|"fort.63.nc")
+               # count the number of nodes that would be considered dry upon cold start based only on negative topobathy value
+               numLand=$(ncap2 -O -v -s "land_msk[node]=0.0;land_msk.set_miss(-99999.0);where(depth < 0.0) land_msk=-99999.0; elsewhere land_msk=depth; print(land_msk.number_miss(),\"%d\n\");" $file statistics.nc)
                # water level results can contain missing (dry) values, but need to check
                # to see if any of the min, max, avg, or stdev are set to the missing value or zero
+               numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999  { print $0 }' statistics_${file}.txt | wc -l)
                # also check to see if the number of missing values is greater than the number of coldstart dry values
-               numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 || $5>$numLand { print $0 }' statistics_${file}.txt | wc -l)
+               compareDry=$(awk '$5>$numLand { print $0 }' statistics_${file}.txt | wc -l)
+               # just a warning
+               if [[ $compareDry -gt 0 ]]; then
+                  echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK WARNING: There are more dry values in '$compareDry' datasets in the '$file' file than the total number of negative topobathy depths ('$numLand') in the mesh for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=WARN -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+               fi
                # also check for min, max, avg, or stdev set to zero
                numZero=$(awk '$1==0.0 || $2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
                ;;
@@ -240,20 +245,20 @@ for layer in ${layers[@]}; do
                # should be unreachable
                ;;
             esac
-            if [[ $numMissing -eq 0 ]];
-               echo "cycle $CYCLE: $SCENARIO: $THIS: QUALITY CHECK PASSED: Missing values (-99999) OK in output file '$file' for '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+            if [[ $numMissing -eq 0 ]]; then
+               echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK PASSED: Missing values (-99999) OK in output file '$file' for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
             else
-               echo "cycle $CYCLE: $SCENARIO: $THIS: QUALITY CHECK FAILED: Missing values (-99999) NOT OK in '$numMissing' dataset(s) of output file '$file'. Failure for '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+               echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK FAILED: Missing values (-99999) NOT OK in '$numMissing' dataset(s) of output file '$file'. Failure for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
                ERROVALUE=1
-               ERROMSG="$ERROMSG QUALITY CHECK FAILED: Missing values (-99999) NOT OK in output file '$file'. Failure for '$jobtype.$layer' job '${%JOBID%}'. "
+               ERROMSG="$ERROMSG QUALITY CHECK FAILED: Missing values (-99999) NOT OK in output file '$file'. Failure for '$jobtype.$layer' job ID '${%JOBID%}'. "
                RUNSUFFIX="error"
             fi
-            if [[ $numZero -eq 0 ]];
-               echo "cycle $CYCLE: $SCENARIO: $THIS: QUALITY CHECK PASSED: No zero values in summary statistics in output file '$file' for '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+            if [[ $numZero -eq 0 ]]; then
+               echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK PASSED: No zero values in summary statistics in output file '$file' for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
             else
-               echo "cycle $CYCLE: $SCENARIO: $THIS: QUALITY CHECK FAILED: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+               echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK FAILED: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for '$jobtype.$layer' job ID '${%JOBID%}'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
                ERROVALUE=1
-               ERROMSG="$ERROMSG QUALITY CHECK FAILED: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for '$jobtype.$layer' job '${%JOBID%}'. "
+               ERROMSG="$ERROMSG QUALITY CHECK FAILED: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for '$jobtype.$layer' job ID '${%JOBID%}'. "
                RUNSUFFIX="error"
             fi
          done
@@ -263,9 +268,9 @@ for layer in ${layers[@]}; do
       RUNSUFFIX="error"
    fi
    #
-   echo "cycle $CYCLE: $SCENARIO: $THIS: $jobtype.$layer job $%JOBID% finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    #
-   #     R E P O R T   J O B   F A I L U R E   O R   S U C C E S S
+   #     R E P O R T   J O B   S T A T U S
    #
    if [ $ERROVALUE != 0 ]; then
       echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
