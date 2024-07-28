@@ -45,7 +45,7 @@ cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/t
 #----------------------------------------------------------------------------
 #        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
 #----------------------------------------------------------------------------
-echo "Starting $THIS in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+echo "Starting in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
 
 # record which cluster nodes we have to scenario.log
 echo "INFO: $THIS: %JOBNODES%: $%JOBNODES%"   #QUEUEONLY
@@ -56,7 +56,7 @@ echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 #----------------------------------------------------------------------------
 #               W R I T E   J O B   P R O P E R T I E S
 #----------------------------------------------------------------------------
-
+#
 if [[ -e "%adcircdir%/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
    cp "%adcircdir%/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
    echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
@@ -85,6 +85,7 @@ fi
 #                 L O O P   O V E R   L A Y E R S
 #----------------------------------------------------------------------------
 #
+
 for layer in ${layers[@]}; do
    if [[ -e "fort.15" ]]; then
       rm fort.15 2>> $SCENARIOLOG
@@ -111,16 +112,17 @@ for layer in ${layers[@]}; do
       # the met only mode should not be run with the SWAN wave coupled executable
       CMD=$(echo "$CMD" | sed 's?adcswan ?adcirc ?')
    fi
-   echo "cycle $CYCLE: $SCENARIO: $THIS: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > $jobtype.${layer}.run.start # <-OVERWRITE
    echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
    $CMD
    ERROVALUE=$?  # capture exit status
    #
-   #       C H E C K   S T A T U S   O F   R E S U L T S
+   #       C H E C K   S T A T U S   A N D   Q U A L I T Y   O F   R E S U L T S
    #
    ERROMSG=""
    RUNSUFFIX="finish"
+   qualityCheck=0
    if [ $ERROVALUE -eq 0 ] ; then
       if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
          # look for numerical instability errors in the stdout/stderr files
@@ -128,25 +130,31 @@ for layer in ${layers[@]}; do
             if [ -e $file ]; then
                numMsg=$(grep WarnElev $file | wc -l)
                if [ $numMsg = 0 ]; then
-                  echo "$THIS: No numerical instability detected in '$file' after completion of $jobtype.$layer job ${%JOBID%}." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
+                  echo "cycle $CYCLE: $SCENARIO: No numerical instability detected in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
                else
                   ERROVALUE=1
-                  ERROMSG="$ERROMSG Detected $numMsg numerical instability messages in '$file' after completion of $jobtype.$layer job ${%JOBID%}."
+                  ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'. "
                   RUNSUFFIX="error"
                fi
             fi
          done
+         # check quality of results
+         $SCRIPTDIR/util/output/quality.sh $jobtype $layer ${%JOBID%} $CYCLE $SCENARIO $SCRIPTDIR >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
+         qualityCheck=$?
+         if [[ $qualityCheck -ne 0 ]]; then
+            ERROMSG+=$(<jobFailed)
+         fi
       fi
    else
-      ERROMSG="$ERROMSG The $jobtype.$layer job ended with an exit status that indicates an error occurred."
+      ERROMSG="$ERROMSG The $jobtype.$layer job ended with an exit status that indicates an error occurred. "
       RUNSUFFIX="error"
    fi
    #
-   echo "cycle $CYCLE: $SCENARIO: $THIS: $jobtype.$layer job $%JOBID% finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    #
-   #     R E P O R T   J O B   F A I L U R E   O R   S U C C E S S
+   #     R E P O R T   J O B   S T A T U S
    #
-   if [ $ERROVALUE != 0 ]; then
+   if [[ $ERROVALUE -ne 0 || $qualityCheck -ne 0 ]]; then
       echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
       echo "\"$RUNSUFFIX\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"message\" : \"$ERROMSG\"" > $jobtype.${layer}.run.${RUNSUFFIX}  # <-OVERWRITE
       echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" >> jobs.status
