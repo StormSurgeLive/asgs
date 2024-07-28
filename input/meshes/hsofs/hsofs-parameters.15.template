@@ -1588,7 +1588,5 @@ K2
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00%NCDATE-Line%
 !
 ! namelists:
-%met_control_namelist%
-%wetdry_control_namelist%
-%inundation_output_control_namelist%
-%dynamic_water_level_correction_namelist%
+&inundationOutputControl inundationOutput=%inundationOutput% /
+&metControl WindDragLimit=%WindDragLimit% /
