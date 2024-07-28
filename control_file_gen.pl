@@ -398,6 +398,7 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 my $outputWindDrag = $p->{metControl}->{outputWindDrag} eq "yes" ? "T" : "F";
 my $invertedBarometerOnElevationBoundary = $p->{metControl}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
 my $met_control_line ="&metControl WindDragLimit=$p->{metControl}->{WindDragLimit}, DragLawString=\"$p->{metControl}->{DragLawString}\", outputWindDrag=$outputWindDrag, invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary /";
+
 #
 # construct wetDryControl namelist
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
@@ -623,6 +624,26 @@ while(<TEMPLATE>) {
     s/%wetdry_control_namelist%/$wetdry_control_line/;
     s/%inundation_output_control_namelist%/$inundation_output_control_line/;
     s/%dynamic_water_level_correction_namelist%/$dynamic_water_level_correction_line/;
+    # individual namelist parameters
+    s/%WindDragLimit%/$p->{metControl}->{WindDragLimit}/;          # &metControl
+    s/%DragLawString%/\"$p->{metControl}->{DragLawString}\"/;
+    s/%outputWindDrag%/$outputWindDrag/;
+    s/%invertedBarometerOnElevationBoundary%/$invertedBarometerOnElevationBoundary/;
+    s/%outputNodeCode%/$outputNodeCode/;                           # &wetDryControl
+    s/%outputNOFF%/$outputNOFF/;
+    s/%noffActive%/$noffActive/;
+    s/%slim%/$p->{wetDryControl}->{slim}/;
+    s/%windlim%/$windlim/;
+    s/%directvelWD%/$directvelWD/;
+    s/%useHF%/$useHF/;
+    s/%inundationOutput%/$inundationOutput/;                       # &inundationOutputControl
+    s/%inunThresh%/$p->{inundationOutputControl}->{inunThresh}/;
+    s/%SWAN_OutputTPS%/$SWAN_OutputTPS/;                           #  &SWANOutputControl
+    s/%SWAN_OutputTM01%/$SWAN_OutputTM01/;
+    s/%SWAN_OutputHS%/$SWAN_OutputHS/;
+    s/%SWAN_OutputDIR%/$SWAN_OutputDIR/;
+    s/%SWAN_OutputTMM10%/$SWAN_OutputTMM10/;
+    s/%SWAN_OutputTM02%/$SWAN_OutputTM02/;
     #
     unless (/NO LINE HERE/) {
        print $_;
