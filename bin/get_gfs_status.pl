@@ -29,10 +29,12 @@
 use strict;
 use warnings;
 use Net::FTP;
+use HTTP::Tiny;
 use Getopt::Long;
 use JSON::PP;
 use Cwd;
 use ASGSUtil;
+use Util::H2O::More qw/ddd/;
 #
 my $startcycle = "null";  # optional arg that indicates start of range of interest
 my $backsite = "null";    # ncep ftp site for gfs data
@@ -48,6 +50,40 @@ GetOptions(
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir
           );
+
+# initialize $ua only once and restrict direct access to it
+{
+    my $ua = HTTP::Tiny->new;
+
+    # replaces the $ftp->ls for files, looks only for gfs.* files
+    sub http_ls {
+        my $dir = shift;
+        $dir =~ s/\/pub\///g;
+        my $url         = sprintf( qq{https://ftp.ncep.noaa.gov/%s/ls-l}, $dir );
+        my $res         = $ua->get($url);
+        my $raw_listing = $res->{content};
+        my @files       = ( $raw_listing =~ m/ +(gfs.+)\n/g );
+        if ( not @files ) {
+            warn "!! No files found via $url\n";
+        }
+        return @files;
+    }
+
+    # replaces the $ftp->ls for directory listings, extracts from the HTML listing
+    sub http_dir {
+        my $dir = shift;
+        $dir =~ s/\/pub\///g;
+        my $url         = sprintf( qq{https://ftp.ncep.noaa.gov/%s}, $dir );
+        my $res         = $ua->get($url);
+        my $raw_listing = $res->{content};
+        my @dirs        = ( $raw_listing =~ m/>(.+)\/</g );
+        if ( not @dirs ) {
+            warn "!! No directories found via $url\n";
+        }
+        return @dirs;
+    }
+}
+
 #
 # JSON request
 my $file_content = do { local $/; <> };
@@ -76,7 +112,7 @@ if ( $startcycle eq "null" && $jshash_ref ) {
 ASGSUtil::appMessage( "INFO", "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
 # open ftp connection
-our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1, Timeout => 120);
+our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1, Timeout => 5);
 unless ( defined $ftp ) { ASGSUtil::stderrMessage("ERROR", "ftp: Cannot connect to $backsite: $@");
    exit 1;
 }
@@ -100,7 +136,7 @@ unless ( $hcDirSuccess ) {
 # directory entries are named e.g., gfs.20220111
 
 local $@;
-my @ncepDirs = eval { $ftp->ls() }; # gets all the current data dirs, incl. gfs dirs
+my @ncepDirs = eval { http_dir($ftp->pwd) }; # gets all the current data dirs, incl. gfs dirs
 if ($@) {
    my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
    ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list NCEP directories: } . $msg);
@@ -148,11 +184,10 @@ if ( $startcycle ne "null" ) {
       ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$sortedGfsDirs[0]': " .  $ftp->message);
       exit 1;
    }
-   #my @allFiles = $ftp->ls();
    local $@;
-   my @earliestGfsCycles = eval { $ftp->ls() };
+   my @earliestGfsCycles = eval { http_dir($ftp->pwd) };
    if ($@) {
-     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
+     my $msg = ($@) ? q{[HTTP::Tiny] } : $@;
      ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" GFS cycle subdirectories: } . $msg);
      exit 1;
    }
@@ -194,10 +229,10 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
    }
 
    local $@;
-   my @latestCycles = eval { $ftp->ls() };
+   my @latestCycles = eval { http_dir($ftp->pwd) };
    if ($@) {
-     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list latest GFS cycles in '$backdir/$targetDir': } . $msg);
+     my $msg = ($@) ? $@ : "";
+     ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list latest GFS cycles in '$backdir/$targetDir': } . $msg);
      exit 1;
    }
    # now sort the GFS cycles from lowest to highest (it appears that ls() does
@@ -218,10 +253,10 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
 
       # looking for files like gfs.t00z.pgrb2.0p25.f000
       local $@;
-      my @allFiles = eval { grep /gfs.t\d{2}z.pgrb2b.0p25.f\d{3}$/, $ftp->ls() };
+      my @allFiles = eval { grep /gfs.t\d{2}z.pgrb2b.0p25.f\d{3}$/, http_ls($ftp->pwd) };
       if ($@) {
-         my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-         ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
+         my $msg = ($@) ? qq{[HTTP::Tiny] $@} : "";
+         ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list "all" files: } . $msg);
          exit 1;
       }
 
@@ -274,10 +309,10 @@ DIRECTORIES : foreach my $dir (@sortedGfsDirs) {
 
    # see what cycle directories are available for this date
    local $@;
-   my @cycles = eval { $ftp->ls() };
+   my @cycles = eval { http_dir($ftp->pwd) };
    if ($@) {
-     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list the GFS cycles in '$backdir/$targetDir': } . $msg);
+     my $msg = ($@) ? $@ : "";
+     ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list the GFS cycles in '$backdir/$targetDir': } . $msg);
      exit 1;
    }
    my @sortedCycles = sort { lc($a) cmp lc($b) } @cycles;
