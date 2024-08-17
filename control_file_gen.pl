@@ -403,8 +403,8 @@ my $outputNodeCode = $p->{wetDryControl}->{outputNodeCode} eq 'yes' ? 'T' : 'F';
 my $outputNOFF = $p->{wetDryControl}->{outputNOFF} eq 'yes' ? 'T' : 'F';
 my $noffActive = $p->{wetDryControl}->{noffActive} eq 'on' ? 'T' : 'F';
 my $windlim = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
-my $directvelWD = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
-my $useHF = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
+my $directvelWD = $p->{wetDryControl}->{directvelWD} eq 'on' ? 'T' : 'F';
+my $useHF = $p->{wetDryControl}->{useHF} eq 'on' ? 'T' : 'F';
 my $wetdry_control_line = "&wetDryControl outputNodeCode=$outputNodeCode, outputNOFF=$outputNOFF, noffActive=$noffActive, slim=$p->{wetDryControl}->{slim}, windlim=$windlim, directvelWD=$directvelWD, useHF=$useHF /";
 #
 # construct inundationOutput namelist
