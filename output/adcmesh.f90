@@ -98,10 +98,18 @@ type mesh_t
    real(8), allocatable :: yalbers(:)
    !
    ! parameters related to the neighbor edge length table (np,neimax)
-   logical :: neighborEdgeLengthTableComputed = .false. ! .true. when mem is allocated for this
-   real(8), allocatable :: neighborEdgeLengthTable(:,:)
+   logical :: edgeLengthTableComputed = .false. ! .true. when mem is allocated for this
+   real(8), allocatable :: edgeLengthTable(:,:)
+   real(8), allocatable :: edgeMidpointCoordinates(:,:,:)
+   real(8), allocatable :: edgeLengthMinMax(:,:)
+   real(8), allocatable :: edgeLengthGradients(:)
+   real(8), allocatable :: minEdgeLengths(:)
+   real(8) :: maxEdgeLengthGradient
+   integer :: maxEdgeLengthGradientNode
    real(8) :: minEdgeLength ! shortest edge length in the whole mesh (m)
    real(8) :: maxEdgeLength ! longest edge length in the whole mesh (m)
+   integer :: minEdgeLengthNode
+   integer :: maxEdgeLengthNode
    real(8), allocatable :: areas(:) ! (ne) 2x element areas in square meters
    real(8), allocatable :: eledepths(:) ! (ne) element bathymetric depths (m)
    real(8), allocatable :: sfac(:) ! (np)
@@ -1752,29 +1760,77 @@ END SUBROUTINE computeNeighborTable
 !   C O M P U T E   N E I G H B O R   E D G E   L E N G T H   T A B L E
 !-----------------------------------------------------------------------
 !     jgf: Very short subroutine to compute the length of each edge
-!     attached to a node. Also finds the minimum edge length in the mesh.
+!     attached to a node. Also finds the minimum edge length in the mesh,
+!     the minimum and maximum edge length around a node, the midpoint
+!     cpp coordinates of each edge, and the maximum edge length gradient
+!     around each node.
 !-----------------------------------------------------------------------
 subroutine computeNeighborEdgeLengthTable(m)
 implicit none
 type(mesh_t), intent(inout) :: m  ! mesh to operate on
-integer i,j
-allocate(m%neighborEdgeLengthTable(m%np,m%neimax))
-m%neighborEdgeLengthTableComputed = .true.
+real(8) :: xmin, ymin, xmax, ymax
+real(8) :: minLength, maxLength
+integer :: minNeigh, maxNeigh
+integer :: i,j
+if ( m%edgeLengthTableComputed.eqv..true. ) then
+   return
+endif
+allocate(m%edgeLengthTable(m%np,m%neimax))
+allocate(m%edgeMidpointCoordinates(2,m%np,m%neimax))
+allocate(m%edgeLengthGradients(m%np))
+allocate(m%minEdgeLengths(m%np))
 m%minEdgeLength = huge(1.d0)
 m%maxEdgeLength = tiny(1.d0)
 do i=1,m%np
-   m%neighborEdgeLengthTable(i,1) = 0.d0 ! distance from this node to itself...
+   m%edgeLengthTable(i,1) = 0.d0 ! distance from this node to itself...
+   minLength = huge(1.d0)
+   maxLength = tiny(1.d0)
    do j=2,m%nneigh(i)
-      m%neighborEdgeLengthTable(i,j) = sqrt( (m%x_cpp(i)-m%x_cpp(m%NeiTab(i,j)))**2 &
+      ! compute edge length
+      m%edgeLengthTable(i,j) = sqrt( (m%x_cpp(i)-m%x_cpp(m%NeiTab(i,j)))**2 &
                   + (m%y_cpp(i)-m%y_cpp(m%NeiTab(i,j)))**2 )
-      if ( m%neighborEdgeLengthTable(i,j).lt.m%minEdgeLength ) then
-         m%minEdgeLength = m%neighborEdgeLengthTable(i,j)
+      ! compute midpoint of edge for use in computing edge length gradient at a node
+      m%edgeMidpointCoordinates(1,i,j) = m%x_cpp(i)-m%x_cpp(m%NeiTab(i,j))
+      m%edgeMidpointCoordinates(2,i,j) = m%y_cpp(i)-m%y_cpp(m%NeiTab(i,j))
+      ! find the min and max edge lengths at this node
+      ! set which neighbor nodes share the edges with min and max lengths
+      if ( m%edgeLengthTable(i,j).lt.minLength ) then
+         minLength = m%edgeLengthTable(i,j)
+         minNeigh = j
       endif
-      if ( m%neighborEdgeLengthTable(i,j).gt.m%maxEdgeLength ) then
-         m%maxEdgeLength = m%neighborEdgeLengthTable(i,j)
+      if ( m%edgeLengthTable(i,j).gt.maxLength ) then
+         maxLength = m%edgeLengthTable(i,j)
+         maxNeigh = j
       endif
    end do
+   m%minEdgeLengths(i) = minLength
+   ! check min and max edge lengths against the min and max
+   ! edge lengths for the full domain
+   if ( minLength.lt.m%minEdgeLength ) then
+      m%minEdgeLength = minLength
+      m%minEdgeLengthNode = i
+   endif
+   ! check min and max edge lengths against the min and max
+   ! edge lengths for the full domain
+   if ( maxLength.gt.m%maxEdgeLength ) then
+      m%maxEdgeLength = maxLength
+      m%maxEdgeLengthNode = i
+   endif
+   ! use the neighbor node numbers with min and max length to look up the midpoint
+   ! coordinates
+   xmin =  m%edgeMidpointCoordinates(1,i,minNeigh)
+   ymin =  m%edgeMidpointCoordinates(2,i,minNeigh)
+   xmax =  m%edgeMidpointCoordinates(1,i,maxNeigh)
+   ymax =  m%edgeMidpointCoordinates(2,i,maxNeigh)
+   ! compute the edge length gradient at this node
+   m%edgeLengthGradients(i) = ( maxLength - minLength ) &
+        /  sqrt( (xmax - xmin)**2  + (ymax - ymin)**2  )
 end do
+! max edge legnth gradient for the whole mesh
+m%maxEdgeLengthGradient = maxval(m%edgeLengthGradients)
+! node number where max edge length gradient occurs
+m%maxEdgeLengthGradientNode = maxloc(m%edgeLengthGradients,1)
+m%edgeLengthTableComputed = .true.
 !-----------------------------------------------------------------------
 end subroutine computeNeighborEdgeLengthTable
 !-----------------------------------------------------------------------

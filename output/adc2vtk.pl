@@ -55,7 +55,11 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "ghostmem.63","GhostNodeSubdomainMembership",
                    "absolutes.63","AbsoluteNodeNumbers",
                    "subdomains.63","SubdomainsFromFort18",
-                   "psubdomains.63","SubdomainsFromPartmesh");
+                   "psubdomains.63","SubdomainsFromPartmesh",
+                   "minedgelengths.63","MinimumEdgeLengthAtNode",
+                   "edgelengthgradients.63","EdgeLengthGradientAtNode",
+                   "elementareas.100","ElementArea"
+                   );
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
 my $deg2rad = 2*$pi/360.0;
@@ -1101,6 +1105,11 @@ foreach my $file (@adcircfiles) {
       $datacentered = "CellData";
       $datatype = "Int32";
    }
+   if ( $file eq "elementareas.100" ) {
+      $num_components = 1;
+      $num_datasets = 1;
+      $datacentered = "CellData";
+   }
    if ( $file eq "particles_count_peak.200"  ) {
       $num_components = 1;
       $num_datasets = 1;
@@ -1113,7 +1122,7 @@ foreach my $file (@adcircfiles) {
       $datacentered = "CellData";
       $datatype = "Float64";
    }
-   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "ESLNodes.63" ) {
+   if ( $file eq "maxele.63" || $file eq "maxwvel.63" || $file eq "minpr.63" || $file eq "ESLNodes.63" || $file eq "minedgelengths.63" || $file eq "edgelengthgradients.63" ) {
       $num_components = 1;
       $num_datasets = 1;
       $datatype = "Float64";
@@ -1150,7 +1159,7 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "maxgradient.txt" ) {
       $num_components = 1;
       $num_datasets = 1;
-      $datacentered = "CellData";
+      $datacentered = "Cel`lData";
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
