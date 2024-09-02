@@ -64,12 +64,20 @@ CONTROLTEMPLATENOROUGH="null"
 #
 #
 case $GRIDNAME in
-   "CPRA24v04a")
+   "CPRA24v04a"|"CPRA24v04b"|"CPRA24v04b2")
       #
-      nodes=1578724
-      elements=3072936
+      nodes=1578740    # latest
+      elements=3072948 # latest
+      GRIDFILE=cpra_2024_hurricane_v04b2_chk.14      # latest
+      if [[ $GRIDNAME == "CPRA24v04a" ]]; then
+         nodes=1578724
+         elements=3072936
+         GRIDFILE=cpra_2024_hurricane_v04a_chk.14      # mesh (fort.14) file
+      fi
+      if [[ $GRIDNAME == "CPRA24v04b" ]]; then
+         GRIDFILE=cpra_2024_hurricane_v04b_chk.14
+      fi
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA24
-      GRIDFILE=cpra_2024_hurricane_v04a_chk.14      # mesh (fort.14) file
       MESHPROPERTIES=${GRIDFILE}.properties
       ELEVSTATIONS=combined_stations_20230824.txt
       VELSTATIONS=$ELEVSTATIONS
@@ -81,14 +89,21 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
+         NAFILE=cpra_2024_hurricane_v04b2_chk.13
          CONTROLTEMPLATE=CPRA24v04a_5kcms_fort.15.template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=CPRA24v04a_nowindreduction_fort.15.template
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.362102"
-         NAFILE=cpra_2024_hurricane_v04a_chk.13
          SWANTEMPLATE=CPRA24v04a_fort.26.template
+         if [[ $GRIDNAME == "CPRA24v04a" ]]; then
+            NAFILE=cpra_2024_hurricane_v04a_chk.13
+         fi
+         if [[ $GRIDNAME == "CPRA24v04b" ]]; then
+            NAFILE=cpra_2024_hurricane_v04b_chk.13
+         fi
          ;;
       "default")
+         NAFILE=cpra_2024_hurricane_v04b2_chk.13.template
          CONTROLTEMPLATE=CPRA24.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
@@ -113,7 +128,6 @@ case $GRIDNAME in
          # river boundary forcing
          PERIODICFLUX=$INPUTDIR/CPRA24_default_river_flux.txt
          # nodal attributes file
-         NAFILE=cpra_2024_hurricane_v04a_chk.13.template
          nodal_attribute_default_values["surface_submergence_state"]="0.0"
          nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
          nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
@@ -123,6 +137,12 @@ case $GRIDNAME in
          nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
          nodal_attribute_default_values["elemental_slope_limiter"]="0.05"
          nodal_attribute_default_values["advection_state"]="-9999.0"
+         if [[ $GRIDNAME == "CPRA24v04a" ]]; then
+            NAFILE=cpra_2024_hurricane_v04a_chk.13.template
+         fi
+         if [[ $GRIDNAME == "CPRA24v04b" ]]; then
+            NAFILE=cpra_2024_hurricane_v04b_chk.13.template
+         fi
          ;;
       *)
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
