@@ -64,11 +64,11 @@ CONTROLTEMPLATENOROUGH="null"
 #
 #
 case $GRIDNAME in
-   "CPRA24v04a"|"CPRA24v04b"|"CPRA24v04b2")
+   "CPRA24v04a"|"CPRA24v04b"|"CPRA24v04b2"|"CPRA24v04c")
       #
       nodes=1578740    # latest
       elements=3072948 # latest
-      GRIDFILE=cpra_2024_hurricane_v04b2_chk.14      # latest
+      GRIDFILE=cpra_2024_hurricane_v04c_chk.14      # latest
       if [[ $GRIDNAME == "CPRA24v04a" ]]; then
          nodes=1578724
          elements=3072936
@@ -76,6 +76,9 @@ case $GRIDNAME in
       fi
       if [[ $GRIDNAME == "CPRA24v04b" ]]; then
          GRIDFILE=cpra_2024_hurricane_v04b_chk.14
+      fi
+      if [[ $GRIDNAME == "CPRA24v04b2" ]]; then
+         GRIDFILE=cpra_2024_hurricane_v04b2_chk.14
       fi
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA24
       MESHPROPERTIES=${GRIDFILE}.properties
@@ -89,7 +92,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
-         NAFILE=cpra_2024_hurricane_v04b2_chk.13
+         NAFILE=cpra_2024_hurricane_v04c_chk.13
          CONTROLTEMPLATE=CPRA24v04a_5kcms_fort.15.template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=CPRA24v04a_nowindreduction_fort.15.template
@@ -101,9 +104,12 @@ case $GRIDNAME in
          if [[ $GRIDNAME == "CPRA24v04b" ]]; then
             NAFILE=cpra_2024_hurricane_v04b_chk.13
          fi
+         if [[ $GRIDNAME == "CPRA24v04b2" ]]; then
+            NAFILE=cpra_2024_hurricane_v04b2_chk.13
+         fi
          ;;
       "default")
-         NAFILE=cpra_2024_hurricane_v04b2_chk.13.template
+         NAFILE=cpra_2024_hurricane_v04c_chk.13.template
          CONTROLTEMPLATE=CPRA24.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
@@ -142,6 +148,9 @@ case $GRIDNAME in
          fi
          if [[ $GRIDNAME == "CPRA24v04b" ]]; then
             NAFILE=cpra_2024_hurricane_v04b_chk.13.template
+         fi
+         if [[ $GRIDNAME == "CPRA24v04b2" ]]; then
+            NAFILE=cpra_2024_hurricane_v04b2_chk.13.template
          fi
          ;;
       *)
