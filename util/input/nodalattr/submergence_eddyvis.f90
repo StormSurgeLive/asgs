@@ -1,5 +1,5 @@
 !------------------------------------------------------------------
-! submergence_eddvis.f90: Reads ADCIRC mesh file and produces 
+! submergence_eddvis.f90: Reads ADCIRC mesh file and produces
 ! surface submergence and eddy viscosity values.
 !------------------------------------------------------------------
 ! Copyright(C) 2017 Jason Fleming
@@ -19,7 +19,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !------------------------------------------------------------------
-! Compile with accompanying makefile. 
+! Compile with accompanying makefile.
 !------------------------------------------------------------------
 program submergence_eddyvis
 use adcmesh
@@ -29,14 +29,14 @@ implicit none
 type(mesh_t) :: m
 character(len=1024) :: outputfile
 character(len=1024) :: seedfile
-character(len=1024) :: nodal_attr_name  
+character(len=1024) :: nodal_attr_name
 integer :: nseed ! number of seed locations
 integer, allocatable :: seednod(:) ! (nseed) nodes neighboring seed nodes
 real(8), allocatable :: seedx(:) ! (nseed) x coordinate locations of seed nodes
 real(8), allocatable :: seedy(:) ! (nseed) x coordinate locations of seed nodes
-real(8), allocatable :: localDryElevation(:) ! (m) (+upward) in viscinity of seed 
-real(8), allocatable :: dist(:) ! (np) distance (m) from seed to each node 
-real(8), allocatable :: minEdgeLengthNode(:) ! (np) distance (m) from a node to nearest neighbor  
+real(8), allocatable :: localDryElevation(:) ! (m) (+upward) in viscinity of seed
+real(8), allocatable :: dist(:) ! (np) distance (m) from seed to each node
+real(8), allocatable :: minEdgeLengthNode(:) ! (np) distance (m) from a node to nearest neighbor
 integer, allocatable :: frontNodes(:) ! (np) node numbers along the wet front
 integer, allocatable :: newFrontNodes(:) ! (np) newly discovered wet nodes numbers
 integer :: numFrontNodes ! number of nodes along the wet front
@@ -46,8 +46,8 @@ integer :: thisNode     ! wet node whose neighbors are currently under considera
 logical, allocatable :: wet(:) ! (np) .true. for nodes found to be wet in the current round
 logical, allocatable :: startdry(:) ! (np) .true. for nodes that are to start dry (including those that would do so purely as a result of topography)
 real(8), allocatable :: eddyViscosity(:) ! the nodal attribute
-real(8) :: dryElevationAnyway ! (m) threshold elevation that forces nodes dry (+upward) 
-real(8) :: defaultEddyViscosity 
+real(8) :: dryElevationAnyway ! (m) threshold elevation that forces nodes dry (+upward)
+real(8) :: defaultEddyViscosity
 logical :: genEddyViscosity
 integer :: sUnit
 integer :: ssUnit
@@ -93,7 +93,7 @@ do while (i.lt.argcount)
       i = i + 1
       call getarg(i, cmdlinearg)
       write(6,*) "INFO: Processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
-      read(cmdlinearg,*) defaultEddyViscosity   
+      read(cmdlinearg,*) defaultEddyViscosity
    case("--dry-elevation")
       i = i + 1
       call getarg(i, cmdlinearg)
@@ -125,8 +125,8 @@ read(sUnit,*) nseed
 allocate(seedx(nseed))
 allocate(seedy(nseed))
 allocate(localDryElevation(nseed))
-! the seed file coordinates must be in the same projection as ADCIRC mesh, 
-! that is, geographic degrees east and north 
+! the seed file coordinates must be in the same projection as ADCIRC mesh,
+! that is, geographic degrees east and north
 do i=1,nseed
    read(sUnit,*) seedx(i), seedy(i), localDryElevation(i)
 enddo
@@ -152,9 +152,9 @@ allocate(startdry(m%np))
 allocate(wet(m%np))
 allocate(frontNodes(m%np))
 allocate(newFrontNodes(m%np))
-startdry=.true. 
+startdry=.true.
 do i=1,nseed
-   wet = .false.      
+   wet = .false.
    ! check the seed node to see if it is on dry land (relative to the local
    ! indicator of dry land)
    if (m%xyd(3,seednod(i)).lt.-localDryElevation(i)) then
@@ -165,7 +165,7 @@ do i=1,nseed
    numNewFrontNodes = 1
    newFrontNodes(1)=seednod(i)
    ! repeat this loop until no new wet nodes are identified
-   do 
+   do
       numFrontNodes = numNewFrontNodes
       frontNodes = newFrontNodes
       numNewFrontNodes = 0
@@ -175,7 +175,7 @@ do i=1,nseed
          ! is listed as index 1)
          thisNode = frontNodes(j)
          do k=2,m%nneigh(thisNode)
-            neighborNode = m%neitab(thisNode,k) 
+            neighborNode = m%neitab(thisNode,k)
             ! if the neighbor is not marked wet (yet)
             if (wet(neighborNode).eqv..false.) then
                ! check to see if the neighbor is below the local depth limit
@@ -198,9 +198,9 @@ end do
 write(6,*) 'INFO: Finished finding connected wet nodes.'
 !
 ! turn off the startdry in places where it was marked .true. but local
-! mesh depth indicates that the location will be considered dry by ADCIRC 
-! in any case (mesh depth is zero at the water surface and is positive 
-! downward, so negative depths are actually out of the water) 
+! mesh depth indicates that the location will be considered dry by ADCIRC
+! in any case (mesh depth is zero at the water surface and is positive
+! downward, so negative depths are actually out of the water)
 where (startdry.eqv..true.)
    where (m%xyd(3,:).lt.-dryElevationAnyway)
       startdry = .false.
@@ -230,11 +230,11 @@ if (genEddyViscosity.eqv..true.) then
    eddyViscosity = defaultEddyViscosity
    nodal_attr_name =  'average_horizontal_eddy_viscosity_in_sea_water_wrt_depth'
    ! areas that are normally considered wet by ADCIRC are set to 2.0
-   where (m%xyd(3,:).lt.-dryElevationAnyway) 
+   where (m%xyd(3,:).lt.-dryElevationAnyway)
       eddyViscosity = 2.d0
    end where
    ! areas that have been selected to start dry set to 20.0
-   where (startDry.eqv..true.) 
+   where (startDry.eqv..true.)
       eddyViscosity = 20.d0
    end where
    ! compute the lengths of the edges that connect each node to its neighbor
@@ -242,14 +242,14 @@ if (genEddyViscosity.eqv..true.) then
    ! find the min edge length attached to each node
    allocate(minEdgeLengthNode(m%np))
    do i=1,m%np
-      minEdgeLengthNode(i) = minval(m%neighborEdgeLengthTable(i,2:m%nneigh(i)))
+      minEdgeLengthNode(i) = minval(m%edgeLengthTable(i,2:m%nneigh(i)))
    end do
    ! areas with really small elements (<10-12m) set to 1.0 to prevent
-   ! some instabilities related to eddy viscosity on small elements 
+   ! some instabilities related to eddy viscosity on small elements
    where (minEdgeLengthNode.lt.10.d0)
       eddyViscosity = 1.d0
    end where
-   write(6,*) 'INFO: Finished computing horizontal eddy viscosity.'      
+   write(6,*) 'INFO: Finished computing horizontal eddy viscosity.'
    write(6,*) 'INFO: Writing eddy viscosity nodal attribute.'
    evUnit = availableUnitNumber()
    open(evUnit,file='eddy_viscosity.'//trim(outputfile),action='write',status='replace')
@@ -258,7 +258,7 @@ if (genEddyViscosity.eqv..true.) then
    write(evUnit,*) count(eddyViscosity.ne.defaultEddyViscosity)
    do i=1, m%np
       if (eddyViscosity(i).ne.defaultEddyViscosity) then
-         write(evUnit,*) i, eddyViscosity(i) 
+         write(evUnit,*) i, eddyViscosity(i)
       endif
    end do
    close(evUnit)
