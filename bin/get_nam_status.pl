@@ -24,6 +24,7 @@
 use strict;
 use warnings;
 use Net::FTP;
+use HTTP::Tiny;
 use Getopt::Long;
 use JSON::PP;
 use Cwd;
@@ -43,6 +44,40 @@ GetOptions(
            "backsite=s" => \$backsite,
            "backdir=s" => \$backdir
           );
+
+# initialize $ua only once and restrict direct access to it
+{
+    my $ua = HTTP::Tiny->new;
+
+    # replaces the $ftp->ls for files, looks only for nam.* files
+    sub http_ls {
+        my $dir = shift;
+        $dir =~ s/\/pub\///g;
+        my $url         = sprintf( qq{https://ftp.ncep.noaa.gov/%s/ls-l}, $dir );
+        my $res         = $ua->get($url);
+        my $raw_listing = $res->{content};
+        my @files       = ( $raw_listing =~ m/ +(nam.+)\n/g );
+        if ( not @files ) {
+            warn "!! No files found via $url\n";
+        }
+        return @files;
+    }
+
+    # replaces the $ftp->ls for directory listings, extracts from the HTML listing
+    sub http_dir {
+        my $dir = shift;
+        $dir =~ s/\/pub\///g;
+        my $url         = sprintf( qq{https://ftp.ncep.noaa.gov/%s}, $dir );
+        my $res         = $ua->get($url);
+        my $raw_listing = $res->{content};
+        my @dirs        = ( $raw_listing =~ m/>(.+)\/</g );
+        if ( not @dirs ) {
+            warn "!! No directories found via $url\n";
+        }
+        return @dirs;
+    }
+}
+
 #
 # JSON request
 my $file_content = do { local $/; <> };
@@ -144,7 +179,7 @@ unless ( $hcDirSuccess ) {
 # directory entries are named e.g., nam.20220111
 
 local $@;
-my @ncepDirs = eval { $ftp->ls() }; # gets all the current data dirs, incl. nam dirs
+my @ncepDirs = eval { http_dir($ftp->pwd) }; # gets all the current data dirs, incl. nam dirs
 if ($@) {
    my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
    ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list NCEP directories: } . $msg);
@@ -192,9 +227,9 @@ if ( $startcycle ne "null" ) {
       ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " .  $ftp->message);
       exit 1;
    }
-   #my @allFiles = $ftp->ls();
+   #my @allFiles = http_ls($ftp->pwd);
    local $@;
-   my @earliestFiles = eval { grep /awip1200.tm00/, $ftp->ls() };
+   my @earliestFiles = eval { grep /awip1200.tm00/, http_ls($ftp->pwd) };
    if ($@) {
      my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
      ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" files: } . $msg);
@@ -237,7 +272,7 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    #my @allFiles = $ftp->ls();
 
    local $@;
-   my @allFiles = eval { grep /awip1200.tm00/, $ftp->ls() };
+   my @allFiles = eval { grep /awip1200.tm00/, http_ls($ftp->pwd) };
    if ($@) {
      my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
      ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
@@ -291,7 +326,7 @@ DIRECTORIES : foreach my $dir (@sortedNamDirs) {
    my $thisdate = $1;
 
    local $@;
-   my @allFiles = eval { grep /awip1200.tm00/, $ftp->ls() };
+   my @allFiles = eval { grep /awip1200.tm00/, http_ls($ftp->pwd) };
    if ($@) {
      my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
      ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
