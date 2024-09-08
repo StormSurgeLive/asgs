@@ -93,7 +93,7 @@ do while (i.lt.argcount)
       write63 = .true.
    case("--interpolate")
       write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
-      interpolate = .true.      
+      interpolate = .true.
    case("--cpp")
       write(6,*) "INFO: Processing ",trim(cmdlineopt),"."
       i = i + 1
@@ -165,12 +165,12 @@ if (interpolate.eqv..true.) then
          write(6,'(i0,"%")',advance='no') progress
          progress = progress + 10
       elseif (mod(i,step).eq.0) then
-         write(6,'(a1)',advance='no') '.'     
+         write(6,'(a1)',advance='no') '.'
       endif
       ! calculate the distance between this node and each node in the source
       ! mesh that does not have a default nodal attribute value
       do j=1,naFile%na(1)%numNodesNotDefault
-         dist(j) = sqrt( (tm%x_cpp(i)-sm%x_cpp(naFile%na(1)%nonDefaultNodes(j)))**2 & 
+         dist(j) = sqrt( (tm%x_cpp(i)-sm%x_cpp(naFile%na(1)%nonDefaultNodes(j)))**2 &
            + (tm%y_cpp(i)-sm%y_cpp(naFile%na(1)%nonDefaultNodes(j)))**2 )
       end do
       ! find the node number of the closest node
@@ -180,10 +180,10 @@ if (interpolate.eqv..true.) then
       ! to the source node's nearest neighbor, then the target node has
       ! the same nodal attribute value as the source node; otherwise the
       ! target node has the default value
-      closestSourceNeighbor = minval(sm%neighborEdgeLengthTable(sourceNodeNumber,2:sm%nneigh(sourceNodeNumber)))
+      closestSourceNeighbor = minval(sm%edgeLengthTable(sourceNodeNumber,2:sm%nneigh(sourceNodeNumber)))
       if (proximity.lt.closestSourceNeighbor) then
          targetNodalAttribute(:,i) = sourceNodalAttribute(:,sourceNodeNumber)
-      else 
+      else
          targetNodalAttribute(:,i) = naFile%na(1)%defaultVals(:)
       endif
    end do
@@ -192,7 +192,7 @@ if (interpolate.eqv..true.) then
    ! count the nondefault values
    allocate(areDefaultValues(sm%np))
    areDefaultValues = .true.
-   do i=1,sm%np  
+   do i=1,sm%np
       do j=1,naFile%na(1)%numVals
         ! if any of the nodal attribute values at this node are different
         ! from the default value(s), then this is a non default node
@@ -209,13 +209,13 @@ if (interpolate.eqv..true.) then
    write(naUnit,*) count(areDefaultValues.eqv..false.)
    do i=1,sm%np
       if (areDefaultValues(i).eqv..false.) then
-         write(naUnit,130) i,(targetNodalAttribute(j,i), j=1,naFile%na(1)%numVals) 
+         write(naUnit,130) i,(targetNodalAttribute(j,i), j=1,naFile%na(1)%numVals)
       endif
    end do
    close(naUnit)
    write(6,*) 'INFO: Finished writing nondefault surface roughness values.'
    130   format(i0,12(2x,f15.7))
 endif
-!-----------------------------------------------------------------------      
+!-----------------------------------------------------------------------
 end program convertna
 !-----------------------------------------------------------------------
