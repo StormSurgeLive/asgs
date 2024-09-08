@@ -423,7 +423,7 @@ fi
 
 # For ADCIRC pro's who up their game with ADCIRC Live (c) #
 #   via https://tools.adcirc.live                         #
-if [[ -d $SCRIPTDIR/adcirclive ]]; then
+if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
   echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"                             > adcirclive/etc/bashrc
   echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive"                            >> adcirclive/etc/bashrc
   echo "export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile"          >> adcirclive/etc/bashrc
