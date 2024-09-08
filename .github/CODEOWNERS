@@ -1,6 +1,12 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
-# These owners will be the default owners for everything in the repo.
-*       @jasonfleming
-*       @wwlwpd
+# These owners will be the default owners for everything in the repo,
+# hence the wildcard '*' (that's not a bullet point)
+
+*  @jasonfleming @wwlwpd
+
+# others can be added for specific things, e.g.
+#  bin/
+#  output/* 
+#  .. etc
