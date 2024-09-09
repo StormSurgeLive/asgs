@@ -178,7 +178,7 @@ checkFileExistence()
         consoleMessage "$I Downloading '${FNAME}.xz'"
         $downloadCMD 2> errmsg &
         local pid=$!
-        spinner 120 $pid  # hardcode that it should not take longer than 2 minutes to download in any case
+        spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
         local err=$?
         if [[ $err == 0 ]]; then
            logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
@@ -188,8 +188,8 @@ checkFileExistence()
            spinner 120 $pid
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
         else
-           consoleMessage "$W Failed to download ${FNAME}.xz"
-           logMessage "$THIS: Failed to download $FTYPE from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+           consoleMessage "$W Failed to download ${FNAME}.xz due to timeout of 900 seconds"
+           logMessage "$THIS: Failed to download $FTYPE (timeout of 900 seconds) from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
      fi
   fi
