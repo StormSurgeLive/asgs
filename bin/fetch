@@ -22,12 +22,14 @@ case "${ITEM}" in
     fetch adcirc-testsuite
     ;;
   asgs-mon)
+    build jq                 # helps parse JSON 
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-mon ]; then
-      echo "${W} $SCRIPTDIR/git/asgs-mon exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./asgs-mon  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
     popd > /dev/null 2>&1
@@ -36,9 +38,10 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-configs ]; then
-      echo "${W} $SCRIPTDIR/git/asgs-configs exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./asgs-configs  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
     popd > /dev/null 2>&1
@@ -47,9 +50,10 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs.wiki ]; then
-      echo "${W} $SCRIPTDIR/git/asgs.wiki exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./asgs.wiki  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
     popd > /dev/null 2>&1
@@ -58,9 +62,10 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./cera-asgs-environment ]; then
-      echo "${W} $SCRIPTDIR/git/cera-asgs-environment exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./cera-asgs-environment  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
 
@@ -70,9 +75,10 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./ourPerl ]; then
-      echo "${W} $SCRIPTDIR/git/ourPerl exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./ourPerl  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
     popd > /dev/null 2>&1
@@ -81,9 +87,10 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./storm-archive ]; then
-      echo "${W} $SCRIPTDIR/git/storm-archive exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./storm-archive  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
     popd > /dev/null 2>&1
@@ -92,9 +99,10 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./adcirc-testsuite ]; then
-      echo "${W} $SCRIPTDIR/git/adcirc-testsuite exists"
-      popd > /dev/null 2>&1
-      exit 1
+      cd ./adcirc-testsuite  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1 
+      exit
     fi
     git clone git@github.com:adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
     popd > /dev/null 2>&1
@@ -103,6 +111,8 @@ case "${ITEM}" in
     cat << EOF
 
 '$ITEM' not supported via ASGS' "fetch" command
+
+Rerunning the command will update the repo if possible.
 
  Supported:
   * adcirc-testsuite - git clones ADCIRC's test-suite         (public)

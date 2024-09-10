@@ -140,6 +140,14 @@ goto() {
       echo "ADCIRCDIR not yet defined"
     fi
     ;;
+  configdir)
+    if [ -n "$ASGS_CONFIG" ]; then
+       cd $(dirname "$ASGS_CONFIG")
+      _pwd
+    else
+      echo "ASGS_CONFIG not yet defined"
+    fi
+    ;;
   installdir)
     if [ -e "$ASGS_INSTALL_PATH" ]; then
       cd $ASGS_INSTALL_PATH
@@ -189,7 +197,12 @@ goto() {
     fi
     ;;
   *)
-    echo 'Only "adcircdir", "rundir", "scratchdir", "scriptdir", and "workdir" are supported at this time.'
+    if [ -d "${1}" ]; then
+      cd "${1}"
+      _pwd
+    else
+      echo 'Only "adcircdir", "configdir", "rundir", "scratchdir", "scriptdir", and "workdir" are supported at this time.'
+    fi
     ;;
   esac
 }
@@ -1142,39 +1155,6 @@ fi
 # initialization, do after bash functions have been loaded
 source $SCRIPTDIR/etc/PS1.sh
 
-# 'build' is basically ASGS Shell Environment's "package manager"
-# these are the "optional" installs - from individual utilities
-# to "bundles" (e.g., a set of related, but optional Perl modules)
-build() {
-  TO_BUILD=${1}
-  BUILD_OPTS=${2}
-  case "${TO_BUILD}" in
-    adcirc)
-      init-adcirc.sh ${BUILD_OPTS}
-      ;;
-    jq)
-      init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
-    pdl)
-      init-perl-data-language.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
-    perl-dev)
-      init-perldev-env.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
-    replaycli)
-      init-replaycli.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
-    *)
-      echo 'Supported "build" options:'
-      echo '  adcirc    - ADCIRC build wizard supporting different versions and patchsets'
-      echo '  jq        - "a lightweight and flexible command-line JSON processor"'
-      echo '  pdl       - installs the latest version of the Perl Data Language (PDL)'
-      echo '  perl-dev  - installs tools useful for Perl development (e.g., Dist::Zilla)'
-      echo '  replaycli - a client for StormReplay.com, an ASGS related service'
-      ;;
-  esac
-}
-
 # deprecation (may change *again* if we create a general install manager
 initadcirc(){
   echo "(deprecation notice): 'initadcirc' should now be called as, 'build adcirc'."
@@ -1215,6 +1195,7 @@ alias ll='ls -l --color=auto'
 alias ls='ls --color=auto'
 
 # handy aliases for the impatient
+alias ap="alias -p"
 alias a="list adcirc"
 alias c="edit config"
 alias ds="delete statefile"
@@ -1233,6 +1214,15 @@ alias ve="verify email"
 alias vp="verify perl"
 alias vr="verify regressions"
 alias vs="verify ssh_config"
+
+# aliases for common git repos used during operations 
+alias aconfigs="goto $SCRIPTDIR/git/asgs-configs/$(date +%Y)"              # cd in this year's directory in git/asgs-configs
+alias amond="goto $SCRIPTDIR/git/asgs-mon"                                 # cd into asgs-mon's directory
+alias amonv="$SCRIPTDIR/git/asgs-mon/bin/asgs-mon -v"                      # run 'asgs-mon -v'
+alias cera="goto $SCRIPTDIR/git/cera-asgs-environment"                     # cd into cera-asgs-environment's directory
+alias cerad="goto $SCRIPTDIR/git/cera-asgs-environment/asgs-configs-daily" # cd into cera-asgs-environment's daily configs directory
+alias docsd="goto $SCRIPTDIR/git/asgs.wiki"                                # cd into asgs.wiki's directory
+alias gc="goto configdir"                                                  # cd to the directory containing ASGS_CONFIG if set
 
 if [ -n "$_asgsh_splash" ]; then
 # show important directories
