@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 9f89de7..d81eece 100644
+index 9f89de7..136814c 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,46 @@
@@ -155,12 +155,12 @@ index 9f89de7..d81eece 100644
 -     CFLAGS  := $(INCDIRS) -O3 -DLINUX -xCORE-AVX512 
 -     FLIBS   := $(INCDIRS) -xCORE-AVX512 
 +  ifeq ($(MACHINENAME),frontera)
-+     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xCORE-AVX512
++     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132 -xCORE-AVX512
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX512
 +     FLIBS   := $(INCDIRS) -xCORE-AVX512
       ifeq ($(DEBUG),trace)
 -        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xCORE-AVX512 -assume buffered_io
-+        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xCORE-AVX512
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -assume byterecl -132 -xCORE-AVX512
          CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xCORE-AVX512
 -        FLIBS   := $(INCDIRS) -xCORE-AVX512 
 +        FLIBS   := $(INCDIRS) -xCORE-AVX512
@@ -226,11 +226,11 @@ index 9f89de7..d81eece 100644
       endif
    endif
 +  ifeq ($(MACHINENAME),ls6)
-+     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132
++     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX
 +     FLIBS   := $(INCDIRS)
 +     ifeq ($(DEBUG),trace)
-+        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -assume byterecl -132
 +        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX
 +        FLIBS   := $(INCDIRS)
 +     endif

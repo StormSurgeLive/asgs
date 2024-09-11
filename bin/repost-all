@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+  
+FIX="post.executable.postprocess : ( createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post2.sh )"
+for scenariodir in $(find . -type d | egrep -v "PE|status" | egrep "/.+/"); do
+  pushd $scenariodir
+  if [ -e ./run.properties ]; then
+    echo Fixing $scenariodir/run.properties ...
+    echo $FIX >> run.properties
+    echo Regenerating file list ...
+    createOPeNDAPFileList.sh run.properties
+    echo Reposting ...
+    opendap_post2.sh run.properties
+  fi
+  popd
+done
