@@ -32,7 +32,7 @@ if [ $COMPILER == "intel" ]; then
   export FC=ifort
   export CXX=icpc
 fi
-if [ $COMPILER == "intel-llvm" ]; then
+if [ $COMPILER == "intel-oneapi" ]; then
   export CC=icx
   export FC=ifort
   export CXX=icx

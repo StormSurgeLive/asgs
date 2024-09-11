@@ -45,7 +45,7 @@ ifeq ($(compiler),intel)
    endif
 endif
 # specify compiler=intel on the make command line
-ifeq ($(compiler),intel-llvm)
+ifeq ($(compiler),intel-oneapi)
    export FC := ifx
    export CC := icx
    export COMP_SYS := oneapi_linux
@@ -54,7 +54,7 @@ ifeq ($(compiler),intel-llvm)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
-ifeq ($(compiler),intel-llvm)
+ifeq ($(compiler),intel-oneapi)
    export FC := ifort
    export CC := icx
    export COMP_SYS := intel_linux

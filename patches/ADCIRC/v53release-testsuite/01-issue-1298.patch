@@ -166,7 +166,7 @@ index 2c0eb06..6e08692 100644
 -ifeq ($(compiler),intel)
 -  PPFC            :=  ifort
 +# this line is to support icc/ifort and icx/ifort (llvm based)
-+ifneq (,$(filter intel intel-llvm,$(compiler)))
++ifneq (,$(filter intel intel-oneapi,$(compiler)))
 +  CC            :=  icc
 +  PPFC          :=  ifort
    FC            :=  ifort

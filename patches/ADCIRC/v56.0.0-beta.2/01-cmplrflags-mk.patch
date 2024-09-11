@@ -111,7 +111,7 @@ index 9f89de7..136814c 100644
  # "feupdateenv is not implemented and will always fail"
 -ifeq ($(compiler),intel)
 +# this line is to support icc/ifort and icx/ifort (llvm based)
-+ifneq (,$(filter intel intel-llvm,$(compiler)))
++ifneq (,$(filter intel intel-oneapi,$(compiler)))
 +  CC            :=  icc
    PPFC          :=  ifort
    FC            :=  ifort

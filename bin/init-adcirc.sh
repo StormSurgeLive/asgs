@@ -472,7 +472,7 @@ function dumpJSON()
     intel)
       # default, above
     ;;
-    intel-llvm)
+    intel-oneapi)
       # default, above
       local _FC=$(which ifort 2> /dev/null)
       local _CC=$(which icx   2> /dev/null)

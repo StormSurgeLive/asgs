@@ -282,7 +282,7 @@ if [ -z "$BATCH" ]; then
   fi
   echo
 
-  read -p "Which compiler 'family' would you like to use, 'gfortran', 'intel', 'intel-llvm'? [$_compiler] " compiler
+  read -p "Which compiler 'family' would you like to use, 'gfortran', 'intel', 'intel-oneapi'? [$_compiler] " compiler
   if [ -z "$compiler" ]; then
     compiler=$_compiler
   fi
@@ -290,9 +290,9 @@ else
   compiler=$_compiler # BATCH is set here
 fi
 
-if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" && "$compiler" != "intel-llvm" ]]; then
+if [[ "$compiler" != 'gfortran' && "$compiler" != "intel" && "$compiler" != "intel-oneapi" ]]; then
   echo
-  echo "'$compiler' is not valid, compiler must be 'gfortran', 'intel', 'intel-llvm'"
+  echo "'$compiler' is not valid, compiler must be 'gfortran', 'intel', 'intel-oneapi'"
   exit 1
 fi
 
