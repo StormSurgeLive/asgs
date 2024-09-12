@@ -312,8 +312,8 @@ echo
 if [[ -d "${ADCIRCBASE}" ]]; then
   _delete=no
   echo "$W '$ADCIRCBASE' exists!"
-  echo
-  read -p "Delete this directory and continue? [$_delete] " delete
+  echo $W
+  read -p "${W} Delete this directory and continue? [$_delete] " delete
   echo
   if [ -z "$delete" ]; then
     delete=$_delete
