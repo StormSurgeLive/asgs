@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 9f89de7..785bcdb 100644
+index 9f89de7..e11cecb 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,46 @@
@@ -240,11 +240,11 @@ index 9f89de7..785bcdb 100644
 +  #wwlwpd: "PFC" below
 +  ifeq ($(MACHINENAME),mike)
 +     PFC     :=  mpiifort
-+     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xAVX
++     FFLAGS1 := $(INCDIRS) -O2  -assume byterecl -132 -xAVX
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
 +     FLIBS   := $(INCDIRS) -xAVX
 +     ifeq ($(DEBUG),trace)
-+        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -assume byterecl -132 -xAVX
 +        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
 +        FLIBS   := $(INCDIRS) -xAVX
 +     endif
