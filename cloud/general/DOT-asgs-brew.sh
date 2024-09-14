@@ -1218,7 +1218,7 @@ alias vs="verify ssh_config"
 # aliases for common git repos used during operations 
 alias aconfigs="goto $SCRIPTDIR/git/asgs-configs/$(date +%Y)"              # cd in this year's directory in git/asgs-configs
 alias amond="goto $SCRIPTDIR/git/asgs-mon"                                 # cd into asgs-mon's directory
-alias amonv="$SCRIPTDIR/git/asgs-mon/bin/asgs-mon -v"                      # run 'asgs-mon -v'
+alias amonv="asgs-mon -v"                                                  # run 'asgs-mon -v' (it's in PATH)
 alias cera="goto $SCRIPTDIR/git/cera-asgs-environment"                     # cd into cera-asgs-environment's directory
 alias cerad="goto $SCRIPTDIR/git/cera-asgs-environment/asgs-configs-daily" # cd into cera-asgs-environment's daily configs directory
 alias docsd="goto $SCRIPTDIR/git/asgs.wiki"                                # cd into asgs.wiki's directory
