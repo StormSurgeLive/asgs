@@ -16,7 +16,9 @@ case "${ITEM}" in
     fetch configs
     fetch cera
     fetch docs
+    fetch ourperl
     fetch storm-archive
+    # ...
     fetch adcirc-testsuite
     ;;
   asgs-mon)
@@ -24,67 +26,78 @@ case "${ITEM}" in
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-mon ]; then
       echo "${W} $SCRIPTDIR/git/asgs-mon exists"
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit 1
     fi
     git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
-    popd > /dev/null 2>&1 
+    popd > /dev/null 2>&1
     ;;
   configs)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-configs ]; then
       echo "${W} $SCRIPTDIR/git/asgs-configs exists"
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit 1
     fi
     git clone git@github.com:StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
-    popd > /dev/null 2>&1 
+    popd > /dev/null 2>&1
     ;;
   docs)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs.wiki ]; then
       echo "${W} $SCRIPTDIR/git/asgs.wiki exists"
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit 1
     fi
     git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
-    popd > /dev/null 2>&1 
+    popd > /dev/null 2>&1
     ;;
   cera)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./cera-asgs-environment ]; then
       echo "${W} $SCRIPTDIR/git/cera-asgs-environment exists"
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit 1
     fi
     git clone git@github.com:CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
 
-    popd > /dev/null 2>&1 
+    popd > /dev/null 2>&1
+    ;;
+  ourperl)
+    mkdir $SCRIPTDIR/git 2> /dev/null
+    pushd $SCRIPTDIR/git  > /dev/null  2>&1
+    if [ -d ./ourPerl ]; then
+      echo "${W} $SCRIPTDIR/git/ourPerl exists"
+      popd > /dev/null 2>&1
+      exit 1
+    fi
+    git clone git@github.com:StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
+    popd > /dev/null 2>&1
     ;;
   storm-archive)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./storm-archive ]; then
       echo "${W} $SCRIPTDIR/git/storm-archive exists"
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit 1
     fi
     git clone git@github.com:StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
-    popd > /dev/null 2>&1 
+    popd > /dev/null 2>&1
     ;;
   adcirc-testsuite)
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./adcirc-testsuite ]; then
       echo "${W} $SCRIPTDIR/git/adcirc-testsuite exists"
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit 1
     fi
     git clone git@github.com:adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
-    popd > /dev/null 2>&1 
+    popd > /dev/null 2>&1
     ;;
   *)
     cat << EOF
@@ -92,19 +105,20 @@ case "${ITEM}" in
 '$ITEM' not supported via ASGS' "fetch" command
 
  Supported:
-  * adcirc-testsuite - git clones ADCIRC's test-suite        (public)
-  * asgs-mon         - git clones ASGS' monitor              (public)
-  * cera             - git clones CERA local-asgs-assets     (private)
-  * configs          - git clones ASGS asgs-config           (public)
-  * docs             - git clones ASGS asgs.wiki             (public)
-  * storm-archive    - git clones ASGS storm-archive         (public)
+  * adcirc-testsuite - git clones ADCIRC's test-suite         (public)
+  * asgs-mon         - git clones ASGS' monitor               (public)
+  * cera             - git clones CERA local-asgs-assets      (private)
+  * configs          - git clones ASGS asgs-config            (public)
+  * docs             - git clones ASGS asgs.wiki              (public)
+  * ourperl          - git clones ASGS fork of Nate's ourPerl (public)
+  * storm-archive    - git clones ASGS storm-archive          (public)
   --                 ---
   * all              - attempts all of the above
 
  Example, checkout ASGS configs into, "$SCRIPTDIR/git/asgs-configs":
 
  asgs> fetch configs
- 
+
 Note: Create a GH issue if there is something missing here that
 you think should be added.
 EOF
