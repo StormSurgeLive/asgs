@@ -3,10 +3,10 @@ name: Run Install Scripts on ci-test Branch
 on:
   push:
     branches:
-      - ci-test
+      - master
   pull_request:
     branches:
-      - ci-test
+      - master
 
 jobs:
   run-scripts:
