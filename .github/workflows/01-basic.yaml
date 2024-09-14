@@ -1,4 +1,4 @@
-name: Run Install Scripts on ci-test Branch
+name: Run Selected Install Scripts
 
 on:
   push:
