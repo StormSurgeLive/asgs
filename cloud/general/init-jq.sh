@@ -18,10 +18,12 @@ if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
   rm -vf ./lib/libjq.so
   rm -vf ./bin/jq
   rm -vf ./include/jq.h
+  rm -vrf ./share/doc/jq
+  rm -vf ./lib/pkgconfig/libjq.pc
   popd $OPT > /dev/null 2>&1
   echo cleaning jq build scripts and downloads
   cd $_ASGS_TMP
-  rm -rfv ${JQ_DIR}* > /dev/null 2>&1
+  rm -vrf ${JQ_DIR}* > /dev/null 2>&1
 
   # stop here if 'clean', proceed if 'rebuild'
   if [ "$COMPILER" == "clean" ]; then
@@ -34,7 +36,7 @@ if [ -x ${OPT}/bin/jq ]; then
   exit
 fi
 
-JQ_VERSION=1.6
+JQ_VERSION=1.7.1
 JQ_DIR=jq-${JQ_VERSION}
 JQ_TGZ=${JQ_DIR}.tar.gz
 cd $_ASGS_TMP

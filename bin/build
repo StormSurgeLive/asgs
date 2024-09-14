@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# this is just a starter, the above stuff might go into a shell "library" at some
+# point
+
+# 'build' is basically ASGS Shell Environment's "package manager"
+# these are the "optional" installs - from individual utilities
+# to "bundles" (e.g., a set of related, but optional Perl modules)
+build() {
+  TO_BUILD=${1}
+  BUILD_OPTS=${2}
+  case "${TO_BUILD}" in
+    adcirc)
+      init-adcirc.sh ${BUILD_OPTS}
+      ;;
+    jq)
+      init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    pdl)
+      init-perl-data-language.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    perl-dev)
+      init-perldev-env.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    replaycli)
+      init-replaycli.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    *)
+      echo 'Supported "build" options:'
+      echo '  adcirc    - ADCIRC build wizard supporting different versions and patchsets'
+      echo '  jq        - "a lightweight and flexible command-line JSON processor"'
+      echo '  pdl       - installs the latest version of the Perl Data Language (PDL)'
+      echo '  perl-dev  - installs tools useful for Perl development (e.g., Dist::Zilla)'
+      echo '  replaycli - a client for StormReplay.com, an ASGS related service'
+      ;;
+  esac
+}
+
+build $@
