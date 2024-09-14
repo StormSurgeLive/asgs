@@ -660,7 +660,7 @@ sub get_steps {
             util/input/nodalattr
             util/output
             util/troubleshooting
-            git/asgs-mon/bin/
+            git/asgs-mon/bin
             git/ourPerl/KML
             git/ourPerl/StwaveUtils
             git/ourPerl/Date
