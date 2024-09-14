@@ -1,0 +1,56 @@
+name: Run Install Scripts on ci-test Branch
+
+on:
+  push:
+    branches:
+      - ci-test
+  pull_request:
+    branches:
+      - ci-test
+
+jobs:
+  run-scripts:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Ubuntu packages
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y build-essential checkinstall
+          sudo apt-get install -y libssl-dev libexpat1-dev
+          sudo apt-get install -y gfortran wget curl vim screen htop tmux git bc
+          sudo apt-get install -y zip flex gawk procps
+          sudo apt-get install -y zlib1g-dev
+
+          # Install the older GCCs we want, set them to system defaults
+          sudo apt-get install -y gcc-9 g++-9 gfortran-9
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
+          sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 9
+
+      - name: Set TERM and run install script with --update-shell
+        run: |
+          export TERM=xterm
+          chmod +x ./ci/01-install-shell-only.sh
+          ./ci/01-install-shell-only.sh
+
+      - name: Run OpenMPI installation script
+        run: |
+          chmod +x ./ci/02-install-openmpi.sh
+          ./ci/02-install-openmpi.sh
+        timeout-minutes: 120
+
+      - name: Run HDF5 installation script
+        run: |
+          chmod +x ./ci/03-install-hdf5.sh
+          ./ci/03-install-hdf5.sh
+        timeout-minutes: 120
+
+      - name: Run netCDF4 installation script
+        run: |
+          chmod +x ./ci/04-install-netcdf4.sh
+          ./ci/04-install-netcdf4.sh
+        timeout-minutes: 120
