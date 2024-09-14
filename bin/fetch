@@ -70,7 +70,7 @@ case "${ITEM}" in
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./ourPerl ]; then
-      echo "${W} $SCRIPTDIR/git/asgs.wiki exists"
+      echo "${W} $SCRIPTDIR/git/ourPerl exists"
       popd > /dev/null 2>&1
       exit 1
     fi
@@ -105,12 +105,13 @@ case "${ITEM}" in
 '$ITEM' not supported via ASGS' "fetch" command
 
  Supported:
-  * adcirc-testsuite - git clones ADCIRC's test-suite        (public)
-  * asgs-mon         - git clones ASGS' monitor              (public)
-  * cera             - git clones CERA local-asgs-assets     (private)
-  * configs          - git clones ASGS asgs-config           (public)
-  * docs             - git clones ASGS asgs.wiki             (public)
-  * storm-archive    - git clones ASGS storm-archive         (public)
+  * adcirc-testsuite - git clones ADCIRC's test-suite         (public)
+  * asgs-mon         - git clones ASGS' monitor               (public)
+  * cera             - git clones CERA local-asgs-assets      (private)
+  * configs          - git clones ASGS asgs-config            (public)
+  * docs             - git clones ASGS asgs.wiki              (public)
+  * ourperl          - git clones ASGS fork of Nate's ourPerl (public)
+  * storm-archive    - git clones ASGS storm-archive          (public)
   --                 ---
   * all              - attempts all of the above
 
