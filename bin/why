@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+cd $RUNDIR
+
+for failed in $(ls -rt1 | grep failed); do
+  echo $failed
+  pushd $failed > /dev/null
+  for file in $(ls -rt1 *.slurm); do
+    printf "  %s\n" $file
+  done
+  popd > /dev/null
+done
