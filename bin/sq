@@ -8,20 +8,30 @@ fi
 # short cut to report current work queue status
 _sq() {
   OLDIFS=$IFS
-  IFS=
+  IFS=$'\n'
   platform=$(guess platform);
   if [[ $(echo 'supermic queenbee queenbeeC queenbeeD' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(showq | grep $USER)
   elif [[ $(echo 'frontera stampede2 stampede3 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
-    SQ=$(squeue -u $USER 2>&1 | tail -n +2)
+    SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
+    for status in $SQ; do
+      id=$(echo "$status" | awk '{print $1}')
+      runstate=$(echo "$status" | awk '{print $3}')
+      if [[ "$runstate" == "RUNNING" ]]; then
+        workdir=$(scontrol show job $id | grep WorkDir | awk -F/ '{print $(NF-2) "/" $(NF-1) "/" $NF}') 
+      else
+        workdir=--
+      fi
+      echo $status $workdir | sed "s/^  *//g"
+    done
   else
     echo "Can't determine platform or command to use to report state of batch queues. Guessing:" >&2
-    SQ=$(squeue -u $USER 2>&1 | tail -n +2)
+    SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
   fi
   # display result
-  if [ -n "$SQ" ]; then
-    echo $SQ
-  else
+  if [ -z "$SQ" ]; then
+#    echo $SQ
+#  else
    echo "No jobs in queue for user '$USER'".
   fi
   IFS=$OLDIFS
