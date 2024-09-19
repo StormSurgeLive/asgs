@@ -9,10 +9,9 @@ fi
 _sq() {
   OLDIFS=$IFS
   IFS=$'\n'
-  platform=$(guess platform);
-  if [[ $(echo 'supermic queenbee queenbeeC queenbeeD' | grep -c "$platform") -gt 0 ]]; then
+  if [[ "$QUEUESYS" == "PBS" ]]; then
     SQ=$(showq | grep $USER)
-  elif [[ "$QUEUESYS" == "SLURM" || $(echo 'frontera stampede2 stampede3 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
+  elif [[ "$QUEUESYS" == "SLURM" ]]; then
     SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
     for status in $SQ; do
       id=$(echo "$status" | awk '{print $1}')
@@ -24,13 +23,10 @@ _sq() {
      echo "No jobs in queue for user '$USER'".
     fi
   elif [[ "$QUEUESYS" == "mpiexec" ]]; then
-    top -n 1 -u $USER
+    ps -ejHu $USER # lists processes
+    uptime        # gives load info
   else
-    echo "Can't determine platform or command to use to report state of batch queues. Guessing:" >&2
-    SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
-    if [ -z "$SQ" ]; then
-     echo "No jobs in queue for user '$USER'".
-    fi
+    echo "$0 - Can't determine platform or command to use to report state of batch queues." >&2
   fi
   # display result
   IFS=$OLDIFS
