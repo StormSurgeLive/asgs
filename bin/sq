@@ -12,7 +12,7 @@ _sq() {
   platform=$(guess platform);
   if [[ $(echo 'supermic queenbee queenbeeC queenbeeD' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(showq | grep $USER)
-  elif [[ $(echo 'frontera stampede2 stampede3 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
+  elif [[ "$QUEUESYS" == "SLURM" || $(echo 'frontera stampede2 stampede3 lonestar5 hatteras rostam ls6 mike' | grep -c "$platform") -gt 0 ]]; then
     SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
     for status in $SQ; do
       id=$(echo "$status" | awk '{print $1}')
@@ -20,16 +20,19 @@ _sq() {
       workdir=$(scontrol show job $id | grep WorkDir | awk -F/ '{print $(NF-3) "/" $(NF-2) "/" $(NF-1)}')
       echo $status $workdir | sed "s/^  *//g"
     done
+    if [ -z "$SQ" ]; then
+     echo "No jobs in queue for user '$USER'".
+    fi
+  elif [[ "$QUEUESYS" == "mpiexec" ]]; then
+    top -n 1 -u $USER
   else
     echo "Can't determine platform or command to use to report state of batch queues. Guessing:" >&2
     SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
+    if [ -z "$SQ" ]; then
+     echo "No jobs in queue for user '$USER'".
+    fi
   fi
   # display result
-  if [ -z "$SQ" ]; then
-#    echo $SQ
-#  else
-   echo "No jobs in queue for user '$USER'".
-  fi
   IFS=$OLDIFS
 }
 
