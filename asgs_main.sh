@@ -1123,8 +1123,8 @@ checkTimeLimit()
 {
    THIS="asgs_main.sh>checkTimeLimit()"
    if [[ -z "$1" || -z "$2" ]]; then
-	   warn "$ENSTORM: $THIS: One or both parameters for checkTimeLimit() is empty. STARTTIME='$1', TIMELIMIT='$2'."
-     return 0
+     warn "$ENSTORM: $THIS: One or both parameters for checkTimeLimit() is empty. STARTTIME='$1', TIMELIMIT='$2'." >&2
+     echo 0
    fi
    STARTTIME=$1
    TIMELIMIT=$2
@@ -1146,9 +1146,9 @@ checkTimeLimit()
       format="%02d:%02d:%02d"
       hms=$(printf "$format" $hoursEnd $minutesEnd $secondsEnd)
       warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
-      return 1
+      echo 1
    else
-      return 0
+      echo 0
    fi
 }
 #
