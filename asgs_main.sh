@@ -1147,9 +1147,10 @@ checkTimeLimit()
       hms=$(printf "$format" $hoursEnd $minutesEnd $secondsEnd)
       warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
       echo 1
-   else
-      echo 0
    fi
+
+   # if no other echo is made above
+   echo 0
 }
 #
 # watches for the existence of certain files that are written by the job as
