@@ -1145,7 +1145,7 @@ checkTimeLimit()
       secondsEnd=$(($remainder % 60))
       format="%02d:%02d:%02d"
       hms=$(printf "$format" $hoursEnd $minutesEnd $secondsEnd)
-      warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
+      warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded." >&2
       echo 1
    fi
 
