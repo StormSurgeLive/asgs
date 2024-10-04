@@ -938,7 +938,7 @@ prepFile()
 
          fi
       done
-      monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $WALLTIME
+      monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$WALLTIME"
       THIS="asgs_main.sh>prepFile()"
       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
       ;;
@@ -1123,8 +1123,8 @@ checkTimeLimit()
 {
    THIS="asgs_main.sh>checkTimeLimit()"
    if [[ -z "$1" || -z "$2" ]]; then
-	   warn "$ENSTORM: $THIS: One or both parameters for checkTimeLimit() is empty. STARTTIME='$1', TIMELIMIT='$2'."
-     return 0
+     warn "$ENSTORM: $THIS: One or both parameters for checkTimeLimit() is empty. STARTTIME='$1', TIMELIMIT='$2'." >&2
+     echo 0
    fi
    STARTTIME=$1
    TIMELIMIT=$2
@@ -1145,11 +1145,12 @@ checkTimeLimit()
       secondsEnd=$(($remainder % 60))
       format="%02d:%02d:%02d"
       hms=$(printf "$format" $hoursEnd $minutesEnd $secondsEnd)
-      warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded."
-      return 1
-   else
-      return 0
+      warn "$ENSTORM: $THIS: The time limit is $TIMELIMIT but the total time used so far is $hms. Therefore, the time limit has been exceeded." >&2
+      echo 1
    fi
+
+   # if no other echo is made above
+   echo 0
 }
 #
 # watches for the existence of certain files that are written by the job as
@@ -2065,7 +2066,7 @@ if [[ $START = coldstart ]]; then
    submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $HINDCASTWALLTIME $JOBTYPE
    THIS="asgs_main.sh"
    # check once per minute until all jobs have finished
-   monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $HINDCASTWALLTIME
+   monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$HINDCASTWALLTIME"
    THIS="asgs_main.sh"
    # check to see that the hindcast job did not conspicuously fail
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
@@ -2689,7 +2690,7 @@ while [ true ]; do
       submitJob $QUEUESYS $NCPU $ADCIRCDIR $ADVISDIR $SCRIPTDIR $INPUTDIR $ENSTORM $HPCENVSHORT $ACCOUNT $PPN $NUMWRITERS $HOTSTARTCOMP $NOWCASTWALLTIME $JOBTYPE
       THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
-      monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $NOWCASTWALLTIME
+      monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$NOWCASTWALLTIME"
       THIS="asgs_main.sh"
       # check to see that the nowcast job did not conspicuously fail
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
@@ -3173,7 +3174,7 @@ while [ true ]; do
       # in the background ... this allows us to go on to the
       # next scenario
       (
-         monitorJobs $QUEUESYS ${JOBTYPE} ${ENSTORM} $FORECASTWALLTIME
+         monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$FORECASTWALLTIME"
          THIS="asgs_main.sh"
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
          THIS="asgs_main.sh"
