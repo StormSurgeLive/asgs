@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # Needed for ./init-asgs.sh, bin/guess
-export PPN=48
+export PPN=112
 export HPCENV=stampede3.tacc.utexas.edu
 export HPCENVSHORT=stampede3
 export QUEUESYS=SLURM
-export QUEUENAME=skx
-export SERQUEUE=skx
+export QUEUENAME=spr # note, max NCPU is 896 per job according to the online docs at this time, but
+export SERQUEUE=spr  # that is not enforced via this file .........................................
 export QSUMMARYCMD=null
 export QUOTACHECKCMD=null
 export ALLOCCHECKCMD=null
@@ -24,7 +24,7 @@ export JOBLAUNCHER='ibrun '
 export ACCOUNT=null
 export SUBMITSTRING=sbatch
 export SSHKEY=id_rsa_lonestar5
-export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+export OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
 export UMASK=006
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
