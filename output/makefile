@@ -67,7 +67,7 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace
    endif
 endif
-ifeq ($(compiler),intel-llvm)
+ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -fpp -shared-intel
    ifeq ($(DEBUG),trace)

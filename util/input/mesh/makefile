@@ -30,7 +30,7 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
 endif
-ifeq ($(compiler),intel-llvm)
+ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -cpp -shared-intel -fpp
    ifeq ($(DEBUG),trace)

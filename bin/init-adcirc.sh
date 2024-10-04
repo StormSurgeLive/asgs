@@ -311,9 +311,9 @@ echo
 
 if [[ -d "${ADCIRCBASE}" ]]; then
   _delete=no
-  echo "$W '$ADCIRCBASE' exists!"
-  echo
-  read -p "Delete this directory and continue? [$_delete] " delete
+  echo "$W \"$ADCIRCBASE\" exists!"
+  echo $W
+  read -p "${W} Delete this directory and continue? [$_delete] " delete
   echo
   if [ -z "$delete" ]; then
     delete=$_delete
@@ -472,7 +472,7 @@ function dumpJSON()
     intel)
       # default, above
     ;;
-    intel-llvm)
+    intel-oneapi)
       # default, above
       local _FC=$(which ifort 2> /dev/null)
       local _CC=$(which icx   2> /dev/null)

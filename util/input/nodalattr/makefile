@@ -39,7 +39,7 @@ ifeq ($(compiler),gfortran)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
 endif
-ifeq ($(compiler),intel-llvm)
+ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -cpp -shared-intel -fpp
    ifeq ($(DEBUG),trace)
