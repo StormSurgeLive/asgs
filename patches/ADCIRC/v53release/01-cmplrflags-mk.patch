@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 2c0eb06..ee40836 100644
+index 2c0eb06..4633a30 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -89,13 +89,10 @@ ifeq ($(compiler),gnu)
@@ -239,21 +239,21 @@ index 2c0eb06..ee40836 100644
 +  endif
 +  ifeq ($(MACHINENAME),stampede3)
 +     CC      := icx
-+     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512 
-+     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX2 -axCORE-AVX512 -Wno-implicit-function-declaration
-+     FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512 
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xSAPPHIRERAPIDS
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xSAPPHIRERAPIDS -Wno-implicit-function-declaration
++     FLIBS   := $(INCDIRS) -axCORE-AVX512,COMMON-AVX512
 +     ifeq ($(DEBUG),trace)
-+        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
-+        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512 -Wimplicit-function-declaration
-+        FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xSAPPHIRERAPIDS -check bounds -check pointers -heap-arrays
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xSAPPHIRERAPIDS -Wimplicit-function-declaration
++        FLIBS   := $(INCDIRS) -axCORE-AVX512,COMMON-AVX512
 +     endif
 +  endif
 +  ifeq ($(MACHINENAME),debian)
 +     PFC     := mpiifort
 +     CC      := icx
-+     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512 
++     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX2 -axCORE-AVX512 -Wno-implicit-function-declaration
-+     FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512 
++     FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +     ifeq ($(DEBUG),trace)
 +        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512 -Wimplicit-function-declaration
