@@ -90,10 +90,11 @@ _show_supported_versions()
   fi
   # final menu entry for custom directory
   num=$(($num+1))
-  printf "%2s. %-33s | %-66s\n" $num custom "select this option for custom directory"
+  printf "%2s. %-33s | %-66s\n" $num custom "(*) select this option for custom directory"
   num=$(($num+1))
   printf "%2s. %-33s | %-66s\n" $num quit "type 'quit', 'q', or 'ctrl-c' to quit"
   echo  "--"
+  echo "* Contact <help@support.adcirc.live> if additional ADCIRC version supported is required."
   echo
   ADCIRCS=($_ADCIRCS custom)
   if [ "${1}" != "noexit" ]; then
