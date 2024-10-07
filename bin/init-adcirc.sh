@@ -41,6 +41,10 @@ while getopts "bN:" optname; do
    esac
 done
 
+if [[ "$BATCH" == 1 && -z "$SELECTED_VERSION" ]]; then
+  SELECTED_VERSION=v56.0.2 # default when "-b" is specified, but -N is not
+fi
+
 ADCIRCS=()
 NUM_ADC=0
 _ASGS_ADCIRC_BASE=$SCRIPTDIR/opt/models/adcircs
