@@ -745,7 +745,7 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};
                 my $ok           = 1;
-                my @mpi_binaries = (qw/mpiCC mpic++ mpicc mpicxx mpiexec mpif77 mpif90 mpifort mpirun ompi-clean ompi-ps ompi-server ompi-top ompi_info opal_wrapper orte-clean orte-info orte-ps orte-server orte-top ortecc orted orterun/);
+                my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
                 map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
                 return $ok;
             },
