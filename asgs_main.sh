@@ -1197,7 +1197,7 @@ monitorJobs()
 
       # check job run status
       check=$(checkTimeLimit "$startTime" "$WALLTIME")
-      if [[ "$check" -eq 1 ]]; then
+      if [[ "$check" == 1 ]]; then
          THIS="asgs_main.sh>monitorJobs()"
          DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
          echo "[$DATETIME] $THIS: The ${ENSTORM_TEMP} job exceeded its wall clock time limit of '$WALLTIME'." > ${ENSTORM_TEMP}.run.error  # <-OVERWRITE
