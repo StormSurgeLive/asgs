@@ -504,7 +504,7 @@ sub cmd_build {
 EOCMD
   }
   elsif (not $flavor) {
-    $flavor = q{v55.02};
+    $flavor = q{v56.0.2};
   }
 
   return system(<<EOCMD);
