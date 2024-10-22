@@ -143,7 +143,7 @@ sub cmd_list_meshes() {
 
 sub __ASSERT_VALID_SUPPORT_LICENSE__() {
   if (!_auth) {
-    die qq{\nADCIRC Live (c) 2024. Support License check failed. Please email help\@support.adcirc.live for more information. };
+    die qq{\nADCIRC Live (c) 2024. Support License check failed. Please email help\@support.adcirc.live for more information.\n\n};
   }
   return;
 }
