@@ -80,7 +80,7 @@ EOF
 }
 
 #my $ret  = GetOptionsFromArray($ARGV, $opts, qw/foo=s/);
-my $subcommand = shift @ARGV;
+my $subcommand = shift @ARGV // "help";
 
 my $subcommands = {
     show      => sub {cmd_show(\@ARGV)     },
@@ -226,16 +226,10 @@ These are common ADCIRC Live (c) commands used in various situations:
 installing different ADCIRC versions 
 
    build adcirc [FLAVOR]    Builds the specified ADCIRC version flavor, if not specified the default
-                            built will be the current latest release (e.g., v55.02) 
+                            built will be the current latest release (e.g., v56.0.2) 
    build wizard             Runs EZ ADCIRC, an interactive wizard for building many different versions,
                             some are not supported
-   list supported           Shows all officially supported version flavors that available to install and
-                            load currently, the following versions are officially supported:
-
-    - v55.02                               (default) - latest official release, version v55.02
-    - v53release                           final release of v53
-    - noaa.stofs.2d.glo.v1.1.0r2           NOAA distribution 1.1
-    - noaa.stofs.2d.glo.v2.1.0r1.v55.12    NOAA distribution 2.1 
+   list supported           Shows all officially supported version flavors that available to install for use
 
 loading and managing different installed ADCIRC version
 
@@ -258,8 +252,11 @@ working with the ADCIRC Live (c) API
    xdmf  OPTIONS            generate a Paraview XDMF file for visualizing the following ADCIRC file,
                             which is also available as a web tool at tools.adcirc.live
          examples,
-           xdmf --mesh APES --adcirc v55.02 --paraview 9.1.0 mesh=APES --maxele --maxvel --maxwvel --minpr --maxrs --swantpmax --swanhsma
-           xdmf --mesh APES --adcirc v55.02 --paraview 9.1.0 name=APES --nodes 22425 --elements 41330 -maxele --maxvel --maxwvel --minpr --maxrs --swantpmax --swanhsma
+           xdmf --mesh APES --adcirc v56.0.2 --paraview 9.1.0 mesh=APES --maxele --maxvel --maxwvel --minpr    \\
+             --maxrs --swantpmax --swanhsma
+
+           xdmf --mesh APES --adcirc v56.0.2 --paraview 9.1.0 name=APES --nodes 22425 --elements 41330 -maxele \\
+             --maxvel --maxwvel --minpr --maxrs --swantpmax --swanhsma
 
          OPTIONS: 
            required:
@@ -346,7 +343,7 @@ EOCMD
 # direct asgsh's "init-adcirc.sh supported"
 sub cmd_list_supported {
   __ASSERT_VALID_SUPPORT_LICENSE__;
-  my @supported = qw/v55.02 v53release noaa.stofs.2d.glo.v1.1.0r2 noaa.stofs.2d.glo.v2.1.0r1.v55.12/;
+  my @supported = qw/v53release v55.01-5bc04d6 v55.02 v56.0.2/;
   print <<EOF;
 
 ADCIRC Live (c) officially supports the building of the following ADCIRC versions:
