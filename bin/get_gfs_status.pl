@@ -75,7 +75,11 @@ GetOptions(
         my $url         = sprintf( qq{https://ftp.ncep.noaa.gov/%s}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
-        my @dirs        = ( $raw_listing =~ m/>(.+)\/</g );
+        # Welcome to the perils of parsing HTML, the following match is set up
+        # to work on the following 2 examples,
+        # 1. <tr><td><a href="00/">00/</a></td><td align="right">31-Oct-2024 03:32
+        # 2. <tr><td><a href="gfs.20241027/">gfs.20241027/</a></td><td align="right">27-Oct
+        my @dirs        = ( $raw_listing =~ m/href="(gfs\.\d{8}|\d\d)\/"/g );
         if ( not @dirs ) {
             warn "!! No directories found via $url\n";
         }
