@@ -70,7 +70,7 @@ GetOptions(
         my $url         = sprintf( qq{https://ftp.ncep.noaa.gov/%s}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
-        my @dirs        = ( $raw_listing =~ m/>(.+)\/</g );
+        my @dirs        = ( $raw_listing =~ m/href="(nam\.\d{8}|\d\d)\/"/g );
         if ( not @dirs ) {
             warn "!! No directories found via $url\n";
         }
