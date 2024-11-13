@@ -44,58 +44,58 @@ init_queenbee()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_queenbee()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=queenbee.loni.org
-  QUEUESYS=PBS
-  PPN=20
-  QCHECKCMD=qstat
-  QSUMMARYCMD=showq
-  QUOTACHECKCMD=showquota
-  ALLOCCHECKCMD=showquota
-  QUEUENAME=workq
-  SERQUEUE=single
-  SUBMITSTRING=qsub
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  ACCOUNT=null
-  TDS=( lsu_tds )
-  REMOVALCMD="rmpurge"
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
+  export HPCENV=queenbee.loni.org
+  export QUEUESYS=PBS
+  export PPN=20
+  export QCHECKCMD=qstat
+  export QSUMMARYCMD=showq
+  export QUOTACHECKCMD=showquota
+  export ALLOCCHECKCMD=showquota
+  export QUEUENAME=workq
+  export SERQUEUE=single
+  export SUBMITSTRING=qsub
+  export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  export QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
+  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
+  export ACCOUNT=null
+  export TDS=( lsu_tds )
+  export REMOVALCMD="rmpurge"
+  export ARCHIVE=enstorm_pedir_removal.sh
+  export ARCHIVEBASE=$SCRATCH
+  export ARCHIVEDIR=$SCRATCH
   # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
   # dialog box to ask for a password; it will interactively ask for
   # a password instead
   unset SSH_ASKPASS
-  MAKEJOBS=8
+  export MAKEJOBS=8
 }
 #
 init_supermic()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=supermic.hpc.lsu.edu
-  QUEUESYS=SLURM
-  PPN=20
-  QCHECKCMD=sacct
-  QUOTACHECKCMD=showquota
-  ALLOCCHECKCMD=showquota
-  QUEUENAME=workq
-  SERQUEUE=single
-  SUBMITSTRING=sbatch
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  JOBLAUNCHER='srun '
-  PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
-  local THIS="platforms.sh>env_dispatch()>init_supermic()"
-  REMOVALCMD="rmpurge"
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  TDS=( lsu_tds )
-  MAKEJOBS=8
+  export HPCENV=supermic.hpc.lsu.edu
+  export QUEUESYS=SLURM
+  export PPN=20
+  export QCHECKCMD=sacct
+  export QUOTACHECKCMD=showquota
+  export ALLOCCHECKCMD=showquota
+  export QUEUENAME=workq
+  export SERQUEUE=single
+  export SUBMITSTRING=sbatch
+  export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  export QSCRIPTGEN=qscript.pl
+  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export JOBLAUNCHER='srun '
+  export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
+  local  THIS="platforms.sh>env_dispatch()>init_supermic()"
+  export REMOVALCMD="rmpurge"
+  export ARCHIVE=enstorm_pedir_removal.sh
+  export ARCHIVEBASE=$SCRATCH
+  export ARCHIVEDIR=$SCRATCH
+  export TDS=( lsu_tds )
+  export MAKEJOBS=8
 }
 
 # Note 0: This entry is meant to model a minimal entry
@@ -109,22 +109,22 @@ init_supermic()
 init_queenbeeC()
 { local THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=qbc.loni.org
-  QUEUESYS=SLURM
-  QCHECKCMD=sacct
-  QUEUENAME=workq
-  SERQUEUE=single
-  PPN=48
-  JOBLAUNCHER='srun '
-  SUBMITSTRING=sbatch
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=$SCRATCH
-  ARCHIVEDIR=$SCRATCH
-  TDS=( lsu_tds )
-  MAKEJOBS=8
+  export HPCENV=qbc.loni.org
+  export QUEUESYS=SLURM
+  export QCHECKCMD=sacct
+  export QUEUENAME=workq
+  export SERQUEUE=single
+  export PPN=48
+  export JOBLAUNCHER='srun '
+  export SUBMITSTRING=sbatch
+  export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  export QSCRIPTGEN=qscript.pl
+  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export ARCHIVE=enstorm_pedir_removal.sh
+  export ARCHIVEBASE=$SCRATCH
+  export ARCHIVEDIR=$SCRATCH
+  export TDS=( lsu_tds )
+  export MAKEJOBS=8
 }
 
 #
@@ -132,34 +132,34 @@ init_frontera()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_frontera()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
-  HPCENV=frontera.tacc.utexas.edu
-  QUEUESYS=SLURM
-  QUEUENAME=normal
-  SERQUEUE=small
-  PPN=56    # if this changes, also need to change the "small" queue defn in asgs_main.sh
-  CONSTRAINT=null
-  RESERVATION=null
-  QOS=null
-  QCHECKCMD=sacct
-  JOBLAUNCHER='ibrun '
-  ACCOUNT=null
-  SUBMITSTRING=sbatch
-  QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  QSCRIPTGEN=qscript.pl
-  OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  GROUP="G-803086"
-  QSUMMARYCMD=null
-  QUOTACHECKCMD=null
-  ALLOCCHECKCMD=null
-  MATLABEXE=script # "script" means just execute matlab (don't use mex files)
+  export HPCENV=frontera.tacc.utexas.edu
+  export QUEUESYS=SLURM
+  export QUEUENAME=normal
+  export SERQUEUE=small
+  export PPN=56    # if this changes, also need to change the "small" queue defn in asgs_main.sh
+  export CONSTRAINT=null
+  export RESERVATION=null
+  export QOS=null
+  export QCHECKCMD=sacct
+  export JOBLAUNCHER='ibrun '
+  export ACCOUNT=null
+  export SUBMITSTRING=sbatch
+  export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+  export QSCRIPTGEN=qscript.pl
+  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export GROUP="G-803086"
+  export QSUMMARYCMD=null
+  export QUOTACHECKCMD=null
+  export ALLOCCHECKCMD=null
+  export MATLABEXE=script # "script" means just execute matlab (don't use mex files)
   # specify location of platform- and Operator-specific scripts to
   # set up environment for different types of jobs
-  local THIS="platforms.sh>env_dispatch()>init_frontera()"
-  ARCHIVE=enstorm_pedir_removal.sh
-  ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  ARCHIVEDIR=2020 # is this used?
-  TDS=( tacc_tds3 )
-  MAKEJOBS=8
+  export THIS="platforms.sh>env_dispatch()>init_frontera()"
+  export ARCHIVE=enstorm_pedir_removal.sh
+  export ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
+  export ARCHIVEDIR=2020 # is this used?
+  export TDS=( tacc_tds3 )
+  export MAKEJOBS=8
 }
 
 
@@ -190,17 +190,6 @@ writeTDSProperties()
    CATALOGPREFIX=""    # after thredds/catalog
    DOWNLOADPREFIX=""   # after thredds/fileServer
    case $SERVER in
-   "renci_tds")
-      THREDDSHOST=tds.renci.org # WWW hostname for emailed links
-      OPENDAPINDEX=catalog.html
-      OPENDAPHOST=renci_tds     # alias in $HOME/.ssh/config
-      OPENDAPPORT=":80"
-      OPENDAPPROTOCOL="http"
-      OPENDAPBASEDIR=/projects/ncfs/opendap/data
-      echo "post.opendap.${SERVER}.linkablehosts : ( null )" >> $RUNPROPERTIES
-      echo "post.opendap.${SERVER}.copyablehosts : ( hatteras )" >> $RUNPROPERTIES
-      ;;
-
    # THREDDS Data Server (TDS, i.e., OPeNDAP server) at LSU
    "lsu_tds")
       THREDDSHOST=fortytwo.cct.lsu.edu
