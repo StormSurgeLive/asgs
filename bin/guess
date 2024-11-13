@@ -26,8 +26,6 @@ _guess_platform()
     default_platform=supermic
   elif [ 1 -eq $(echo $HOSTNAME | grep -c ls5) ]; then
     default_platform=lonestar5
-  elif [ 1 -eq $(echo $HOSTNAME | grep -c stampede2) ]; then
-    default_platform=stampede2
   elif [ 1 -eq $(echo $HOSTNAME | grep -c frontera) ]; then
     default_platform=frontera
   elif [ 1 -eq $(echo $HOSTNAME | grep -c soldier) ]; then

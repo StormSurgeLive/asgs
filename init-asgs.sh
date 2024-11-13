@@ -91,9 +91,7 @@ if [ -z "$BATCH" ]; then
   echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
   echo "supermic       - SuperMIC (LSU HPC)"  # smic
   echo "lonestar5      - Lonestar (TACC)"     # ls5
-  echo "stampede2      - Stampede2 (TACC)"    # stampede2 (being decomissioned)
   echo "frontera       - Frontera (TACC)"     # frontera
-  echo "poseidon       - Poseidon"            # delete this?
 fi
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
