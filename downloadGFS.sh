@@ -57,6 +57,9 @@ downloadGFS()
        mkdir -p $platformGfsDir 2>> $SYSLOG
     fi
     #
+    # create log file for this script
+    downloadGfsLog=$instanceGfsDir/downloadGFS.sh.log
+    #
     # set up the URL for subsetting and downloading
     baseURL="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl"
     levels="&lev_10_m_above_ground=on&lev_mean_sea_level=on"
@@ -163,6 +166,7 @@ downloadGFS()
             subsetSuccess=0
             localFile=$instanceGfsDir/$yyyymmdd/$file
             cmd="curl -s "$finalURL" > $localFile 2>> $SYSLOG" # used in error messages
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Subsetting GFS with curl using the following command: '$cmd'." >> $downloadGfsLog
             while [[ $subsetSuccess -eq 0 ]]; do
                 how="download"
                 if [[ ! -s $localFile ]]; then
@@ -232,6 +236,7 @@ downloadGFS()
             lonSpec="${gfsLatLonGrid['lon0']}:${gfsLatLonGrid['nlon']}:${gfsLatLonGrid['dlon']}"
             latSpec="${gfsLatLonGrid['lat0']}:${gfsLatLonGrid['nlat']}:${gfsLatLonGrid['dlat']}"
             if [[ ! -s $latLonFile ]]; then
+                echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Regridding GFS with wgrib2 using the following command: 'wgrib2 $origFile -inv /dev/null -set_grib_type same -new_grid_winds earth -new_grid latlon $lonSpec $latSpec $latLonFile 2>> $SYSLOG'." >> $downloadGfsLog
                 wgrib2 $origFile          \
                     -inv /dev/null        \
                     -set_grib_type same   \
@@ -389,6 +394,7 @@ downloadGFS()
             subsetSuccess=0
             numRetries=0
             cmd="curl -s '$finalURL' > $localFile 2>> $SYSLOG"
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Subsetting GFS with curl using the following command: '$cmd'." >> $downloadGfsLog
             while [[ $subsetSuccess -eq 0 && $numRetries -lt $maxRetries ]]; do
                 how="download"
                 if [[ ! -s $localFile ]]; then
@@ -466,6 +472,7 @@ downloadGFS()
         for origFile in ${gfsForecastFiles[@]} ; do
             latLonFile=${origFile}.latlon
             if [[ ! -s $latLonFile ]]; then
+                echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Regridding GFS with wgrib2 using the following command: 'wgrib2 $origFile -inv /dev/null -set_grib_type same -new_grid_winds earth -new_grid latlon $lonSpec $latSpec $latLonFile 2>> $SYSLOG'." >> $downloadGfsLog
                 wgrib2 $origFile          \
                     -inv /dev/null        \
                     -set_grib_type same   \
