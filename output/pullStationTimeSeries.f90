@@ -28,8 +28,10 @@ use logging
 use ioutil
 implicit none
 type(station_t), allocatable :: stations(:)
-type(mesh_t) :: m
-type(meshNetCDF_t) :: n
+type(mesh_t)        :: m
+type(meshNetCDF_t)  :: n
+real(8)             :: slam0 = -71.0d0 ! longitude of center of CPP projection
+real(8)             :: sfea0 = 40.0d0  ! latitude of center of CPP projection
 character(len=1024) :: dataSetHeaderLine
 character(len=1024) :: headerLineOne
 character(len=1024) :: stationFileName ! name of file containing list of stations
@@ -61,11 +63,12 @@ logical :: peak = .false. ! .true. if a peak value should be generated for every
 integer, allocatable :: ipeakvalues(:)
 real(8), allocatable :: peakvalues1(:)
 real(8), allocatable :: peakvalues2(:)
-character(len=2000) :: note     ! metadata for station file output
-character(len=2000) :: filetype ! timeseries or peak
-logical :: useProximityTolerance   ! true if stations just outside mesh should be included
-real(8) :: proximityTolerance      ! additional factor for comparing areas
-logical :: quiet                   ! true if the output of station numbers to the screen should be suppressed
+character(len=2000) :: note      ! metadata for station file output
+character(len=2000) :: filetype  ! timeseries or peak
+logical :: useProximityTolerance ! true if stations just outside mesh should be included
+real(8) :: proximityTolerance    ! additional factor for comparing areas
+logical :: quiet                 ! true if the output of station numbers to the screen should be suppressed
+logical :: useBruteForceSearch   ! true if every element should be checked when kdtsearch fails
 !---------------------------------------------------------------------------------
 ! M A U R E P A R T I C L E
 !---------------------------------------------------------------------------------
@@ -119,6 +122,7 @@ peak = .false.
 duration = .false.
 useProximityTolerance = .false.
 quiet = .false.
+useBruteForceSearch = .false.
 
 argcount = command_argument_count() ! count up command line options
 if (argcount.gt.0) then
@@ -137,6 +141,16 @@ if (argcount.gt.0) then
          call getarg(i, cmdlinearg)
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
          ft%dataFileName = trim(cmdlinearg)
+      case("--slam0")
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+         read(cmdlinearg,*) slam0
+      case("--sfea0")
+         i = i + 1
+         call getarg(i, cmdlinearg)
+         write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt)," ",trim(cmdlinearg),"."
+         read(cmdlinearg,*) sfea0
 
       case("--maureparticlefile")
          i = i + 1
@@ -209,6 +223,9 @@ if (argcount.gt.0) then
       case("--quiet")
          write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
          quiet = .true.
+      case("--brute-force-search")
+         write(6,'(99(a))') "INFO: processing ",trim(cmdlineopt),"."
+         useBruteForceSearch = .true.
       case("--outputfile")
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -235,6 +252,8 @@ if ( ft%dataFileFormat.eq.NETCDFG ) then
 else
    call read14(m)
 endif
+m%slam0 = slam0
+m%sfea0 = sfea0
 !
 !------------------------------------------------------------------------
 !                  P R O C E S S
@@ -321,6 +340,7 @@ if ( numStations.ne.0 ) then
       endif
       stations(s)%elementFound = .false.
       m%useStationTolerance = useProximityTolerance
+      stations(s)%useBruteForceSearch = useBruteForceSearch
       call computeStationWeights(stations(s), m)
    end do
 endif

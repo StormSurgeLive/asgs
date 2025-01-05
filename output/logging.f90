@@ -294,7 +294,7 @@ subroutine initR1D(vec)
    implicit none
    type(realVector1D_t), intent(inout) :: vec
    vec%n = 0
-   vec%ninc = 100
+   vec%ninc = 1000000
    vec%s = vec%ninc
    allocate(vec%v(0:vec%s+1))
    vec%v(:)=-99999.d0
@@ -336,7 +336,7 @@ subroutine initR1D(vec)
    implicit none
    type(integerVector1D_t), intent(inout) :: vec
    vec%n = 0
-   vec%ninc = 100
+   vec%ninc = 1000000
    vec%s = vec%ninc
    allocate(vec%v(0:vec%s+1))
    vec%v(:)=-99999
@@ -378,7 +378,7 @@ subroutine initR1D(vec)
    implicit none
    class(characterVector1D_t), intent(inout) :: vec
    vec%n = 0
-   vec%ninc = 100
+   vec%ninc = 1000000
    vec%s = vec%ninc
    allocate(vec%v(0:vec%s+1))
    !-----------------------------------------------------------------------
