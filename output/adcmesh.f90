@@ -8,6 +8,8 @@
 module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
 use netcdf, only : NF90_MAX_NAME
+use kdtree2_module
+
 real(8), parameter :: R = 6378206.4d0 ! radius of the earth
 real(8), parameter :: pi = 3.141592653589793d0
 real(8), parameter :: deg2rad = pi/180.d0
@@ -116,7 +118,7 @@ type mesh_t
    real(8), allocatable :: sfacAvg(:) ! (ne)
    real(8), allocatable :: fdx(:,:) ! (3,ne)
    real(8), allocatable :: fdy(:,:) ! (3,ne)
-   real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
+   real(8), allocatable :: centroids(:,:) ! (2,ne) x and y cartesian coordinates of the element centroids
    integer :: mnei = 15  ! maximum number of neighbors for a node
    !
    character(2048) :: agrid
@@ -163,6 +165,8 @@ type mesh_t
 
    logical :: elementAreasComputed = .false.
    logical :: elementDepthsComputed = .false.
+   logical :: elementCentroidsComputed = .false.
+   logical :: kdtree2SearchTreeComputed = .false.
    logical :: weightingCoefficientsComputed = .false.
    logical :: neighborTableComputed = .false.
    logical :: allLeveesOK ! .false. if there are any issues
@@ -209,6 +213,11 @@ type mesh_t
    integer :: ifwpCount ! index into the internalFluxBoundariesWithPipes array
 
    integer :: nfluxf ! =1 if there are any specified flux boundaries in the mesh
+   !
+   ! variables related to kdtree2 searches
+   integer                      :: srchdp       ! number of elements to return from search
+   type(kdtree2), pointer       :: tree         ! search tree
+   type(kdtree2_result), allocatable :: kdresults(:) ! list of elements to check
 
 end type mesh_t
 
@@ -272,6 +281,8 @@ end type xdmfMetaData_t
 type station_t
    real(8) :: lon            ! decimal degrees east
    real(8) :: lat            ! decimal degrees north
+   real(8) :: x_cpp          ! m east after reprojection with CPP
+   real(8) :: y_cpp          ! m north after reprojection with CPP
    real(8) :: z              ! vertical position (m) relative to mesh zero
    integer :: irtype         ! number of components; 1=scalar, 2=2D vector, 3=3D vector
    logical :: elementFound   ! true if the element number is known
@@ -279,6 +290,7 @@ type station_t
    real(8) :: elementArea    ! total area in m^2
    logical :: outsideWithinTolerance  ! if the station is actually outside mesh but within tolerance (for meshes where this criterion is active)
    real(8) :: elementBathyDepth       ! spatially weighted interpolation of nodal depths (m)
+   logical :: useBruteForceSearch     ! true if every element should be checked
    integer :: n(3)           ! nodes that surround the station
    real(8) :: w(3)           ! weights used to interpolate station values based on nodal values
    real(8), allocatable :: d(:,:)     ! station data (irtype, ntime)
@@ -1931,6 +1943,26 @@ END SUBROUTINE computeCPP
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
+!     S U B R O U T I N E   C O M P U T E  C P P  S T A T I O N
+!-----------------------------------------------------------------------
+!     jgf: Compute the CPP projection for the lat/on of a station
+!     without overwriting the original lat/lon data.
+!-----------------------------------------------------------------------
+SUBROUTINE computeCPPStation(station, slam0, sfea0)
+IMPLICIT NONE
+type(station_t), intent(inout) :: station      ! station to operate on
+real(8), intent(in)            :: slam0        ! longitude center of cpp projection
+real(8), intent(in)            :: sfea0        ! latitude center of cpp projection
+
+station%x_cpp = R * (station%lon*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
+station%y_cpp = station%lat*deg2rad * R
+
+return
+!-----------------------------------------------------------------------
+END SUBROUTINE computeCPPStation
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
 !  S U B R O U T I N E   C O M P U T E  C A R T E S I A N   S P H E R E
 !-----------------------------------------------------------------------
 !     jgf: Very short subroutine to compute the coordinate locations
@@ -2041,6 +2073,10 @@ SUBROUTINE computeElementCentroids(m)
 IMPLICIT NONE
 type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: i
+
+if (m%elementCentroidsComputed.eqv..true.) then
+   return
+endif
 if (m%cppComputed.eqv..false.) then
    call computeCPP(m)
 endif
@@ -2050,6 +2086,7 @@ do i=1,m%ne
    m%centroids(1,i) = oneThird * sum(m%x_cpp(m%nm(i,1:3)))
    m%centroids(2,i) = oneThird * sum(m%y_cpp(m%nm(i,1:3)))
 end do
+m%elementCentroidsComputed = .true.
 write(6,'("INFO: Finished computing element centroids.")')
 !-----------------------------------------------------------------------
       END SUBROUTINE computeElementCentroids
@@ -2100,7 +2137,6 @@ write(6,'("INFO: Finished computing element depths.")')
       END SUBROUTINE computeElementDepths
 !-----------------------------------------------------------------------
 
-
 !-----------------------------------------------------------------------
 !  S U B R O U T I N E   C O M P U T E   S T A T I O N   W E I G H T S
 !-----------------------------------------------------------------------
@@ -2109,65 +2145,68 @@ write(6,'("INFO: Finished computing element depths.")')
 ! station location.
 !-----------------------------------------------------------------------
 subroutine computeStationWeights(station, m)
+use kdtree2_module
 implicit none
+!
 type(station_t), intent(inout) :: station
 type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
 !
 real(8) :: x1, x2, x3 ! longitude temporary variables
 real(8) :: y1, y2, y3 ! latitude temporary variables
-real(8) :: subArea1, subArea2, subArea3, TotalArea
-integer :: e
+real(8) :: TotalArea
+integer :: e          ! element loop counter
+integer :: se         ! element search results loop counter
+!
+real(8) :: ds1(2),ds2(2),ds3(2)  ! vectors from element nodes to station
+real(8) :: c1,c2,c3              ! cross products of distance vectors from nodes to station
 
+call computeKdtree2SearchTree(m)
+
+call computeCPPStation(station, m%slam0, m%sfea0)
+
+! first try a kdtree2 search
 if (station%elementFound.eqv..false.) then
+   ! Find the element centroids that are closest to the station
+   call kdtree2_n_nearest(tp=m%tree,qv=(/station%x_cpp,station%y_cpp/),nn=m%srchdp,results=m%kdresults)
+   ! see if the particle is inside one of the elements in the list of results
+   do se=1,m%srchdp
+      ! distances from nodes of this element to the station
+      e = m%kdresults(se)%idx
+      ds1(1) = m%x_cpp(m%nm(e,1)) - station%x_cpp  ! vector 1
+      ds1(2) = m%y_cpp(m%nm(e,1)) - station%y_cpp
+      ds2(1) = m%x_cpp(m%nm(e,2)) - station%x_cpp  ! vector 2
+      ds2(2) = m%y_cpp(m%nm(e,2)) - station%y_cpp
+      ds3(1) = m%x_cpp(m%nm(e,3)) - station%x_cpp  ! vector 3
+      ds3(2) = m%y_cpp(m%nm(e,3)) - station%y_cpp
+      ! all positive cross products indicate the particle is within
+      ! the element because element nodes are listed counter clockwise
+      c1 = (ds1(1)*ds2(2))-(ds1(2)*ds2(1))
+      c2 = (ds2(1)*ds3(2))-(ds2(2)*ds3(1))
+      c3 = (ds3(1)*ds1(2))-(ds3(2)*ds1(1))
 
-   station%outsideWithinTolerance = .false.
-   do e=1,m%ne
-      X1 = station%lon
-      X2 = m%xyd(1,m%nm(e,2))
-      X3 = m%xyd(1,m%nm(e,3))
-      Y1 = station%lat
-      Y2 = m%xyd(2,m%nm(e,2))
-      Y3 = m%xyd(2,m%nm(E,3))
-      SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = m%xyd(1,m%nm(e,1))
-      X2 = station%lon
-      X3 = m%xyd(1,m%nm(e,3))
-      Y1 = m%xyd(2,m%nm(e,1))
-      Y2 = station%lat
-      Y3 = m%xyd(2,m%nm(e,3))
-      SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = m%xyd(1,m%nm(e,1))
-      X2 = m%xyd(1,m%nm(e,2))
-      X3 = station%lon
-      Y1 = m%xyd(2,m%nm(e,1))
-      Y2 = m%xyd(2,m%nm(e,2))
-      Y3 = station%lat
-      SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = m%xyd(1,m%nm(e,1))
-      X2 = m%xyd(1,m%nm(e,2))
-      X3 = m%xyd(1,m%nm(e,3))
-      Y1 = m%xyd(2,m%nm(e,1))
-      Y2 = m%xyd(2,m%nm(e,2))
-      Y3 = m%xyd(2,m%nm(e,3))
-      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+      if ((c1.ge.0.d0).and.(c2.ge.0.d0).and.(c3.gt.0.d0)) then
          station%elementIndex = e
          station%elementFound = .true.
-         exit
-      endif
-      if (m%useStationTolerance.and.(SubArea1+SubArea2+SubArea3).LE.((1.0+m%stationTolerance)*TotalArea))THEN
-         station%elementIndex = e
-         station%elementFound = .true.
-         station%outsideWithinTolerance = .true.
          exit
       endif
    end do
 endif
 
+! now try a brute force search
+if (station%useBruteForceSearch.eqv..true.) then
+   if (station%elementFound.eqv..false.) then
+      station%outsideWithinTolerance = .false.
+      do e=1,m%ne
+         call isStationWithinElement(station, e, m)
+         if (station%elementFound.eqv..true.) Then
+            exit
+         endif
+      end do
+   endif
+endif
+
+! compute station weights if the element containing the station was found
+! or set the weights to a missing value if the element was not found
 if (station%elementFound.eqv..true.) then
    X1 = m%xyd(1,m%nm(station%elementIndex,1))
    X2 = m%xyd(1,m%nm(station%elementIndex,2))
@@ -2188,9 +2227,110 @@ else
    station%elementArea = -99999.d0
    station%w = -99999.0
 endif
-
 !-----------------------------------------------------------------------
 END SUBROUTINE computeStationWeights
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!  S U B R O U T I N E   I S   S T A T I O N   W I T H I N   E L E M E N T
+!-----------------------------------------------------------------------
+! jgf: Check a set of cartesian coordinates to see if it is inside
+! a specified element.
+!-----------------------------------------------------------------------
+subroutine isStationWithinElement(station, e, m)
+implicit none
+type(station_t), intent(inout) :: station
+type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
+integer, intent(in) :: e
+!
+real(8) :: x1, x2, x3 ! longitude temporary variables
+real(8) :: y1, y2, y3 ! latitude temporary variables
+real(8) :: subArea1, subArea2, subArea3, TotalArea
+
+if (station%elementFound.eqv..false.) then
+
+   station%outsideWithinTolerance = .false.
+
+   X1 = station%lon
+   X2 = m%xyd(1,m%nm(e,2))
+   X3 = m%xyd(1,m%nm(e,3))
+   Y1 = station%lat
+   Y2 = m%xyd(2,m%nm(e,2))
+   Y3 = m%xyd(2,m%nm(e,3))
+   SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = m%xyd(1,m%nm(e,1))
+   X2 = station%lon
+   X3 = m%xyd(1,m%nm(e,3))
+   Y1 = m%xyd(2,m%nm(e,1))
+   Y2 = station%lat
+   Y3 = m%xyd(2,m%nm(e,3))
+   SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = m%xyd(1,m%nm(e,1))
+   X2 = m%xyd(1,m%nm(e,2))
+   X3 = station%lon
+   Y1 = m%xyd(2,m%nm(e,1))
+   Y2 = m%xyd(2,m%nm(e,2))
+   Y3 = station%lat
+   SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = m%xyd(1,m%nm(e,1))
+   X2 = m%xyd(1,m%nm(e,2))
+   X3 = m%xyd(1,m%nm(e,3))
+   Y1 = m%xyd(2,m%nm(e,1))
+   Y2 = m%xyd(2,m%nm(e,2))
+   Y3 = m%xyd(2,m%nm(e,3))
+   TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+      station%elementIndex = e
+      station%elementFound = .true.
+   endif
+   if (m%useStationTolerance.and.(SubArea1+SubArea2+SubArea3).LE.((1.0+m%stationTolerance)*TotalArea))THEN
+      station%elementIndex = e
+      station%elementFound = .true.
+      station%outsideWithinTolerance = .true.
+   endif
+
+endif
+
+!-----------------------------------------------------------------------
+END SUBROUTINE isStationWithinElement
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!      S U B R O U T I N E   C O M P U T E   K D T R E E 2
+!                    S E A R C H   T R E E
+!-----------------------------------------------------------------------
+! jgf: Check a set of cartesian coordinates to see if it is inside
+! a specified element.
+!-----------------------------------------------------------------------
+subroutine computeKdtree2SearchTree(m)
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
+
+if (m%kdtree2SearchTreeComputed.eqv..true.) then
+   return
+endif
+
+call computeElementCentroids(m)
+
+write(6,'("INFO: Computing kdtree2 search tree.")')
+
+! set search depth (not to exceed number of elements)
+m%srchdp = min(12,m%ne)
+! allocate space for kdtree2 search and create the tree
+m%tree => kdtree2_create(m%centroids,rearrange=.true.,sort=.true.)
+! allocate space for search results from the tree
+allocate(m%kdresults(m%srchdp))
+
+m%kdtree2SearchTreeComputed = .true.
+
+write(6,'("INFO: Finished computing kdtree2 search tree.")')
+
+!-----------------------------------------------------------------------
+END SUBROUTINE computeKdtree2SearchTree
 !-----------------------------------------------------------------------
 
 !-----+---------+---------+---------+---------+---------+---------+
