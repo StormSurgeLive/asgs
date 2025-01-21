@@ -444,6 +444,8 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 330 
 # write the names of the unmodified, ATCF-formatted track data
 printf PROPS "track_raw_dat : bal$storm$year.dat\n";
 printf PROPS "track_raw_fst : al$storm$year.fst\n";
+printf PROPS "forcing.tropicalcyclone.best.time.start : $firstHindcastTime\n";
+printf PROPS "forcing.tropicalcyclone.best.time.end : $lasthindcasttime\n";
 my $forecastedDate; # as a string
 my $last_pressure = $lasthindcastpressure;
 my $last_windspeed = $lasthindcastwindspeed;
@@ -708,8 +710,6 @@ if ( $zdFound == 0 ) {
       stderrMessage("ERROR","The zero hour '$zeroDate' was not found in the hindcast file $hindcastATCF or the forecast file $forecastATCF.");
    }
 }
-printf PROPS "forcing.tropicalcyclone.best.time.start : $firstHindcastTime\n";
-printf PROPS "forcing.tropicalcyclone.best.time.end : $lasthindcasttime\n";
 printf PROPS "forcing.tropicalcyclone.fcst.time.start : $firstForecastTime\n";
 printf PROPS "forcing.tropicalcyclone.fcst.time.end : $lastForecastTime\n";
 close(PROPS);
