@@ -178,6 +178,7 @@ type mesh_t
    integer, allocatable :: NeiTabEle(:,:)
    integer, allocatable :: NeiTabEleGenerated(:,:)
    integer, allocatable :: nneighele(:)
+   integer :: nLowConnected   ! number of nodes in the mesh with only 2 nodal neighbors
    real(8) :: slam0  ! longitude on which cpp projection is centered (degrees)
    real(8) :: sfea0  ! latitude on which cpp projection is centered (degrees)
    real(8) :: lonmin ! domain extents (degrees)
@@ -1514,19 +1515,6 @@ end subroutine writeMeshDataToNetCDF
 !     entry last = element # defined by neighbors 1,nneigh,2
 !     a zero area means that the defined triangle lies outside the domain
 !
-!
-!    v1.0   R.L.   6/29/99  used in 3D code
-!    v2.0   R.L.   5/23/02  adapted to provide neighbor el table
-!-----------------------------------------------------------------------
-!
-! -  PARAMETERS WHICH MUST BE SET TO CONTROL THE DIMENSIONING OF ARRAYS
-!       ARE AS FOLLOWS:
-!
-!     MNP = MAXIMUM NUMBER OF NODAL POINTS
-!     MNE = MAXIMUM NUMBER OF ELEMENTS
-!     MNEI= 1+MAXIMUM NUMBER OF NODES CONNECTED TO ANY ONE NODE IN THE
-!              FINITE ELEMENT GRID
-!
 !-----------------------------------------------------------------------
 !
 ! VARIABLE DEFINITIONS:
@@ -1553,7 +1541,7 @@ double precision :: dely
 double precision :: dist
 integer :: nn1, nn2, nn3 ! node numbers around an element
 integer :: ne1, ne2, ne3 ! element numbers
-integer :: i, j, jj, jlow, k, n  ! loop counters
+integer :: i, j, jj, jlow, k, n, e  ! loop counters
 !
 ! Initialization
 if (m%cppComputed.eqv..false.) then
@@ -1568,10 +1556,10 @@ ne3 = 0
 ! will have one additional neighboring node.
 allocate(m%nneigh(m%np))
 m%nneigh = 0
-do i=1,m%ne
+do e=1,m%ne
    do j=1,3
       ! increment the number of nodal neighbors this node has
-      m%nneigh(m%nm(i,j)) = m%nneigh(m%nm(i,j)) + 1
+      m%nneigh(m%nm(e,j)) = m%nneigh(m%nm(e,j)) + 1
    end do
 end do
 m%mnei = maxval(m%nneigh)
@@ -1591,16 +1579,16 @@ m%NNeigh=0
 m%NNeighEle=0
 m%NeiTab=-99
 m%NeiTabEle=-99
-DO 10 N=1,m%NE
-   NN1 = m%NM(N,1)
-   NN2 = m%NM(N,2)
-   NN3 = m%NM(N,3)
+DO 10 e=1,m%NE
+   NN1 = m%NM(e,1)
+   NN2 = m%NM(e,2)
+   NN3 = m%NM(e,3)
    m%NNeighEle(NN1)=m%NNeighEle(NN1)+1 ! increment the number of elements that neighbor this node
    m%NNeighEle(NN2)=m%NNeighEle(NN2)+1
    m%NNeighEle(NN3)=m%NNeighEle(NN3)+1
-   m%NeiTabEle(NN1,m%NNeighEle(NN1))=N ! add element n to the neighboring elements list for this node
-   m%NeiTabEle(NN2,m%NNeighEle(NN2))=N
-   m%NeiTabEle(NN3,m%NNeighEle(NN3))=N
+   m%NeiTabEle(NN1,m%NNeighEle(NN1))=e ! add element e to the neighboring elements list for this node
+   m%NeiTabEle(NN2,m%NNeighEle(NN2))=e
+   m%NeiTabEle(NN3,m%NNeighEle(NN3))=e
    !
    ! repeat for the number of nodal neighbors of node 1 on element n
    DO J=1,m%NNeigh(NN1)
