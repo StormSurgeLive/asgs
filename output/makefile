@@ -209,6 +209,9 @@ clean :
 	rm -f *.o *.mod *.x FigureGen/*.mod FigureGen/*.x
 #
 #
+applyBoundaryTypes : $(MODS) applyBoundaryTypes.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
+#
 addMeshToNetCDF : $(MODS) addMeshToNetCDF.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 # FIXME: make FigureGen is not working yet
