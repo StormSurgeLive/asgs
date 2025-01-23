@@ -276,7 +276,7 @@ checkHotstart()
    # composition, and location rather than assuming it based on the
    # current ASGS configuration file.
    local THIS="asgs_main.sh>checkHotstart()"
-   if [[ $FROMDIR == *"Wind10m" ]]; then 
+   if [[ $FROMDIR == *"Wind10m" ]]; then
       logMessage "$THIS: The nowcast directory '$FROMDIR' is only for producing a Wind10m layer and will not contain hotstart information. Shutting down gracefully."
       exit $OK
    fi
@@ -1876,7 +1876,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
             logMessage "The cold start datetime from the run.properties file is ${COLDSTARTDATE}."
             if [[ $configColdStartDate != $COLDSTARTDATE ]]; then
                logMessage "The ASGS config file set the COLDSTARTDATE to '$configColdStartDate' but the value found from the '$LASTSUBDIR/$dir/run.properties' file was '$COLDSTARTDATE'. The value from the run.properties file will be used."
-            fi 
+            fi
             break
          fi
       done
@@ -2015,7 +2015,7 @@ if [[ $START = coldstart ]]; then
    fi
    # prepare hindcast control (fort.15) file
    # calculate periodic fux data for insertion in fort.15 if necessary
-   if [[ $PERIODICFLUX != null ]]; then
+   if [[ $PERIODICFLUX != 'null' && $FLUXCALCULATOR != 'static' ]]; then
       FLUXOPTIONS="--gridfile ${INPUTDIR}/${GRIDFILE} --outfile $PERIODICFLUX --discharge $RIVERDISCHARGE --units $FLUXUNITS"
       logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
