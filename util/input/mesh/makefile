@@ -34,7 +34,7 @@ ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -cpp -shared-intel -fpp
    ifeq ($(DEBUG),trace)
-      FFLAGS := -g -O0 -fpp -traceback 
+      FFLAGS := -g -O0 -fpp -traceback
    endif
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
@@ -50,21 +50,21 @@ ifeq ($(compiler),intel)
    FC := ifort
    FFLAGS := -fpp -DINTEL
    ifeq ($(DEBUG),full)
-      FFLAGS := -g -O0 -fpp -traceback -debug -check all 
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
 #
 OUTPUTDIR := ../../../output
 INCLUDES := -I. -I$(OUTPUTDIR)
 #
-# if netcdf libraries are available on the target platform, 
+# if netcdf libraries are available on the target platform,
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    NETCDFPATH  := /usr
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
-   ifeq ($(MACHINENAME),stampede) 
+   ifeq ($(MACHINENAME),stampede)
       NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
@@ -88,7 +88,7 @@ ifeq ($(NETCDF),enable)
    LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
-endif 
+endif
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
 endif
@@ -97,8 +97,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o logging.o nodalattr.o
-MODS := adcmesh.mod asgsio.mod logging.mod nodalattr.mod
+OBJ := adcmesh.o asgsio.o logging.o nodalattr.o kdtree2.o
+MODS := adcmesh.mod asgsio.mod logging.mod nodalattr.mod kdtree2_module.mod
 #
 # targets
 all : boundaryFinder
@@ -115,8 +115,11 @@ adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 nodalattr.mod logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
 #
-nodalattr.mod : ../nodalattr/nodalattr.f90 adcmesh.mod 
+nodalattr.mod : ../nodalattr/nodalattr.f90 adcmesh.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ../nodalattr/nodalattr.f90 $(LDFLAGS)
 #
 logging.mod : $(OUTPUTDIR)/logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
+#
+kdtree2_module.mod : $(OUTPUTDIR)/kdtree2.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/kdtree2.f90 $(LDFLAGS)
