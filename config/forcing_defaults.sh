@@ -101,11 +101,11 @@ GFSFORECASTLENGTH=${GFSFORECASTLENGTH:-120} # hours of GFS forecast to run
 # dlon = grid cell size in degrees of longitude
 # dlat = grid cell size in degrees of latitude
 gfsLatLonGrid['lon0']='-100'
-gfsLatLonGrid['nlon']='240'
-gfsLatLonGrid['dlon']='0.25'
+gfsLatLonGrid['nlon']='600'
+gfsLatLonGrid['dlon']='0.1'
 gfsLatLonGrid['lat0']='5'
-gfsLatLonGrid['nlat']='240'
-gfsLatLonGrid['dlat']='0.25'
+gfsLatLonGrid['nlat']='600'
+gfsLatLonGrid['dlat']='0.1'
 #
 # External data sources : River Flux
 #
