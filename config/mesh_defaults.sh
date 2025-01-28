@@ -108,18 +108,22 @@ case $GRIDNAME in
             NAFILE=cpra_2024_hurricane_v04b2_chk.13
          fi
          ;;
+# !! Dev Note: 'default' exposes variables so they can also be customized to
+# some degree, via $ASGS_CONFIG; but is that is not enough we could have
+# "custom" case or even one that uses a fort.15 template that requires
+# everything to be explicitly defined in the ASGS_CONFIG (maximally configurable)
       "default")
          NAFILE=cpra_2024_hurricane_v04c_chk.13.template
          CONTROLTEMPLATE=CPRA24.15.ASGS2024.1.template
          # numerics/physics (fort.15)
-         advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-         solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
-         time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
-         lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
-         eddy_viscosity_coefficient="2.0"      # ESLM
-         bottom_friction_limit=0.001           # min when using Manning's n (CF/FFACTOR)
-         h0=0.1                                # min depth (m) to be considered wet
-         velmin=0.01
+         advection=${F15_advection:-"off"}                                               # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration=${F15_solver_time_integration:-"implicit"}              # implicit|explicit|full-gravity-wave-implicit
+         time_weighting_coefficients=${F15_time_weighting_coefficients:-"0.35 0.3 0.35"} # A00 B00 C00 in fort.15
+         lateral_turbulence=${F15_lateral_turbulence:-"eddy_viscosity"}                  # "smagorinsky" or "eddy_viscosity"
+         eddy_viscosity_coefficient=${F15_eddy_viscosity_coefficient:-"2.0"}             # ESLM
+         bottom_friction_limit=${F15_bottom_friction_limit:-0.001}                       # min when using Manning's n (CF/FFACTOR)
+         h0=${F15_h0:-0.1 }                                                              # min depth (m) to be considered wet
+         velmin=${F15_velmin:-0.01}
          nodal_attribute_activate=( surface_submergence_state )
          nodal_attribute_activate+=( surface_directional_effective_roughness_length )
          nodal_attribute_activate+=( surface_canopy_coefficient )
