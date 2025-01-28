@@ -1097,6 +1097,38 @@ sub get_steps {
             },
         },
         {
+            key         => q{asgs-lint},
+            name        => q{Step for installing asgs-lint},
+            description => q{Install asgs-lint, linter for ASGS configuration files},
+            pwd         => qq{$scriptdir},
+            command     => qq{fetch asgs-lint $scriptdir},
+            clean       => sub {
+                local $?;
+                system(qq{rm -rvf git/asgs-lint});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            skip_if     => sub {
+                local $?;
+                system(qq{readlink -f bin/asgs-lint > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{readlink -f bin/asgs-lint > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
             key         => q{adcirc},
             name        => q{Build ADCIRC and SWAN},
             description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},

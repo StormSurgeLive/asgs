@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
 if [ -z "$_ASGSH_PID" ]; then
-  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
-  exit 1;
+  SCRIPTDIR=$2
+  if [ -z "$SCRIPTDIR" ]; then
+    echo "If this script is not run inside of the ASGS Shell Environment, asgsh."
+    echo "the path of the SCRIPTDIR must be provided as the second argument ..."
+    exit 1;
+  fi
 fi
 
 # this is just a starter, the above stuff might go into a shell "library" at some
@@ -12,6 +16,7 @@ ITEM=${1}
 
 case "${ITEM}" in
   all)
+    fetch asgs-lint
     fetch asgs-mon
     fetch configs
     fetch cera
@@ -21,14 +26,26 @@ case "${ITEM}" in
     # ...
     fetch adcirc-testsuite
     ;;
+  asgs-lint)
+    mkdir $SCRIPTDIR/git 2> /dev/null
+    pushd $SCRIPTDIR/git  > /dev/null  2>&1
+    if [ -d ./asgs-lint ]; then
+      cd ./asgs-lint  > /dev/null  2>&1
+      git pull origin master
+      popd > /dev/null 2>&1
+      exit
+    fi
+    git clone git@github.com:StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
+    popd > /dev/null 2>&1
+    ;;
   asgs-mon)
-    build jq                 # helps parse JSON 
+    build jq                 # helps parse JSON
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-mon ]; then
       cd ./asgs-mon  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit
     fi
     git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
@@ -40,7 +57,7 @@ case "${ITEM}" in
     if [ -d ./asgs-configs ]; then
       cd ./asgs-configs  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit
     fi
     git clone git@github.com:StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
@@ -52,7 +69,7 @@ case "${ITEM}" in
     if [ -d ./asgs.wiki ]; then
       cd ./asgs.wiki  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit
     fi
     git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
@@ -85,7 +102,7 @@ case "${ITEM}" in
     if [ -d ./ourPerl ]; then
       cd ./ourPerl  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit
     fi
     git clone git@github.com:StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
@@ -97,7 +114,7 @@ case "${ITEM}" in
     if [ -d ./storm-archive ]; then
       cd ./storm-archive  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit
     fi
     git clone git@github.com:StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
@@ -109,7 +126,7 @@ case "${ITEM}" in
     if [ -d ./adcirc-testsuite ]; then
       cd ./adcirc-testsuite  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
+      popd > /dev/null 2>&1
       exit
     fi
     git clone git@github.com:adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
