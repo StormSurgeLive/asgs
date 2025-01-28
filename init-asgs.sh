@@ -90,7 +90,6 @@ if [ -z "$BATCH" ]; then
   echo "queenbee       - Queenbee (LONI)"     # qb2
   echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
   echo "supermic       - SuperMIC (LSU HPC)"  # smic
-  echo "lonestar5      - Lonestar (TACC)"     # ls5
   echo "frontera       - Frontera (TACC)"     # frontera
 fi
 
