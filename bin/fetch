@@ -136,14 +136,14 @@ case "${ITEM}" in
 Rerunning the command will update the repo if possible.
 
  Supported:
-  * adcirc-testsuite - git clones ADCIRC's test-suite         (public)
-  * asgs-lint        - git clones ASGS' configuration linter  (public)
-  * asgs-mon         - git clones ASGS' monitor               (public)
-  * cera             - git clones CERA local-asgs-assets      (private)
-  * configs          - git clones ASGS asgs-config            (public)
-  * docs             - git clones ASGS asgs.wiki              (public)
-  * ourperl          - git clones ASGS fork of Nate's ourPerl (public)
-  * storm-archive    - git clones ASGS storm-archive          (public)
+  * adcirc-testsuite - git clones ADCIRC's test-suite                (public)
+  * asgs-lint        - git clones ASGS' configuration linter         (public)
+  * asgs-mon         - git clones ASGS' monitor                      (public)
+  * cera             - git clones CERA local-asgs-assets             (private)
+  * configs          - git clones ASGS asgs-config                   (public)
+  * docs             - git clones ASGS asgs.wiki                     (public)
+  * ourperl          - git clones ASGS fork of Nate Dill's "ourPerl" (public)
+  * storm-archive    - git clones ASGS storm-archive                 (public)
   --                 ---
   * all              - attempts all of the above
 
