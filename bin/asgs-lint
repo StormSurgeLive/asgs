@@ -649,7 +649,7 @@ sub _extract_mesh_info {
         last LINE if ( $line =~ m/^esac/ );
         ++$START  if ( $line =~ m/^case/ );
         next LINE unless  $START > 0;
-        if ( $line =~ m/^ *([0-9a-zA-Z"_-|*]+)\)/ ) {
+        if ( $line =~ m/^ *([0-9a-zA-Z"_|*-]+)\)/ ) {
             my $case = $1;                   # get capture
             $case =~ s/["']//g;              # remove quotes
             @names = split / *\| */, $case;  # split cases that have multiple names
@@ -669,6 +669,7 @@ sub _extract_mesh_info {
     }
 
     close $FH;
+
     return $cases;
 }
 
