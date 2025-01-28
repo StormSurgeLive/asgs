@@ -27,16 +27,18 @@ case "${ITEM}" in
     fetch adcirc-testsuite
     ;;
   asgs-lint)
+    pushd $SCRIPTDIR
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-lint ]; then
       cd ./asgs-lint  > /dev/null  2>&1
       git pull origin master
       popd > /dev/null 2>&1
-      exit
+    else
+      git clone git@github.com:StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
+      popd > /dev/null 2>&1
     fi
-    git clone git@github.com:StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
-    popd > /dev/null 2>&1
+    ln -f -s $SCRIPTDIR/git/asgs-lint/bin/asgs-lint $SCRIPTDIR/bin/asgs-lint
     ;;
   asgs-mon)
     build jq                 # helps parse JSON
