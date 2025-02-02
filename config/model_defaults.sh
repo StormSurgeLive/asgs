@@ -27,7 +27,7 @@
 # ADCIRC parameters (fort.15) file
 parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and static nodal attributes
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
-adcirc_version="notset"
+adcircVersions=( "notset" )
 TIMESTEPSIZE="1.0"            # ADCIRC time step in seconds
 WTIMINC=900                   # time increment of meteorological data sets in seconds
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)

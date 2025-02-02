@@ -1,5 +1,7 @@
 ---
  adcirc_version: "%ADCIRCVER%"
+ adcirc_version_support:
+ %adcircVersions%
  solver_time_integration: "%IM_ETC%"
  initialization_length: %HINDCASTLENGTH%
  time_weighting_coefficients: "%A00B00C00%"
