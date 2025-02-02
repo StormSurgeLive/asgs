@@ -59,11 +59,22 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------
-#
-#jgf20120124: standalone usage example for making a fort.15 for the
-# ec95d mesh. It was for a tides-only run.
-#perl ~/asgs/trunk/control_file_gen.pl --controltemplate ~/asgs/trunk/input/ec_95_fort.15_template --gridname fort.14 --cst 2012010100 --endtime 7 --dt 30.0 --nws 0 --hsformat binary --name hindcast --fort63freq 3600.0
+# Almost all features that are activated in the fort.15 file are
+# compatible with all versions of ADCIRC that are supported in ASGS
+# (v53release and later). However, certain features are only
+# supported in particular later versions of ADCIRC, as shown in the
+# following table:
 
+#
+#--------------------------------------------------------------------------
+# The following table maps between the name of an adcirc version in ASGS
+# and the output from "adcirc -v"
+#   ASGS Name    |    adcirc -v
+# ---------------+----------------
+# v53release     | v53.05-modified
+# v55.02         |
+# v56.0.0-beta.2 |
+#--------------------------------------------------------------------------
 use strict;
 use warnings;
 use Getopt::Long;

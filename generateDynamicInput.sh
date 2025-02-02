@@ -109,8 +109,12 @@ generateDynamicInput()
             done
             layerWaves="off"
         fi
+        # record adcirc version support (according to config/mesh_defaults.sh)
+        avs="" ; for v in ${adcircVersions[*]}; do avs+=' - '$v$'\n' ; done
+        # fill in the template
         sed \
         -e "s/%ADCIRCVER%/$(adcirc -v)/" \
+        -e "s/%adcircVersions%/$(printf "$avs"/ \
         -e "s/%IM_ETC%/$solver_time_integration/" \
         -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
         -e "s/%A00B00C00%/$time_weighting_coefficients/" \
