@@ -114,6 +114,7 @@ my $velstations="null";  # file with list of adcirc velocity stations
 my $metstations="null";  # file with list of adcirc meteorological stations
 my $swantemplate;
 my $gridname="nc6b";
+my $nafile="fort.13";
 our $csdate;
 our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
 our ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
@@ -667,17 +668,17 @@ close(TEMPLATE);
 #  A D C I R C   N O D A L   A T T R I B U T E S   F I L E
 #
 if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->{template} =~ /.*notset$/ ) {
-   ASGSUtil::stderrMessage("INFO","There is no nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}'; the fort.13 file will not be written.");
+   ASGSUtil::stderrMessage("INFO","There is no nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}'; the nodal attributes file '$nafile' will not be written.");
 } else {
-   ASGSUtil::stderrMessage("INFO","Reading nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}' and writing fort.13 file.");
+   ASGSUtil::stderrMessage("INFO","Reading nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}' and writing nodal attributes file '$nafile'.");
    my $nafi;
    if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
       ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
       die;
    }
    my $nafo;
-   if (not open($nafo,">","fort.13") ) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open 'fort.13': $!.");
+   if (not open($nafo,">",$nafile) ) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$nafile' for writing: $!.");
       die;
    }
    my $numLines = 0;
@@ -715,7 +716,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
    #
    close($nafi); # nodal attributes file template
    close($nafo); # nodal attributes file (filled template)
-   ASGSUtil::stderrMessage("INFO","Wrote '$numLines' lines to the fort.13 file.");
+   ASGSUtil::stderrMessage("INFO","Wrote '$numLines' lines to the nodal attributes file '$nafile'.");
 }
 #
 #
