@@ -31,7 +31,7 @@ tidefac_file="tide_fac.out" # need full path
 tidal_potential_comment="tidal_potential_comment:notset"
 tidal_boundary_comment="tidal_boundary_comment:notset"
 #
-# Meteorology: General
+# Meteorological Forcing: General
 #
 WTIMINC="notset"
 BACKGROUNDMET="on"
@@ -64,6 +64,7 @@ RMAX="default"
 PERCENT="default"
 VORTEXMODEL="GAHM"
 PSEUDOSTORM="no"
+BLADJ=0.9
 #
 #  Meteorological Forcing : North American Mesoscale (NAM) Model
 #
@@ -84,6 +85,7 @@ forecastDownload="only-to-run"        # "only-to-run" or "all"
 GFSBACKSITE="ftp.ncep.noaa.gov"             # forecast data from NCEP
 GFSBACKDIR="/pub/data/nccf/com/gfs/v16.3"   # contains the GFS files
 # GFS subset
+declare -g -A gfsDomain
 gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
@@ -99,6 +101,7 @@ GFSFORECASTLENGTH=${GFSFORECASTLENGTH:-120} # hours of GFS forecast to run
 # nlat = number of latitudes
 # dlon = grid cell size in degrees of longitude
 # dlat = grid cell size in degrees of latitude
+declare -g -A gfsLatLonGrid
 gfsLatLonGrid['lon0']='-100'
 gfsLatLonGrid['nlon']='600'
 gfsLatLonGrid['dlon']='0.1'

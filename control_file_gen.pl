@@ -64,7 +64,7 @@
 # (v53release and later). However, certain features are only
 # supported in particular later versions of ADCIRC, as shown in the
 # following table:
-
+#
 #
 #--------------------------------------------------------------------------
 # The following table maps between the name of an adcirc version in ASGS
@@ -72,8 +72,9 @@
 #   ASGS Name    |    adcirc -v
 # ---------------+----------------
 # v53release     | v53.05-modified
-# v55.02         |
-# v56.0.0-beta.2 |
+# v55.01-5bc04d6 | v55.00-20-g5bc04d6
+# v55.02         | v55.02
+# v56.0.2        | v56.0.2
 #--------------------------------------------------------------------------
 use strict;
 use warnings;
