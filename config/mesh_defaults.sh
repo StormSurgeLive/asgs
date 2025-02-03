@@ -1144,7 +1144,6 @@ case $GRIDNAME in
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
          NAFILE=EGOM-RT_v20b_asgs_chk.13
-         nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.106"
          ;;
       "default")
          adcircVersions=( "v56.0.2" )
