@@ -1,175 +1,67 @@
 #!/bin/bash
+#----------------------------------------------------------------
+# test_control_file_gen.sh: Driver script for the creating
+# yaml to feed control_file_gen.pl and to create fort.15 and
+# fort.26 control files for testing purposes
+#----------------------------------------------------------------
+# Copyright(C) 2024--2025 Jason Fleming
 #
-# set variables used by this script
-INPUTDIR=$SCRIPTDIR/input/meshes/shinnecock
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
-# set variables to be used in yaml template
-# SCRIPTDIR is defined by the asgsh environment
-adcirc_version="v53release"
-solver_time_integration="implicit"
-time_weighting_coefficients="0.35 0.3 0.35"
-lateral_turbulence="eddy_viscosity"
-eddy_viscosity_coefficient=50.0
-smagorinsky_coefficient=0.2
-nfover="1 20.0 1 20 100.0"
-log_level="INFO"
-h0=0.1
-velmin=0.1
-bottom_friction_limit=0.001
-advection="on"
-WTIMINC=900
-HINDCASTLENGTH=1.0
-# tides
-tidal_forcing="on"
-# meteorology
-storm_name="KATRINA"
-# OWI Win/Pre ASCII format (NWS=12)
-declare -A owiWinPre
-owiWinPre["NWSET"]=1
-owiWinPre["NWBS"]=0
-owiWinPre["DWM"]=1.0
-owiWinPre["startDateTime"]=1970010100
-owiWinPre["endDateTime"]=1980010100
-# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
-declare -A metControl
-metControl["DragLawString"]="garratt"
-metControl["WindDragLimit"]="0.0025"
-metControl["outputWindDrag"]="no"
-# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
-declare -A wetDryControl
-wetDryControl["outputNodeCode"]="no"
-wetDryControl["outputNOFF"]="no"
-wetDryControl["noffActive"]="on"
-# &inundationOutputControl inundationOutput=logicalValue0, inunThresh =floatValue /
-declare -A inundationOutputControl
-inundationOutputControl["inundationOutput"]="yes"
-inundationOutputControl["inunThresh"]="0.6"
-declare -a nodal_attribute_activate
-nodal_attribute_activate=( "sea_surface_height_above_geoid" "mannings_n_at_sea_floor" )
-na_string=$(IFS=, ; echo "[${nodal_attribute_activate[*]}]" | sed 's/,/, /' )
-declare -A netcdf_metadata
-netcdf_metadata["NCPROJ"]="ASGS"
-netcdf_metadata["NCINST"]="Seahorse Consulting"
-netcdf_metadata["NCSOUR"]="ADCIRC"
-netcdf_metadata["NCHIST"]="ASGS Workflow"
-netcdf_metadata["NCREF"]="https://doi.org/10.1061/40990(324)48"
-netcdf_metadata["NCCOM"]="Trusted since 2006."
-netcdf_metadata["NCHOST"]="www.seahorsecoastal.com"
-netcdf_metadata["NCCONV"]="CF"
-netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live"
-netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"
-# wave coupling
-WAVES="on"
-wave_model="swan"
-SWANDT=1200
-# swan
-declare -A swan
-swan["MXITNS"]="20"
-swan["NPNTS"]="95"
-# nodal attributes
-nodal_attributes_template_file="$INPUTDIR/shinnecock_nodal_attributes.template"
-declare -A nodal_attribute_default_values
-nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
-nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
-na_defaults="\n"
-for k in ${!nodal_attribute_default_values[@]}; do
-   na_defaults="$na_defaults      $k: ${nodal_attribute_default_values[$k]}\n"
-done
-na_activate_list=""
-for k in ${nodal_attribute_activate[@]}; do
-   na_activate_list="$na_activate_list    - $k\n"
-done
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# fill in template
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
-filledControlParametersTemplate=control-parameters.yaml
-# LINTER: Check to make sure netcdf metadata does not have any embedded "?" characters
-sed \
-    -e "s/%ADCIRCVER%/$adcirc_version/" \
-    -e "s/%IM_ETC%/$solver_time_integration/" \
-    -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
-    -e "s/%A00B00C00%/$time_weighting_coefficients/" \
-    -e "s/%NWSET%/${owiWinPre["NWSET"]}/" \
-    -e "s/%NWBS%/${owiWinPre["NWBS"]}/" \
-    -e "s/%DWM%/${owiWinPre["DWM"]}/" \
-    -e "s/%startdatetime%/${owiWinPre["startDateTime"]}/" \
-    -e "s/%enddatetime%/${owiWinPre["endDateTime"]}/" \
-    -e "s/%lateral_turbulence%/$lateral_turbulence/" \
-    -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
-    -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
-    -e "s/%tidal_forcing%/$tidal_forcing/" \
-    -e "s/%NFOVER%/$nfover/" \
-    -e "s/%NABOUT%/$log_level/" \
-    -e "s/%H0%/$h0/" \
-    -e "s/%VELMIN%/$velmin/" \
-    -e "s/%FFACTOR%/$bottom_friction_limit/" \
-    -e "s/%advection%/$advection/" \
-    -e "s/%WTIMINC%/$WTIMINC/" \
-    -e "s/%storm_name%/$storm_name/" \
-    -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
-    -e "s?%NCINST%?${netcdf_metadata["NCINST"]}?" \
-    -e "s?%NCSOUR%?${netcdf_metadata["NCSOUR"]}?" \
-    -e "s?%NCHIST%?${netcdf_metadata["NCHIST"]}?" \
-    -e "s?%NCREF%?${netcdf_metadata["NCREF"]}?" \
-    -e "s?%NCCOM%?${netcdf_metadata["NCCOM"]}?" \
-    -e "s?%NCHOST%?${netcdf_metadata["NCHOST"]}?" \
-    -e "s?%NCCONV%?${netcdf_metadata["NCCONV"]}?" \
-    -e "s?%NCCONT%?${netcdf_metadata["NCCONT"]}?" \
-    -e "s?%NCDATE%?${netcdf_metadata["NCDATE"]}?" \
-    -e "s/%DragLawString%/${metControl["DragLawString"]}/" \
-    -e "s/%WindDragLimit%/${metControl["WindDragLimit"]}/" \
-    -e "s/%outputWindDrag%/${metControl["outputWindDrag"]}/" \
-    -e "s/%outputNodeCode%/${wetDryControl["outputNodeCode"]}/" \
-    -e "s/%outputNOFF%/${wetDryControl["outputNOFF"]}/" \
-    -e "s/%noffActive%/${wetDryControl["noffActive"]}/" \
-    -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
-    -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-    -e "s/%WAVES%/$WAVES/" \
-    -e "s/%wave_model%/$wave_model/" \
-    -e "s/%RSTIMINC%/$SWANDT/" \
-    -e "s/%MXITNS%/${swan["MXITNS"]}/" \
-    -e "s/%NPNTS%/${swan["NPNTS"]}/" \
-    -e "s?%nodal_attributes_template_file%?$nodal_attributes_template_file?" \
-    -e "s/%nodal_attribute_activate_list%/$na_string/" \
-    -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
-     < $controlParametersTemplate \
-     > "$filledControlParametersTemplate"
-if [[ $? != 0 ]]; then
-    echo "$THIS: Failed to fill in control parameters template with sed."
-fi
-# set variables to be used in command line options
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+#
+# SCRIPTDIR should be set if this test script is executed with
+# the ASGS shell
+# Initialize variables accessed from ASGS config parameters to reasonable values
+source ${SCRIPTDIR}/config/config_defaults.sh
+# Initialize model parameters to appropriate values
+source ${SCRIPTDIR}/config/model_defaults.sh
+# set default output file formats and frequencies
+source ${SCRIPTDIR}/config/io_defaults.sh
+# set default values related to forcing URLs etce
+source ${SCRIPTDIR}/config/forcing_defaults.sh
+# source the script that fills in the yaml template
+source $SCRIPTDIR/generateDynamicInput.sh
+# initialize test number and log files
+t=1
+ADVISDIR=$SCRIPTDIR/t
+SCENARIODIR=$SCRIPTDIR/t
+SYSLOG="$(basename $0)-syslog.log"
+SCENARIOLOG="$(basename $0)-scenario.log"
+#
+#  T E S T   0 0 1
+#
+# Description: shinnecock inlet as-is
+# nowcast with GAHM forcing
+#
+GRIDNAME=Shinnecock
+source $SCRIPTDIR/config/mesh_defaults.sh
+adcirc_version="v53.05-modified"
+HSTIME=86400.0
+runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
 SCENARIO=nowcast
 ADVISORY=20
-ADVISDIR=$SCRATCH
 CSDATE=2024010100
-TIMESTEPSIZE=2.0
+ENDTIME=2024010300 # FIXME: for some scenarios, this is computed by control_file_gen.pl ; whereas for others (tc and tidal init) it must be provided to control_file_gen.pl
 NWS=20
-HOTSTARTFORMAT=netcdf
-ELEVSTATIONS=${INPUTDIR}/shinnecock_stations.txt
-VELSTATIONS=$ELEVSTATIONS
-METSTATIONS=$ELEVSTATIONS
-GRIDNAME=shinnecock_inlet_coarse.grd
-PERIODICFLUX=null
-NSCREEN=-1000
-FORT61="--fort61freq 300.0 --fort61netcdf"
-FORT62="--fort62freq 0"
-FORT63="--fort63freq 3600.0 --fort63netcdf"
-FORT64="--fort64freq 3600.0 --fort64netcdf"
-FORT7172="--fort7172freq 300.0 --fort7172netcdf"
-FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
-SPARSE=""
-NETCDF4="--netcdf4"
-OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-
-SWANTEMPLATE=${SCRIPTDIR}/input/meshes/common/swan/adcirc_swan_v53_parameters_fort.26.template
-HOTSWAN="yes"
-BLADJ=0.9
-PUREVORTEX=3.0
-PUREBACKGROUND=5.0
-ENDTIME=2024010300
-HSTIME=86400.0
-#
+# fill in yaml template for control parameters
+generateDynamicInput
+# rename control parameters file
+control_parameters=$(printf "control-parameters-%03d.yaml" $t)
+mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
+# build command line for control_file_gen.pl
 C="--name $SCENARIO"
 C="$C --advisorynum $ADVISORY"
 C="$C --cst $CSDATE"
@@ -181,14 +73,15 @@ C="$C --pureVortex $PUREVORTEX"
 C="$C --pureBackground $PUREBACKGROUND"
 C="$C --hsformat $HOTSTARTFORMAT"
 C="$C --hstime $HSTIME"
-C="$C --elevstations ${ELEVSTATIONS}"
-C="$C --velstations ${VELSTATIONS}"
-C="$C --metstations ${METSTATIONS}"
-C="$C --gridname $GRIDNAME"          # for run.properties
-C="$C --periodicflux $PERIODICFLUX"  # for specifying constant periodic flux
+C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
+C="$C --velstations $INPUTDIR/$VELSTATIONS"
+C="$C --metstations $INPUTDIR/$METSTATIONS"
+C="$C --gridname $GRIDNAME"          # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
 C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
-C="$C --controltemplate $INPUTDIR/shinnecock-parameters.fort.15.template"
+C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 #
-$SCRIPTDIR/control_file_gen.pl $C < $filledControlParametersTemplate > fort.15
+#echo $C
+fort15=$(printf "fort-%03d.15" $t)
+$SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15
