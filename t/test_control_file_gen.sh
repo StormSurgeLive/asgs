@@ -49,7 +49,7 @@ ADVISORY=20
 CSDATE=2024010100
 ENDTIME=2024010300 # FIXME: for some scenarios, this is computed by control_file_gen.pl ; whereas for others (tc and tidal init) it must be provided to control_file_gen.pl
 NWS=20
-#
+#x
 #  T E S T   0 0 1
 #
 # Description: shinnecock inlet as-is
@@ -58,11 +58,6 @@ NWS=20
 GRIDNAME=Shinnecock
 source $SCRIPTDIR/config/mesh_defaults.sh
 adcirc_version="v53.05-modified"
-# fill in yaml template for control parameters
-generateDynamicInput
-# rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters > $SYSLOG 2>&1
 # build command line for control_file_gen.pl
 C="--name $SCENARIO"
 C="$C --advisorynum $ADVISORY"
@@ -78,16 +73,23 @@ C="$C --hstime $HSTIME"
 C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
 C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"          # to be recorded in run.properties
+C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
 C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-#
+CONTROLOPTIONS="$C"
+# fill in yaml template for control parameters and execute control_file_gen.pl
+generateDynamicInput
+# rename control parameters file
+control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
+mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters >> $SYSLOG 2>&1
 fort15=$(printf "ct-%03d-fort.15" $t)
-$SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
+mv ${SCENARIO}.fort.15 $fort15
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
+mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
+rp=$(printf "ct-%03d-run.properties" $t)
+mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
 t=$((t + 1))
 #
 #  T E S T   0 0 2
@@ -99,12 +101,7 @@ GRIDNAME=EGOMv20b
 source $SCRIPTDIR/config/mesh_defaults.sh
 NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 # ** other parameters are same as defined above unless redefined below **
-# fill in yaml template for control parameters
-generateDynamicInput
-# rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters > $SYSLOG 2>&1
-# build command line for control_file_gen.pl
+# fill in yaml template for control parameters and execute control_file_gen.pl
 C="--name $SCENARIO"
 C="$C --advisorynum $ADVISORY"
 C="$C --cst $CSDATE"
@@ -119,16 +116,22 @@ C="$C --hstime $HSTIME"
 C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
 C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"          # to be recorded in run.properties
+C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
 C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-#
+CONTROLOPTIONS="$C"
+generateDynamicInput
+# rename control parameters file
+control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
+mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters >> $SYSLOG 2>&1
 fort15=$(printf "ct-%03d-fort.15" $t)
-$SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
+mv ${SCENARIO}.fort.15 $fort15
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
+mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
+rp=$(printf "ct-%03d-run.properties" $t)
+mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
 t=$((t + 1))
 #
 #  T E S T   0 0 3
@@ -141,11 +144,6 @@ parameterPackage="default"
 source $SCRIPTDIR/config/mesh_defaults.sh
 NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 # ** other parameters are same as defined above unless redefined below **
-# fill in yaml template for control parameters
-generateDynamicInput
-# rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
 # build command line for control_file_gen.pl
 C="--name $SCENARIO"
 C="$C --advisorynum $ADVISORY"
@@ -161,16 +159,24 @@ C="$C --hstime $HSTIME"
 C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
 C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"          # to be recorded in run.properties
+C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
 C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
+CONTROLOPTIONS="$C"
+# fill in yaml template for control parameters
+generateDynamicInput
 #
+# rename control parameters file
+control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
+mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
 fort15=$(printf "ct-%03d-fort.15" $t)
-$SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
+mv ${SCENARIO}.fort.15 $fort15
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
+mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
+rp=$(printf "ct-%03d-run.properties" $t)
+mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
 t=$((t + 1))
 #
 #  T E S T   0 0 4
@@ -184,10 +190,7 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 # ** other parameters are same as defined above unless redefined below **
 # fill in yaml template for control parameters
-generateDynamicInput
-# rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
+
 # build command line for control_file_gen.pl
 OUTPUTOPTIONS="--fort63freq 3600.0 --fort63netcdf"  # <--<< only produce fort.63.nc
 C="--name $SCENARIO"
@@ -204,14 +207,21 @@ C="$C --hstime $HSTIME"
 C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
 C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"          # to be recorded in run.properties
+C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
 C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
+CONTROLOPTIONS="$C"
+generateDynamicInput
+# rename control parameters file
+control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
+mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
 #
 fort15=$(printf "ct-%03d-fort.15" $t)
-$SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
+mv ${SCENARIO}.fort.15 $fort15
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
+mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
+rp=$(printf "ct-%03d-run.properties" $t)
+mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
 t=$((t + 1))
