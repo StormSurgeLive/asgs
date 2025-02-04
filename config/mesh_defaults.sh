@@ -1065,6 +1065,7 @@ case $GRIDNAME in
          bottom_friction_limit=0.0             # min when using Manning's n (CF/FFACTOR)
          h0=0.1                                # min depth (m) to be considered wet
          velmin=0.01
+         metControl["WindDragLimit"]="0.002"
          nodal_attribute_activate=( sea_surface_height_above_geoid )
          nodal_attribute_activate+=( elemental_slope_limiter )
          nodal_attribute_activate+=( surface_submergence_state )
