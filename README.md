@@ -10,11 +10,7 @@ https://github.com/StormSurgeLive/asgs/wiki/ASGS-Cheat-Sheet
 
 **Release Engineering:**
 
-Stable Release Tag: **2024.stable.3** ([release notes](https://github.com/StormSurgeLive/asgs/releases/tag/2024.3.stable))
+* Latest Release: **2025.1.rc-0**
+* Stable Release: 2024.2.stable
 
-* https://github.com/StormSurgeLive/asgs/archive/refs/tags/2024.3.stable.tar.gz
-* https://github.com/StormSurgeLive/asgs/archive/refs/tags/2024.3.stable.zip
-
-Latest Stable Release - `git checkout stable; git pull origin stable`
-
-Development/Bleeding Edge - `git checkout master; git pull origin master`
+See https://github.com/StormSurgeLive/asgs/releases for more information on releases.
