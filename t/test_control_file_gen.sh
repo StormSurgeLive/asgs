@@ -22,6 +22,22 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
+finishTest()
+{
+   # rename control parameters file
+
+   declare -a resultFiles=( "$SCENARIO.control_parameters.yaml" )
+   resultFiles+=( "${SCENARIO}.fort.15" )
+   resultFiles+=( "fort.13" "fort.26" "run.properties" )
+   for f in ${resultFiles[@]} ; do
+      if [[ -e $f ]]; then
+         n=$(printf "ct-%03d-%s" $t $f) # new file name specific to test number
+         mv $f $n >> $SYSLOG 2>&1
+      fi
+   done
+   # increment test number
+   t=$((t + 1))
+}
 # SCRIPTDIR should be set if this test script is executed with
 # the ASGS shell
 # Initialize variables accessed from ASGS config parameters to reasonable values
@@ -48,8 +64,10 @@ SCENARIO=nowcast
 ADVISORY=20
 CSDATE=2024010100
 ENDTIME=2024010300 # FIXME: for some scenarios, this is computed by control_file_gen.pl ; whereas for others (tc and tidal init) it must be provided to control_file_gen.pl
+BASENWS=20
 NWS=20
-#x
+storm_name="KATRINA" # <---<< FIXME: this is not populated in asgs_main.sh
+#
 #  T E S T   0 0 1
 #
 # Description: shinnecock inlet as-is
@@ -75,22 +93,13 @@ C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
 C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
-C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 CONTROLOPTIONS="$C"
 # fill in yaml template for control parameters and execute control_file_gen.pl
 generateDynamicInput
-# rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters >> $SYSLOG 2>&1
-fort15=$(printf "ct-%03d-fort.15" $t)
-mv ${SCENARIO}.fort.15 $fort15
-fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
-rp=$(printf "ct-%03d-run.properties" $t)
-mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
-t=$((t + 1))
+# rename control parameters and other result files
+finishTest
 #
 #  T E S T   0 0 2
 #
@@ -118,21 +127,12 @@ C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
 C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
-C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 CONTROLOPTIONS="$C"
 generateDynamicInput
 # rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters >> $SYSLOG 2>&1
-fort15=$(printf "ct-%03d-fort.15" $t)
-mv ${SCENARIO}.fort.15 $fort15
-fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
-rp=$(printf "ct-%03d-run.properties" $t)
-mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
-t=$((t + 1))
+finishTest
 #
 #  T E S T   0 0 3
 #
@@ -161,23 +161,13 @@ C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
 C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
-C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 CONTROLOPTIONS="$C"
 # fill in yaml template for control parameters
 generateDynamicInput
-#
 # rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
-fort15=$(printf "ct-%03d-fort.15" $t)
-mv ${SCENARIO}.fort.15 $fort15
-fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
-rp=$(printf "ct-%03d-run.properties" $t)
-mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
-t=$((t + 1))
+finishTest
 #
 #  T E S T   0 0 4
 #
@@ -209,19 +199,50 @@ C="$C --velstations $INPUTDIR/$VELSTATIONS"
 C="$C --metstations $INPUTDIR/$METSTATIONS"
 C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
 C="$C --nscreen $NSCREEN"
-C="$C --swantemplate $SWANTEMPLATE"
 C="$C $OUTPUTOPTIONS"
 C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 CONTROLOPTIONS="$C"
 generateDynamicInput
 # rename control parameters file
-control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
-mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
+finishTest
 #
-fort15=$(printf "ct-%03d-fort.15" $t)
-mv ${SCENARIO}.fort.15 $fort15
-fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 >> $SYSLOG 2>&1        # give nodal attributes file a unique name
-rp=$(printf "ct-%03d-run.properties" $t)
-mv run.properties $rp >> $SYSLOG 2>&1    # give run.properties file a unique name
-t=$((t + 1))
+#  T E S T   0 0 5
+#
+# Description: EGOMv20b with default parameter package (not hardcoded into template)
+# nowcast with GAHM forcing and SWAN coupling only producing fort.63.nc
+#
+GRIDNAME=EGOMv20b
+parameterPackage="default"
+source $SCRIPTDIR/config/mesh_defaults.sh
+NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
+NWS=320
+WAVES=on
+HOTSWAN=on
+# ** other parameters are same as defined above unless redefined below **
+# fill in yaml template for control parameters
+
+# build command line for control_file_gen.pl
+OUTPUTOPTIONS="--fort63freq 3600.0 --fort63netcdf"  # <--<< only produce fort.63.nc
+C="--name $SCENARIO"
+C="$C --advisorynum $ADVISORY"
+C="$C --cst $CSDATE"
+C="$C --endtime $ENDTIME"
+C="$C --dt $TIMESTEPSIZE"
+C="$C --nws $NWS"
+C="$C --bladj $BLADJ"
+C="$C --pureVortex $PUREVORTEX"
+C="$C --pureBackground $PUREBACKGROUND"
+C="$C --hsformat $HOTSTARTFORMAT"
+C="$C --hstime $HSTIME"
+C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
+C="$C --velstations $INPUTDIR/$VELSTATIONS"
+C="$C --metstations $INPUTDIR/$METSTATIONS"
+C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
+C="$C --nscreen $NSCREEN"
+C="$C --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
+C="$C $OUTPUTOPTIONS"
+C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
+CONTROLOPTIONS="$C"
+generateDynamicInput
+# rename control parameters file
+finishTest
