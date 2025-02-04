@@ -87,7 +87,7 @@ C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 fort15=$(printf "ct-%03d-fort.15" $t)
 $SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name 
+mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
 t=$((t + 1))
 #
 #  T E S T   0 0 2
@@ -128,7 +128,7 @@ C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 fort15=$(printf "ct-%03d-fort.15" $t)
 $SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name 
+mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
 t=$((t + 1))
 #
 #  T E S T   0 0 3
@@ -170,5 +170,48 @@ C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
 fort15=$(printf "ct-%03d-fort.15" $t)
 $SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
 fort13=$(printf "ct-%03d-fort.13" $t)
-mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name 
+mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
+t=$((t + 1))
+#
+#  T E S T   0 0 4
+#
+# Description: EGOMv20b with default parameter package (not hardcoded into template)
+# nowcast with GAHM forcing, only producing fort.63.nc
+#
+GRIDNAME=EGOMv20b
+parameterPackage="default"
+source $SCRIPTDIR/config/mesh_defaults.sh
+NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
+# ** other parameters are same as defined above unless redefined below **
+# fill in yaml template for control parameters
+generateDynamicInput
+# rename control parameters file
+control_parameters=$(printf "ct-%03d-control-parameters.yaml" $t)
+mv $SCENARIODIR/$SCENARIO.control_parameters.yaml $control_parameters
+# build command line for control_file_gen.pl
+OUTPUTOPTIONS="--fort63freq 3600.0 --fort63netcdf"  # <--<< only produce fort.63.nc
+C="--name $SCENARIO"
+C="$C --advisorynum $ADVISORY"
+C="$C --cst $CSDATE"
+C="$C --endtime $ENDTIME"
+C="$C --dt $TIMESTEPSIZE"
+C="$C --nws $NWS"
+C="$C --bladj $BLADJ"
+C="$C --pureVortex $PUREVORTEX"
+C="$C --pureBackground $PUREBACKGROUND"
+C="$C --hsformat $HOTSTARTFORMAT"
+C="$C --hstime $HSTIME"
+C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
+C="$C --velstations $INPUTDIR/$VELSTATIONS"
+C="$C --metstations $INPUTDIR/$METSTATIONS"
+C="$C --gridname $GRIDNAME"          # to be recorded in run.properties
+C="$C --nscreen $NSCREEN"
+C="$C --swantemplate $SWANTEMPLATE"
+C="$C $OUTPUTOPTIONS"
+C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
+#
+fort15=$(printf "ct-%03d-fort.15" $t)
+$SCRIPTDIR/control_file_gen.pl $C < $control_parameters > $fort15 2> $SYSLOG
+fort13=$(printf "ct-%03d-fort.13" $t)
+mv fort.13 $fort13 > $SYSLOG 2>&1 # give nodal attributes file a unique name
 t=$((t + 1))
