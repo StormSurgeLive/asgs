@@ -82,9 +82,7 @@ generateDynamicInput()
                 na_activate_list="$na_activate_list\n      - \"$k\""
             done
         fi
-        logMessage "layer is '$layer' SCENARIO is '$SCENARIO'" # jgfdebug
         if [[ $layer == "wind10m" || ( $layer == $SCENARIO && $SCENARIO == *"Wind10m" ) ]]; then
-            logMessage "this is a Wind10m scenario"            # jgfdebug
             if [[ $layer == $SCENARIO && $SCENARIO == *"Wind10m" && $CONTROLTEMPLATENOROUGH != "null" ]]; then
                 layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATENOROUGH}"
             fi
