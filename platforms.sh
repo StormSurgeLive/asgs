@@ -107,7 +107,12 @@ init_supermic()
 # propagates in the ASGS Shell environment
 
 init_queenbeeC()
-{ local THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
+{ 
+  # Environment assumed with this ~/.modules file:
+  #    module load intel/19.0.5
+  #    module load intel-mpi/2019.5.281
+  #    module load gcc/8.4.0
+  local THIS="platforms.sh>env_dispatch()>init_queenbeeC()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   export HPCENV=qbc.loni.org
   export QUEUESYS=SLURM
