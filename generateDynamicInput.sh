@@ -186,7 +186,7 @@ generateDynamicInput()
             < $controlParametersTemplate \
             > $SCENARIODIR/${layer}.control_parameters.yaml
         if [[ $? != 0 ]]; then
-            echo "$THIS: Failed to fill in control parameters template with sed."
+            logMessage "$THIS: $SCENARIO: Failed to fill in control parameters template with sed."
         fi
         #
         controlFile="$SCENARIODIR/${layer}.fort.15"
@@ -194,12 +194,13 @@ generateDynamicInput()
         logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File (${layer}.fort.15) for $SCENARIO with the following options: $CONTROLOPTIONS $layerOptions."
         perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS $layerOptions < $SCENARIODIR/${layer}.control_parameters.yaml > $controlFile 2>> ${SYSLOG}
         controlExitStatus=$?
+        controlMsg=""
         if [[ $controlExitStatus != 0 ]]; then
             controlMsg="The control_file_gen.pl script failed with the following error code: '$controlExitStatus'."
         fi
         if [[ ! -e $controlFile || ! -s $controlFile ]]; then
             controlExitStatus=1
-            controlMsg="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
+            controlMsg+="$controlMsg Failed to generate the ADCIRC '$controlFile' file."
         fi
         if [[ $layer == $SCENARIO && $layerWaves == "on" && $NWS != "0" && $SCENARIO != *"Wind10m" ]]; then
             if [[ ! -e $swanFile || ! -s $swanFile ]]; then
@@ -208,8 +209,9 @@ generateDynamicInput()
             fi
         fi
         if [[ $controlExitStatus -ne 0 ]]; then
-            warn "$THIS: $SCENARIO: $controlMsg The $SCENARIO run will be abandoned."
-            echo "$THIS: $SCENARIO: $controlMsg The $SCENARIO run will be abandoned." >> jobFailed
+            finalErrMessage="$THIS: $SCENARIO: The $SCENARIO run will be abandoned: $controlMsg"
+            warn $finalErrMessage
+            echo $finalErrMessage >> jobFailed
         fi
         #
         mv $SCENARIODIR/run-control.properties $SCENARIODIR/${layer}.run-control.properties 2>>$SYSLOG
