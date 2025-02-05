@@ -1221,6 +1221,7 @@ alias amond="goto $SCRIPTDIR/git/asgs-mon"                                 # cd 
 alias amonv="asgs-mon -v"                                                  # run 'asgs-mon -v' (it's in PATH)
 alias cera="goto $SCRIPTDIR/git/cera-asgs-environment"                     # cd into cera-asgs-environment's directory
 alias cerad="goto $SCRIPTDIR/git/cera-asgs-environment/asgs-configs-daily" # cd into cera-asgs-environment's daily configs directory
+alias ceralocal="goto $SCRIPTDIR/git/cera-asgs-local-assets"               # cd into asgs-local-assets
 alias docsd="goto $SCRIPTDIR/git/asgs.wiki"                                # cd into asgs.wiki's directory
 alias gc="goto configdir"                                                  # cd to the directory containing ASGS_CONFIG if set
 
