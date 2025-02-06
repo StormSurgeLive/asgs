@@ -29,7 +29,9 @@ parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and 
 subvariant="null"             # most parameter packages will not have subvariants
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
 adcircVersions=( "notset" )
-TIMESTEPSIZE="1.0"            # ADCIRC time step in seconds
+CONTROLTEMPLATENOROUGH="null"
+TIMESTEPSIZE="1.0"            # ADCIRC time step (DTDP) in seconds
+metOnlyTimeStepSize="300.0"   # ADCIRC time step (DTDP) for meteorology-only mode
 WTIMINC=900                   # time increment of meteorological data sets in seconds
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit

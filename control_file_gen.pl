@@ -1,45 +1,7 @@
 #!/usr/bin/env perl
 #--------------------------------------------------------------------------
-# control_file_gen.pl
-#
-
-# This script uses the template fort.15 file and the ATCF formatted fort.22
-# file as input and produces a fort.15 file as output. The name of the template
-# file and the fort.22 file to be used as input must be specified on the
-# command line.
-#
-# It optionally accepts the csdate (YYYYMMDDHH24), that is, the
-# calendar time that corresponds to t=0 in simulation time. If it is
-# not provided, the first line in the fort.22 file is used as the cold start
-# time, and this time is written to stdout.
-#
-# It optionally accepts the time in a hotstart file in seconds since cold
-# start.
-#
-# If the time of a hotstart file has been supplied, the fort.15 file
-# will be set to hotstart.
-#
-# It optionally accepts the end time (YYYYMMDDHH24) at which the simulation
-# should stop (e.g., if it has gone too far inland to continue to be
-# of interest).
-#
-# If the --name option is set to nowcast, the RNDAY will be calculated such
-# that the run will end at the nowcast time.
-#
-# The --dt option can be used to specify the time step size if it is
-# different from the default of 3.0 seconds.
-#
-# The --bladj option can be used to specify the Boundary Layer Adjustment
-# parameter for the Holland model (not used by the asymmetric wind vortex
-# model, NWS=9.
-#
-# The NHSINC will be calculated such that a hotstart file is always generated
-# on the last time step of the run.
-#
-# usage:
-#   %perl control_file_gen.pl [--cst csdate] [--hst hstime]
-#   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22
-#
+# control_file_gen.pl : generate fort.15 file and write to stdout based on
+# a specification provided via a yaml file on stdin
 #--------------------------------------------------------------------------
 # Copyright(C) 2006--2025 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
@@ -59,14 +21,6 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------
-# Almost all features that are activated in the fort.15 file are
-# compatible with all versions of ADCIRC that are supported in ASGS
-# (v53release and later). However, certain features are only
-# supported in particular later versions of ADCIRC, as shown in the
-# following table:
-#
-#
-#--------------------------------------------------------------------------
 # The following table maps between the name of an adcirc version in ASGS
 # and the output from "adcirc -v"
 #   ASGS Name    |    adcirc -v
@@ -78,44 +32,13 @@
 #--------------------------------------------------------------------------
 use strict;
 use warnings;
-use Getopt::Long;
 use YAML::Tiny qw(Load);
 use Date::Calc;
-use Cwd;
 use ASGSUtil;
 #
-my $nscreen=-1000; # frequency of time step output to STDOUT(+) or adcirc.log(-)
 my %logLevelsNABOUT = ('DEBUG' => -1, 'ECHO' => 0, 'INFO' => 1, 'WARNING' => 2, 'ERROR' => 3 );
-my $fort61freq=0; # output frequency in SECONDS
-my $fort61append; # if defined, output files will be appended across hotstarts
-my $fort62freq=0; # output frequency in SECONDS
-my $fort62append; # if defined, output files will be appended across hotstarts
-my $fort63freq=0; # output frequency in SECONDS
-my $fort63append; # if defined, output files will be appended across hotstarts
-my $fort64freq=0; # output frequency in SECONDS
-my $fort64append; # if defined, output files will be appended across hotstarts
-my $fort7172freq=0; # output frequency in SECONDS
-my $fort7172append; # if defined, output files will be appended across hotstart
-my $fort7374freq=0; # output frequency in SECONDS
-my $fort7374append; # if defined, output files will append across hotstarts
-my ($fort61, $fort62, $fort63, $fort64, $fort7172, $fort7374);
-our $sparseoutput; # if defined, then fort.63 and fort.64 will be sparse ascii
-my $hsformat="binary";  # input param for hotstart format: binary or netcdf
-my ($fort61netcdf, $fort62netcdf, $fort63netcdf, $fort64netcdf, $fort7172netcdf, $fort7374netcdf); # for netcdf (not ascii) output
-my $hotswan = "on"; # "off" if swan has to be cold started (only on first nowcast)
-our $netcdf4;  # if defined, then netcdf files should use netcdf4 formatting
-my $output_start = "0.0"; # days after cold start when output should start
-my $output_end = "9999.0"; # days after cold start when output should end
 #
-my @TRACKS = (); # should be few enough to store all in an array for easy access
-my $controltemplate;
-my $elevstations="null"; # file containing list of adcirc elevation stations
-my $velstations="null";  # file with list of adcirc velocity stations
-my $metstations="null";  # file with list of adcirc meteorological stations
-my $swantemplate;
-my $gridname="nc6b";
 my $nafile="fort.13";
-our $csdate;
 our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
 our ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
 our ($ey, $em, $ed, $eh, $emin, $es); # ADCIRC end time
@@ -125,22 +48,12 @@ my $numvelstations="0";  # number and list of adcirc velocity stations
 my $nummetstations="0";  # number and list of adcirc meteorological stations
 my $startdatetime; # formatted for swan fort.26
 my $enddatetime;   # formatted for swan fort.26
-my $hstime;      # time, in seconds, of hotstart file (since coldstart)
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
-our $endtime;    # time at which the run should end (yyyymmddhh24)
 our $dt=3.0;      # adcirc time step, in seconds
-my $bladj=0.9;
-our $enstorm;    # ensemble name of the storm
-my $tau=0; # forecast period
-my $dir=getcwd();
-my $nws=0;
-my $advisorynum="0";
-my $particles;  # flag to produce fulldomain current velocity files at an increment of 30 minutes
 our $NHSINC;    # time step increment at which to write hot start files
 our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
 my $ihot;       # whether or not ADCIRC should READ a hotstart file
-my $fdcv;       # line that controls full domain current velocity output
 our $wtiminc_line;   # parameters related to met and wave timing
 our $rundesc;   # description of run, 1st line in fort.15
 our $scenarioid; # run id, 2nd line in fort.15
@@ -151,61 +64,16 @@ my ($m2eqarg, $s2eqarg, $n2eqarg, $k2eqarg, $k1eqarg, $o1eqarg, $p1eqarg, $q1eqa
 my $fluxdata = "NO LINE HERE";  # data from the $periodic_flux file
 my $nffr = "NO LINE HERE";      # for flux boundaries; -1: top of fort.20 corresponds to hs
 #
-my $staticoffset = "null";
-my $unitoffsetfile = "null";
 our $addHours; # duration of the run (hours)
 our $nds;      # number of datasets expected to be placed in a file
-# ASCII ADCIRC OWI file
-our $nwset = 1;  # number of wind datasets (basin, region, local)
-our $nwbs = 0;   # number of blank snaps
-our $dwm = "1.0";
 my $parameters;  # YAML document that defines model control options
-#
-GetOptions("controltemplate=s" => \$controltemplate,
-           "swantemplate=s" => \$swantemplate,
-           "elevstations=s" => \$elevstations,
-           "velstations=s" => \$velstations,
-           "metstations=s" => \$metstations,
-           "name=s" => \$enstorm,
-           "gridname=s" => \$gridname,
-           "cst=s" => \$csdate,
-           "endtime=s" => \$endtime,
-           "dt=s" => \$dt,
-           "bladj=s" => \$bladj,
-           "nws=s" => \$nws,
-           "advisorynum=s" => \$advisorynum,
-           "hstime=s" => \$hstime,
-           "nscreen=s"   => \$nscreen,
-           "fort61freq=s" => \$fort61freq,
-           "fort62freq=s" => \$fort62freq,
-           "fort63freq=s" => \$fort63freq,
-           "fort64freq=s" => \$fort64freq,
-           "fort7172freq=s" => \$fort7172freq,
-           "fort7374freq=s" => \$fort7374freq,
-           "fort61append" => \$fort61append,
-           "fort62append" => \$fort62append,
-           "fort63append" => \$fort63append,
-           "fort64append" => \$fort64append,
-           "fort7172append" => \$fort7172append,
-           "fort7374append" => \$fort7374append,
-           "fort61netcdf" => \$fort61netcdf,
-           "fort62netcdf" => \$fort62netcdf,
-           "fort63netcdf" => \$fort63netcdf,
-           "fort64netcdf" => \$fort64netcdf,
-           "fort7172netcdf" => \$fort7172netcdf,
-           "fort7374netcdf" => \$fort7374netcdf,
-           "netcdf4" => \$netcdf4,
-           "sparse-output" => \$sparseoutput,
-           "hsformat=s" => \$hsformat,
-           "hotswan=s" => \$hotswan,
-           );
 #
 # load YAML document containing model control parameters from stdin
 $parameters = do { local $/; <> };
 our $p = Load($parameters); # load parameters into the hashref p
 #
 # parse out the pieces of the cold start date
-$csdate=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+$p->{coldstartdate}=~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
 $cy = $1;
 $cm = $2;
 $cd = $3;
@@ -221,20 +89,33 @@ $nh = $4;
 $nmin = $cmin;
 $ns = $cs;
 #
-#
 #----------------------------------------------------
 #
 #  A D C I R C   C O N T R O L   F I L E
 #
+
 # open template file for fort.15
-unless (open(TEMPLATE,"<$controltemplate")) {
-   ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file $controltemplate for reading: $!.");
+unless (open(TEMPLATE,"<$p->{controltemplate}")) {
+   ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file $p->{controltemplate} for reading: $!.");
    die;
+}
+my $nws = $p->{meteorology}->{nws};
+my $basenws = $p->{meteorology}->{basenws};
+my $thisNWS = $p->{meteorology}->{nws};
+if ( $p->{output}->{inventory} eq "metonly" ) {
+   $thisNWS = $p->{meteorology}->{basenws};
+}
+#
+# set the model time step, depending on whether shallow water
+# equations will be solved
+$dt = $p->{timestepsize};
+if ( $p->{output}->{inventory} eq "metonly" ) {
+   $dt = $p->{output}->{metonly_dt};
 }
 #
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
+if ( abs($basenws) == 19 || abs($basenws) == 20 || abs($basenws) == 8 || abs($basenws) == 30 ) {
    ASGSUtil::stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    vortexModelParameters($nws);
 }
@@ -261,82 +142,59 @@ if ( abs($nws) == 12 ) {
 if ( defined $specifiedRunLength ) {
    ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
    customParameters();
-} elsif ( $enstorm eq "hindcast" ) {
+} elsif ( $p->{scenario} eq "hindcast" ) {
    ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
    initializationParameters();
 }
 #
 # we want a hotstart file if this is a nowcast or model initialization
-if ( $enstorm eq "nowcast" || $enstorm eq "hindcast" ) {
-   $NHSTAR = 1;
-   if ( $hsformat eq "netcdf" || $hsformat eq "netcdf3" ) {
-      $NHSTAR = 3;
-      if ( defined $netcdf4 && $hsformat ne "netcdf3" ) {
-         $NHSTAR = 5;
+# and this is not a meteorology-only scenario/layer
+$NHSTAR = 0;
+$NHSINC = 99999;
+if ( $p->{output}->{inventory} eq "full" ) {
+   if ( $p->{scenario} eq "nowcast" || $p->{scenario} eq "hindcast" ) {
+      $NHSTAR = 5;
+      if ( $p->{hotstart}->{output_format} eq "netcdf3" ) {
+         $NHSTAR = 3;
+      }
+      if ( $p->{hotstart}->{output_format} eq "binary" ) {
+         $NHSTAR = 1;
       }
    }
-} else {
-   $NHSTAR = 0;
-   $NHSINC = 99999;
-}
-if ( $p->{output}->{inventory} eq "metonly" ) {
-   $NHSTAR = 0;
 }
 #
 # we always look for a fort.68 file, and since we only write one hotstart
 # file during the run, we know we will always be left with a fort.67 file.
-if ( defined $hstime ) {
-   $ihot = 68;
-   if ( $hsformat eq "netcdf" || $hsformat eq "netcdf3" ) {
+$ihot = 0;
+if ( $p->{hotstart}->{time} != 0.0 ) {
+   $ihot = 568; # netcdf4
+   if ( $p->{hotstart}->{input_format} eq "netcdf3" ) {
       $ihot = 368;
-      if ( defined $netcdf4 && $hsformat ne "netcdf3" ) {
-         $ihot = 568;
-      }
    }
-} else {
-   $ihot = 0;
+   if ( $p->{hotstart}->{input_format} eq "binary" ) {
+      $ihot = 68;
+   }
 }
-# [de]activate output files with time step increment and with(out) appending.
-my $fort61specifier = getSpecifier($fort61freq,$fort61append,$fort61netcdf);
-my $incr = getIncrement($fort61freq,$dt);
-$fort61 = "$fort61specifier $output_start $output_end $incr";
-my $fort62specifier = getSpecifier($fort62freq,$fort62append,$fort62netcdf);
-$incr = getIncrement($fort62freq,$dt);
-$fort62 = "$fort62specifier $output_start $output_end $incr";
 #
-my $fort63specifier = getSpecifier($fort63freq,$fort63append,$fort63netcdf);
-my $fort64specifier = getSpecifier($fort64freq,$fort64append,$fort64netcdf);
-if ( defined $sparseoutput ) {
-   unless ( defined $fort63netcdf ) {
-      $fort63specifier *= 4;
-   }
-   unless ( defined $fort64netcdf ) {
-      $fort64specifier *= 4;
-   }
+# [de]activate output files with time step increment and with(out) appending.
+my $fort61 = getOutputParameters($p->{output}->{stations}->{fort61},$p->{output}->{inventory},$dt,"elev");
+my $fort62 = getOutputParameters($p->{output}->{stations}->{fort62},$p->{output}->{inventory},$dt,"vel");
+my $fort7172 = getOutputParamaters($p->{output}->{stations}->{fort7172},$p->{output}->{inventory},$dt,"met");
+my $fort63 = getOutputParmeters($p->{output}->{fulldomain}->{fort63},$p->{output}->{inventory},$dt,"elev");
+my $fort64 = getOutputParmeters($p->{output}->{fulldomain}->{fort64},$p->{output}->{inventory},$dt,"vel");
+my $fort7374 = getOutputParamaters($p->{output}->{fulldomain}->{fort7374},$p->{output}->{inventory},$dt,"met");
+#
+# if the code should be run in meteorology-only mode, then turn
+# off all output except meteorology (including hotstart output)
+if ( $p->{output}->{inventory} eq "metonly" ) {
+   $NHSTAR = "0";
+   $NHSINC = "99999"
 }
-$incr = getIncrement($fort63freq,$dt);
-$fort63 = "$fort63specifier $output_start $output_end $incr";
-$incr = getIncrement($fort64freq,$dt);
-$fort64 = "$fort64specifier $output_start $output_end $incr";
-my $fort7172specifier = getSpecifier($fort7172freq,$fort7172append,$fort7172netcdf);
-my $fort7374specifier = getSpecifier($fort7374freq,$fort7374append,$fort7374netcdf);
-
-# Casey 121009: Debug for sparse output.
-if ( defined $sparseoutput ) {
-   unless ( defined $fort7374netcdf ) {
-      $fort7374specifier *= 4;
-   }
-}
-$incr = getIncrement($fort7172freq,$dt);
-$fort7172 = "$fort7172specifier $output_start $output_end $incr";
-$incr = getIncrement($fort7374freq,$dt);
-$fort7374 = "$fort7374specifier $output_start $output_end $incr";
-
+#
 if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
 }
-
 #
 # tides
 if ( $p->{tides}->{tidal_forcing} eq "on" ) {
@@ -382,13 +240,13 @@ if ( $p->{tides}->{tidal_forcing} eq "on" ) {
 }
 #
 # load up stations
-$numelevstations = getStations($elevstations,"elevation");
-$numvelstations = getStations($velstations,"velocity");
+$numelevstations = getStations($p->{output}->{stations}->{elevstations_file},"elevation");
+$numvelstations = getStations($p->{output}->{stations}->{velstations_file},"velocity");
 if ( $nws eq "0" ) {
    ASGSUtil::stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.");
    $nummetstations = "NO LINE HERE";
 } else {
-   $nummetstations = getStations($metstations,"meteorology");
+   $nummetstations = getStations($p->{output}->{stations}->{netstations_file},"meteorology");
 }
 #
 # load up the periodicflux data
@@ -505,9 +363,29 @@ if ( $p->{advection} eq "off" ) {
 # associated list of nodal attributes
 my $nwp = 0;
 my @nodal_attributes_activate = "";
+my @nodal_attribtes_deactivate = "";
 if ( defined $p->{nodal_attributes}->{activate} ) {
-   @nodal_attributes_activate = @{$p->{nodal_attributes}->{activate}};
+   foreach my $na (@{$p->{nodal_attributes}->{activate}}) {
+      if ( $p->{meteorology}->{windExposure} eq "10m" ) {
+         # deactivate nodal attributes associated with land interaction
+         if ( $na eq "surface_directional_effective_roughness_length" || $na eq "surface_canopy_coefficient" ) {
+            push(@nodal_attribtes_deactivate,$na)
+            next;
+         }
+      }
+      if ( $p->{output}->{inventory} eq "metonly" ) {
+         # prevent write_output.F in adcirc from trying to write ESLNodes.63
+         if ( $na eq "elemental_slope_limiter" ) {
+            push(@nodal_attribtes_deactivate,$na)
+            next;
+         }
+      }
+      push(@nodal_attributes_activate,$na);
+   }
    $nwp = scalar @nodal_attributes_activate;
+   if ( (scalar @nodal_attributes_deactivate) > 0 ) {
+      $nwp.=" ! deactivated: " . join(" ", @nodal_attributes_deactivate);
+   }
 }
 #
 ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
@@ -518,7 +396,7 @@ while(<TEMPLATE>) {
     # and the advisory number, if available
     s/%StormName%/$rundesc/;
     # fill in frequency of time step output to STDOUT or adcirc.log
-    s/%NSCREEN%/$nscreen/;
+    s/%NSCREEN%/$p->{nscreen}/;
     # non-fatal override (water levels for warnings and fatal errors)
     s/%NFOVER%/$p->{nfover}/;
     # logging levels (debug, echo, info, warning, error)
@@ -537,8 +415,8 @@ while(<TEMPLATE>) {
     # advection terms, on or off
     s/%NOLICA%/$nolica/;
     s/%NOLICAT%/$nolicat/;
-    # meteorological forcing type
-    s/%NWS%/$nws/;
+    # meteorological forcing type (depending on full inventory or metonly mode)
+    s/%NWS%/$thisNWS/;
     # number of nodal attributes
     s/%NWP%/$nwp/;
     # list of nodal attributes
@@ -722,10 +600,10 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
 #
 #  S W A N   C O N T R O L   F I L E
 #
-if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    # open swan template file for fort.26
-   unless (open(TEMPLATE,"<$swantemplate")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the swan template file $swantemplate for reading: $!.");
+   unless (open(TEMPLATE,"<$p->{swan}->{template}")) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open the swan template file '$p->{swan}->{template}' for reading: $!.");
       die;
    }
    #
@@ -739,7 +617,7 @@ if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}-
    $startdatetime = sprintf("%4d%02d%02d.%02d0000",$ny,$nm,$nd,$nh);
    $enddatetime = sprintf("%4d%02d%02d.%02d0000",$ey,$em,$ed,$eh);
    my $swanhs =  "INIT HOTSTART MULTIPLE 'swan.68'";
-   if ( $hotswan eq "off" ) {
+   if ( $p->{swan}->{hot} eq "off" ) {
       $swanhs = "\$ swan will coldstart";
    }
    #
@@ -791,18 +669,18 @@ my $date2 = sprintf("%4d%02d%02dT%02d%02d",$ny,$nm,$nd,$nh,$nmin); # 1st output
 my $date3 = sprintf("%4d%02d%02dT%02d%02d",$ey,$em,$ed,$eh,$emin); # end time
 my $runstarttime = sprintf("%4d%02d%02d%02d",$ny,$nm,$nd,$nh); # start time
 my $runendtime = sprintf("%4d%02d%02d%02d",$ey,$em,$ed,$eh); # end time
-if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    $model_type = "SPDS";
    $model = "PADCSWAN";
 }
-if ( abs($nws) == 12 || abs($nws) == 312 ) {
+if ( abs($basenws) == 12 ) {
    $cycle_hour = sprintf("%02d",$oh);
    $currentdate = substr($oy,2,2) . sprintf("%02d%02d",$om,$od); # start time
    $date1 = sprintf("%4d%02d%02dT%02d%02d",$oy,$om,$od,$oh,$omin);
 }
-if ( $enstorm eq "nowcast" ) {
+if ( $p->{scenario} eq "nowcast" ) {
    $run_type = "Nowcast";  # for the run-control.properties file
-} elsif ( $enstorm eq "hindcast" ) {
+} elsif ( $p->{scenario} eq "hindcast" ) {
    $run_type = "Hindcast"; # for the run-control.properties file
 }
 ASGSUtil::stderrMessage("INFO","Opening run-control.properties file for writing.");
@@ -814,24 +692,24 @@ unless (open(RUNPROPS,">run-control.properties")) {
 # file, but the CERA web app still needs to have values for these
 # properties. In the case of a vortex met model, these values are
 # filled in by the storm_track_gen.pl script.
-if ( abs($nws) != 19 && abs($nws) != 319 && abs($nws) != 20 && abs($nws) != 320 ) {
+if ( abs($basenws) != 19 && abs($basenws) != 20 ) {
    printf RUNPROPS "track_raw_dat : notrack\n";
    printf RUNPROPS "track_raw_fst : notrack\n";
    printf RUNPROPS "track_modified : notrack\n";
 }
 printf RUNPROPS "year : $ny\n";
-printf RUNPROPS "mesh : $gridname\n";
+printf RUNPROPS "mesh : $p->{mesh}\n";
 printf RUNPROPS "RunType : $run_type\n";
-printf RUNPROPS "ADCIRCgrid : $gridname\n";
+printf RUNPROPS "ADCIRCgrid : $p->{mesh}\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
-printf RUNPROPS "advisory : $advisorynum\n";
-if (defined $hstime) {
-   printf RUNPROPS "InitialHotStartTime : $hstime\n";
+printf RUNPROPS "advisory : $cycle\n";
+if ( $p->{hotstart}->{time} != 0 ) {
+   printf RUNPROPS "InitialHotStartTime : $p->{hotstart}->{time}\n";
 }
 printf RUNPROPS "RunStartTime : $runstarttime\n";
 printf RUNPROPS "RunEndTime : $runendtime\n";
-printf RUNPROPS "ColdStartTime : $csdate\n";
+printf RUNPROPS "ColdStartTime : $p->{coldstartdate}\n";
 #
 printf RUNPROPS "Model : $model\n";
 # model parameters
@@ -839,7 +717,7 @@ printf RUNPROPS "adcirc.control.numerics.im : $im\n";
 printf RUNPROPS "adcirc.control.numerics.a00b00c00 : ( $a00b00c00 )\n";
 printf RUNPROPS "adcirc.control.physics.nolica : $nolica\n";
 printf RUNPROPS "adcirc.control.physics.nolicat : $nolicat\n";
-printf RUNPROPS "adcirc.control.monitoring.nscreen : $nscreen\n";
+printf RUNPROPS "adcirc.control.monitoring.nscreen : $p->{nscreen}\n";
 printf RUNPROPS "adcirc.control.monitoring.nabout : $logLevelsNABOUT{$p->{log_level}}\n";
 printf RUNPROPS "adcirc.control.physics.rnday : $RNDAY\n";
 printf RUNPROPS "adcirc.control.numerics.input.ihot : $ihot\n";
@@ -858,7 +736,7 @@ if ( $nws ne "0" ) {
    my @noutm = split(" ",$nummetstations);
    printf RUNPROPS "adcirc.control.physics.output.noutm : $noutm[0]\n";
    if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
-      printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $bladj\n";
+      printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $p->{meteorology}->{boundary_layer_adjustment}\n";
       if ( abs($nws) == 30 || abs($nws) == 330 ) {
          printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $p->{meteorology}->{blending}->{pureVortex}\n";
          printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $p->{meteorology}->{blending}->{pureBackground}\n";
@@ -879,7 +757,7 @@ writeFileName("maxele.63",$fort63specifier);
 writeFileName("maxvel.63",$fort64specifier);
 writeFileName("maxwvel.63",$fort7374specifier);
 writeFileName("minpr.63",$fort7374specifier);
-if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" ) {
+if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    writeFileName("maxrs.63",$fort7374specifier);
    writeFileName("swan_DIR.63",$fort7374specifier);
    writeFileName("swan_DIR_max.63",$fort7374specifier);
@@ -981,53 +859,39 @@ sub writeFileName {
 #
 #
 #--------------------------------------------------------------------------
-#   S U B   G E T   S P E C I F I E R
+#      S U B   G E T   O U T P U T   P A R A M E T E R S
 #
 # Determines the correct output specifier for output files based on
 # the output frequency, whether or not the files should be appended,
 # and whether or not the netcdf format is used (ascii is the default).
 #--------------------------------------------------------------------------
-sub getSpecifier {
-   my $freq = shift;
-   my $append = shift;
-   my $netcdf = shift;
-   my $specifier;
+sub getOutputParameters {
+   my $f = shift;
+   my $inv = shift;
+   my $timestep_seconds = shift;
+   my $data_type = shift;
+   my $p;         # line of parameters to return
+   my $specifier; # output format
+   my $increment; # time step increment between outputs
 
-   if ( $freq == 0 ) {
+   if ( $f->{incr_seconds} == 0 || ( $p->{output}->{inventory} eq "metonly" && $datatype ne "met" ) ) {
       $specifier = "0";
+      $increment = "99999";
    } else {
-      if ( defined $append ) {
+      if ( $f->{append} eq "yes" ) {
          $specifier = "1";
       } else {
          $specifier = "-1";
       }
-      if ( defined $netcdf ) {
-         if ( defined $netcdf4 ) {
-            $specifier *= 5;
-         } else {
-            $specifier *= 3;
-         }
+      if ( $f->{format} eq "netcdf4" ) {
+         $specifier *= 5;
       }
+      if ($f->{format} eq "netcdf3" ) {
+         $specifier *= 3;
+      }
+      $increment = int($f->{incr_seconds}/$timestep_seconds);
    }
-   return $specifier;
-}
-#
-#--------------------------------------------------------------------------
-#   S U B   G E T   I N C R E M E N T
-#
-# Determines the correct time step increment based on the output frequency
-# and time step size.
-#--------------------------------------------------------------------------
-sub getIncrement {
-   my $freq = shift;
-   my $timestepsize = shift;
-   my $increment;
-   if ( $freq == 0 ) {
-      $increment = "99999";
-   } else {
-      $increment = int($freq/$timestepsize);
-   }
-   return $increment;
+   return "$specifier 0.0 999.0 $increment";
 }
 #
 #--------------------------------------------------------------------------
@@ -1112,7 +976,7 @@ sub getPeriodicFlux {
 # ADCIRC during initialization with no met forcing.
 #--------------------------------------------------------------------------
 sub initializationParameters {
-   $rundesc = "cs:$csdate"."0000 cy:initialization";
+   $rundesc = "cs:$p->{coldstartdate}"."0000 cy:initialization";
    $RNDAY = $p->{initialization_length};
    $addHours = $RNDAY*24.0;  # used to calculate number of datasets in files
    $NHSINC = int(($RNDAY*86400.0)/$dt);
@@ -1131,22 +995,22 @@ sub initializationParameters {
 # ADCIRC without external forcing (e.g., for running ADCIRC tests).
 #--------------------------------------------------------------------------
 sub customParameters {
-    $rundesc = "cs:$csdate"."0000 cy:custom";
+    $rundesc = "cs:$p->{coldstartdate}"."0000 cy:custom";
     my $alreadyElapsedDays = 0.0;
-    if ( defined $hstime && $hstime != 0 ) {
-       $alreadyElapsedDays = $hstime / 86400.0;
+    if ( $p->{hotstart}->{time} != 0.0 ) {
+       $alreadyElapsedDays = $p->{hotstart}->{time} / 86400.0;
     }
     $RNDAY = $specifiedRunLength + $alreadyElapsedDays;
     $NHSINC = int(($RNDAY*86400.0)/$dt);
     $nws = 0;
-    $scenarioid = "$enstorm $specifiedRunLength day run";
+    $scenarioid = "$p->{scenario} $specifiedRunLength day run";
        #
    # determine the relationship between the start of the NAM data and the
    # current time in the ADCIRC run
-   if ( defined $hstime && $hstime != 0 ) {
+   if ( $p->{hotstart}->{time} != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
+         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$p->{hotstart}->{time});
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -1174,10 +1038,10 @@ sub owiParameters {
    #
    # determine the relationship between the start of the NAM data and the
    # current time in the ADCIRC hotstart file
-   if ( defined $hstime && $hstime != 0 ) {
+   if ( $p->{hotstart}->{time} != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$hstime);
+         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,0,0,0,0,0,$p->{hotstart}->{time});
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -1199,7 +1063,7 @@ sub owiParameters {
    $os = 0;
    my $owiend = $p->{meteorology}->{owi_win_pre}->{enddatetime};
    # create run description
-   $rundesc = "cs:$csdate"."0000 cy:$owistart end:$owiend OWI ASCII ";
+   $rundesc = "cs:$p->{coldstartdate}"."0000 cy:$owistart end:$owiend OWI ASCII ";
    # compute RNDAY and NHSINC
    $owiend =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
    $ey = $1;
@@ -1221,7 +1085,7 @@ sub owiParameters {
                 $ny,$nm,$nd,$nh,0,0,
                 $ey,$em,$ed,$eh,0,0);
    $addHours = $ddays*24.0 + $dhrs + $dmin/60.0 + $dsec/3600.0;
-   $scenarioid = $addHours . " hour " . $enstorm . " run";
+   $scenarioid = $addHours . " hour " . $p->{scenario} . " run";
    $NHSINC = int(($RNDAY*86400.0)/$dt);
 }
 #
@@ -1237,16 +1101,16 @@ sub vortexModelParameters {
    my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    #
    # convert hotstart time (in days since coldstart) if necessary
-   if ( $hstime ) {
-      $hstime_days = $hstime/86400.0;
+   if ( $p->{hotstart}->{time} != 0 ) {
+      $hstime_days = $p->{hotstart}->{time}/86400.0;
    }
    # get end time
-   my $end = $endtime; # yyyymmddhh
-   ASGSUtil::stderrMessage("INFO","New $enstorm time is $end.");
-   if ( defined $hstime && $hstime != 0 ) {
+   my $end = $p->{endtime}; # yyyymmddhh
+   ASGSUtil::stderrMessage("INFO","New $p->{scenario} time is $end.");
+   if ( $p->{hotstart}->{time} != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
-         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$hstime);
+         Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,0,0,0,$p->{hotstart}->{time});
    } else {
       # the hotstart time was not provided, or it was provided and is equal to 0
       # therefore the current ADCIRC time is the cold start time, t=0
@@ -1289,20 +1153,20 @@ sub vortexModelParameters {
    # actually negative in this case. ADCIRC needs at least two timesteps from
    # coldstart to create a valid hotstart file.
    my $runlength_seconds = $RNDAY*86400.0;
-   if ( $hstime ) {
-      $runlength_seconds-=$hstime;
+   if ( $p->{hotstart}->{time} != 0 ) {
+      $runlength_seconds-=$p->{hotstart}->{time};
    }
    my $min_runlength = 2*$dt;
    # if we coldstart at the nowcast, we may not have calculated a runlength
    # longer than the minimum
    my $goodRunlength = 1;
    if ( $runlength_seconds < $min_runlength ) {
-      if ( $enstorm eq "nowcast" ) {
+      if ( $p->{scenario} eq "nowcast" ) {
          $goodRunlength = 0;
       }
       ASGSUtil::stderrMessage("INFO","Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.");
       # recalculate the RNDAY as the hotstart time plus the minimal runlength
-      if ( $hstime ) {
+      if ( $p->{hotstart}->{time} != 0 ) {
          $RNDAY=$hstime_days + ($min_runlength/86400.0);
       } else {
          $RNDAY=$min_runlength/86400.0;
@@ -1337,17 +1201,17 @@ sub vortexModelParameters {
        Date::Calc::Add_Delta_DHMS($cy,$cm,$cd,$ch,$cmin,$cs,$RNDAY,0,0,0);
    }
    $addHours=$RNDAY*24.0; # for reporting the predicted number of datasets in each file
-   if ( $hstime ) {
-      $addHours-=$hstime/3600.0;
+   if ( $p->{hotstart}->{time} != 0 ) {
+      $addHours-=$p->{hotstart}->{time}/3600.0;
    }
    #
    # create run description
-   $rundesc = "cs:$csdate"."0000 cy:$p->{meteorology}->{tropical_cyclone}->{storm_name}$advisorynum";
+   $rundesc = "cs:$p->{coldstartdate}"."0000 cy:$p->{meteorology}->{tropical_cyclone}->{storm_name}$cycle";
    # create the RUNID
-   $scenarioid = $addHours . " hour " . $enstorm . " run";
+   $scenarioid = $addHours . " hour " . $p->{scenario} . " run";
    # create the WTIMINC line
-   $wtiminc_line = $cy." ".$cm." ".$cd." ".$ch." 1 ".$bladj;
-   if ( abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 30 || abs($nws) == 330 ) {
+   $wtiminc_line = $cy." ".$cm." ".$cd." ".$ch." 1 ".$p->{meteorology}->{boundary_layer_adjustment};
+   if ( abs($basenws) == 20 || abs($basenws) == 30 ) {
       $wtiminc_line .= " $geofactor";
    }
 }

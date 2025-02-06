@@ -24,8 +24,7 @@
 #
 finishTest()
 {
-   # rename control parameters file
-
+   # rename result file according to the test number
    declare -a resultFiles=( "$SCENARIO.control_parameters.yaml" )
    resultFiles+=( "${SCENARIO}.fort.15" )
    resultFiles+=( "fort.13" "fort.26" "run.properties" )
@@ -35,6 +34,8 @@ finishTest()
          mv $f $n >> $SYSLOG 2>&1
       fi
    done
+   # TODO: compare with expected output
+   #
    # increment test number
    t=$((t + 1))
 }
