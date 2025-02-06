@@ -36,6 +36,11 @@ tidal_boundary_comment="tidal_boundary_comment:notset"
 WTIMINC="notset"
 BACKGROUNDMET="on"
 TROPICALCYCLONE="off"
+# if windExposure is set to "surface" then all nodal attributes
+# will be used; if it is set to "10m", then the nodal attributes
+# "surface_canopy_coefficient" and "directional_effective_roughness_length"
+# will be deactivated
+windExposure="surface"
 #
 # Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
 #
