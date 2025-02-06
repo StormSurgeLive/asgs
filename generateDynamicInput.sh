@@ -61,7 +61,12 @@ generateDynamicInput()
     #
     # set up options for fort.15 file(s) based on the layer being generated
     declare -a layers
-    local na_activate_list
+    local na_activate_list=""
+    for k in ${nodal_attribute_activate[@]}; do
+        na_activate_list="$na_activate_list\n      - \"$k\""
+    done
+    # set wind exposure
+    local exposure=$windExposure
     layers=( $SCENARIO )
     if [[               $createWind10mLayer == "yes"       && \
                                        $NWS != "0"         && \
@@ -72,33 +77,30 @@ generateDynamicInput()
         layers+=( "wind10m" )
     fi
     for layer in ${layers[@]}; do
-        local layerWaves="$WAVES"
-        na_activate_list=""  # clear out list of nodal attributes that will be activated for this layer
-        layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATE}"
-        if [[ $layer == $SCENARIO && $SCENARIO != *"Wind10m" ]]; then
-            outputInventory="full"
-            layerOptions+=" --nws $NWS --dt $TIMESTEPSIZE $OUTPUTOPTIONS"
-            for k in ${nodal_attribute_activate[@]}; do
-                na_activate_list="$na_activate_list\n      - \"$k\""
-            done
-        fi
+        local controlTemplate="$INPUTDIR/$CONTROLTEMPLATE"
+        outputInventory="full"
+        # make adjustments for meteorology-only scenarios and layers
         if [[ $layer == "wind10m" || ( $layer == $SCENARIO && $SCENARIO == *"Wind10m" ) ]]; then
+            outputInventory="metonly" # only produce meteorological output, no water levels
+            exposure="10m"            # turn off overalnd wind roughness and canopy coefficient
+            # if a hardcoded fort.15 template without wind roughness has been specified
+            # for a standalone scenario, then use the associated fort.15 template
             if [[ $layer == $SCENARIO && $SCENARIO == *"Wind10m" && $CONTROLTEMPLATENOROUGH != "null" ]]; then
-                layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATENOROUGH}"
+                layerControlTemplate="${INPUTDIR}/${CONTROLTEMPLATENOROUGH}"
             fi
             outputInventory="metonly"
             metonlyNWS=$BASENWS
             if [[ $BACKGROUNDMET == *"Blend" && $stage == "NOWCAST" ]]; then
                 metonlyNWS=-$(($BASENWS + 10))  # e.g., 20 becomes -30
             fi
-            layerOptions+=" --nws $metonlyNWS"
-            layerOptions+=" --dt 300.0"      # 5 minute time steps
-            layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
-            layerOptions+=" --fort7172freq 300.0 --fort7172netcdf"
-            layerOptions+=" --fort7374freq 3600.0 --fort7374netcdf"
-            if [[ $OUTPUTOPTIONS =~ "--netcdf4" ]]; then
-                layerOptions+=" --netcdf4"
-            fi
+            #layerOptions+=" --nws $metonlyNWS"
+            #layerOptions+=" --dt 300.0"      # 5 minute time steps
+            #layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
+            #layerOptions+=" --fort7172freq 300.0 --fort7172netcdf"
+            #layerOptions+=" --fort7374freq 3600.0 --fort7374netcdf"
+            #if [[ $OUTPUTOPTIONS =~ "--netcdf4" ]]; then
+            #    layerOptions+=" --netcdf4"
+            #fi
             for k in ${nodal_attribute_activate[@]}; do
                 if [[ $k == "surface_directional_effective_roughness_length" || $k == "surface_canopy_coefficient" || $k == "elemental_slope_limiter" ]]; then
                     continue  # deactivate nodal attributes that reduce wind to ground level (or update ESLNodes.63)
@@ -115,13 +117,23 @@ generateDynamicInput()
         avs="${avs%, }" # remove trailing comma
         # fill in the template
         sed \
+        -e "s/%GRIDNAME%/$GRIDNAME/" \
+        -e "s?%CONTROLTEMPLATE%?$controlTemplate?" \
         -e "s/%ADCIRCVER%/$(adcirc -v)/" \
         -e "s/%adcircVersions%/$avs/" \
+        -e "s/%CSDATE%/$CSDATE/" \
+        -e "s/%HSTIME%/$HSTIME/" \
+        -e "s/%ADVISORY%/$ADVISORY/" \
+        -e "s/%SCENARIO%/$SCENARIO/" \
+        -e "s/%ENDTIME%/$endTime/" \
+        -e "s/%TIMESTEPSIZE%/$TIMESTEPSIZE/" \
         -e "s/%IM_ETC%/$solver_time_integration/" \
         -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
         -e "s/%A00B00C00%/$time_weighting_coefficients/" \
+        -e "s/%windExposure%/$exposure/" \
         -e "s/%NWSET%/${owiWinPre["NWSET"]}/" \
         -e "s/%NWBS%/${owiWinPre["NWBS"]}/" \
+        -e "s/%DWM%/${owiWinPre["DWM"]}/" \
         -e "s/%DWM%/${owiWinPre["DWM"]}/" \
         -e "s/%startdatetime%/${owiWinPre["startDateTime"]}/" \
         -e "s/%enddatetime%/${owiWinPre["endDateTime"]}/" \
@@ -138,9 +150,12 @@ generateDynamicInput()
         -e "s/%VELMIN%/$velmin/" \
         -e "s/%FFACTOR%/$bottom_friction_limit/" \
         -e "s/%advection%/$advection/" \
+        -e "s/%NWS%/$NWS/" \
         -e "s/%WTIMINC%/$WTIMINC/" \
         -e "s/%pureVortex%/$pureVortex/" \
         -e "s/%pureBackground%/$pureBackground/" \
+        -e "s/%BLADJ%/$BLADJ/" \
+        -e "s/%storm_name%/$storm_name/" \
         -e "s/%periodicity%/$periodicity/" \
         -e "s?%periodic_flux_file%?$PERIODICFLUX?" \
         -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
@@ -169,6 +184,8 @@ generateDynamicInput()
         -e "s/%WAVES%/$layerWaves/" \
         -e "s/%wave_model%/$wave_model/" \
         -e "s/%RSTIMINC%/$SWANDT/" \
+        -e "s/%SWANTEMPLATE%/$SWANTEMPLATE/" \
+        -e "s/%HOTSWAN%/$HOTSWAN/" \
         -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \
         -e "s/%SWAN_OutputTM01%/${SWANOutputControl["SWAN_OutputTM01"]}/" \
         -e "s/%SWAN_OutputHS%/${SWANOutputControl["SWAN_OutputHS"]}/" \
@@ -181,6 +198,37 @@ generateDynamicInput()
         -e "s/%nodal_attribute_activate_list%/$na_activate_list/" \
         -e "s/%nodal_attribute_default_values_hash%/$na_defaults/" \
         -e "s/%inventory%/$outputInventory/" \
+        -e "s/%NFOVER%/${nfover['NFOVER']}/" \
+        -e "s/%WarnElev%/${nfover['WarnElev']}/" \
+        -e "s/%iWarnElevDump%/${nfover['iWarnElevDump']}/" \
+        -e "s/%WarnElevDumpLimit%/${nfover['WarnElevDumpLimit']}/" \
+        -e "s/%ErrorElev%/${nfover['ErrorElev']}/" \
+        -e "s/%NSCREEN%/$NSCREEN/" \
+        -e "s/%NETCDF34%/$netCDF34/" \
+        -e "s/%metOnlyTimeStepSize%/$metOnlyTimeStepSize/" \
+        -e "s/%HOTSTARTINPUTFORMAT%/$HOTSTARTFORMAT/" \
+        -e "s/%HOTSTARTOUTPUTFORMAT%/$HOTSTARTFORMAT/" \
+        -e "s?%ELEVSTATIONS%?$INPUTDIR/$ELEVSTATIONS?" \
+        -e "s?%VELSTATIONS%?$INPUTDIR/$VELSTATIONS?" \
+        -e "s?%METSTATIONS%?$INPUTDIR/$METSTATIONS?" \
+        -e "s/%fort61incr%/${fort61['incr_seconds']}/" \
+        -e "s/%fort61format%/${fort61['format']}/" \
+        -e "s/%fort61append%/${fort61['append']}/" \
+        -e "s/%fort62incr%/${fort62['incr_seconds']}/" \
+        -e "s/%fort62format%/${fort62['format']}/" \
+        -e "s/%fort62append%/${fort62['append']}/" \
+        -e "s/%fort7172incr%/${fort7172['incr_seconds']}/" \
+        -e "s/%fort7172format%/${fort7172['format']}/" \
+        -e "s/%fort7172append%/${fort7172['append']}/" \
+        -e "s/%fort63incr%/${fort63['incr_seconds']}/" \
+        -e "s/%fort63format%/${fort63['format']}/" \
+        -e "s/%fort63append%/${fort63['append']}/" \
+        -e "s/%fort64incr%/${fort64['incr_seconds']}/" \
+        -e "s/%fort64format%/${fort64['format']}/" \
+        -e "s/%fort64append%/${fort64['append']}/" \
+        -e "s/%fort7374incr%/${fort7374['incr_seconds']}/" \
+        -e "s/%fort7374format%/${fort7374['format']}/" \
+        -e "s/%fort7374append%/${fort7374['append']}/" \
             < $controlParametersTemplate \
             > $SCENARIODIR/${layer}.control_parameters.yaml
         if [[ $? != 0 ]]; then
@@ -190,7 +238,7 @@ generateDynamicInput()
         controlFile="$SCENARIODIR/${layer}.fort.15"
         swanFile="$SCENARIODIR/fort.26"
         logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File (${layer}.fort.15) for $SCENARIO with the following options: $CONTROLOPTIONS $layerOptions."
-        perl $SCRIPTDIR/control_file_gen.pl $CONTROLOPTIONS $layerOptions < $SCENARIODIR/${layer}.control_parameters.yaml > $controlFile 2>> ${SYSLOG}
+        perl $SCRIPTDIR/control_file_gen.pl < $SCENARIODIR/${layer}.control_parameters.yaml > $controlFile 2>> ${SYSLOG}
         controlExitStatus=$?
         controlMsg=""
         if [[ $controlExitStatus != 0 ]]; then
