@@ -3,7 +3,7 @@
 # generateDynamicInput.sh: subroutine that generates dynamic
 # input files like tide_fac.out, fort.13, fort.15, and fort.26.
 #----------------------------------------------------------------
-# Copyright(C) 2024 Jason Fleming
+# Copyright(C) 2024--2025 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -126,6 +126,8 @@ generateDynamicInput()
         -e "s/%ADVISORY%/$ADVISORY/" \
         -e "s/%SCENARIO%/$SCENARIO/" \
         -e "s/%ENDTIME%/$endTime/" \
+        -e "s/%NWS%/$NWS/" \
+        -e "s/%BASENWS%/$BASENWS/" \
         -e "s/%TIMESTEPSIZE%/$TIMESTEPSIZE/" \
         -e "s/%IM_ETC%/$solver_time_integration/" \
         -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
@@ -144,7 +146,6 @@ generateDynamicInput()
         -e "s?%tidefac_file%?$tidefac_file?" \
         -e "s?%tidal_potential_comment%?$tidal_potential_comment?" \
         -e "s?%tidal_boundary_comment%?$tidal_boundary_comment?" \
-        -e "s/%NFOVER%/$nfover/" \
         -e "s/%NABOUT%/$log_level/" \
         -e "s/%H0%/$h0/" \
         -e "s/%VELMIN%/$velmin/" \
@@ -181,10 +182,10 @@ generateDynamicInput()
         -e "s/%useHF%/${wetDryControl["useHF"]}/" \
         -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
         -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
-        -e "s/%WAVES%/$layerWaves/" \
+        -e "s/%WAVES%/$WAVES/" \
         -e "s/%wave_model%/$wave_model/" \
         -e "s/%RSTIMINC%/$SWANDT/" \
-        -e "s/%SWANTEMPLATE%/$SWANTEMPLATE/" \
+        -e "s?%SWANTEMPLATE%?${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE}?" \
         -e "s/%HOTSWAN%/$HOTSWAN/" \
         -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \
         -e "s/%SWAN_OutputTM01%/${SWANOutputControl["SWAN_OutputTM01"]}/" \
@@ -237,7 +238,7 @@ generateDynamicInput()
         #
         controlFile="$SCENARIODIR/${layer}.fort.15"
         swanFile="$SCENARIODIR/fort.26"
-        logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File (${layer}.fort.15) for $SCENARIO with the following options: $CONTROLOPTIONS $layerOptions."
+        logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File (${layer}.fort.15) for $SCENARIO with parameters from the file '${layer}.control_parameters.yaml'."
         perl $SCRIPTDIR/control_file_gen.pl < $SCENARIODIR/${layer}.control_parameters.yaml > $controlFile 2>> ${SYSLOG}
         controlExitStatus=$?
         controlMsg=""

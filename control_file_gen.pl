@@ -43,13 +43,13 @@ our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
 our ($ny, $nm, $nd, $nh, $nmin, $ns); # current ADCIRC time
 our ($ey, $em, $ed, $eh, $emin, $es); # ADCIRC end time
 our ($oy, $om, $od, $oh, $omin, $os); # OWI start time
-my $numelevstations="0"; # number and list of adcirc elevation stations
-my $numvelstations="0";  # number and list of adcirc velocity stations
-my $nummetstations="0";  # number and list of adcirc meteorological stations
+my $numelevstations="-99"; # number and list of adcirc elevation stations
+my $numvelstations="-99";  # number and list of adcirc velocity stations
+my $nummetstations="-99";  # number and list of adcirc meteorological stations
 my $startdatetime; # formatted for swan fort.26
 my $enddatetime;   # formatted for swan fort.26
 my $hstime_days; # time, in days, of hotstart file (since coldstart)
-our $dt=3.0;      # adcirc time step, in seconds
+our $dt=-99;      # adcirc time step, in seconds
 our $NHSINC;    # time step increment at which to write hot start files
 our $NHSTAR;    # writing and format of ADCIRC hotstart output file
 our $RNDAY;     # total run length from cold start, in days
@@ -179,10 +179,10 @@ if ( $p->{hotstart}->{time} != 0.0 ) {
 # [de]activate output files with time step increment and with(out) appending.
 my $fort61 = getOutputParameters($p->{output}->{stations}->{fort61},$p->{output}->{inventory},$dt,"elev");
 my $fort62 = getOutputParameters($p->{output}->{stations}->{fort62},$p->{output}->{inventory},$dt,"vel");
-my $fort7172 = getOutputParamaters($p->{output}->{stations}->{fort7172},$p->{output}->{inventory},$dt,"met");
-my $fort63 = getOutputParmeters($p->{output}->{fulldomain}->{fort63},$p->{output}->{inventory},$dt,"elev");
-my $fort64 = getOutputParmeters($p->{output}->{fulldomain}->{fort64},$p->{output}->{inventory},$dt,"vel");
-my $fort7374 = getOutputParamaters($p->{output}->{fulldomain}->{fort7374},$p->{output}->{inventory},$dt,"met");
+my $fort7172 = getOutputParameters($p->{output}->{stations}->{fort7172},$p->{output}->{inventory},$dt,"met");
+my $fort63 = getOutputParameters($p->{output}->{fulldomain}->{fort63},$p->{output}->{inventory},$dt,"elev");
+my $fort64 = getOutputParameters($p->{output}->{fulldomain}->{fort64},$p->{output}->{inventory},$dt,"vel");
+my $fort7374 = getOutputParameters($p->{output}->{fulldomain}->{fort7374},$p->{output}->{inventory},$dt,"met");
 #
 # if the code should be run in meteorology-only mode, then turn
 # off all output except meteorology (including hotstart output)
@@ -240,13 +240,13 @@ if ( $p->{tides}->{tidal_forcing} eq "on" ) {
 }
 #
 # load up stations
-$numelevstations = getStations($p->{output}->{stations}->{elevstations_file},"elevation");
-$numvelstations = getStations($p->{output}->{stations}->{velstations_file},"velocity");
+$numelevstations = getStations($p->{output}->{stations}->{fort61}->{elevstations_file},"elevation");
+$numvelstations = getStations($p->{output}->{stations}->{fort62}->{velstations_file},"velocity");
 if ( $nws eq "0" ) {
    ASGSUtil::stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.");
    $nummetstations = "NO LINE HERE";
 } else {
-   $nummetstations = getStations($p->{output}->{stations}->{netstations_file},"meteorology");
+   $nummetstations = getStations($p->{output}->{stations}->{fort7172}->{metstations_file},"meteorology");
 }
 #
 # load up the periodicflux data
@@ -266,10 +266,12 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 #
 # construct metControl namelist line
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue, invertedBarometerOnElevationBoundary=logicalValue /
-my $outputWindDrag = $p->{metControl}->{outputWindDrag} eq "yes" ? "T" : "F";
-my $invertedBarometerOnElevationBoundary = $p->{metControl}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
-my $met_control_line ="&metControl WindDragLimit=$p->{metControl}->{WindDragLimit}, DragLawString=\"$p->{metControl}->{DragLawString}\", outputWindDrag=$outputWindDrag, invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary /";
-
+my $outputWindDrag = $p->{meteorology}->{metControl}->{outputWindDrag} eq "yes" ? "T" : "F";
+my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{metControl}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
+my $met_control_line ="&metControl WindDragLimit=$p->{meteorology}->{metControl}->{WindDragLimit}, \n";
+$met_control_line   .="            DragLawString=\"$p->{meteorology}->{metControl}->{DragLawString}\",\n";
+$met_control_line   .="            outputWindDrag=$outputWindDrag,\n";
+$met_control_line   .="            invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary /\n";
 #
 # construct wetDryControl namelist
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
@@ -284,18 +286,18 @@ my $wetdry_control_line = "&wetDryControl outputNodeCode=$outputNodeCode, output
 #
 # construct inundationOutput namelist
 # &inundationOutputControl inundationOutput=logicalValue0, inunThresh=floatValue /
-my $inundationOutput = $p->{inundationOutputControl}->{inundationOutput} eq 'yes' ? 'T' : 'F';
-my $inundation_output_control_line = "&inundationOutputControl inundationOutput=$inundationOutput, inunThresh=$p->{inundationOutputControl}->{inunThresh} /";
+my $inundationOutput = $p->{output}->{inundationOutputControl}->{inundationOutput} eq 'yes' ? 'T' : 'F';
+my $inundation_output_control_line = "&inundationOutputControl inundationOutput=$inundationOutput, inunThresh=$p->{output}->{inundationOutputControl}->{inunThresh} /";
 #
 my $dynamic_water_level_correction_line = 'NO LINE HERE';
 #
 # construct SWANOutputControl name list
-my $SWAN_OutputTPS = $p->{SWANOutputControl}->{SWAN_OutputTPS} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputTM01 = $p->{SWANOutputControl}->{SWAN_OutputTM01} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputHS = $p->{SWANOutputControl}->{SWAN_OutputHS} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputDIR = $p->{SWANOutputControl}->{SWAN_OutputDIR} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputTMM10 = $p->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
-my $SWAN_OutputTM02 = $p->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTPS = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTPS} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTM01 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTM01} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputHS = $p->{swan}->{SWANOutputControl}->{SWAN_OutputHS} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputDIR = $p->{swan}->{SWANOutputControl}->{SWAN_OutputDIR} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTMM10 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
+my $SWAN_OutputTM02 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
 my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /";
 #
 # LINTER: check for consistency between solver time integration
@@ -362,21 +364,21 @@ if ( $p->{advection} eq "off" ) {
 # count the number of activated nodal attributes and form the
 # associated list of nodal attributes
 my $nwp = 0;
-my @nodal_attributes_activate = "";
-my @nodal_attribtes_deactivate = "";
+my @nodal_attributes_activate;
+my @nodal_attributes_deactivate;
 if ( defined $p->{nodal_attributes}->{activate} ) {
    foreach my $na (@{$p->{nodal_attributes}->{activate}}) {
       if ( $p->{meteorology}->{windExposure} eq "10m" ) {
          # deactivate nodal attributes associated with land interaction
          if ( $na eq "surface_directional_effective_roughness_length" || $na eq "surface_canopy_coefficient" ) {
-            push(@nodal_attribtes_deactivate,$na)
+            push(@nodal_attributes_deactivate,$na);
             next;
          }
       }
       if ( $p->{output}->{inventory} eq "metonly" ) {
          # prevent write_output.F in adcirc from trying to write ESLNodes.63
          if ( $na eq "elemental_slope_limiter" ) {
-            push(@nodal_attribtes_deactivate,$na)
+            push(@nodal_attributes_deactivate,$na);
             next;
          }
       }
@@ -396,11 +398,15 @@ while(<TEMPLATE>) {
     # and the advisory number, if available
     s/%StormName%/$rundesc/;
     # fill in frequency of time step output to STDOUT or adcirc.log
-    s/%NSCREEN%/$p->{nscreen}/;
+    s/%NSCREEN%/$p->{output}->{nscreen}/;
     # non-fatal override (water levels for warnings and fatal errors)
-    s/%NFOVER%/$p->{nfover}/;
+    s/%NFOVER%/$p->{output}->{non_fatal_override}->{nfover}/;
+    s/%WarnElev%/$p->{output}->{non_fatal_override}->{WarnElev}/;
+    s/%iWarnElevDump%/$p->{output}->{non_fatal_override}->{iWarnElevDump}/;
+    s/%WarnElevDumpLimit%/$p->{output}->{non_fatal_override}->{WarnElevDumpLimit}/;
+    s/%ErrorElev%/$p->{output}->{non_fatal_override}->{ErrorElev}/;
     # logging levels (debug, echo, info, warning, error)
-    s/%NABOUT%/$logLevelsNABOUT{$p->{log_level}}/;
+    s/%NABOUT%/$logLevelsNABOUT{$p->{output}->{log_level}}/;
     # set six digit IM according to time integration
     # IM=0 is the same as IM=111111
     s/%IM%/$im/;
@@ -703,7 +709,7 @@ printf RUNPROPS "RunType : $run_type\n";
 printf RUNPROPS "ADCIRCgrid : $p->{mesh}\n";
 printf RUNPROPS "currentcycle : $cycle_hour\n";
 printf RUNPROPS "currentdate : $currentdate\n";
-printf RUNPROPS "advisory : $cycle\n";
+printf RUNPROPS "advisory : $p->{cycle}\n";
 if ( $p->{hotstart}->{time} != 0 ) {
    printf RUNPROPS "InitialHotStartTime : $p->{hotstart}->{time}\n";
 }
@@ -717,8 +723,8 @@ printf RUNPROPS "adcirc.control.numerics.im : $im\n";
 printf RUNPROPS "adcirc.control.numerics.a00b00c00 : ( $a00b00c00 )\n";
 printf RUNPROPS "adcirc.control.physics.nolica : $nolica\n";
 printf RUNPROPS "adcirc.control.physics.nolicat : $nolicat\n";
-printf RUNPROPS "adcirc.control.monitoring.nscreen : $p->{nscreen}\n";
-printf RUNPROPS "adcirc.control.monitoring.nabout : $logLevelsNABOUT{$p->{log_level}}\n";
+printf RUNPROPS "adcirc.control.monitoring.nscreen : $p->{output}->{nscreen}\n";
+printf RUNPROPS "adcirc.control.monitoring.nabout : $logLevelsNABOUT{$p->{output}->{log_level}}\n";
 printf RUNPROPS "adcirc.control.physics.rnday : $RNDAY\n";
 printf RUNPROPS "adcirc.control.numerics.input.ihot : $ihot\n";
 printf RUNPROPS "adcirc.control.physics.nwp : $nwp\n";
@@ -745,35 +751,35 @@ if ( $nws ne "0" ) {
 }
 # write the names of the output files to the run-control.properties file
 ASGSUtil::stderrMessage("INFO","Writing file names and formats to run-control.properties file.");
-writeFileName("fort.61",$fort61specifier);
-writeFileName("fort.62",$fort62specifier);
-writeFileName("fort.63",$fort63specifier);
-writeFileName("fort.64",$fort64specifier);
-writeFileName("fort.71",$fort7172specifier);
-writeFileName("fort.72",$fort7172specifier);
-writeFileName("fort.73",$fort7374specifier);
-writeFileName("fort.74",$fort7374specifier);
-writeFileName("maxele.63",$fort63specifier);
-writeFileName("maxvel.63",$fort64specifier);
-writeFileName("maxwvel.63",$fort7374specifier);
-writeFileName("minpr.63",$fort7374specifier);
+writeFileName("fort.61",(split(' ',$fort61))[0],$addHours/(split(' ',$fort61))[3]/3600.0);
+writeFileName("fort.62",(split(' ',$fort62))[0],$addHours/(split(' ',$fort62))[3]/3600.0);
+writeFileName("fort.63",(split(' ',$fort63))[0],$addHours/(split(' ',$fort63))[3]/3600.0);
+writeFileName("fort.64",(split(' ',$fort64))[0],$addHours/(split(' ',$fort64))[3]/3600.0);
+writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(split(' ',$fort7172))[3]/3600.0);
+writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(split(' ',$fort7172))[3]/3600.0);
+writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+writeFileName("maxele.63",(split(' ',$fort63))[0],1);
+writeFileName("maxvel.63",(split(' ',$fort64))[0],1);
+writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
+writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
 if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
-   writeFileName("maxrs.63",$fort7374specifier);
-   writeFileName("swan_DIR.63",$fort7374specifier);
-   writeFileName("swan_DIR_max.63",$fort7374specifier);
-   writeFileName("swan_HS.63",$fort7374specifier);
-   writeFileName("swan_HS_max.63",$fort7374specifier);
-   writeFileName("swan_TMM10.63",$fort7374specifier);
-   writeFileName("swan_TMM10_max.63",$fort7374specifier);
-   writeFileName("swan_TPS.63",$fort7374specifier);
-   writeFileName("swan_TPS_max.63",$fort7374specifier);
+   writeFileName("maxrs.63",(split(' ',$fort7374))[0],1);
+   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_DIR_max.63",(split(' ',$fort7374))[0],1);
+   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_HS_max.63",(split(' ',$fort7374))[0],1);
+   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_TMM10_max.63",(split(' ',$fort7374))[0]),1;
+   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_TPS_max.63",(split(' ',$fort7374))[0],1);
 }
-if ($p->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
-   writeFileName("initiallydry.63",$fort63specifier);
-   writeFileName("inundationtime.63",$fort63specifier);
-   writeFileName("maxinundepth.63",$fort63specifier);
-   writeFileName("everdried.63",$fort63specifier);
-   writeFileName("endrisinginun.63",$fort63specifier);
+if ( $p->{output}->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
+   writeFileName("initiallydry.63",(split(' ',$fort63))[0],1);
+   writeFileName("inundationtime.63",(split(' ',$fort63))[0],1);
+   writeFileName("maxinundepth.63",(split(' ',$fort63))[0],1);
+   writeFileName("everdried.63",(split(' ',$fort63))[0],1);
+   writeFileName("endrisinginun.63",(split(' ',$fort63))[0],1);
 }
 close(RUNPROPS);
 ASGSUtil::stderrMessage("INFO","Wrote run-control.properties file 'run-control.properties'.");
@@ -787,15 +793,14 @@ exit;
 # to the run-control.properties file.
 #--------------------------------------------------------------------------
 sub writeFileName {
-   my $identifier = shift;
-   my $specifier = shift;
+   my ( $id, $sp, $nds ) = @_;
    #
    my $format = "ascii"; # default output file format
-   my $f = $identifier; # default (ascii) name of output file
+   my $f = $id; # default (ascii) name of output file
    #
    # if there won't be any output of this type, just return without
    # writing anything to the run-control.properties file
-   if ( $specifier == 0 ) {
+   if ( $sp == 0 ) {
       return;
    }
    # create the hash for relating the basic file identifier with the
@@ -828,32 +833,16 @@ sub writeFileName {
    $ids_descs{"everdried.63"} = "Ever Dried";
    $ids_descs{"endrisinginun.63"} = "End Rising Inundation";
 
-   # number of data sets
-   if ( $f eq "fort.61") { $nds = $addHours/($fort61freq/3600.0); }
-   elsif ( $f eq "fort.62") { $nds = $addHours/($fort62freq/3600.0); }
-   elsif ( $f eq "fort.63") { $nds = $addHours/($fort63freq/3600.0); }
-   elsif ( $f eq "fort.64") { $nds = $addHours/($fort64freq/3600.0); }
-   elsif ( $f eq "fort.71" || $f eq "fort.72" ) {
-      $nds = $addHours/($fort7172freq/3600.0);
-   }
-   elsif ( $f eq "fort.73" || $f eq "fort.74"
-        || $f eq "swan_DIR.63" || $f eq "swan_HS.63" || $f eq "swan_TMM10.63" || $f eq "swan_TPS.63" ) {
-      $nds = $addHours/($fort7374freq/3600.0);
-   }
-   else {
-      $nds = 1;
-   }
-
    # format specifier
-   if ( abs($specifier) == 3 || abs($specifier) == 5 ) {
+   if ( abs($sp) == 3 || abs($sp) == 5 ) {
       $f = $f . ".nc";
       $format = "netcdf";
    }
-   if ( abs($specifier) == 4 ) {
+   if ( abs($sp) == 4 ) {
       $format = "sparse-ascii";
    }
-   printf RUNPROPS "$ids_descs{$identifier} File Name : $f\n";
-   printf RUNPROPS "$ids_descs{$identifier} Format : $format\n";
+   printf RUNPROPS "$ids_descs{$id} File Name : $f\n";
+   printf RUNPROPS "$ids_descs{$id} Format : $format\n";
    printf RUNPROPS "adcirc.file.output.$f.numdatasets : $nds\n";
 }
 #
@@ -866,15 +855,11 @@ sub writeFileName {
 # and whether or not the netcdf format is used (ascii is the default).
 #--------------------------------------------------------------------------
 sub getOutputParameters {
-   my $f = shift;
-   my $inv = shift;
-   my $timestep_seconds = shift;
-   my $data_type = shift;
-   my $p;         # line of parameters to return
+   my ($f, $inv, $timestep_seconds, $data_type ) = @_;
    my $specifier; # output format
    my $increment; # time step increment between outputs
 
-   if ( $f->{incr_seconds} == 0 || ( $p->{output}->{inventory} eq "metonly" && $datatype ne "met" ) ) {
+   if ( $f->{incr_seconds} == 0 || ( $p->{output}->{inventory} eq "metonly" && $data_type ne "met" ) ) {
       $specifier = "0";
       $increment = "99999";
    } else {
@@ -1206,11 +1191,11 @@ sub vortexModelParameters {
    }
    #
    # create run description
-   $rundesc = "cs:$p->{coldstartdate}"."0000 cy:$p->{meteorology}->{tropical_cyclone}->{storm_name}$cycle";
+   $rundesc = "cs:$p->{coldstartdate}"."0000 cy:$p->{meteorology}->{tropical_cyclone}->{storm_name}$p->{cycle}";
    # create the RUNID
    $scenarioid = $addHours . " hour " . $p->{scenario} . " run";
    # create the WTIMINC line
-   $wtiminc_line = $cy." ".$cm." ".$cd." ".$ch." 1 ".$p->{meteorology}->{boundary_layer_adjustment};
+   $wtiminc_line = $cy." ".$cm." ".$cd." ".$ch." 1 ".$p->{meteorology}->{tropical_cyclone}->{boundary_layer_adjustment};
    if ( abs($basenws) == 20 || abs($basenws) == 30 ) {
       $wtiminc_line .= " $geofactor";
    }
