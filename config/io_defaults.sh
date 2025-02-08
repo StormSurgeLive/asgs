@@ -3,7 +3,7 @@
 # io_defaults.sh : Functions required for initializing
 # parameters that are only related to input/output controls.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2024 Jason Fleming
+# Copyright(C) 2019--2025 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -54,7 +54,7 @@ fort62["format"]="netcdf"
 fort62["incr_seconds"]=0.0
 fort62["append"]="yes"
 fort7172["format"]="netcdf"
-fort7172["incr_seconds"]=3600.0
+fort7172["incr_seconds"]=300.0
 fort7172["append"]="yes"
 # fulldomain
 declare -g -A fort63

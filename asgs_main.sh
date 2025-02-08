@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2024 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2024 Brett Estrade
+# Copyright(C) 2006--2025 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2025 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -2064,15 +2064,8 @@ if [[ $START = coldstart ]]; then
       logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
-   CONTROLOPTIONS="--name $ENSTORM --advisorynum $ADVISORY --cst $CSDATE --hsformat $HOTSTARTFORMAT --advisorynum 0"
-   CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-   CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
-   if [[ $NOFORCING = true ]]; then
-      CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
-   fi
    #
-   logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
+   logMessage "$ENSTORM: $THIS: Constructing control file."
    runLength=$HINDCASTLENGTH # to compute long term tidal constituents
    # uses parameters described above as well as control-parameters.yaml
    # to generate tide_fac.out, fort.13, fort.15, and fort.26
@@ -2331,14 +2324,13 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --name $ENSTORM --advisorynum $ADVISORY --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
       STORMNAME=$(grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//' 2>> ${SYSLOG})
       tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
-      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
+      endTime=$tcEnd
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       case $VORTEXMODEL in
          "GAHM"|"ASYMMETRIC")
@@ -2346,6 +2338,11 @@ while [ true ]; do
             $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+               if [[ $BACKGROUNDMET == "off" ]]; then
+                  # this is the only met file ADCIRC will need to read so
+                  # rename it fort.22
+                  cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+               fi
             else
                fatal "$ENSTORM: $THIS: '$ADCIRCDIR/aswip -n $BASENWS' failed to produce 'NWS_${BASENWS}_fort.22'."
             fi
@@ -2524,7 +2521,6 @@ while [ true ]; do
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
@@ -2570,7 +2566,6 @@ while [ true ]; do
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "RRFS")
          logMessage "$SCENARIO: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2647,7 +2642,6 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "off")
          # don't need to download any data
@@ -2681,18 +2675,7 @@ while [ true ]; do
       fi
       mv $RUNDIR/run.properties $NOWCASTDIR 2>> run.properties
       writeScenarioProperties $NOWCASTDIR
-      CONTROLOPTIONS="--advisorynum $ADVISORY"
-      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
-      CONTROLOPTIONS="$CONTROLOPTIONS --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
-      logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
    fi
-   # activate padcswan based on ASGS configuration
-   if [[ $WAVES = on ]]; then
-      CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
-   fi
-   CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-   CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    # generate fort.15 file
    runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
    # uses parameters described above as well as control-parameters.yaml
@@ -3037,11 +3020,10 @@ while [ true ]; do
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          writeTropicalCycloneForecastProperties $STORMDIR
-         CONTROLOPTIONS="--cst $CSDATE --advisorynum $ADVISORY --hst $HSTIME --name $ENSTORM --hsformat $HOTSTARTFORMAT"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
          tcEnd=$(grep "forcing.tropicalcyclone.fcst.time.end" run.properties | sed 's/forcing.tropicalcyclone.fcst.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
-         CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
+         endTime=$tcEnd
          if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
             # in it already ... potentially with Rmax changes if desired
@@ -3161,20 +3143,7 @@ while [ true ]; do
             echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
             echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
-         CONTROLOPTIONS=" --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
       fi
-      # if there is no forcing from an external data source, set control options
-      if [[ $NOFORCING = true ]]; then
-         CONTROLOPTIONS="--advisorynum $ADVISORY"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
-      fi
-      if [[ $WAVES = on ]]; then
-         CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
-      fi
-      CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-      CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-      CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
       runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
       # uses parameters described above as well as control-parameters.yaml
       # to generate tide_fac.out, fort.13, fort.15, and fort.26
