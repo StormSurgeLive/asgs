@@ -60,16 +60,24 @@ case "${ITEM}" in
     ;;
   cera)
     mkdir $SCRIPTDIR/git 2> /dev/null
+
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./cera-asgs-environment ]; then
       cd ./cera-asgs-environment  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
     fi
-    git clone git@github.com:CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
+    popd > /dev/null 2>&1 
 
-    popd > /dev/null 2>&1
+    pushd $SCRIPTDIR/git  > /dev/null  2>&1
+    if [ -d ./asgs-local-assets ]; then
+      cd ./asgs-local-assets  > /dev/null  2>&1
+      git pull origin main
+    else
+      git clone git@github.com:CERA-GROUP/asgs-local-assets.git $SCRIPTDIR/git/cera-asgs-local-assets
+    fi
+    popd > /dev/null 2>&1 
     ;;
   ourperl)
     mkdir $SCRIPTDIR/git 2> /dev/null
