@@ -1,138 +1,136 @@
 ---
-mesh: "%GRIDNAME%"
-controltemplate: "%CONTROLTEMPLATE%"
-adcirc_version: "%ADCIRCVER%"
-adcirc_version_support: [ %adcircVersions% ]
-coldstartdate: %CSDATE%
-cycle: %ADVISORY%
-scenario: "%SCENARIO%"
-endtime: %ENDTIME%
-timestepsize: %TIMESTEPSIZE%
-solver_time_integration: "%IM_ETC%"
-initialization_length: %HINDCASTLENGTH%
-time_weighting_coefficients: "%A00B00C00%"
-lateral_turbulence: "%lateral_turbulence%"
-eddy_viscosity_coefficient: %ESLM%
-smagorinsky_coefficient: %ESLM_Smagorinsky%
-nfover: "%NFOVER%"
-log_level: "%NABOUT%"
-h0: %H0%
-velmin: %VELMIN%
-bottom_friction_limit: %FFACTOR%
-advection: "%advection%"
-hotstart:
-  input_format: "%HOTSTARTINPUTFORMAT%"
-  output_format: "%HOTSTARTOUTPUTFORMAT%"
-  time: %HSTIME%
-meteorology:
-  nws: %NWS%
-  basenws: %BASENWS%
-  wtiminc: %WTIMINC%
-  windExposure: "%windExposure%"
-  tropical_cyclone:
-    storm_name: "%storm_name%"
-    boundary_layer_adjustment: %BLADJ%
-  owi_win_pre:
-    nwset: %NWSET%
-    nwbs: %NWBS%
-    dwm: %DWM%
-    startdatetime: %startdatetime%
-    enddatetime: %enddatetime%
-  blending:
-    pureVortex: %pureVortex%
-    pureBackground: %pureBackground%
-tides:
-  tidal_forcing: "%tidal_forcing%"
-  tidefac_file: "%tidefac_file%"
-  tidal_potential_comment: "%tidal_potential_comment%"
-  tidal_boundary_comment: "%tidal_boundary_comment%"
-flux:
-  periodicity: "%periodicity%"
-  file: "%periodic_flux_file%"
-metControl:
-  DragLawString: "%DragLawString%"
-  WindDragLimit: %WindDragLimit%
-  outputWindDrag: "%outputWindDrag%"
-  invertedBarometerOnElevationBoundary: "%invertedBarometerOnElevationBoundary%"
-wetDryControl:
-  outputNodeCode: "%outputNodeCode%"
-  outputNOFF: "%outputNOFF%"
-  noffActive: "%noffActive%"
-  slim: %slim%
-  windlim: "%windlim%"
-  directvelWD: "%directvelWD%"
-  useHF: "%useHF%"
-inundationOutputControl:
-  inundationOutput: "%inundationOutput%"
-  inunThresh: %inunThresh%
-netcdf_metadata:
-  ncproj: "%NCPROJ%"
-  ncinst: "%NCINST%"
-  ncsour: "%NCSOUR%"
-  nchist: "%NCHIST%"
-  ncref:  "%NCREF%"
-  nccom:  "%NCCOM%"
-  nchost: "%NCHOST%"
-  ncconv: "%NCCONV%"
-  nccont: "%NCCONT%"
-  ncdate: "%NCDATE%"
-wave_coupling:
-  waves: "%WAVES%"
-  wave_model: "%wave_model%"
-  rstiminc: %RSTIMINC%
-swan:
-  template: %SWANTEMPLATE%
-  hot: %HOTSWAN%
-  mxitns: %MXITNS%
-  npnts: %NPNTS%
-SWANOutputControl:
-  SWAN_OutputTPS: "%SWAN_OutputTPS%"
-  SWAN_OutputTM01: "%SWAN_OutputTM01%"
-  SWAN_OutputHS: "%SWAN_OutputHS%"
-  SWAN_OutputDIR: "%SWAN_OutputDIR%"
-  SWAN_OutputTMM10: "%SWAN_OutputTMM10%"
-  SWAN_OutputTM02: "%SWAN_OutputTM02%"
-nodal_attributes:
-  template: "%nodal_attributes_template_file%"
-  activate: %nodal_attribute_activate_list%
-  default_values: %nodal_attribute_default_values_hash%
-output:
-  inventory: "%inventory%"
-  non_fatal_overrride:
-    nfover: %NFOVER%
-    WarnElev: %WarnElev%
-    iWarnElevDump: %iWarnElevDump%
-    WarnElevDumpLimit: %WarnElevDumpLimit%
-    ErrorElev: %ErrorElev%
-  nscreen: %NSCREEN%
-  log_level: "%NABOUT%"
-  metonly_dt: %metOnlyTimeStepSize%
-  stations:
-    fort61:
-      elevstations_file: "%ELEVSTATIONS%"
-      incr_seconds: %fort61incr%
-      format: "%fort61format%"
-      append: "%fort61append%"
-    fort62:
-      velstations_file: "%VELSTATIONS%"
-      incr_seconds: %fort62incr%
-      format: "%fort62format%"
-      append: "%fort62append%"
-    fort7172:
-      metstations_file: "%METSTATIONS%"
-      incr_seconds: %fort7172incr%
-      format: "%fort7172format%"
-      append: "%fort7172append%"
-  fulldomain:
-    fort63:
-      incr_seconds: %fort63incr%
-      format: "%fort63format%"
-      append: "%fort63append%"
-    fort64:
-      incr_seconds: %fort64incr%
-      format: "%fort64format%"
-      append: "%fort64append%"
-    fort7374:
-      incr_seconds: %fort7374incr%
-      format: "%fort7374format%"
-      append: "%fort7374append%"
+  mesh: "%GRIDNAME%"
+  controltemplate: "%CONTROLTEMPLATE%"
+  adcirc_version: "%ADCIRCVER%"
+  adcirc_version_support: [ %adcircVersions% ]
+  coldstartdate: %CSDATE%
+  cycle: %ADVISORY%
+  scenario: "%SCENARIO%"
+  endtime: %ENDTIME%
+  timestepsize: %TIMESTEPSIZE%
+  solver_time_integration: "%IM_ETC%"
+  initialization_length: %HINDCASTLENGTH%
+  time_weighting_coefficients: "%A00B00C00%"
+  lateral_turbulence: "%lateral_turbulence%"
+  eddy_viscosity_coefficient: %ESLM%
+  smagorinsky_coefficient: %ESLM_Smagorinsky%
+  h0: %H0%
+  velmin: %VELMIN%
+  bottom_friction_limit: %FFACTOR%
+  advection: "%advection%"
+  hotstart:
+    input_format: "%HOTSTARTINPUTFORMAT%"
+    output_format: "%HOTSTARTOUTPUTFORMAT%"
+    time: %HSTIME%
+  meteorology:
+    nws: %NWS%
+    basenws: %BASENWS%
+    wtiminc: "%WTIMINC%"
+    windExposure: "%windExposure%"
+    tropical_cyclone:
+      storm_name: "%storm_name%"
+      boundary_layer_adjustment: %BLADJ%
+    owi_win_pre:
+      nwset: %NWSET%
+      nwbs: %NWBS%
+      dwm: %DWM%
+      startdatetime: %startdatetime%
+      enddatetime: %enddatetime%
+    blending:
+      pure_vortex_radius: %PUREVORTEX%
+      pure_background_radius: %PUREBACKGROUND%
+    metControl:
+      DragLawString: "%DragLawString%"
+      WindDragLimit: %WindDragLimit%
+      outputWindDrag: "%outputWindDrag%"
+      invertedBarometerOnElevationBoundary: "%invertedBarometerOnElevationBoundary%"
+  tides:
+    tidal_forcing: "%tidal_forcing%"
+    tidefac_file: "%tidefac_file%"
+    tidal_potential_comment: "%tidal_potential_comment%"
+    tidal_boundary_comment: "%tidal_boundary_comment%"
+  flux:
+    periodicity: "%periodicity%"
+    file: "%periodic_flux_file%"
+  wetDryControl:
+    outputNodeCode: "%outputNodeCode%"
+    outputNOFF: "%outputNOFF%"
+    noffActive: "%noffActive%"
+    slim: %slim%
+    windlim: "%windlim%"
+    directvelWD: "%directvelWD%"
+    useHF: "%useHF%"
+  netcdf_metadata:
+    ncproj: "%NCPROJ%"
+    ncinst: "%NCINST%"
+    ncsour: "%NCSOUR%"
+    nchist: "%NCHIST%"
+    ncref:  "%NCREF%"
+    nccom:  "%NCCOM%"
+    nchost: "%NCHOST%"
+    ncconv: "%NCCONV%"
+    nccont: "%NCCONT%"
+    ncdate: "%NCDATE%"
+  wave_coupling:
+    waves: "%WAVES%"
+    wave_model: "%wave_model%"
+    rstiminc: %RSTIMINC%
+  swan:
+    template: "%SWANTEMPLATE%"
+    hot: "%HOTSWAN%"
+    mxitns: %MXITNS%
+    npnts: %NPNTS%
+    SWANOutputControl:
+      SWAN_OutputTPS: "%SWAN_OutputTPS%"
+      SWAN_OutputTM01: "%SWAN_OutputTM01%"
+      SWAN_OutputHS: "%SWAN_OutputHS%"
+      SWAN_OutputDIR: "%SWAN_OutputDIR%"
+      SWAN_OutputTMM10: "%SWAN_OutputTMM10%"
+      SWAN_OutputTM02: "%SWAN_OutputTM02%"
+  nodal_attributes:
+    template: "%nodal_attributes_template_file%"
+    activate: %nodal_attribute_activate_list%
+    default_values: %nodal_attribute_default_values_hash%
+  output:
+    inventory: "%inventory%"
+    non_fatal_override:
+      nfover: %NFOVER%
+      WarnElev: %WarnElev%
+      iWarnElevDump: %iWarnElevDump%
+      WarnElevDumpLimit: %WarnElevDumpLimit%
+      ErrorElev: %ErrorElev%
+    nscreen: %NSCREEN%
+    log_level: "%NABOUT%"
+    metonly_dt: %metOnlyTimeStepSize%
+    stations:
+      fort61:
+        elevstations_file: "%ELEVSTATIONS%"
+        incr_seconds: %fort61incr%
+        format: "%fort61format%"
+        append: "%fort61append%"
+      fort62:
+        velstations_file: "%VELSTATIONS%"
+        incr_seconds: %fort62incr%
+        format: "%fort62format%"
+        append: "%fort62append%"
+      fort7172:
+        metstations_file: "%METSTATIONS%"
+        incr_seconds: %fort7172incr%
+        format: "%fort7172format%"
+        append: "%fort7172append%"
+    fulldomain:
+      fort63:
+        incr_seconds: %fort63incr%
+        format: "%fort63format%"
+        append: "%fort63append%"
+      fort64:
+        incr_seconds: %fort64incr%
+        format: "%fort64format%"
+        append: "%fort64append%"
+      fort7374:
+        incr_seconds: %fort7374incr%
+        format: "%fort7374format%"
+        append: "%fort7374append%"
+    inundationOutputControl:
+      inundationOutput: "%inundationOutput%"
+      inunThresh: %inunThresh%

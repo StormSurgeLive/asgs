@@ -39,6 +39,7 @@ finishTest()
    # increment test number
    t=$((t + 1))
 }
+#
 # SCRIPTDIR should be set if this test script is executed with
 # the ASGS shell
 # Initialize variables accessed from ASGS config parameters to reasonable values
@@ -59,14 +60,16 @@ SYSLOG="$(basename $0)-syslog.log"
 SCENARIOLOG="$(basename $0)-scenario.log"
 #
 # dynamic input
+HINDCASTLENGTH=20.0
 HSTIME=86400.0
 runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
 SCENARIO=nowcast
 ADVISORY=20
 CSDATE=2024010100
-ENDTIME=2024010300 # FIXME: for some scenarios, this is computed by control_file_gen.pl ; whereas for others (tc and tidal init) it must be provided to control_file_gen.pl
+endTime=2024010300 # FIXME: for some scenarios, this is computed by control_file_gen.pl ; whereas for others (tc and tidal init) it must be provided to control_file_gen.pl
 BASENWS=20
 NWS=20
+WAVES="off"
 storm_name="KATRINA" # <---<< FIXME: this is not populated in asgs_main.sh
 #
 #  T E S T   0 0 1
@@ -77,26 +80,6 @@ storm_name="KATRINA" # <---<< FIXME: this is not populated in asgs_main.sh
 GRIDNAME=Shinnecock
 source $SCRIPTDIR/config/mesh_defaults.sh
 adcirc_version="v53.05-modified"
-# build command line for control_file_gen.pl
-C="--name $SCENARIO"
-C="$C --advisorynum $ADVISORY"
-C="$C --cst $CSDATE"
-C="$C --endtime $ENDTIME"
-C="$C --dt $TIMESTEPSIZE"
-C="$C --nws $NWS"
-C="$C --bladj $BLADJ"
-C="$C --pureVortex $PUREVORTEX"
-C="$C --pureBackground $PUREBACKGROUND"
-C="$C --hsformat $HOTSTARTFORMAT"
-C="$C --hstime $HSTIME"
-C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
-C="$C --velstations $INPUTDIR/$VELSTATIONS"
-C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
-C="$C --nscreen $NSCREEN"
-C="$C $OUTPUTOPTIONS"
-C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-CONTROLOPTIONS="$C"
 # fill in yaml template for control parameters and execute control_file_gen.pl
 generateDynamicInput
 # rename control parameters and other result files
@@ -112,25 +95,6 @@ source $SCRIPTDIR/config/mesh_defaults.sh
 NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 # ** other parameters are same as defined above unless redefined below **
 # fill in yaml template for control parameters and execute control_file_gen.pl
-C="--name $SCENARIO"
-C="$C --advisorynum $ADVISORY"
-C="$C --cst $CSDATE"
-C="$C --endtime $ENDTIME"
-C="$C --dt $TIMESTEPSIZE"
-C="$C --nws $NWS"
-C="$C --bladj $BLADJ"
-C="$C --pureVortex $PUREVORTEX"
-C="$C --pureBackground $PUREBACKGROUND"
-C="$C --hsformat $HOTSTARTFORMAT"
-C="$C --hstime $HSTIME"
-C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
-C="$C --velstations $INPUTDIR/$VELSTATIONS"
-C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
-C="$C --nscreen $NSCREEN"
-C="$C $OUTPUTOPTIONS"
-C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-CONTROLOPTIONS="$C"
 generateDynamicInput
 # rename control parameters file
 finishTest
@@ -145,26 +109,6 @@ parameterPackage="default"
 source $SCRIPTDIR/config/mesh_defaults.sh
 NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 # ** other parameters are same as defined above unless redefined below **
-# build command line for control_file_gen.pl
-C="--name $SCENARIO"
-C="$C --advisorynum $ADVISORY"
-C="$C --cst $CSDATE"
-C="$C --endtime $ENDTIME"
-C="$C --dt $TIMESTEPSIZE"
-C="$C --nws $NWS"
-C="$C --bladj $BLADJ"
-C="$C --pureVortex $PUREVORTEX"
-C="$C --pureBackground $PUREBACKGROUND"
-C="$C --hsformat $HOTSTARTFORMAT"
-C="$C --hstime $HSTIME"
-C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
-C="$C --velstations $INPUTDIR/$VELSTATIONS"
-C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
-C="$C --nscreen $NSCREEN"
-C="$C $OUTPUTOPTIONS"
-C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-CONTROLOPTIONS="$C"
 # fill in yaml template for control parameters
 generateDynamicInput
 # rename control parameters file
@@ -184,25 +128,6 @@ NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal
 
 # build command line for control_file_gen.pl
 OUTPUTOPTIONS="--fort63freq 3600.0 --fort63netcdf"  # <--<< only produce fort.63.nc
-C="--name $SCENARIO"
-C="$C --advisorynum $ADVISORY"
-C="$C --cst $CSDATE"
-C="$C --endtime $ENDTIME"
-C="$C --dt $TIMESTEPSIZE"
-C="$C --nws $NWS"
-C="$C --bladj $BLADJ"
-C="$C --pureVortex $PUREVORTEX"
-C="$C --pureBackground $PUREBACKGROUND"
-C="$C --hsformat $HOTSTARTFORMAT"
-C="$C --hstime $HSTIME"
-C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
-C="$C --velstations $INPUTDIR/$VELSTATIONS"
-C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
-C="$C --nscreen $NSCREEN"
-C="$C $OUTPUTOPTIONS"
-C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-CONTROLOPTIONS="$C"
 generateDynamicInput
 # rename control parameters file
 finishTest
@@ -224,26 +149,6 @@ HOTSWAN=on
 
 # build command line for control_file_gen.pl
 OUTPUTOPTIONS="--fort63freq 3600.0 --fort63netcdf"  # <--<< only produce fort.63.nc
-C="--name $SCENARIO"
-C="$C --advisorynum $ADVISORY"
-C="$C --cst $CSDATE"
-C="$C --endtime $ENDTIME"
-C="$C --dt $TIMESTEPSIZE"
-C="$C --nws $NWS"
-C="$C --bladj $BLADJ"
-C="$C --pureVortex $PUREVORTEX"
-C="$C --pureBackground $PUREBACKGROUND"
-C="$C --hsformat $HOTSTARTFORMAT"
-C="$C --hstime $HSTIME"
-C="$C --elevstations $INPUTDIR/$ELEVSTATIONS"
-C="$C --velstations $INPUTDIR/$VELSTATIONS"
-C="$C --metstations $INPUTDIR/$METSTATIONS"
-C="$C --gridname $GRIDNAME"              # to be recorded in run.properties
-C="$C --nscreen $NSCREEN"
-C="$C --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
-C="$C $OUTPUTOPTIONS"
-C="$C --controltemplate $INPUTDIR/$CONTROLTEMPLATE"
-CONTROLOPTIONS="$C"
 generateDynamicInput
 # rename control parameters file
 finishTest
