@@ -34,6 +34,27 @@ TIMESTEPSIZE="1.0"            # ADCIRC time step (DTDP) in seconds
 metOnlyTimeStepSize="300.0"   # ADCIRC time step (DTDP) for meteorology-only mode
 WTIMINC=900                   # time increment of meteorological data sets in seconds
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+#
+# For ADCIRC versions v55.01 and later, rotated spherical coordinate
+# systems are available that are useful for global meshes to place the
+# poles on land to avoid numerical distortion. The use of this capability
+# and the specification of the coordinates of the north pole are controlled
+# via the zNorth parameter and triggered by a negative value of ICS in the
+# fort.15 file. The north pole location $zNorth is written to a fort.rotm file.
+# Options include the fcollowing:
+# zNorth="northpole"         ! no coordinate system rotation
+# zNorth="-42.8906  72.3200  ! Greenland-Antarctica"
+# zNorth="112.8516  40.3289  ! China-Argentina"
+# zNorth="114.16991  0.77432 ! Borneo-Brazil"
+# Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
+# Model coordinate system reference: https://wiki.adcirc.org/ICS
+zNorth="northpole"
+declare -g -A coordinateSystem
+coordinateSystem["projection"]="geographic" # cartesian|geographic
+coordinateSystem["reprojection"]="CPP"      # CPP|equal-area|merator|miller|gall-stereographic
+coordinateSystem["earthCurvature"]="no"     # no|yes
+coordinateSystem["rotation"]="northpole"    # greenland-antarctica|china-argentina|borneo-brazil
+#
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:
 # "0.35 0.30  0.35"  ! implicit time stepping, oldest and most used values

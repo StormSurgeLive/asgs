@@ -96,9 +96,49 @@ $ns = $cs;
 
 # open template file for fort.15
 unless (open(TEMPLATE,"<$p->{controltemplate}")) {
-   ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file $p->{controltemplate} for reading: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file '$p->{controltemplate}' for reading: $!.");
    die;
 }
+my $ics = 2; # most common setting
+if ( $p->{coordinate_system}->{projection} eq "cartesian" ) {
+   $ics = 1;
+} else {
+   if ( $p->{coordinate_system}->{reprojection} eq "equal-area" ) {
+      $ics = 20;
+   } elsif ($p->{coordinate_system}->{reprojection} eq "CPP" && $p->{coordinate_system}->{earthCurvature} eq "yes" ) {
+      $ics = 21;
+   } elsif ( $p->{coordinate_system}->{reprojection} eq "mercator" ) {
+      $ics = 22;
+   } elsif ( $p->{coordinate_system}->{reprojection} eq "miller" ) {
+      $ics = 23;
+   } elsif ( $p->{coordinate_system}->{reprojection} eq "gall-stereographic" ) {
+      $ics = 24;
+   } else {
+      ASGSUtil::stderrMessage("ERROR","Coordinate reprojection '$p->{coordinate_system}->{reprojection}' was not recognized.");
+   }           
+}
+my $zNorth = "northpole";
+if ( $ics >=20 && $ics <=24 && $p->{coordinate_system}->{rotation} ne "northpole" ) {
+   if ( $p->{coordinate_system}->{rotation} eq "greenland-antarctica" ) {
+      $zNorth = "-42.8906  72.3200  ! Greenland-Antarctica";
+   } elsif ( $p->{coordinate_system}->{rotation} eq "china-argentina" ) {
+      $zNorth = ="112.8516  40.3289  ! China-Argentina";
+   } elsif ( $p->{coordinate_system}->{rotation} eq "borneo-brazil" ) {      
+      $zNorth = "114.16991  0.77432 ! Borneo-Brazil";
+   } else { 
+      ASGSUtil::stderrMessage("ERROR","Coordinate rotation '$p->{coordinate_system}->{rotation}' was not recognized.");      
+   }
+} 
+if ( $zNorth ne "northpole" ) {
+   $ics *= -1; 
+   unless (open(my $rotm,">fort.rotm")) {
+      ASGSUtil::stderrMessage("ERROR","Failed to open the coordinate rotation file fort.rotm for writing: $!.");
+      die;
+   }
+   print $rotm "$zNorth"; 
+   close($rotm);
+}   
+#
 my $nws = $p->{meteorology}->{nws};
 my $basenws = $p->{meteorology}->{basenws};
 my $thisNWS = $p->{meteorology}->{nws};
@@ -392,6 +432,8 @@ if ( defined $p->{nodal_attributes}->{activate} ) {
 #
 ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
 while(<TEMPLATE>) {
+    # name of the mesh
+    s/%MeshName%/$p->{mesh}/;
     # fill in the ADCIRC version
     s/%ADCIRCVER%/$p->{adcirc_version}/;
     # if we are looking at the first line, fill in the name of the storm
@@ -407,6 +449,8 @@ while(<TEMPLATE>) {
     s/%ErrorElev%/$p->{output}->{non_fatal_override}->{ErrorElev}/;
     # logging levels (debug, echo, info, warning, error)
     s/%NABOUT%/$logLevelsNABOUT{$p->{output}->{log_level}}/;
+    # coordinate system 
+    s/%ICS%/$ics/;
     # set six digit IM according to time integration
     # IM=0 is the same as IM=111111
     s/%IM%/$im/;

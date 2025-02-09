@@ -8,6 +8,11 @@
   scenario: "%SCENARIO%"
   endtime: %ENDTIME%
   timestepsize: %TIMESTEPSIZE%
+  coordinate_system: 
+    projection: "%projection%"
+    reprojection: "%reprojection%""
+    earth_curvature: "%earthCurvature%""
+    rotation: "%rotation%"
   solver_time_integration: "%IM_ETC%"
   initialization_length: %HINDCASTLENGTH%
   time_weighting_coefficients: "%A00B00C00%"
