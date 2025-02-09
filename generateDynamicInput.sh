@@ -123,6 +123,7 @@ generateDynamicInput()
         -e "s/%adcircVersions%/$avs/" \
         -e "s/%CSDATE%/$CSDATE/" \
         -e "s/%HSTIME%/$HSTIME/" \
+        -e "s/%ICS%/$ics/" \        
         -e "s/%ADVISORY%/$ADVISORY/" \
         -e "s/%SCENARIO%/$SCENARIO/" \
         -e "s/%ENDTIME%/$endTime/" \
