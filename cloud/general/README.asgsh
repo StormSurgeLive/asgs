@@ -131,6 +131,9 @@ The following interaction is an example interaction:
 ADCIRC Environment
 ~~~~~~~~~~~~~~~~~~
 
+xx THIS SECTION IS OUTDATED AND NEEDS TO BE CLEANED UP xxxxxxxxxxxxxx
+xx BUILDING ADCIRC VIA ASGS-BREW IS DEPRECATED	       xxxxxxxxxxxxxx 
+
 ADCIRC may be optionally built via asgs-shell.pl using the --build-adcirc 
 command, along with others that are used to specify the git branch, tag, 
 or commit SHA. But the shell provides access to the underlying script since 

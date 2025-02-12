@@ -122,7 +122,6 @@ sub _parse_options {
           adcirc-git-branch=s
           adcirc-git-url=s
           adcirc-git-repo=s
-          build-adcirc
           clean
           compiler=s
           debug
@@ -1101,7 +1100,7 @@ sub get_steps {
             name        => q{Step for installing asgs-lint},
             description => q{Install asgs-lint, linter for ASGS configuration files},
             pwd         => qq{$scriptdir},
-            command     => qq{fetch asgs-lint $scriptdir},
+            command     => qq{bash ./bin/fetch asgs-lint $scriptdir},
             clean       => sub {
                 local $?;
                 system(qq{rm -rvf git/asgs-lint});
@@ -1110,14 +1109,7 @@ sub get_steps {
                 my $exit_code = ( $? >> 8 );
                 return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
             },
-            skip_if     => sub {
-                local $?;
-                system(qq{readlink -f bin/asgs-lint > /dev/null 2>&1});
-
-                # look for zero exit code on success
-                my $exit_code = ( $? >> 8 );
-                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
-            },
+            skip_if             => sub { undef }, # if exists, bin/fetch will update the repo
             precondition_check  => sub { 1 },
             postcondition_check => sub {
                 local $?;
@@ -1127,29 +1119,6 @@ sub get_steps {
                 my $exit_code = ( $? >> 8 );
                 return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
             },
-        },
-        {
-            key         => q{adcirc},
-            name        => q{Build ADCIRC and SWAN},
-            description => q{Builds ADCIRC and SWAN if $HOME/adcirc-cg exists.},
-            pwd         => qq{$scriptdir},
-
-            # expose ENV on if --build-adcirc is passed as an option
-            export_ENV => {
-
-                # always expose, always set even if not building ADCIRC
-                ADCIRC_GIT_BRANCH   => { value => qq{$adcirc_git_branch}, how => q{replace} },
-                ADCIRC_GIT_URL      => { value => qq{$adcirc_git_url},    how => q{replace} },
-                ADCIRC_GIT_REPO     => { value => qq{$adcirc_git_repo},   how => q{replace} },
-                ADCIRC_COMPILER     => { value => qq{$asgs_compiler},     how => q{replace} },
-                ADCIRCBASE          => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how => q{replace} },
-                ADCIRCDIR           => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how => q{replace} },
-                SWANDIR             => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how => q{replace} },
-                ADCIRC_PROFILE_NAME => { value => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how => q{replace} },
-            },
-            command => qq{bash $scriptdir/bin/init-adcirc.sh -b -N v55.02},          # Note: parameters input via environmental variables
-            clean   => qq{bash $scriptdir/bin/init-adcirc.sh clean},
-            skip_if => sub { ( $opts_ref->{'build-adcirc'} ) ? undef : 1 },    # builds only if --build-adcirc is passed to asgs-brew.pl
         },
     ];
     return $steps;

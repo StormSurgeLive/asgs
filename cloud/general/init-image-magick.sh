@@ -4,6 +4,9 @@ OPT=${1:-$ASGS_INSTALL_PATH}
 JOBS=${2:-$ASGS_MAKEJOBS}
 _ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
+
 IMAGEMAGICK_VERSION="7.1.0-22"
 
 if [ "$2" == "clean" ]; then

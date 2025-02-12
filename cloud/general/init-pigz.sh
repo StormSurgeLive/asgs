@@ -6,6 +6,9 @@ JOBS=${3:-1}
 
 _ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
+
 if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
   echo cleaning pigz
   pushd $OPT > /dev/null 2>&1
