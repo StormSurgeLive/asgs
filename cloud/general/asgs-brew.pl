@@ -702,26 +702,34 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH               => { value => $_get_all_paths->(), how => q{prepend} },                                 # prefer ASGS binaries and tools; full list managed above
-                WORK               => { value => $ENV{WORK}    // $asgs_home // q{}, how => q{replace} },                  # standardize across all platforms
-                SCRATCH            => { value => $ENV{SCRATCH} // $ENV{WORK} // $asgs_home // q{}, how => q{replace} },    # standardize across all platforms
-                LIBRARY_PATH       => { value => qq{$asgs_install_path/lib},                 how => q{prepend} },          # for use by linkers
-                LD_LIBRARY_PATH    => { value => qq{$asgs_install_path/lib},                 how => q{prepend} },          # for use by linkers
-                LD_RUN_PATH        => { value => qq{$asgs_install_path/lib},                 how => q{prepend} },          # for use by binaries
-                LD_INCLUDE_PATH    => { value => qq{$asgs_install_path/include},             how => q{prepend} },          # for use by compilers
-                SCRIPTDIR          => { value => qq{$scriptdir},                             how => q{replace} },          # base ASGS dir, used by asgs_main.sh
-                PERL5LIB           => { value => qq{$scriptdir/PERL:$scriptdir/git/ourPerl}, how => q{append}  },          # place for distributed Perl libraries
-                ADCIRC_META_DIR    => { value => qq{$asgs_home/.adcirc-meta},                how => q{replace} },          # where to track ADCIRC builds (always)
-                ASGS_META_DIR      => { value => qq{$asgs_home/profiles},                    how => q{replace} },          # where to track ASGS profiles (always)
-                ASGS_BREW_FLAGS    => { value => qq{$brewflags},                             how => q{replace} },          # make brew flags available for later use
-                ASGS_HOME          => { value => qq{$asgs_home},                             how => q{replace} },          # used in preference of $HOME in most cases
-                ASGS_TMPDIR        => { value => qq{$asgs_tmpdir},                           how => q{replace} },          # used in preference of $TMPDIR in most cases
-                ASGS_MACHINE_NAME  => { value => qq{$asgs_machine_name},                     how => q{replace} },          # machine referred to as in platforms.sh & cmplrflags.mk
-                ASGS_COMPILER      => { value => qq{$asgs_compiler},                         how => q{replace} },          # compiler family designated during asgs-brew.pl build
-                ASGS_INSTALL_PATH  => { value => qq{$asgs_install_path},                     how => q{replace} },          # where asgs-brew.pl installs supporting bins & libs
-                ASGS_MAKEJOBS      => { value => qq{$makejobs},                              how => q{replace} },          # passed to make commands where Makefile supports
-                ASGS_MESH_DEFAULTS => { value => qq{$scriptdir/config/mesh_defaults.sh},     how => q{replace} },          # list of supported meshes
-                ASGS_PLATFORMS     => { value => qq{$scriptdir/platforms.sh},                how => q{replace} },          # list of supported platforms
+                PATH                => { value  => $_get_all_paths->(), how  => q{prepend} },                                 # prefer ASGS binaries and tools; full list managed above
+                WORK                => { value  => $ENV{WORK}    // $asgs_home // q{}, how  => q{replace} },                  # standardize across all platforms
+                SCRATCH             => { value  => $ENV{SCRATCH} // $ENV{WORK} // $asgs_home // q{}, how  => q{replace} },    # standardize across all platforms
+                LIBRARY_PATH        => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by linkers
+                LD_LIBRARY_PATH     => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by linkers
+                LD_RUN_PATH         => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by binaries
+                LD_INCLUDE_PATH     => { value  => qq{$asgs_install_path/include},             how  => q{prepend} },          # for use by compilers
+                SCRIPTDIR           => { value  => qq{$scriptdir},                             how  => q{replace} },          # base ASGS dir, used by asgs_main.sh
+                PERL5LIB            => { value  => qq{$scriptdir/PERL:$scriptdir/git/ourPerl}, how  => q{append}  },          # place for distributed Perl libraries
+                ADCIRC_META_DIR     => { value  => qq{$asgs_home/.adcirc-meta},                how  => q{replace} },          # where to track ADCIRC builds (always)
+                ADCIRC_GIT_BRANCH   => { value  => qq{$adcirc_git_branch}, how  => q{replace} },
+                ADCIRC_GIT_URL      => { value  => qq{$adcirc_git_url},    how  => q{replace} },
+                ADCIRC_GIT_REPO     => { value  => qq{$adcirc_git_repo},   how  => q{replace} },
+                ADCIRC_COMPILER     => { value  => qq{$asgs_compiler},     how  => q{replace} },
+                ADCIRCBASE          => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how  => q{replace} },
+                ADCIRCDIR           => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how  => q{replace} },
+                SWANDIR             => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how  => q{replace} },
+                ADCIRC_PROFILE_NAME => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how  => q{replace} },
+                ASGS_META_DIR       => { value  => qq{$asgs_home/profiles},                    how  => q{replace} },          # where to track ASGS profiles (always)
+                ASGS_BREW_FLAGS     => { value  => qq{$brewflags},                             how  => q{replace} },          # make brew flags available for later use
+                ASGS_HOME           => { value  => qq{$asgs_home},                             how  => q{replace} },          # used in preference of $HOME in most cases
+                ASGS_TMPDIR         => { value  => qq{$asgs_tmpdir},                           how  => q{replace} },          # used in preference of $TMPDIR in most cases
+                ASGS_MACHINE_NAME   => { value  => qq{$asgs_machine_name},                     how  => q{replace} },          # machine referred to as in platforms.sh & cmplrflags.mk
+                ASGS_COMPILER       => { value  => qq{$asgs_compiler},                         how  => q{replace} },          # compiler family designated during asgs-brew.pl build
+                ASGS_INSTALL_PATH   => { value  => qq{$asgs_install_path},                     how  => q{replace} },          # where asgs-brew.pl installs supporting bins & libs
+                ASGS_MAKEJOBS       => { value  => qq{$makejobs},                              how  => q{replace} },          # passed to make commands where Makefile supports
+                ASGS_MESH_DEFAULTS  => { value  => qq{$scriptdir/config/mesh_defaults.sh},     how  => q{replace} },          # list of supported meshes
+                ASGS_PLATFORMS      => { value  => qq{$scriptdir/platforms.sh},                how  => q{replace} },          # list of supported platforms
             },
         },
         {
