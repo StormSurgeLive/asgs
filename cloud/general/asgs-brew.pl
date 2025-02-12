@@ -1111,7 +1111,7 @@ sub get_steps {
             command     => qq{bash ./bin/fetch asgs-lint $scriptdir},
             clean       => sub {
                 local $?;
-                system(qq{rm -rvf git/asgs-lint});
+                system(qq{rm -rvf bin/asgs-lint git/asgs-lint});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
