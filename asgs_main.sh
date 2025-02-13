@@ -143,19 +143,21 @@ checkFileExistence()
         #    scp://tacc_tds3//meshes
         # In which case it is treated as a full path.
         local URL
-        local meshExt
         # Note: the traditional default extension for ASGS is ".xy"; this is preserved here,
         # but the following block allows us to define a different extension in the mesh_defaults.sh
         # file using the "MESHEXT" environmental variable; to get files with no extensions at all,
         # define this variable as empty, i.e., "MESHEXT="
+        local meshExt
         if [ -z "${MESHEXT+x}" ]; then
-          #variable is undefined
-          meshExt=".xz"
-        elif [ -z "$MESHEXT" ]; then
+          meshExt=".xz"                #MESHEXT is undefined
+        elif [[ -z "$MESHEXT" || "$MESHEXT" == "null" ]]; then
           meshExt=""
+        elif [[ "$MESHEXT" == "xz" ]]; then
+          meshExt=".xz"        #MESHEXT has a supported value of "xz"
+        elif [[ "$MESHEXT" == "gz" ]]; then
+          meshExt=".gz"        #MESHEXT has a supported value of "gz"
         else
-          #variable has a value
-          meshExt=".${MESHEXT}"
+          fatal "$THIS: MESHEXT "$MESHEXT" is not supported in mesh_defaults.sh. Only supported types are: 'gz', 'xz', and 'null'. Default is 'xz'."
         fi
         case $FTYPE in
            "ADCIRC mesh file")
@@ -194,7 +196,7 @@ checkFileExistence()
            # Note: we may wish to in the future add protocols such as: rsync://,
            # s3://, etc - if so, support for building the underlying command would
            # go here, and be stored in "$downloadCMD"
-           warn "$THIS: Unrecognized protocol in URL: '$URL'."
+           warn "$THIS: Unrecognized protocol in URL: '$URL'. If you need this supported create a new issue on Github"
            downloadCMD="unknown"
         fi
         # attempt to download the file
@@ -205,16 +207,24 @@ checkFileExistence()
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
         local err=$?
-        if [[ $err == 0 ]]; then
-           logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
-           consoleMessage "$I Uncompressing '${FNAME}.xz'."
-           xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`." &
+        if [[ $err == 0 && -n "$meshExt" ]]; then                          # file had .gz or .xz extension
+           logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}${meshExt}."
+           consoleMessage "$I Uncompressing '${FNAME}${meshExt}'."
+           # Add support for additional compression suffixes here
+           if [[ "$meshExt" == ".xz" ]]; then   # decompress with xz
+             xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz: `cat errmsg`." &
+           elif [[ "$meshExt" == ".gz" ]]; then # decompress with gunzip
+             gunzip ${FPATH}/${FNAME}.gz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.gz: `cat errmsg`." &
+           fi
            pid=$!
            spinner 120 $pid
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
-        else
-           consoleMessage "$W Failed to download ${FNAME}.xz due to timeout of 900 seconds"
-           logMessage "$THIS: Failed to download $FTYPE (timeout of 900 seconds) from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+        elif [[ $err == 0 && "$meshExt" == "null" ]]; then                 # file was downloaded uncompressed, had no compression extension
+           # assumed downloaded, uncompressed already
+           [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
+        else                                                               # failure mode detected
+           consoleMessage "$W Failed to download ${FNAME}${meshExt} due to timeout of 900 seconds"
+           logMessage "$THIS: Failed to download $FTYPE (timeout of 900 seconds) from ${URL}/${FNAME}${meshExt} to ${FPATH}/${FNAME}${meshExt} `cat errmsg`."
         fi
      fi
   fi
