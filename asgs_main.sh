@@ -122,7 +122,7 @@ checkFileExistence()
      fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
   fi
   local success=no
-  if [ $FNAME ]; then
+  if [ "$FNAME" ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
@@ -143,6 +143,20 @@ checkFileExistence()
         #    scp://tacc_tds3//meshes
         # In which case it is treated as a full path.
         local URL
+        local meshExt
+        # Note: the traditional default extension for ASGS is ".xy"; this is preserved here,
+        # but the following block allows us to define a different extension in the mesh_defaults.sh
+        # file using the "MESHEXT" environmental variable; to get files with no extensions at all,
+        # define this variable as empty, i.e., "MESHEXT="
+        if [ -z "${MESHEXT+x}" ]; then
+          #variable is undefined
+          meshExt=".xz"
+        elif [ -z "$MESHEXT" ]; then
+          meshExt=""
+        else
+          #variable has a value
+          meshExt=".${MESHEXT}"
+        fi
         case $FTYPE in
            "ADCIRC mesh file")
               URL=$MESHURL
@@ -164,18 +178,29 @@ checkFileExistence()
         local downloadCMD
         if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
            logMessage "$THIS: The curl version is $(curl --version)"
-           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
+           downloadCMD="curl --insecure ${URL}/${FNAME}${meshExt} --output ${FPATH}/${FNAME}${meshExt}"
         elif [[ $URL =~ "scp://" ]]; then
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+           downloadCMD="scp $URL/${FNAME}${meshExt} $FPATH/${FNAME}${meshExt}"
+        elif [[ $URL =~ "ssh://" ]]; then
+           # Note: this is currently using scp under the hood, if for some reason
+           # scp is deprecated in favor using ssh directly, it would replace the
+           # following lines to build up the command
+           URL=${URL:6}     # remove the scp://
+           URL=${URL/\//:}  # replace the / between the host and the path with a :
+           downloadCMD="scp $URL/${FNAME}${meshExt} $FPATH/${FNAME}${meshExt}"
         else
+           # Note: we may wish to in the future add protocols such as: rsync://,
+           # s3://, etc - if so, support for building the underlying command would
+           # go here, and be stored in "$downloadCMD"
            warn "$THIS: Unrecognized protocol in URL: '$URL'."
            downloadCMD="unknown"
         fi
         # attempt to download the file
-        logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        consoleMessage "$I Downloading '${FNAME}.xz'"
+        logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}${meshExt} with the command '$downloadCMD'."
+        consoleMessage "$I Downloading '${FNAME}${meshExt}'"
+        echo $downloadCMD
         $downloadCMD 2> errmsg &
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
@@ -1806,26 +1831,16 @@ hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
 hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
-hotstartDownloadExecutable="curl --insecure"
-hotstartDownloadRedirect="--output"
 if [[ $HOTORCOLD = hotstart ]]; then
    consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
-   if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" ]]; then
+   urlCheck=$(expr match "$LASTSUBDIR" 'http')
+   if [[ $urlCheck -eq 4 ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from
       # a fort.68 file and always writes a fort.67 file
       hotstartURL=$LASTSUBDIR
-      # If scp is to be used, the host where the hotstart (and run.properties) files
-      # are downloaded from must support public key authentication. The URL is expected
-      # to be in the form scp://tacc_tds3//full/path/to/hotstart/file
-      if [[ $LASTSUBDIR =~ "scp://" ]]; then
-         hotstartDownloadExecutable="scp"
-         hotstartDownloadRedirect=""
-         hotstartURL=${hotstartURL:6}     # remove leading scp://
-         hotstartURL=${hotstartURL/\//:}  # replace / between host and path with :
-      fi
    else
       # we are reading the hotstart file from the local filesystem, determine
       # whether it is from a nowcast or hindcast
@@ -1851,7 +1866,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       debugMessage "The run directory is ${RUNDIR}."
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
       # get cold start time from the run.properties file
-      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect $RUNDIR/from.run.properties
+      curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
       logMessage "$THIS: Detecting cold start date from $RUNDIR/from.run.properties."
       COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
       logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
@@ -1859,17 +1874,17 @@ if [[ $HOTORCOLD = hotstart ]]; then
       # is what the rest of asgs_main.sh is expecting
       if [[ $HOTSTARTFORMAT = "binary" ]]; then
          mkdir -p $RUNDIR/PE0000 2>> $SYSLOG
-         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/PE0000/${hotstartFile}
+         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/PE0000/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/PE0000/${hotstartFile}."
       else
-         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/${hotstartFile}
+         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/${hotstartFile}."
       fi
 
       logMessage "Now checking hotstart file content."
       checkHotstart $RUNDIR $HOTSTARTFORMAT 67
       # get cold start time from the run.properties file
-      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect from.run.properties
+      curl $hotstartURL/run.properties > from.run.properties
    else
       # starting from a hotstart file on the local filesystem, not from a URL
       checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
