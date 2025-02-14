@@ -5,6 +5,9 @@ COMPILER=${2:-gfortran}
 JOBS=${3:-1}
 _ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
+
 if [ "$COMPILER" == "clean" ]; then
   echo cleaning NASM and ffmpeg libraries and utilities
   cd $OPT/bin

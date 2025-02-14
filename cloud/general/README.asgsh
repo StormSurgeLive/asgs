@@ -131,14 +131,8 @@ The following interaction is an example interaction:
 ADCIRC Environment
 ~~~~~~~~~~~~~~~~~~
 
-ADCIRC may be optionally built via asgs-shell.pl using the --build-adcirc 
-command, along with others that are used to specify the git branch, tag, 
-or commit SHA. But the shell provides access to the underlying script since 
-it is not the purpose of asgs-brew.pl to be a tool for building ADCIRC.
-
 The asgsh shell provides support for managing different versions of ADCIRC;
-for example, if --build-adcirc is used with asgs-brew.pl and no other defaults
-are changed, the resulting variables specified inside of the ASGS profile are:
+the supported variables specified inside of the ASGS profile are:
 
 1. the named ASGS profile (e.g., 'default') will include the following exported
 environmental variables:
@@ -153,7 +147,9 @@ environmental variables:
 	ADCIRC_MAKE_CMD='make -j 1 adcirc padcirc adcswan padcswan adcprep hstime aswip SWAN=enable compiler=intel NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable NETCDFHOME=/home/$USER/opt/default MACHINENAME=queenbee'
 
 Note: It appears GitHub is not supporting the "https" git urls, so ADCIRC_GIT_URL
-(above) is effectively fixed to "git@github.com:adcirc" when using github URLs.
+(above) is effectively fixed to "git@github.com:adcirc" when using github URLs. Any
+of these variables can be updated via the "info.sh" file in each supported patch
+under, $SCRIPTDIR/patches/ADCIRC/<PATCHSET>/info.sh.
 
 The most important of these is ADCIRCDIR, which is used by asgs_main.sh to locate
 the required ADCIRC executables and utilities. The other variables simply record

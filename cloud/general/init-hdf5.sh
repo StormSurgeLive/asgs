@@ -10,6 +10,9 @@ HDF5_USE_FILE_LOCKING=FALSE
 
 _ASGS_TMP=${ASGS_TMPDIR:-/tmp/${USER}-asgs}
 
+mkdir -p $_ASGS_TMP 2> /dev/null
+chmod 700 $_ASGS_TMP
+
 if [ $2 == "clean" ]; then
   echo Cleaning HDF5 libraries and utilities
   cd $OPT/bin

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
 if [ -z "$_ASGSH_PID" ]; then
-  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
-  exit 1;
+  SCRIPTDIR=$2
+  if [ -z "$SCRIPTDIR" ]; then
+    echo "If this script is not run inside of the ASGS Shell Environment, asgsh."
+    echo "the path of the SCRIPTDIR must be provided as the second argument ..."
+    exit 1;
+  fi
 fi
 
 # this is just a starter, the above stuff might go into a shell "library" at some
@@ -12,6 +16,7 @@ ITEM=${1}
 
 case "${ITEM}" in
   all)
+    fetch asgs-lint
     fetch asgs-mon
     fetch configs
     fetch cera
@@ -21,17 +26,30 @@ case "${ITEM}" in
     # ...
     fetch adcirc-testsuite
     ;;
+  asgs-lint)
+    pushd $SCRIPTDIR
+    mkdir $SCRIPTDIR/git 2> /dev/null
+    pushd $SCRIPTDIR/git  > /dev/null  2>&1
+    if [ -d ./asgs-lint ]; then
+      cd ./asgs-lint  > /dev/null  2>&1
+      git pull origin master
+    else
+      git clone git@github.com:StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
+    fi
+    popd > /dev/null 2>&1
+    # force this always
+    ln -f -s $SCRIPTDIR/git/asgs-lint/bin/asgs-lint $SCRIPTDIR/bin/asgs-lint
+    ;;
   asgs-mon)
-    build jq                 # helps parse JSON 
+    build jq                 # helps parse JSON
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
     if [ -d ./asgs-mon ]; then
       cd ./asgs-mon  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
     fi
-    git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
     popd > /dev/null 2>&1
     ;;
   configs)
@@ -40,10 +58,9 @@ case "${ITEM}" in
     if [ -d ./asgs-configs ]; then
       cd ./asgs-configs  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
     fi
-    git clone git@github.com:StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
     popd > /dev/null 2>&1
     ;;
   docs)
@@ -52,10 +69,9 @@ case "${ITEM}" in
     if [ -d ./asgs.wiki ]; then
       cd ./asgs.wiki  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
     fi
-    git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
     popd > /dev/null 2>&1
     ;;
   cera)
@@ -85,10 +101,9 @@ case "${ITEM}" in
     if [ -d ./ourPerl ]; then
       cd ./ourPerl  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
     fi
-    git clone git@github.com:StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
     popd > /dev/null 2>&1
     ;;
   storm-archive)
@@ -97,10 +112,9 @@ case "${ITEM}" in
     if [ -d ./storm-archive ]; then
       cd ./storm-archive  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
     fi
-    git clone git@github.com:StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
     popd > /dev/null 2>&1
     ;;
   adcirc-testsuite)
@@ -109,10 +123,9 @@ case "${ITEM}" in
     if [ -d ./adcirc-testsuite ]; then
       cd ./adcirc-testsuite  > /dev/null  2>&1
       git pull origin master
-      popd > /dev/null 2>&1 
-      exit
+    else
+      git clone git@github.com:adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
     fi
-    git clone git@github.com:adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
     popd > /dev/null 2>&1
     ;;
   *)
@@ -123,13 +136,14 @@ case "${ITEM}" in
 Rerunning the command will update the repo if possible.
 
  Supported:
-  * adcirc-testsuite - git clones ADCIRC's test-suite         (public)
-  * asgs-mon         - git clones ASGS' monitor               (public)
-  * cera             - git clones CERA local-asgs-assets      (private)
-  * configs          - git clones ASGS asgs-config            (public)
-  * docs             - git clones ASGS asgs.wiki              (public)
-  * ourperl          - git clones ASGS fork of Nate's ourPerl (public)
-  * storm-archive    - git clones ASGS storm-archive          (public)
+  * adcirc-testsuite - git clones ADCIRC's test-suite                (public)
+  * asgs-lint        - git clones ASGS' configuration linter         (public)
+  * asgs-mon         - git clones ASGS' monitor                      (public)
+  * cera             - git clones CERA local-asgs-assets             (private)
+  * configs          - git clones ASGS asgs-config                   (public)
+  * docs             - git clones ASGS asgs.wiki                     (public)
+  * ourperl          - git clones ASGS fork of Nate Dill's "ourPerl" (public)
+  * storm-archive    - git clones ASGS storm-archive                 (public)
   --                 ---
   * all              - attempts all of the above
 
