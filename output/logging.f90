@@ -294,7 +294,7 @@ subroutine initR1D(vec)
    implicit none
    type(realVector1D_t), intent(inout) :: vec
    vec%n = 0
-   vec%ninc = 100
+   vec%ninc = 1000000
    vec%s = vec%ninc
    allocate(vec%v(0:vec%s+1))
    vec%v(:)=-99999.d0
@@ -336,7 +336,7 @@ subroutine initR1D(vec)
    implicit none
    type(integerVector1D_t), intent(inout) :: vec
    vec%n = 0
-   vec%ninc = 100
+   vec%ninc = 1000000
    vec%s = vec%ninc
    allocate(vec%v(0:vec%s+1))
    vec%v(:)=-99999
@@ -372,13 +372,25 @@ subroutine initR1D(vec)
    !-----------------------------------------------------------------------
 
    !-----------------------------------------------------------------------
+   ! Clear a 1D vector of integers without deallocating space.
+   !-----------------------------------------------------------------------
+   subroutine clearI1D(vec)
+   implicit none
+   type(integerVector1D_t), intent(inout) :: vec
+   vec%v(:)=-99999
+   vec%n = 0
+   !-----------------------------------------------------------------------
+   end subroutine clearI1D
+   !-----------------------------------------------------------------------
+
+   !-----------------------------------------------------------------------
    ! Initialize a 1D vector of character strings.
    !-----------------------------------------------------------------------
    subroutine initC1D(vec)
    implicit none
    class(characterVector1D_t), intent(inout) :: vec
    vec%n = 0
-   vec%ninc = 100
+   vec%ninc = 1000000
    vec%s = vec%ninc
    allocate(vec%v(0:vec%s+1))
    !-----------------------------------------------------------------------
