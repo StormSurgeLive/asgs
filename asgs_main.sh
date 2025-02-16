@@ -1765,6 +1765,16 @@ consoleMessage "$I CONFIG: '${CONFIG}'"
 consoleMessage "$I Verifying that required files and directories actually exist."
 #
 checkDirExistence $INPUTDIR "directory for input files"
+
+# hook to run a script to get large files or do other
+# out of band things to get files; execution happens in $INPUTDIR;
+# prepending $INPUTDIR is on purpose, the file *must* exist in INPUTDIR
+if [ -x "${INPUTDIR}/${INITINPUT}" ]; then
+  pushd $INPUTDIR
+  ./$INITINPUT
+  popd
+fi
+
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 #
 if [[ $QUEUESYS = serial ]]; then
