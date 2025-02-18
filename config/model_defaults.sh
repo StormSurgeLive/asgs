@@ -65,6 +65,12 @@ time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
 lateral_turbulence="eddy_viscosity"         # "smagorinsky" or "eddy_viscosity"
     eddy_viscosity_coefficient="50.0"       # ESLM
     smagorinsky_coefficient="0.2"           # smagorinsky coef
+# smagorinsky controls
+declare -g -A Smag_Control
+Smag_Control["smag_comp_flag"]="off"
+Smag_Control["smag_upper_lim"]=100.0
+Smag_Control["smag_lower_lim"]="1.0e-8"
+#
 h0=0.1                        # min depth (m) to be considered wet
 velmin=0.1                    # min pseudovelocity (m/s) from wet to dry to change state
 bottom_friction_limit=0.001   # min bottom friction when using Manning's n (CF/FFACTOR)
@@ -93,14 +99,21 @@ declare -g -A metControl
 metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
 metControl["DragLawString"]="garratt" # "garratt" or "powell"
 metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
+metControl["rhoAir"]="1.293"          # kg/m^3, not often modified
 metControl["invertedBarometerOnElevationBoundary"]="no" # yes|no to include inverse barometer effect on boundary
+metControl["nPowellSearchDomains"]="-1"                 # default to searching all domains for min pressure (v55release or later)
 #
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
 declare -g -A wetDryControl
+# available in v53release and later
 wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
 wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
 wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
-wetDryControl["slim"]=0.0004          # value of slope limiter for wet/dry
+# available starting in v55release
+wetDryControl["StatPartWetFix"]="off" # on|off to use nearby node in elements with less than 3 wet nodes
+wetDryControl["How2FixStatPartWet"]=0 # 0: use nearest neighbor if wet and H > 0.8H0, 1: use nearest neighbor if wet regardless if H > 0.8H0
+# available starting in v56.0.3
+wetDryControl["slim"]=1.d9            # value of slope limiter for wet/dry
 wetDryControl["windlim"]="off"        # on|off to limit wind stress calculations in shallow water
 wetDryControl["directvelWD"]="off"    # on|off to apply direct velocity calculation in wetting
 wetDryControl["useHF"]="off"          # on|off to use high friction in shallow inundated areas
