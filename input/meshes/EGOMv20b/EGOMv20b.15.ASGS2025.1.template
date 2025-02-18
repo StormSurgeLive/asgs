@@ -1,44 +1,44 @@
- ASGS TEMPLATE15:2024.1 %StormName% ADCIRCVersion:%ADCIRCVER%
+ ASGS TEMPLATE15:2025.1 Mesh:%MeshName% Meteorology:%StormName% ADCIRCVersion:%ADCIRCVER%
  %ScenarioID%
  %NFOVER%    ! %NFOVER-Line%
  %NABOUT%    ! %NABOUT-Line%
  %NSCREEN%   ! %NSCREEN-Line%
  %IHOT%      ! %IHOT-Line%
- 2           ! %ICS-Line%
+ %ICS%                      ! %ICS-Line%
  %IM%        ! %IM-Line%
- 1           ! %NOLIBF-Line%
- 2           ! %NOLIFA-Line%
+ %NOLIBF%                   ! %NOLIBF-Line%
+ %NOLIFA%                   ! %NOLIFA-Line%
  %NOLICA%    ! %NOLICA-Line%
  %NOLICAT%   ! %NOLICAT-Line%
  %NWP%       ! %NWP-Line%
  %NALIST%    ! %NALIST-Line%
- 1           ! %NCOR-Line%
- 1           ! %NTIP-Line%
+ %NCOR%                     ! %NCOR-Line%
+ %NTIP%                     ! %NTIP-Line%
  %NWS%       ! %NWS-Line%
- 1           ! %NRAMP-Line%
+ %NRAMP%                    ! %NRAMP-Line%
  9.81        ! %G-Line%
- -3          ! %TAU0-Line%
+ %TAU0%                     ! %TAU0-Line%
  %DT%        ! %DTDP-Line%
- 0.00        ! %STATIM-Line%
- 0.00        ! %REFTIM-Line%
+ %STATIM%                   ! %STATIM-Line%
+ %REFTIM%                   ! %REFTIM-Line%
  %WTIMINC%   ! %WTIMINC-Line%
  %RNDAY%     ! %RNDAY-Line%
- 14.0        ! %DRAMP-Line%
+ %DRAMP% %DRAMPExtFlux% %FluxSettlingTime% %DRAMPIntFlux% %DRAMPElev% %DRAMPTip% %DRAMPMete% %DRAMPWRad% %DUnRampMete%   ! %DRAMP-Line%
  %A00B00C00% ! %A00B00C00-Line%
  %H0% 12 12 %VELMIN%  ! %H0-Line%
- -71.0 27.0           ! %SLAM0-Line%
- %FFACTOR% 1.0  10.  0.33333 ! %FFACTOR-Line%
+ %SLAM0% %SFEA0%                                 ! %SLAM0-Line%
+ %FFACTOR% %HBREAK% %FTHETA%  %FGAMMA%           ! %FFACTOR-Line%
  %ESLM%                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
  8 ! %NTIFCOMMENT% %NTIF-Line%
  K1
- 0.141565  0.000072921158358   0.736  %K1NF% %K1EQARG%
+ 0.141565  0.000072921158358   0.695  %K1NF% %K1EQARG%
  O1
  0.100514  0.000067597744151   0.695  %O1NF% %O1EQARG%
  P1
  0.046843  0.000072522945975   0.706  %P1NF% %P1EQARG%
  Q1
- 0.019256  0.000064958541129   0.695  %Q1NF% %Q1EQARG%
+ 0.019256  0.000064958541129   0.736  %Q1NF% %Q1EQARG%
  N2
  0.046398  0.000137879699487   0.693  %N2NF% %N2EQARG%
  M2
@@ -1588,5 +1588,11 @@ K2
 %CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00%NCDATE-Line%
 !
 ! namelists:
-&inundationOutputControl inundationOutput=%inundationOutput% /
-&metControl WindDragLimit=%WindDragLimit% DragLawString=%DragLawString% /
+%met_control_namelist%
+%wetdry_control_namelist%
+%inundation_output_control_namelist%
+%smag_control_namelist%
+%swanoutputcontrol_namelist%
+%warnelevcontrol_namelist%
+%wavecoupling_namelist%
+%dynamic_water_level_correction_namelist%
