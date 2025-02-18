@@ -123,7 +123,7 @@ generateDynamicInput()
         -e "s/%adcircVersions%/$avs/" \
         -e "s/%CSDATE%/$CSDATE/" \
         -e "s/%HSTIME%/$HSTIME/" \
-        -e "s/%ICS%/$ics/" \        
+        -e "s/%ICS%/$ics/" \
         -e "s/%ADVISORY%/$ADVISORY/" \
         -e "s/%SCENARIO%/$SCENARIO/" \
         -e "s/%ENDTIME%/$endTime/" \
@@ -140,6 +140,8 @@ generateDynamicInput()
         -e "s/%DWM%/${owiWinPre["DWM"]}/" \
         -e "s/%startdatetime%/${owiWinPre["startDateTime"]}/" \
         -e "s/%enddatetime%/${owiWinPre["endDateTime"]}/" \
+        -e "s/%rhoAir%/${metControl["rhoAir"]}/" \
+        -e "s/%nPowellSearchDomains%/${metControl["nPowellSearchDomains"]}/" \
         -e "s/%lateral_turbulence%/$lateral_turbulence/" \
         -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
         -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \

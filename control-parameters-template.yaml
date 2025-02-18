@@ -8,7 +8,7 @@
   scenario: "%SCENARIO%"
   endtime: %ENDTIME%
   timestepsize: %TIMESTEPSIZE%
-  coordinate_system: 
+  coordinate_system:
     projection: "%projection%"
     reprojection: "%reprojection%""
     earth_curvature: "%earthCurvature%""
@@ -16,9 +16,13 @@
   solver_time_integration: "%IM_ETC%"
   initialization_length: %HINDCASTLENGTH%
   time_weighting_coefficients: "%A00B00C00%"
-  lateral_turbulence: "%lateral_turbulence%"
-  eddy_viscosity_coefficient: %ESLM%
-  smagorinsky_coefficient: %ESLM_Smagorinsky%
+  lateral_turbulence:
+    formulation: "%lateral_turbulence%"
+    eddy_viscosity_coefficient: %ESLM%
+    smagorinsky_coefficient: %ESLM_Smagorinsky%
+    smag_comp_flag: "%smag_comp_flag%"
+    smag_lower_lim: "%smag_lower_lim%"
+    smag_upper_lim: "%smag_upper_lim%"
   h0: %H0%
   velmin: %VELMIN%
   bottom_friction_limit: %FFACTOR%
@@ -32,6 +36,8 @@
     basenws: %BASENWS%
     wtiminc: "%WTIMINC%"
     windExposure: "%windExposure%"
+    invertedBarometerOnElevationBoundary: "%invertedBarometerOnElevationBoundary%"
+    rhoAir: %rhoAir%
     tropical_cyclone:
       storm_name: "%storm_name%"
       boundary_layer_adjustment: %BLADJ%
@@ -44,11 +50,11 @@
     blending:
       pure_vortex_radius: %PUREVORTEX%
       pure_background_radius: %PUREBACKGROUND%
-    metControl:
+    wind_drag:
       DragLawString: "%DragLawString%"
       WindDragLimit: %WindDragLimit%
       outputWindDrag: "%outputWindDrag%"
-      invertedBarometerOnElevationBoundary: "%invertedBarometerOnElevationBoundary%"
+      nPowellSearchDomains: %nPowellSearchDomains%
   tides:
     tidal_forcing: "%tidal_forcing%"
     tidefac_file: "%tidefac_file%"
