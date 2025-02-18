@@ -94,6 +94,9 @@ $ns = $cs;
 #  A D C I R C   C O N T R O L   F I L E
 #
 
+
+
+
 # open template file for fort.15
 unless (open(TEMPLATE,"<$p->{controltemplate}")) {
    ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file '$p->{controltemplate}' for reading: $!.");
@@ -115,7 +118,7 @@ if ( $p->{coordinate_system}->{projection} eq "cartesian" ) {
       $ics = 24;
    } else {
       ASGSUtil::stderrMessage("ERROR","Coordinate reprojection '$p->{coordinate_system}->{reprojection}' was not recognized.");
-   }           
+   }
 }
 my $zNorth = "northpole";
 if ( $ics >=20 && $ics <=24 && $p->{coordinate_system}->{rotation} ne "northpole" ) {
@@ -123,21 +126,21 @@ if ( $ics >=20 && $ics <=24 && $p->{coordinate_system}->{rotation} ne "northpole
       $zNorth = "-42.8906  72.3200  ! Greenland-Antarctica";
    } elsif ( $p->{coordinate_system}->{rotation} eq "china-argentina" ) {
       $zNorth = ="112.8516  40.3289  ! China-Argentina";
-   } elsif ( $p->{coordinate_system}->{rotation} eq "borneo-brazil" ) {      
+   } elsif ( $p->{coordinate_system}->{rotation} eq "borneo-brazil" ) {
       $zNorth = "114.16991  0.77432 ! Borneo-Brazil";
-   } else { 
-      ASGSUtil::stderrMessage("ERROR","Coordinate rotation '$p->{coordinate_system}->{rotation}' was not recognized.");      
+   } else {
+      ASGSUtil::stderrMessage("ERROR","Coordinate rotation '$p->{coordinate_system}->{rotation}' was not recognized.");
    }
-} 
+}
 if ( $zNorth ne "northpole" ) {
-   $ics *= -1; 
+   $ics *= -1;
    unless (open(my $rotm,">fort.rotm")) {
       ASGSUtil::stderrMessage("ERROR","Failed to open the coordinate rotation file fort.rotm for writing: $!.");
       die;
    }
-   print $rotm "$zNorth"; 
+   print $rotm "$zNorth";
    close($rotm);
-}   
+}
 #
 my $nws = $p->{meteorology}->{nws};
 my $basenws = $p->{meteorology}->{basenws};
@@ -306,23 +309,68 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 #
 # construct metControl namelist line
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue, invertedBarometerOnElevationBoundary=logicalValue /
-my $outputWindDrag = $p->{meteorology}->{metControl}->{outputWindDrag} eq "yes" ? "T" : "F";
-my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{metControl}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
-my $met_control_line ="&metControl WindDragLimit=$p->{meteorology}->{metControl}->{WindDragLimit}, \n";
-$met_control_line   .="            DragLawString=\"$p->{meteorology}->{metControl}->{DragLawString}\",\n";
+# ADCIRC defaults for these namelist parameters, if they are not included in
+# the namelist, are as follows:
+# WindDragLimit = 0.0035d0    ! wind.F ! this seems way too high
+# DragLawString = "garratt"   ! wind.F
+# outputWindDrag = .false.    ! global.F
+# rhoAir = 1.293D0            ! constants.F
+# invertedBarometerOnElevationBoundary = .false. ! gwce.F
+# nPowellSearchDomains = -1   ! owiwind.F (the -1 indicates that all domains should be searched for the minimum pressure)
+#
+my $outputWindDrag = $p->{meteorology}->{wind_drag}->{outputWindDrag} eq "yes" ? "T" : "F";
+my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
+my $met_control_line ="&metControl WindDragLimit=$p->{meteorology}->{wind_drag}->{WindDragLimit}, \n";
+$met_control_line   .="            DragLawString=\"$p->{meteorology}->{wind_drag}->{DragLawString}\",\n";
 $met_control_line   .="            outputWindDrag=$outputWindDrag,\n";
-$met_control_line   .="            invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary /\n";
+$met_control_line   .="            rhoAir=$p->{meteorology}->{rhoAir},\n";
+$met_control_line   .="            invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary,\n";
+# nPowellSearch domains requires ADCIRC version v55relase or later
+if ( $p->{adcirc_version} ne "v53.05-modified" ) {
+   $met_control_line.="            nPowellSearchDomains=$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},\n";
+}
+$met_control_line   .="            /\n";
 #
 # construct wetDryControl namelist
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
 #        slim=floatValue, windlim=logicalValue, directvelWD=logicalValue, useHF=logicalValue /
+# available in v53release (and later)
 my $outputNodeCode = $p->{wetDryControl}->{outputNodeCode} eq 'yes' ? 'T' : 'F';
 my $outputNOFF = $p->{wetDryControl}->{outputNOFF} eq 'yes' ? 'T' : 'F';
 my $noffActive = $p->{wetDryControl}->{noffActive} eq 'on' ? 'T' : 'F';
+# available in v55release and later; defaults if not set:
+# StatPartWetFix = .false ! global.F
+# How2FixStatPartWet = 0  ! global.F
+my $StatPartWetFix = $p->{wetDryControl}->{StatPartWetFix} eq 'on' ? 'T' : 'F';
+my $How2FixStatPartWet = $p->{wetDryControl}->{How2FixStatPartWet}
+# available in v56.0.3; defaults if not set:
+# slim = 1.de9            ! global.F ! Large value on slim effectively assures limiter is not applied anywhere.
+# windlim = .false        ! global.F
+# directvelWD = .false.   ! global.F
+# useHF = .false.         ! global.F
+my $slim = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
 my $windlim = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
 my $directvelWD = $p->{wetDryControl}->{directvelWD} eq 'on' ? 'T' : 'F';
 my $useHF = $p->{wetDryControl}->{useHF} eq 'on' ? 'T' : 'F';
-my $wetdry_control_line = "&wetDryControl outputNodeCode=$outputNodeCode, outputNOFF=$outputNOFF, noffActive=$noffActive, slim=$p->{wetDryControl}->{slim}, windlim=$windlim, directvelWD=$directvelWD, useHF=$useHF /";
+#
+my $wetdry_control_line = "&wetDryControl \n";
+# the following are available in any ADCIRC version supported by ASGS
+$wetdry_control_line    .= "outputNodeCode=$outputNodeCode,\n";
+$wetdry_control_line    .= "outputNOFF=$outputNOFF,\n";
+$wetdry_control_line    .= "noffActive=$noffActive,\n";
+# the following are availble in v55 and later
+if ( $p->{adcirc_version} ne "v53.05-modified" ) {
+   $wetdry_control_line .= "StatPartWetFix=$StatPartWetFix\n";
+   $wetdry_control_line .= "How2FixStatPartWet=$How2FixStatPartWet\n";
+}
+# the following are only available in v56
+if ( $p->{adcirc_version} eq "v56.0.3" ) {
+   $wetdry_control_line .= "slim=$slim\n";
+   $wetdry_control_line .= "windlim=$windlim\n";
+   $wetdry_control_line .= "directvelWD=$directvelWD\n";
+   $wetdry_control_line .= "useHF=$useHF\n";
+}
+$wetdry_control_line    .= "/\n";
 #
 # construct inundationOutput namelist
 # &inundationOutputControl inundationOutput=logicalValue0, inunThresh=floatValue /
@@ -339,6 +387,16 @@ my $SWAN_OutputDIR = $p->{swan}->{SWANOutputControl}->{SWAN_OutputDIR} eq 'yes' 
 my $SWAN_OutputTMM10 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTM02 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
 my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /";
+# smagorinsky control; defaults as follows if not set
+my $smag_comp_flag = $p->{lateral_turbulence}->{smag_comp_flag} eq 'on' ? 'T' : 'F';
+my $smag_upper_lim = $p->{lateral_turbulence}->{smag_upper_lim};
+my $smag_lower_lim = $p->{lateral_turbulence}->{smag_lower_lim};
+my $smag_control_line = "&Smag_Control \n";
+# the following are available in any ADCIRC version supported by ASGS
+$smag_control_line    .= "smag_comp_flag=$smag_comp_flag,\n";
+$smag_control_line    .= "smag_upper_lim=$smag_upper_lim,\n";
+$smag_control_line    .= "smag_comp_flag=$smag_lower_lim\n";
+$smag_control_line    .= "/ \n";
 #
 # LINTER: check for consistency between solver time integration
 #         type and time weighting coefficients
@@ -449,7 +507,7 @@ while(<TEMPLATE>) {
     s/%ErrorElev%/$p->{output}->{non_fatal_override}->{ErrorElev}/;
     # logging levels (debug, echo, info, warning, error)
     s/%NABOUT%/$logLevelsNABOUT{$p->{output}->{log_level}}/;
-    # coordinate system 
+    # coordinate system
     s/%ICS%/$ics/;
     # set six digit IM according to time integration
     # IM=0 is the same as IM=111111
@@ -565,6 +623,12 @@ while(<TEMPLATE>) {
     s/%wetdry_control_namelist%/$wetdry_control_line/;
     s/%inundation_output_control_namelist%/$inundation_output_control_line/;
     s/%dynamic_water_level_correction_namelist%/$dynamic_water_level_correction_line/;
+
+%smag_control_namelist%
+%warnelevcontrol_namelist%
+%wavecoupling_namelist%
+
+
     # individual namelist parameters
     s/%WindDragLimit%/$p->{metControl}->{WindDragLimit}/;          # &metControl
     s/%DragLawString%/\"$p->{metControl}->{DragLawString}\"/;
