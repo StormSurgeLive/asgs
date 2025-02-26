@@ -1127,7 +1127,7 @@ case $GRIDNAME in
          time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
          lateral_turbulence="smagorinsky"          # "smagorinsky" or "eddy_viscosity"
          eddy_viscosity_coefficient="20.0"         # ESLM
-         smagorinsky_coefficient="0.05"
+         smagorinsky_coefficient="2.0"
          bottom_friction_limit=0.001               # min when using Manning's n (CF/FFACTOR)
          h0=0.1                                    # min depth (m) to be considered wet
          velmin=0.01
@@ -1137,6 +1137,7 @@ case $GRIDNAME in
          nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
          nodal_attribute_activate+=( surface_canopy_coefficient )
          nodal_attribute_activate+=( surface_directional_effective_roughness_length )
+         nodal_attribute_activate+=( elemental_slope_limiter )
          # tidal forcing
          tidalConstituents=( "k1" "o1" "p1" "q1" "n2" "m2" "s2" "k2" )
          # nodal attributes file
@@ -1149,7 +1150,12 @@ case $GRIDNAME in
          nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
          nodal_attribute_default_values["elemental_slope_limiter"]="0.02"
          # meteorological forcing
-         metControl["WindDragLimit"]="0.003"  # max wind drag coefficient, unitless
+         metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
+         metControl["invertedBarometerOnElevationBoundary"]="yes" # yes|no to include inverse barometer effect on boundary
+         # wetting and drying
+         wetDryControl["slim"]=1000000000.0    # value of slope limiter for wet/dry
+         # SWAN coupling
+         SWANDT=1800
          ;;
       *)
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
