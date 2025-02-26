@@ -185,7 +185,7 @@ checkFileExistence()
         fi
         # attempt to download the file
         logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        consoleMessage "$I Downloading '${FNAME}.xz'"
+        consoleMessage "$I Downloading '$URL/${FNAME}.xz' ..."
         $downloadCMD 2> errmsg &
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
@@ -1748,14 +1748,14 @@ GETINPUT=${GETINPUT:-null}
 # prepending $INPUTDIR is on purpose, the file *must* exist in INPUTDIR
 if [[ "$GETINPUT" != "null" ]]; then
   if [[ -e "${INPUTDIR}/${GETINPUT}" && -x "${INPUTDIR}/${GETINPUT}" ]]; then
-    pushd $INPUTDIR
+    pushd $INPUTDIR 2> /dev/null
+    consoleMessage "$I Found and running 'GETINPUT': ${INPUTDIR}/${GETINPUT} ..."
     ./$GETINPUT
     popd
   elif [[ -e "${INPUTDIR}/${GETINPUT}" ]]; then
-    warn "'GETINPUT' is defined as '$GETINPUT', but can't be found in '$INPUTDIR'. Unset 'GETINPUT' if not needed."
+    warn "'GETINPUT' is defined as '$GETINPUT', but can't be found in '$INPUTDIR'. Set 'GETINPUT=null' if not needed."
   elif [[ -x "${INPUTDIR}/${GETINPUT}" ]]; then
     warn "'GETINPUT' is defined as '$GETINPUT' and exists, but is not executable."
-  fi
   fi
 fi
 
