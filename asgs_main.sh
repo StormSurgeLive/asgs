@@ -1741,13 +1741,19 @@ consoleMessage "$I Verifying that required files and directories actually exist.
 #
 checkDirExistence $INPUTDIR "directory for input files"
 
+GETINPUT=${GETINPUT:-null}
+
 # hook to run a script to get large files or do other
 # out of band things to get files; execution happens in $INPUTDIR;
 # prepending $INPUTDIR is on purpose, the file *must* exist in INPUTDIR
-if [ -x "${INPUTDIR}/${GETINPUT}" ]; then
-  pushd $INPUTDIR
-  ./$GETINPUT
-  popd
+if [[ "$GETINPUT" != "null" ]]; then
+  if [[ -e "${INPUTDIR}/${GETINPUT}" && -x "${INPUTDIR}/${GETINPUT}" ]]; then
+    pushd $INPUTDIR
+    ./$GETINPUT
+    popd
+  elif [[ -e "${INPUTDIR}/${GETINPUT}" ]]; then
+    warn "'GETINPUT' is defined, but can't be found in '$INPUTDIR'. Unset 'GETINPUT' if not needed."
+  fi
 fi
 
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
