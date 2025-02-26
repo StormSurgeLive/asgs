@@ -143,22 +143,7 @@ checkFileExistence()
         #    scp://tacc_tds3//meshes
         # In which case it is treated as a full path.
         local URL
-        # Note: the traditional default extension for ASGS is ".xy"; this is preserved here,
-        # but the following block allows us to define a different extension in the mesh_defaults.sh
-        # file using the "MESHEXT" environmental variable; to get files with no extensions at all,
-        # define this variable as empty, i.e., "MESHEXT="
-        local meshExt
-        if [ -z "${MESHEXT+x}" ]; then
-          meshExt=".xz"                #MESHEXT is undefined
-        elif [[ -z "$MESHEXT" || "$MESHEXT" == "null" ]]; then
-          meshExt=""
-        elif [[ "$MESHEXT" == "xz" ]]; then
-          meshExt=".xz"        #MESHEXT has a supported value of "xz"
-        elif [[ "$MESHEXT" == "gz" ]]; then
-          meshExt=".gz"        #MESHEXT has a supported value of "gz"
-        else
-          fatal "$THIS: MESHEXT "$MESHEXT" is not supported in mesh_defaults.sh. Only supported types are: 'gz', 'xz', and 'null'. Default is 'xz'."
-        fi
+        local meshExt=.xz
         case $FTYPE in
            "ADCIRC mesh file")
               URL=$MESHURL
@@ -172,26 +157,25 @@ checkFileExistence()
            "ADCIRC self attracting earth load tide file")
               URL=$LOADTIDEURL
               ;;
-           *)
-              warn "$THIS: Unrecognized file type to download: '$FTYPE'."
+           *) warn "$THIS: Unrecognized file type to download: '$FTYPE'."
               URL="unknown"
               ;;
         esac
         local downloadCMD
         if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
            logMessage "$THIS: The curl version is $(curl --version)"
-           downloadCMD="curl --insecure ${URL}/${FNAME}${meshExt} --output ${FPATH}/${FNAME}${meshExt}"
+           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
         elif [[ $URL =~ "scp://" ]]; then
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}${meshExt} $FPATH/${FNAME}${meshExt}"
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         elif [[ $URL =~ "ssh://" ]]; then
            # Note: this is currently using scp under the hood, if for some reason
            # scp is deprecated in favor using ssh directly, it would replace the
            # following lines to build up the command
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}${meshExt} $FPATH/${FNAME}${meshExt}"
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         else
            # Note: we may wish to in the future add protocols such as: rsync://,
            # s3://, etc - if so, support for building the underlying command would
@@ -200,31 +184,22 @@ checkFileExistence()
            downloadCMD="unknown"
         fi
         # attempt to download the file
-        logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}${meshExt} with the command '$downloadCMD'."
-        consoleMessage "$I Downloading '${FNAME}${meshExt}'"
-        echo $downloadCMD
+        logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
+        consoleMessage "$I Downloading '${FNAME}.xz'"
         $downloadCMD 2> errmsg &
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
         local err=$?
-        if [[ $err == 0 && -n "$meshExt" ]]; then                          # file had .gz or .xz extension
-           logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}${meshExt}."
-           consoleMessage "$I Uncompressing '${FNAME}${meshExt}'."
-           # Add support for additional compression suffixes here
-           if [[ "$meshExt" == ".xz" ]]; then   # decompress with xz
-             xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz: `cat errmsg`." &
-           elif [[ "$meshExt" == ".gz" ]]; then # decompress with gunzip
-             gunzip ${FPATH}/${FNAME}.gz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.gz: `cat errmsg`." &
-           fi
+        if [[ $err == 0 ]]; then
+           logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
+           consoleMessage "$I Uncompressing '${FNAME}.xz'."
+           xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`." &
            pid=$!
            spinner 120 $pid
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
-        elif [[ $err == 0 && "$meshExt" == "null" ]]; then                 # file was downloaded uncompressed, had no compression extension
-           # assumed downloaded, uncompressed already
-           [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
-        else                                                               # failure mode detected
-           consoleMessage "$W Failed to download ${FNAME}${meshExt} due to timeout of 900 seconds"
-           logMessage "$THIS: Failed to download $FTYPE (timeout of 900 seconds) from ${URL}/${FNAME}${meshExt} to ${FPATH}/${FNAME}${meshExt} `cat errmsg`."
+        else
+           consoleMessage "$W Failed to download ${FNAME}.xz due to timeout of 900 seconds"
+           logMessage "$THIS: Failed to download $FTYPE (timeout of 900 seconds) from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
         fi
      fi
   fi
@@ -1769,9 +1744,9 @@ checkDirExistence $INPUTDIR "directory for input files"
 # hook to run a script to get large files or do other
 # out of band things to get files; execution happens in $INPUTDIR;
 # prepending $INPUTDIR is on purpose, the file *must* exist in INPUTDIR
-if [ -x "${INPUTDIR}/${INITINPUT}" ]; then
+if [ -x "${INPUTDIR}/${GETINPUT}" ]; then
   pushd $INPUTDIR
-  ./$INITINPUT
+  ./$GETINPUT
   popd
 fi
 
