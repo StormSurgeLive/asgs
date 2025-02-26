@@ -1752,7 +1752,10 @@ if [[ "$GETINPUT" != "null" ]]; then
     ./$GETINPUT
     popd
   elif [[ -e "${INPUTDIR}/${GETINPUT}" ]]; then
-    warn "'GETINPUT' is defined, but can't be found in '$INPUTDIR'. Unset 'GETINPUT' if not needed."
+    warn "'GETINPUT' is defined as '$GETINPUT', but can't be found in '$INPUTDIR'. Unset 'GETINPUT' if not needed."
+  elif [[ -x "${INPUTDIR}/${GETINPUT}" ]]; then
+    warn "'GETINPUT' is defined as '$GETINPUT' and exists, but is not executable."
+  fi
   fi
 fi
 
