@@ -24,10 +24,12 @@
 #
 # specify compiler=gfortran on the make command line
 
+$(info Compiler: $(compiler))
+
 ifeq ($(compiler),gfortran)
-   export FC := gfortran
-   export CC := gcc
-   export COMP_SYS := gnu_linux
+   override FC := gfortran
+   override CC := gcc
+   override COMP_SYS := gnu_linux
    FFLAGS := -ffree-line-length-none -ffixed-line-length-none
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
@@ -36,9 +38,9 @@ endif
 #
 # specify compiler=intel on the make command line
 ifeq ($(compiler),intel)
-   export FC := ifort
-   export CC := icc
-   export COMP_SYS := intel_linux
+   override FC := ifort
+   override CC := icc
+   override COMP_SYS := intel_linux
    FFLAGS := -132
    ifeq ($(DEBUG),full)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all
@@ -46,23 +48,17 @@ ifeq ($(compiler),intel)
 endif
 # specify compiler=intel on the make command line
 ifeq ($(compiler),intel-oneapi)
-   export FC := ifx
-   export CC := icx
-   export COMP_SYS := oneapi_linux
+   override FC := ifx
+   override CC := icx
+   override COMP_SYS := oneapi_linux
    FFLAGS := -132
    ifeq ($(DEBUG),full)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
-ifeq ($(compiler),intel-oneapi)
-   export FC := ifort
-   export CC := icx
-   export COMP_SYS := intel_linux
-   FFLAGS := -132
-   ifeq ($(DEBUG),full)
-      FFLAGS := -g -O0 -fpp -traceback -debug -check all
-   endif
-endif
+
+$(info FC: $(FC))
+
 #
 INCLUDES :=
 #
