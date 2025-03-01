@@ -22,10 +22,28 @@ rm -rf grib2 > /dev/null 2>&1
 tar zxvf wgrib2${VERSION}.tgz > /dev/null 2>&1
 
 pwd
-make -j 1 NETCDFPATH=$asgs_install_path NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$asgs_machine_name compiler=$COMPILER
+
+if [ "$compiler" == "intel" ]; then
+  CC=gcc
+  FC=gfortran
+  COMP_SYS=gnu_linux
+fi
+if [ "$compiler" == "intel" ]; then
+  CC=icc
+  FC=ifort
+  COMP_SYS=intel_linux
+fi
+if [ "$compiler" == "intel-oneapi" ]; then
+  CC=icc
+  FC=ifort
+  COMP_SYS=intel_linux
+fi
+
+make -j 1 NETCDFPATH=$OPT NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$ASGS_MACHINE_NAME compiler=$COMPILER
+
 cp $SCRIPTDIR/grib2/wgrib2/wgrib2 $SCRIPTDIR/bin > /dev/null 2>&1
 
-rm -rfv grib2
-rm -fv  wgrib2${VERSION}.tgz
+#rm -rfv grib2
+#rm -fv  wgrib2${VERSION}.tgz
 
 popd
