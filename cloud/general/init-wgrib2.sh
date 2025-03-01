@@ -42,7 +42,7 @@ make -j 1 NETCDFPATH=$OPT NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enabl
 
 cp $SCRIPTDIR/grib2/wgrib2/wgrib2 $SCRIPTDIR/bin > /dev/null 2>&1
 
-#rm -rfv grib2
-#rm -fv  wgrib2-${VERSION}.tgz
+rm -rfv grib2
+rm -fv  wgrib2-${VERSION}.tgz
 
 popd
