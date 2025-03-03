@@ -3,7 +3,7 @@
 # mesh_defaults.sh : Functions required for initializing
 # parameters that are mesh dependent.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2024 Jason Fleming
+# Copyright(C) 2019--2025 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -34,21 +34,6 @@ LOADTIDEURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides
 # with ADCIRC+SWAN v52; not clear whether it is correctly
 # formatted with ADCIRC+SWAN v55 yet.
 SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
-#
-# For ADCIRC versions v55.01 and later, rotated spherical coordinate
-# systems are available that are useful for global meshes to place the
-# poles on land to avoid numerical distortion. The use of this capability
-# and the specification of the coordinates of the north pole are controlled
-# via the zNorth parameter and triggered by a negative value of ICS in the
-# fort.15 file. The north pole location $zNorth is written to a fort.rotm file.
-# Options include the fcollowing:
-# zNorth="northpole"         ! no coordinate system rotation
-# zNorth="-42.8906  72.3200  ! Greenland-Antarctica"
-# zNorth="112.8516  40.3289  ! China-Argentina"
-# zNorth="114.16991  0.77432 ! Borneo-Brazil"
-# Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
-# Model coordinate system reference: https://wiki.adcirc.org/ICS
-zNorth="northpole"
 #
 # Self Attraction/Earth Load Tide Forcing File (fort.24)
 # The Not all meshes will have one of these available, although the global meshes do.
@@ -176,6 +161,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      adcircVersions=( "v56.0.2" )
       case $parameterPackage in
       "hardcoded")
          CONTROLTEMPLATE=CPRA23v01c_5kcms_fort.15.template
@@ -255,6 +241,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="01:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
+      adcircVersions=( "v56.0.2" )
       ;;
    "LA_v19k-WithUpperAtch_chk")
       nodes=1593485
@@ -276,6 +263,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_LA_v19k-WithUpperAtch_chk.dat.xz
       UNITOFFSETFILE=unit_offset_LA_v19k-WithUpperAtch_chk.dat
+      adcircVersions=( "v53release" )
       ;;
       #
    "LA_v20a-WithUpperAtch_chk"|"LAv20a")
@@ -293,6 +281,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      adcircVersions=( "v53release" )
       case $parameterPackage in
       "hardcoded")
          CONTROLTEMPLATE=LA_v20a-WithUpperAtch.15.template
@@ -356,6 +345,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      adcircVersions=( "v53release" )
       case $parameterPackage in
       "hardcoded")
          CONTROLTEMPLATE=LAERDCv5i_10.194kcms.15.template
@@ -425,6 +415,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      adcircVersions=( "v53release" )
       ;;
       #
    "tx2008_r35h"|"TX2008")
@@ -449,6 +440,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_tx2008_r35h.grd.dat.xz
       UNITOFFSETFILE=unit_offset_tx2008_r35h.grd.dat
+      adcircVersions=( "v53release" )
       ;;
       #
    "tx2017"|"CTXCS2017")
@@ -474,6 +466,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      adcircVersions=( "v53release" )
       ;;
       #
    "tx2020a"|"TX2020a")
@@ -499,6 +492,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      adcircVersions=( "v53release" )
       ;;
       #
    "TXLA22a")
@@ -516,6 +510,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time,including partmesh
       NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="14:00:00" # forecast wall clock time
+      adcircVersions=( "v53release" )
       case $parameterPackage in
       "hardcoded")
          CONTROLTEMPLATE=TXLA22a_fort.15.template  # fort.15 template
@@ -581,6 +576,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      adcircVersions=( "v53release" )
       ;;
       #
    "NCv6d")
@@ -598,6 +594,7 @@ case $GRIDNAME in
       ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
+      adcircVersions=( "v53release" )
       case $parameterPackage in
       "hardcoded"|"default")
          # we don't have a hardcoded template set up for NCv6d
@@ -655,6 +652,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_nc_inundation_v9.99_rivers.dat.xz
       UNITOFFSETFILE=unit_offset_nc_inundation_v9.99_rivers.dat
+      adcircVersions=( "v53release" )
       case $parameterPackage in
       "hardcoded")
          CONTROLTEMPLATE=nc_9.99wrivers_vortex_fort.15.template
@@ -727,6 +725,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
       UNITOFFSETFILE=unit_offset_hsofs.dat
+      adcircVersions=( "v53release" )
       ;;
    "hsofs"|"HSOFS")
       #
@@ -748,6 +747,7 @@ case $GRIDNAME in
       UNITOFFSETFILE=unit_offset_hsofs.dat
       case $parameterPackage in
       "hardcoded")
+         adcircVersions=( "v53release" "v56.0.2" )
          CONTROLTEMPLATE=hsofs_explicit.15.template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=hsofs.nowindreduction.15.template
@@ -756,6 +756,7 @@ case $GRIDNAME in
          SWANDT=1800                 # swan timestep / coupling interval (seconds)
          ;;
       "default")
+         adcircVersions=( "v56.0.2" )
          CONTROLTEMPLATE=hsofs-parameters.15.template
          # interaction between mesh and models:
          SWANDT=1800                 # swan timestep / coupling interval (seconds)
@@ -807,6 +808,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="24:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
+         adcircVersions=( "v53release" "v56.0.2" )
          CONTROLTEMPLATE=SABv20a.15.template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=SABv20a.nowindreduction.15.template
@@ -815,6 +817,7 @@ case $GRIDNAME in
          TIMESTEPSIZE=0.5            # adcirc time step size (seconds)
          ;;
       "default")
+         adcircVersions=( "v56.0.2" )
          CONTROLTEMPLATE=SABv20a.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
@@ -877,6 +880,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # unit offset url
       UNITOFFSETFILE=null
+      adcircVersions=( "v53release" )
       ;;
       #
    "southfl_v11-1_final"|"SFLv111")
@@ -903,6 +907,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      adcircVersions=( "v53release" )
       ;;
       #
    "CenFlv7"|"eccl_v7_geo_z")
@@ -926,6 +931,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # FIXME: no unit offset url
+      adcircVersions=( "v53release" )
       ;;
       #
    "FEMAR3")
@@ -949,6 +955,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_FEMA_R3_20110303_MSL.dat.xz
       UNITOFFSETFILE=unit_offset_FEMA_R3_20110303_MSL.dat
+      adcircVersions=( "v53release" )
       ;;
       #
    "FEMAR2")
@@ -971,6 +978,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       # no scalable unit water level correction file
+      adcircVersions=( "v53release" )
       ;;
       #
    "NAC2014")
@@ -990,6 +998,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
+         adcircVersions=( "v53release" )
          CONTROLTEMPLATE=NAC2014_R01.15.template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=NAC2014_R01.nowindreduction.15.template
@@ -997,6 +1006,7 @@ case $GRIDNAME in
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.109"
          ;;
       "default")
+         adcircVersions=( "v53release" )
          CONTROLTEMPLATE=NAC2014.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
@@ -1048,6 +1058,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
+         adcircVersions=( "v53release" "v56.0.2" )
          CONTROLTEMPLATE=NGOM_RT_v19b.15.template_18kcms   # fort.15 template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=NGOM_RT_v19b.nowindreduction.15.template
@@ -1055,6 +1066,7 @@ case $GRIDNAME in
          nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2"
          ;;
       "default")
+         adcircVersions=( "v56.0.2" )
          CONTROLTEMPLATE=NGOMv19.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
@@ -1113,13 +1125,14 @@ case $GRIDNAME in
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
+         adcircVersions=( "v53release" "v56.0.2" )
          CONTROLTEMPLATE=EGOM-RT_v20b.15.template   # fort.15 template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=EGOM-RT_v20b.norough.15.template
          NAFILE=EGOM-RT_v20b_asgs_chk.13
-         nodal_attribute_default_values["sea_surface_height_above_geoid"]="-0.106"
          ;;
       "default")
+         adcircVersions=( "v56.0.2" )
          CONTROLTEMPLATE=EGOMv20b.15.ASGS2024.1.template
          # numerics/physics (fort.15)
          advection="on"                            # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
@@ -1181,6 +1194,7 @@ case $GRIDNAME in
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       case $parameterPackage in
       "hardcoded")
+         adcircVersions=( "v53release" "v56.0.2" )
          CONTROLTEMPLATE=shinnecock_asgs.fort.15.template
          # wind at 10m fort.15 template
          CONTROLTEMPLATENOROUGH=shinnecock_asgs.fort.15.template
@@ -1188,6 +1202,7 @@ case $GRIDNAME in
          NAFILE="null"
          ;;
       "default")
+         adcircVersions=( "v53release" "v56.0.2" )
          CONTROLTEMPLATE=shinnecock-parameters.fort.15.template
          NAFILE=shinnecock_nodal_attributes.template
          # default physics parameters (that differ from the settings in config/model_defaults.sh
@@ -1227,6 +1242,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="01:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="01:00:00" # forecast wall clock time
       UNITOFFSETFILE=null
+      adcircVersions=( "v53release" )
       ;;
    "OPENWATERv1e")
       #
@@ -1252,6 +1268,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       UNITOFFSETFILE=null
+      adcircVersions=( "v53release" )
       ;;
    "PRVI15")
       #
@@ -1276,6 +1293,7 @@ case $GRIDNAME in
       NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
       FORECASTWALLTIME="07:00:00" # forecast wall clock time
       UNITOFFSETFILE=null
+      adcircVersions=( "v53release" )
       ;;
 
    *)
