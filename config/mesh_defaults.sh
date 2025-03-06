@@ -1127,7 +1127,7 @@ case $GRIDNAME in
          time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
          lateral_turbulence="smagorinsky"          # "smagorinsky" or "eddy_viscosity"
          eddy_viscosity_coefficient="20.0"         # ESLM
-         smagorinsky_coefficient="2.0"
+         smagorinsky_coefficient="0.2"
          bottom_friction_limit=0.001               # min when using Manning's n (CF/FFACTOR)
          h0=0.1                                    # min depth (m) to be considered wet
          velmin=0.01
