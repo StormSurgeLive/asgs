@@ -12,4 +12,4 @@ if [[ "$COMPILER" == "clean" || "$COMPILER" == "rebuild" ]]; then
   fi
 fi
 
-cpanm --verbose PDL
+cpanm --verbose PDL@2.099

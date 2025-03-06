@@ -24,11 +24,15 @@
 #
 # specify compiler=gfortran on the make command line
 
+$(info Compiler: $(compiler))
+
+export OMP_NUM_THREADS=4
+
 ifeq ($(compiler),gfortran)
    export FC := gfortran
    export CC := gcc
    export COMP_SYS := gnu_linux
-   FFLAGS := -ffree-line-length-none -ffixed-line-length-none
+   FFLAGS := -ffree-line-length-none -ffixed-line-length-none -fopenmp
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
@@ -39,7 +43,7 @@ ifeq ($(compiler),intel)
    export FC := ifort
    export CC := icc
    export COMP_SYS := intel_linux
-   FFLAGS := -132
+   FFLAGS := -132 -qopenmp
    ifeq ($(DEBUG),full)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
@@ -49,20 +53,14 @@ ifeq ($(compiler),intel-oneapi)
    export FC := ifx
    export CC := icx
    export COMP_SYS := oneapi_linux
-   FFLAGS := -132
+   FFLAGS := -132 -qopenmp
    ifeq ($(DEBUG),full)
       FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
-ifeq ($(compiler),intel-oneapi)
-   export FC := ifort
-   export CC := icx
-   export COMP_SYS := intel_linux
-   FFLAGS := -132
-   ifeq ($(DEBUG),full)
-      FFLAGS := -g -O0 -fpp -traceback -debug -check all
-   endif
-endif
+
+$(info FC: $(FC))
+
 #
 INCLUDES :=
 #
