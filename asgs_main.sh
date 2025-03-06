@@ -122,7 +122,7 @@ checkFileExistence()
      fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
   fi
   local success=no
-  if [ $FNAME ]; then
+  if [ "$FNAME" ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
@@ -143,6 +143,7 @@ checkFileExistence()
         #    scp://tacc_tds3//meshes
         # In which case it is treated as a full path.
         local URL
+        local meshExt=.xz
         case $FTYPE in
            "ADCIRC mesh file")
               URL=$MESHURL
@@ -156,8 +157,7 @@ checkFileExistence()
            "ADCIRC self attracting earth load tide file")
               URL=$LOADTIDEURL
               ;;
-           *)
-              warn "$THIS: Unrecognized file type to download: '$FTYPE'."
+           *) warn "$THIS: Unrecognized file type to download: '$FTYPE'."
               URL="unknown"
               ;;
         esac
@@ -169,13 +169,23 @@ checkFileExistence()
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+        elif [[ $URL =~ "ssh://" ]]; then
+           # Note: this is currently using scp under the hood, if for some reason
+           # scp is deprecated in favor using ssh directly, it would replace the
+           # following lines to build up the command
+           URL=${URL:6}     # remove the scp://
+           URL=${URL/\//:}  # replace the / between the host and the path with a :
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         else
-           warn "$THIS: Unrecognized protocol in URL: '$URL'."
+           # Note: we may wish to in the future add protocols such as: rsync://,
+           # s3://, etc - if so, support for building the underlying command would
+           # go here, and be stored in "$downloadCMD"
+           warn "$THIS: Unrecognized protocol in URL: '$URL'. If you need this supported create a new issue on Github"
            downloadCMD="unknown"
         fi
         # attempt to download the file
         logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        consoleMessage "$I Downloading '${FNAME}.xz'"
+        consoleMessage "$I Downloading '$URL/${FNAME}.xz' ..."
         $downloadCMD 2> errmsg &
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
@@ -1730,6 +1740,25 @@ consoleMessage "$I CONFIG: '${CONFIG}'"
 consoleMessage "$I Verifying that required files and directories actually exist."
 #
 checkDirExistence $INPUTDIR "directory for input files"
+
+GETINPUT=${GETINPUT:-null}
+
+# hook to run a script to get large files or do other
+# out of band things to get files; execution happens in $INPUTDIR;
+# prepending $INPUTDIR is on purpose, the file *must* exist in INPUTDIR
+if [[ "$GETINPUT" != "null" ]]; then
+  if [[ -e "${INPUTDIR}/${GETINPUT}" && -x "${INPUTDIR}/${GETINPUT}" ]]; then
+    pushd $INPUTDIR 2> /dev/null
+    consoleMessage "$I Found and running 'GETINPUT': ${INPUTDIR}/${GETINPUT} ..."
+    ./$GETINPUT
+    popd
+  elif [[ -e "${INPUTDIR}/${GETINPUT}" ]]; then
+    warn "'GETINPUT' is defined as '$GETINPUT', but can't be found in '$INPUTDIR'. Set 'GETINPUT=null' if not needed."
+  elif [[ -x "${INPUTDIR}/${GETINPUT}" ]]; then
+    warn "'GETINPUT' is defined as '$GETINPUT' and exists, but is not executable."
+  fi
+fi
+
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 #
 if [[ $QUEUESYS = serial ]]; then
