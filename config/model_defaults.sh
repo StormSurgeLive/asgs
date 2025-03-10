@@ -27,10 +27,33 @@
 # ADCIRC parameters (fort.15) file
 parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and static nodal attributes
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
-adcirc_version="notset"
-TIMESTEPSIZE="1.0"            # ADCIRC time step in seconds
+adcircVersions=( "notset" )
+CONTROLTEMPLATENOROUGH="null"
+TIMESTEPSIZE="1.0"            # ADCIRC time step (DTDP) in seconds
+metOnlyTimeStepSize="300.0"   # ADCIRC time step (DTDP) for meteorology-only mode
 WTIMINC=900                   # time increment of meteorological data sets in seconds
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+#
+# For ADCIRC versions v55.01 and later, rotated spherical coordinate
+# systems are available that are useful for global meshes to place the
+# poles on land to avoid numerical distortion. The use of this capability
+# and the specification of the coordinates of the north pole are controlled
+# via the zNorth parameter and triggered by a negative value of ICS in the
+# fort.15 file. The north pole location $zNorth is written to a fort.rotm file.
+# Options include the fcollowing:
+# zNorth="northpole"         ! no coordinate system rotation
+# zNorth="-42.8906  72.3200  ! Greenland-Antarctica"
+# zNorth="112.8516  40.3289  ! China-Argentina"
+# zNorth="114.16991  0.77432 ! Borneo-Brazil"
+# Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
+# Model coordinate system reference: https://wiki.adcirc.org/ICS
+zNorth="northpole"
+declare -g -A coordinateSystem
+coordinateSystem["projection"]="geographic" # cartesian|geographic
+coordinateSystem["reprojection"]="CPP"      # CPP|equal-area|merator|miller|gall-stereographic
+coordinateSystem["earthCurvature"]="no"     # no|yes
+coordinateSystem["rotation"]="northpole"    # greenland-antarctica|china-argentina|borneo-brazil
+#
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:
 # "0.35 0.30  0.35"  ! implicit time stepping, oldest and most used values
@@ -41,6 +64,12 @@ time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
 lateral_turbulence="eddy_viscosity"         # "smagorinsky" or "eddy_viscosity"
     eddy_viscosity_coefficient="50.0"       # ESLM
     smagorinsky_coefficient="0.2"           # smagorinsky coef
+# smagorinsky controls
+declare -g -A Smag_Control
+Smag_Control["smag_comp_flag"]="off"
+Smag_Control["smag_upper_lim"]=100.0
+Smag_Control["smag_lower_lim"]="1.0e-8"
+#
 h0=0.1                        # min depth (m) to be considered wet
 velmin=0.1                    # min pseudovelocity (m/s) from wet to dry to change state
 bottom_friction_limit=0.001   # min bottom friction when using Manning's n (CF/FFACTOR)
@@ -69,14 +98,21 @@ declare -g -A metControl
 metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
 metControl["DragLawString"]="garratt" # "garratt" or "powell"
 metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
+metControl["rhoAir"]="1.293"          # kg/m^3, not often modified
 metControl["invertedBarometerOnElevationBoundary"]="no" # yes|no to include inverse barometer effect on boundary
+metControl["nPowellSearchDomains"]="-1"                 # default to searching all domains for min pressure (v55release or later)
 #
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
 declare -g -A wetDryControl
+# available in v53release and later
 wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
 wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
 wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
-wetDryControl["slim"]=0.0004          # value of slope limiter for wet/dry
+# available starting in v55release
+wetDryControl["StatPartWetFix"]="off" # on|off to use nearby node in elements with less than 3 wet nodes
+wetDryControl["How2FixStatPartWet"]=0 # 0: use nearest neighbor if wet and H > 0.8H0, 1: use nearest neighbor if wet regardless if H > 0.8H0
+# available starting in v56.0.3
+wetDryControl["slim"]=1.d9            # value of slope limiter for wet/dry
 wetDryControl["windlim"]="off"        # on|off to limit wind stress calculations in shallow water
 wetDryControl["directvelWD"]="off"    # on|off to apply direct velocity calculation in wetting
 wetDryControl["useHF"]="off"          # on|off to use high friction in shallow inundated areas
