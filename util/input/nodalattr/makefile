@@ -30,10 +30,10 @@ ifeq ($(compiler),gfortran)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal #-Wall
    endif
    ifeq ($(DEBUG),trace)
-      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace 
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace
    endif
    ifeq ($(MACHINENAME),jason-desktop)
-      FFLAGS := $(FFLAGS) -DOLDGFORTRAN 
+      FFLAGS := $(FFLAGS) -DOLDGFORTRAN
    endif
    ifeq ($(MACHINENAME),oracle)
       FFLAGS := $(FFLAGS) -DOLDGFORTRAN
@@ -43,7 +43,7 @@ ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -cpp -shared-intel -fpp
    ifeq ($(DEBUG),trace)
-      FFLAGS := -g -O0 -fpp -traceback 
+      FFLAGS := -g -O0 -fpp -traceback
    endif
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
@@ -59,21 +59,21 @@ ifeq ($(compiler),intel)
    FC := ifort
    FFLAGS := -fpp -DINTEL
    ifeq ($(DEBUG),full)
-      FFLAGS := -g -O0 -fpp -traceback -debug -check all 
+      FFLAGS := -g -O0 -fpp -traceback -debug -check all
    endif
 endif
 #
 OUTPUTDIR := ../../../output
 INCLUDES := -I. -I$(OUTPUTDIR)
 #
-# if netcdf libraries are available on the target platform, 
+# if netcdf libraries are available on the target platform,
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
    NETCDFPATH  := /usr
    #
    #   # jgf20150616: Added netcdf paths for stampede at TACC.
-   ifeq ($(MACHINENAME),stampede) 
+   ifeq ($(MACHINENAME),stampede)
       NETCDFPATH := /opt/apps/intel17/netcdf/4.3.3.1/x86_64
    endif
    # jgf20150716: Added compiler flags for hatteras at RENCI.
@@ -96,7 +96,7 @@ ifeq ($(NETCDF),enable)
    LDFLAGS     := -lnetcdff
    INCLUDES    := -I. -I$(NETCDFPATH)/include
    LIBS        := -L$(NETCDFPATH)/lib
-endif 
+endif
 ifeq ($(NETCDF4),enable)
    FFLAGS      := $(FFLAGS) -DHAVE_NETCDF4
 endif
@@ -105,8 +105,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o landuse.o logging.o nodalattr.o asgsio.o 
-MODS := adcmesh.mod landuse.mod logging.mod ioutil.mod nodalattr.mod asgsio.mod 
+OBJ := adcmesh.o landuse.o logging.o nodalattr.o asgsio.o kdtree2.o
+MODS := adcmesh.mod landuse.mod logging.mod ioutil.mod nodalattr.mod asgsio.mod kdtree2_module.mod
 #
 # targets
 all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyvis convertna
@@ -114,10 +114,10 @@ all : tau0_gen mannings_n_finder surface_roughness submergence submergence_eddyv
 clean :
 	rm -f *.o *.mod *.x
 #
-nodalattr.mod : adcmesh.mod nodalattr.f90 
+nodalattr.mod : adcmesh.mod nodalattr.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c nodalattr.f90 $(LDFLAGS)
 #
-convertna : $(MODS) convertna.f90 
+convertna : $(MODS) convertna.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 submergence_eddyvis : $(MODS) submergence_eddyvis.f90
@@ -141,14 +141,17 @@ adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
 #
-logging.mod : $(OUTPUTDIR)/logging.f90 
+logging.mod : $(OUTPUTDIR)/logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
 #
-adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90 
+adcircdata.mod : $(OUTPUTDIR)/adcircdata.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcircdata.f90 $(LDFLAGS)
 #
-landuse.mod : landuse.f90 
+landuse.mod : landuse.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c landuse.f90 $(LDFLAGS)
 #
 ioutil.mod : ${OUTPUTDIR}/logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ${OUTPUTDIR}/logging.f90 $(LDFLAGS)
+#
+kdtree2_module.mod : $(OUTPUTDIR)/kdtree2.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/kdtree2.f90 $(LDFLAGS)

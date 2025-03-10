@@ -71,7 +71,7 @@ ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -fpp -shared-intel
    ifeq ($(DEBUG),trace)
-      FFLAGS := -g -O0 -fpp -traceback 
+      FFLAGS := -g -O0 -fpp -traceback
    endif
    ifeq ($(DEBUG),full)
       FFLAGS := -fpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
@@ -198,9 +198,9 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := adcmesh.o asgsio.o nodalattr.o logging.o
+OBJ := adcmesh.o asgsio.o nodalattr.o logging.o kdtree2.o
 # JDB March 2019, added ioutil.mod to MODS
-MODS := ioutil.mod adcmesh.mod asgsio.mod nodalattr.mod logging.mod
+MODS := ioutil.mod adcmesh.mod asgsio.mod nodalattr.mod logging.mod kdtree2_module.mod
 #
 # targets
 all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries generateCPP inundationMask HottifySWAN checkAdcircMesh resultScope highResolutionRegion stationProcessor collectMinMax addMeshToNetCDF
@@ -208,6 +208,9 @@ all : adcirc2netcdf netcdf2adcirc makeMax generateXDMF pullStationTimeSeries gen
 clean :
 	rm -f *.o *.mod *.x FigureGen/*.mod FigureGen/*.x
 #
+#
+applyBoundaryTypes : $(MODS) applyBoundaryTypes.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 addMeshToNetCDF : $(MODS) addMeshToNetCDF.f90 logging.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -224,8 +227,11 @@ netcdf2adcirc : $(MODS) netcdf2adcirc.f90
 asgsio.mod : logging.mod ioutil.mod adcmesh.mod nodalattr.mod asgsio.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c asgsio.f90 $(LDFLAGS)
 #
-adcmesh.mod : adcmesh.f90 logging.mod
+adcmesh.mod : adcmesh.f90 logging.mod kdtree2_module.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c adcmesh.f90 $(LDFLAGS)
+#
+kdtree2_module.mod : kdtree2.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c kdtree2.f90 $(LDFLAGS)
 #
 logging.mod : logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c logging.f90 $(LDFLAGS)
@@ -246,7 +252,7 @@ checkAdcircMesh : $(MODS) checkAdcircMesh.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 generateXDMF : adcmesh.mod asgsio.mod logging.mod nodalattr.mod generateXDMF.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o logging.o nodalattr.o $(LDFLAGS)
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o kdtree2.o asgsio.o logging.o nodalattr.o $(LDFLAGS)
 #
 generateCPP : adcmesh.mod generateCPP.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
@@ -255,7 +261,7 @@ pullStationTimeSeries : asgsio.mod adcmesh.mod nodalattr.mod pullStationTimeSeri
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
 stationProcessor : asgsio.mod adcmesh.mod nodalattr.mod stationProcessor.f90
-	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 asgsio.o adcmesh.o logging.o nodalattr.o $(LDFLAGS)
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 kdtree2.o asgsio.o adcmesh.o logging.o nodalattr.o $(LDFLAGS)
 #
 wetDryCheck : adcmesh.mod asgsio.mod wetDryCheck.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 adcmesh.o asgsio.o $(LDFLAGS)
