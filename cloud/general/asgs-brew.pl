@@ -899,16 +899,16 @@ sub get_steps {
             clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
 
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
-            # using perl-5.38.0
+            # using perl-5.40.1
             export_ENV => {
-                PERLBREW_PERL    => { value => q{perl-5.38.0},                                                                  how => q{replace} },
-                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.38.0/bin}, how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.40.1},                                                                  how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.40.1/bin}, how => q{prepend} },
                 PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
                 PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
-                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.38.0/bin}, how => q{prepend} },
-                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.38.0/man},                     how => q{prepend} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.40.1/bin}, how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.40.1/man},                     how => q{prepend} },
                 PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.38.0/lib/site_perl/5.38.0/},            how => q{prepend} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.40.1/lib/site_perl/5.40.1/},            how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -926,7 +926,7 @@ sub get_steps {
             pwd                 => qq{$scriptdir},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5 clean},
-            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.38.0/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.40.1/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
