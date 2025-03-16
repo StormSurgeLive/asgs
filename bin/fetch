@@ -16,6 +16,7 @@ ITEM=${1}
 
 case "${ITEM}" in
   all)
+    fetch adcirclive-cli
     fetch asgs-lint
     fetch asgs-mon
     fetch configs
@@ -25,6 +26,20 @@ case "${ITEM}" in
     fetch storm-archive
     # ...
     fetch adcirc-testsuite
+    ;;
+  adcirclive-cli)
+    pushd $SCRIPTDIR
+    mkdir $SCRIPTDIR/git 2> /dev/null
+    pushd $SCRIPTDIR/git  > /dev/null  2>&1
+    if [ -d ./adcirclive-cli ]; then
+      cd ./adcirclive-cli  > /dev/null  2>&1
+      git pull origin master
+    else
+      git clone git@github.com:StormSurgeLive/adcirclive-cli.git $SCRIPTDIR/git/adcirclive-cli
+    fi
+    popd > /dev/null 2>&1
+    # force this always
+    ln -f -s $SCRIPTDIR/git/adcirclive-cli/bin/adcirclive $SCRIPTDIR/bin/adcirclive
     ;;
   asgs-lint)
     pushd $SCRIPTDIR
@@ -137,6 +152,7 @@ Rerunning the command will update the repo if possible.
 
  Supported:
   * adcirc-testsuite - git clones ADCIRC's test-suite                (public)
+  * adcirclive-cli   - git clones ASGS' command line CLI client      (public)
   * asgs-lint        - git clones ASGS' configuration linter         (public)
   * asgs-mon         - git clones ASGS' monitor                      (public)
   * cera             - git clones CERA local-asgs-assets             (private)
