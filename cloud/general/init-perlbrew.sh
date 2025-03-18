@@ -3,7 +3,7 @@
 PERLBREW_ROOT=${1:-"$HOME/perl5"}
 export PERLBREW_ROOT
 ACTION=${2:-"install"}
-PERL_VERSION=${3:-"perl-5.38.0"}
+PERL_VERSION=${3:-"perl-5.40.1"}
 
 if [ "$ACTION" == "clean" ]; then
 
@@ -43,8 +43,10 @@ perl -pi -e "s/download => '--silent/download => '-k --silent/g" "$PB"
 
 if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
 
+  _PERL_COMPILER=$(basename $CC)      # turns full "/path/to/Ccompiler" to "Ccompiler"
+  PERL_COMPILER=${PERL_COMPILER:-gcc} # if $CC was not set after all, go with 'gcc' which will be right 99.99999% of the time
   # --notest is just to increase the speed of the installation
-  perlbrew --verbose --notest install $PERL_VERSION --mirror http://www.cpan.org
+  perlbrew -Dcc=$PERL_COMPILER --verbose --notest install $PERL_VERSION --mirror http://www.cpan.org
   # -D useshrplib #<- to build libperl.so rather than libperl.a
 
   if [ $? -ne 0 ]; then
