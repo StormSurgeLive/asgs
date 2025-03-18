@@ -17,16 +17,16 @@
  %NWS%       ! %NWS-Line%
  1           ! %NRAMP-Line%
  9.81        ! %G-Line%
- -3          ! %TAU0-Line%
+ 0.05        ! %TAU0-Line%
  %DT%        ! %DTDP-Line%
  0.00        ! %STATIM-Line%
  0.00        ! %REFTIM-Line%
  %WTIMINC%   ! %WTIMINC-Line%
  %RNDAY%     ! %RNDAY-Line%
- 14.0        ! %DRAMP-Line%
+ 7.0         ! %DRAMP-Line%
  %A00B00C00% ! %A00B00C00-Line%
  %H0% 12 12 %VELMIN%  ! %H0-Line%
- -71.0 27.0           ! %SLAM0-Line%
+ -78.91 32.20         ! %SLAM0-Line%
  %FFACTOR% 1.0  10.  0.33333 ! %FFACTOR-Line%
  %ESLM%                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
@@ -1576,7 +1576,7 @@ K2
 0.0 0.0 0 0.0        ! %THAS-Line%
 0 0 0 0              ! %NHASE-Line%
 %NHSTAR%  %NHSINC%   ! %NHSTAR-Line%
-%ITITER% 0 1.0E-7 25 ! %ITITER-Line%
+%ITITER% 0 1.0E-7 35 ! %ITITER-Line%
 %NCPROJ%%NCPROJ-Line%
 %NCINST%%NCINST-Line%
 %NCSOUR%%NCSOUR-Line%
