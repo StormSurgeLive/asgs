@@ -199,6 +199,12 @@ _show() {
         echo "${I} PLATFORM_INIT is defined as '${PLATFORM_INIT}'"
       fi
       ;;
+    age)
+      guess age
+      ;;
+    info)
+      asgs-info -a
+      ;;
     *) echo "'${1}' is not known to the 'show' command"
       ;;
   esac 

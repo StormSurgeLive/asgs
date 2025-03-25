@@ -24,7 +24,7 @@
 #
 # specify compiler=gfortran on the make command line
 
-$(info Compiler: $(compiler))
+#$(info Compiler: $(compiler))
 
 export OMP_NUM_THREADS=4
 
@@ -59,7 +59,7 @@ ifeq ($(compiler),intel-oneapi)
    endif
 endif
 
-$(info FC: $(FC))
+#$(info FC: $(FC))
 
 #
 INCLUDES :=
@@ -91,3 +91,16 @@ wgrib2 : cleano
 	cd grib2
 	$(MAKE) -C grib2
 	cp grib2/wgrib2/wgrib2 ./bin
+
+#
+# totally unrelated to the above, adding here because the makefile is in $SCRIPTDIR
+#
+
+init:
+	./init-asgs.sh
+
+batch:
+	./init-asgs.sh -b
+
+release:
+	./make-release.sh
