@@ -51,7 +51,9 @@ help() {
   echo Command Line Options \(used when invoking asgsh from login shell\):
   echo "   -d                      - debug mode, turns on 'set -x'"
   echo "   -h                      - displays available asgsh command line flags, then exits"
+  echo "   -l     THING            - runs the equivalent of 'list THING'. See 'list' command below for what's supported; implies no start splash"
   echo "   -p     profile          - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists"
+  echo "   -S                      - turns off start-up checks, some can take a few seconds to run"
   echo "   -v                      - run 'verify' command, then exist shell"
   echo "   -x                      - skips loading of platforms.sh and properties.sh (could become default)"
   echo
@@ -1139,20 +1141,28 @@ purge() {
 if [ 1 = "${skip_platform_profiles}" ]; then
   echo "(-x used) ... skipping the loading platform.sh and properties.sh ..."
 else
-  echo "${I} initializing ASGS ..."
+  if [ -n "$_asgsh_splash" ]; then
+    echo "${I} initializing ASGS ..."
+  fi
   # loading support for reading of run.properties file
   if [ -e "$SCRIPTDIR/properties.sh" ]; then
-    echo "${I} found properties.sh"
+    if [ -n "$_asgsh_splash" ]; then
+      echo "${I} found properties.sh"
+    fi
     source $SCRIPTDIR/properties.sh
   else
     echo "${W} could not find $SCRIPTDIR/properties.sh"
   fi
   # initializing ASGS environment and platform, based on $asgs_machine_name
   if [ -e "$SCRIPTDIR/monitoring/logging.sh" ]; then
-    echo "${I} found logging.sh"
+    if [ -n "$_asgsh_splash" ]; then
+      echo "${I} found logging.sh"
+    fi
     source $SCRIPTDIR/monitoring/logging.sh
     if [ -e "$SCRIPTDIR/platforms.sh" ]; then
-      echo "${I} found platforms.sh"
+      if [ -n "$_asgsh_splash" ]; then
+        echo "${I} found platforms.sh"
+      fi
       source $SCRIPTDIR/platforms.sh
       env_dispatch "$ASGS_MACHINE_NAME" "$PLATFORM_INIT"
     else
@@ -1196,6 +1206,12 @@ tmux() {   # disable call tmux inside of asgsh
 screen() { # disable call tmux inside of asgsh
   echo 'The use of the "screen" utility *inside* of asgsh is strongly discouraged.'
 }
+
+# set version
+export ASGS_VERSION=$(asgs-info -v)
+export ASGS_GIT_COMMIT=$(asgs-info -s)
+export ASGS_GIT_BRANCH=$(asgs-info -b)
+export ASGS_GIT_REMOTE=$(asgs-info -r)
 
 # common aliases users expect - if you see something missing, please create a github issue
 alias egrep='egrep --color=auto'
@@ -1241,38 +1257,52 @@ if [ -n "$_asgsh_splash" ]; then
   show scriptdir
   goto scriptdir
 else
-  goto scriptdir >/dev/null 2>&1
+  goto scriptdir >/dev/null # quiet STDOUT
 fi
 
 # source command completions
-echo "${I} loading command completion definitions"
+if [ -n "$_asgsh_splash" ]; then
+  echo "${I} loading command completion definitions"
+fi
 for C in $(ls $SCRIPTDIR/etc/bash-completions); do
   source $SCRIPTDIR/etc/bash-completions/$C
 done
 
 # when started, ASGS Shell loads the 'default' profile,
 # this can be made variable at some point
-load profile ${profile-default}
-show scratchdir
-show workdir
-show machinename
-show platform_init
-show adcirccompiler
-show asgslocaldir
+if [ -n "$_asgsh_splash" ]; then
+  load profile ${profile-default}
+else
+  load profile ${profile-default} > /dev/null # quiet STDOUT
+fi
 
 if [ -n "$_asgsh_splash" ]; then
-echo
-echo "${YW}${B}Quick start:${R}"
-echo "  'build adcirc' to build and local register versions of ADCIRC"
-echo "  'list profiles' to see what scenario package profiles exist"
-echo "  'load profile <profile_name>' to load saved profile"
-echo "  'list adcirc' to see what builds of ADCIRC exist"
-echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
-echo "  'run' to initiated ASGS for loaded profile"
-echo "  'help' for full list of options and features"
-echo "  'verify' the current ASGS Shell Environment is set up properly"
-echo "  'exit' to return to the login shell"
-echo
+  show scratchdir
+  show workdir
+  show machinename
+  show platform_init
+  show adcirccompiler
+  show asgslocaldir
+  echo
+  if [ -n "$_asgsh_do_startup_checks" ]; then # checks can be turned off with "-q"
+    echo "${YW}${B}Installation info*:${R}"
+    echo ${I} $(asgs-info -sv)
+    echo ${I} $(guess age)
+    echo $(guess health)
+    echo "(* use '-S' flag to disable start up)"
+    echo
+  fi
+  echo "${YW}${B}Quick start:${R}"
+  echo "  'build adcirc' to build and local register versions of ADCIRC"
+  echo "  'list profiles' to see what scenario package profiles exist"
+  echo "  'load profile <profile_name>' to load saved profile"
+  echo "  'list adcirc' to see what builds of ADCIRC exist"
+  echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
+  echo "  'run' to initiated ASGS for loaded profile"
+  echo "  'help' for full list of options and features"
+  echo "  'verify' the current ASGS Shell Environment is set up properly"
+  echo "  'exit' to return to the login shell"
+  echo
 fi
 
 # construct to handle "autorun" options
