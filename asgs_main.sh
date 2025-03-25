@@ -122,7 +122,7 @@ checkFileExistence()
      fatal "$THIS: The $FTYPE was not specified in the configuration file. When it is specified, the ASGS will look for it in the path ${FPATH}."
   fi
   local success=no
-  if [ $FNAME ]; then
+  if [ "$FNAME" ]; then
      if [ -e "${FPATH}/${FNAME}" ]; then
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
@@ -143,6 +143,7 @@ checkFileExistence()
         #    scp://tacc_tds3//meshes
         # In which case it is treated as a full path.
         local URL
+        local meshExt=.xz
         case $FTYPE in
            "ADCIRC mesh file")
               URL=$MESHURL
@@ -156,8 +157,7 @@ checkFileExistence()
            "ADCIRC self attracting earth load tide file")
               URL=$LOADTIDEURL
               ;;
-           *)
-              warn "$THIS: Unrecognized file type to download: '$FTYPE'."
+           *) warn "$THIS: Unrecognized file type to download: '$FTYPE'."
               URL="unknown"
               ;;
         esac
@@ -169,13 +169,23 @@ checkFileExistence()
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+        elif [[ $URL =~ "ssh://" ]]; then
+           # Note: this is currently using scp under the hood, if for some reason
+           # scp is deprecated in favor using ssh directly, it would replace the
+           # following lines to build up the command
+           URL=${URL:6}     # remove the scp://
+           URL=${URL/\//:}  # replace the / between the host and the path with a :
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         else
-           warn "$THIS: Unrecognized protocol in URL: '$URL'."
+           # Note: we may wish to in the future add protocols such as: rsync://,
+           # s3://, etc - if so, support for building the underlying command would
+           # go here, and be stored in "$downloadCMD"
+           warn "$THIS: Unrecognized protocol in URL: '$URL'. If you need this supported create a new issue on Github"
            downloadCMD="unknown"
         fi
         # attempt to download the file
         logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        consoleMessage "$I Downloading '${FNAME}.xz'"
+        consoleMessage "$I Downloading '$URL/${FNAME}.xz' ..."
         $downloadCMD 2> errmsg &
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
@@ -1730,6 +1740,25 @@ consoleMessage "$I CONFIG: '${CONFIG}'"
 consoleMessage "$I Verifying that required files and directories actually exist."
 #
 checkDirExistence $INPUTDIR "directory for input files"
+
+GETINPUT=${GETINPUT:-null}
+
+# hook to run a script to get large files or do other
+# out of band things to get files; execution happens in $INPUTDIR;
+# prepending $INPUTDIR is on purpose, the file *must* exist in INPUTDIR
+if [[ "$GETINPUT" != "null" ]]; then
+  if [[ -e "${INPUTDIR}/${GETINPUT}" && -x "${INPUTDIR}/${GETINPUT}" ]]; then
+    pushd $INPUTDIR 2> /dev/null
+    consoleMessage "$I Found and running 'GETINPUT': ${INPUTDIR}/${GETINPUT} ..."
+    ./$GETINPUT
+    popd
+  elif [[ -e "${INPUTDIR}/${GETINPUT}" ]]; then
+    warn "'GETINPUT' is defined as '$GETINPUT', but can't be found in '$INPUTDIR'. Set 'GETINPUT=null' if not needed."
+  elif [[ -x "${INPUTDIR}/${GETINPUT}" ]]; then
+    warn "'GETINPUT' is defined as '$GETINPUT' and exists, but is not executable."
+  fi
+fi
+
 checkDirExistence $OUTPUTDIR "directory for post processing scripts"
 #
 if [[ $QUEUESYS = serial ]]; then
@@ -1806,16 +1835,26 @@ hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
 hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
+hotstartDownloadExecutable="curl --insecure"
+hotstartDownloadRedirect="--output"
 if [[ $HOTORCOLD = hotstart ]]; then
    consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
-   urlCheck=$(expr match "$LASTSUBDIR" 'http')
-   if [[ $urlCheck -eq 4 ]]; then
+   if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from
       # a fort.68 file and always writes a fort.67 file
       hotstartURL=$LASTSUBDIR
+      # If scp is to be used, the host where the hotstart (and run.properties) files
+      # are downloaded from must support public key authentication. The URL is expected
+      # to be in the form scp://tacc_tds3//full/path/to/hotstart/file
+      if [[ $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
+         hotstartDownloadExecutable="scp"
+         hotstartDownloadRedirect=""
+         hotstartURL=${hotstartURL:6}     # remove leading scp://
+         hotstartURL=${hotstartURL/\//:}  # replace 1st / between host and path with :
+      fi
    else
       # we are reading the hotstart file from the local filesystem, determine
       # whether it is from a nowcast or hindcast
@@ -1841,7 +1880,7 @@ if [[ $HOTORCOLD = hotstart ]]; then
       debugMessage "The run directory is ${RUNDIR}."
       logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
       # get cold start time from the run.properties file
-      curl $hotstartURL/run.properties > $RUNDIR/from.run.properties
+      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect $RUNDIR/from.run.properties
       logMessage "$THIS: Detecting cold start date from $RUNDIR/from.run.properties."
       COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
       logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
@@ -1849,17 +1888,17 @@ if [[ $HOTORCOLD = hotstart ]]; then
       # is what the rest of asgs_main.sh is expecting
       if [[ $HOTSTARTFORMAT = "binary" ]]; then
          mkdir -p $RUNDIR/PE0000 2>> $SYSLOG
-         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/PE0000/${hotstartFile}
+         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/PE0000/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/PE0000/${hotstartFile}."
       else
-         curl ${hotstartURL}/fort.68${hotstartSuffix} > ${RUNDIR}/${hotstartFile}
+         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/${hotstartFile}."
       fi
 
       logMessage "Now checking hotstart file content."
       checkHotstart $RUNDIR $HOTSTARTFORMAT 67
       # get cold start time from the run.properties file
-      curl $hotstartURL/run.properties > from.run.properties
+      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect from.run.properties
    else
       # starting from a hotstart file on the local filesystem, not from a URL
       checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
