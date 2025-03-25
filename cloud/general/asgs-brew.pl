@@ -480,7 +480,6 @@ echo ' :.....::.....::.....::.....:::..::.....::.....:.....:'
 echo '   ::::::::::::The ASGS Shell Environment:::::::::::::::'
 echo '      :::::::..::::::::::::::::::::::::::::::::::::::::::::'
 echo
-echo
   if [ -n "\$_ASGSH_PID" ]; then
     echo
     echo "Do not nest asgsh. To restart asgsh, type 'exit' then 'asgsh'."
