@@ -1840,7 +1840,7 @@ hotstartDownloadRedirect="--output"
 if [[ $HOTORCOLD = hotstart ]]; then
    consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
-   if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" ]]; then
+   if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
       # always look for fort.68.nc from a URL because only a forecast
       # will be posted to a URL, and only the hotstart file that was used
       # to start the forecast will be posted ... asgs always hotstarts from
@@ -1849,11 +1849,11 @@ if [[ $HOTORCOLD = hotstart ]]; then
       # If scp is to be used, the host where the hotstart (and run.properties) files
       # are downloaded from must support public key authentication. The URL is expected
       # to be in the form scp://tacc_tds3//full/path/to/hotstart/file
-      if [[ $LASTSUBDIR =~ "scp://" ]]; then
+      if [[ $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
          hotstartDownloadExecutable="scp"
          hotstartDownloadRedirect=""
          hotstartURL=${hotstartURL:6}     # remove leading scp://
-         hotstartURL=${hotstartURL/\//:}  # replace / between host and path with :
+         hotstartURL=${hotstartURL/\//:}  # replace 1st / between host and path with :
       fi
    else
       # we are reading the hotstart file from the local filesystem, determine
