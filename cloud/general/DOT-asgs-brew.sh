@@ -53,7 +53,7 @@ help() {
   echo "   -h                      - displays available asgsh command line flags, then exits"
   echo "   -l     THING            - runs the equivalent of 'list THING'. See 'list' command below for what's supported; implies no start splash"
   echo "   -p     profile          - launches the ASGS Shell environment and immediate loads specified profile on start, if it exists"
-  echo "   -S                      - turns off start-up checks, some can take a few seconds to run"
+  echo "   -S                      - disables off start-up checks, some can take a few seconds to run"
   echo "   -v                      - run 'verify' command, then exist shell"
   echo "   -x                      - skips loading of platforms.sh and properties.sh (could become default)"
   echo
@@ -1284,21 +1284,18 @@ if [ -n "$_asgsh_splash" ]; then
   show adcirccompiler
   show asgslocaldir
   echo
-  if [ -n "$_asgsh_do_startup_checks" ]; then # checks can be turned off with "-q"
+  if [ -n "$_asgsh_do_startup_checks" ]; then # checks can be turned off with "-S"
     echo "${YW}${B}Installation info*:${R}"
     echo ${I} $(asgs-info -sv)
-    echo ${I} $(guess age)
+    echo $(guess age)
+    echo -n ${I} "Checking ASGS directory health, please wait ... "
     echo $(guess health)
-    echo "(* use '-S' flag to disable start up)"
+    echo "(* use '-S' flag to disable start up checks)"
     echo
   fi
   echo "${YW}${B}Quick start:${R}"
   echo "  'build adcirc' to build and local register versions of ADCIRC"
   echo "  'list profiles' to see what scenario package profiles exist"
-  echo "  'load profile <profile_name>' to load saved profile"
-  echo "  'list adcirc' to see what builds of ADCIRC exist"
-  echo "  'load adcirc <adcirc_build_name>' to load a specific ADCIRC build"
-  echo "  'run' to initiated ASGS for loaded profile"
   echo "  'help' for full list of options and features"
   echo "  'verify' the current ASGS Shell Environment is set up properly"
   echo "  'exit' to return to the login shell"

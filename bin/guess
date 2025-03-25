@@ -8,6 +8,17 @@
 
 export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR:-.}
 
+BK=$(tput setaf 0)
+RD=$(tput setaf 1)
+GR=$(tput setaf 2)
+YW=$(tput setaf 3)
+BL=$(tput setaf 4)
+MG=$(tput setaf 5)
+CY=$(tput setaf 6)
+WH=$(tput setaf 6)
+R=$(tput sgr0)
+B=$(tput bold)
+
 _guess_platform()
 {
   default_platform=unknown
@@ -143,7 +154,7 @@ _guess_installation_age()
   done < <(find . -maxdepth 1 -type f -print0)
   
   if [[ file_count == 0 ]]; then
-    echo "No files found in current directory."
+    echo ${W} "No files found in current directory."
     exit 1
   fi
   
@@ -151,16 +162,16 @@ _guess_installation_age()
   avg_age_days=$((avg_age / 86400))
   avg_time=$(date -d "@$((now - avg_age))")
   
-  echo "ASGS is $avg_age_days days old"
+  echo ${I} "ASGS directory is about ${CY}${B}$avg_age_days${R} days old"
 }
 
 _guess_health()
 {
   missing=$(git fsck --full 2> /dev/null | grep 'missing' | wc -l) 
   if [[ $missing == 0 ]]; then
-    echo "${I} ASGS repo healthy"
+    echo " ${CY}${B}healthy${R}"
   else
-    echo "${W} ASGS repo appears to be missing $missing files"
+    echo " ${RD}files missing${R}"
   fi
 }
 
