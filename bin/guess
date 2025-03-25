@@ -129,8 +129,49 @@ _guess_platform()
   fi
 }
 
+_guess_installation_age()
+{
+  total_age=0
+  file_count=0
+  now=$(date +%s)
+  
+  while IFS= read -r -d '' file; do
+    mtime=$(stat -c %Y "$file")
+    age=$((now - mtime))
+    total_age=$((total_age + age))
+    file_count=$((file_count + 1))
+  done < <(find . -maxdepth 1 -type f -print0)
+  
+  if [[ file_count == 0 ]]; then
+    echo "No files found in current directory."
+    exit 1
+  fi
+  
+  avg_age=$((total_age / file_count))
+  avg_age_days=$((avg_age / 86400))
+  avg_time=$(date -d "@$((now - avg_age))")
+  
+  echo "ASGS is $avg_age_days days old"
+}
+
+_guess_health()
+{
+  missing=$(git fsck --full 2> /dev/null | grep 'missing' | wc -l) 
+  if [[ $missing == 0 ]]; then
+    echo "${I} ASGS repo healthy"
+  else
+    echo "${W} ASGS repo appears to be missing $missing files"
+  fi
+}
+
 _guess(){
   case "${1}" in
+    age)
+      _guess_installation_age
+      ;;
+    health)
+      _guess_health
+      ;;
     platform)
       _guess_platform
       ;;

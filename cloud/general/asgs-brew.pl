@@ -413,10 +413,11 @@ sub _get_asgsh {
 #     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path $platform_init_example --update-shell
 
 export _asgsh_splash=1
+export _asgsh_do_startup_checks=1
 export profile=$asgs_default_profile
 
 # process options passed directly to `asgsh`
-options=\$(getopt -o "A:dhl:p:rvx" -- "\$@")
+options=\$(getopt -o "A:dhl:p:rsSvx" -- "\$@")
 eval set -- "\$options"
 while true
   do
@@ -450,11 +451,14 @@ while true
       -s)
         export _asgsh_flag_do=run_tailf_syslog
         ;;
-      -x)
-        export skip_platform_profiles=1
+      -S)
+        unset _asgsh_do_startup_checks
         ;;
       -v)
         export _asgsh_flag_do=run_verify_and_quit
+        ;;
+      -x)
+        export skip_platform_profiles=1
         ;;
       --)
         shift
@@ -491,7 +495,7 @@ export HDF5_USE_FILE_LOCKING=FALSE
 
 # denotes which environmental variables are saved with a profile - includes variables that
 # are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
-export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT ASGS_MPI_HOSTFILE"
+export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT ASGS_VERSION ASGS_GIT_COMMIT ASGS_GIT_BRANCH ASGS_GIT_REMOTE"
 $env_summary
 
 # export opts for processing in $rcfile
