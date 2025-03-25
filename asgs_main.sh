@@ -2635,7 +2635,8 @@ while [ true ]; do
    # load properties
    declare -A properties
    loadProperties ${SCENARIO}.run-control.properties
-   if [[ ${properties['RunEndTime']} != ${properties['RunStartTime']} ]]; then
+   lengthCheck=$(( ${properties['RunEndTime']} - ${properties['RunStartTime']} ))
+   if [[ $lengthCheck -gt 1 ]]; then
       logMessage "$ENSTORM: $THIS: Starting nowcast for cycle '$ADVISORY'."
 
       # get river flux nowcast data, if configured to do so
