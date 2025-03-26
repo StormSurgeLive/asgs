@@ -698,7 +698,7 @@ if ( (wetonly.eqv..true.).or.(lessgreedy.eqv..true.)) then
          elementWithin(e) = .true.
       endif
    enddo
-   ! remake the "within" list on th full mesh so that nodes that aren't in any
+   ! remake the "within" list on the full mesh so that nodes that aren't in any
    ! element are removed from the result mesh
    within(1:fm%np) = .false.
    do e = 1, fm%ne
