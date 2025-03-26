@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+# Default behavior
+show_gitbranch=false
+show_gitremote=false
+show_gitsha=false
+show_version=true
+
+# Parse options
+while getopts "abrsv" opt; do
+  case $opt in
+    a)
+      show_gitbranch=true
+      show_gitremote=true
+      show_gitsha=true
+      show_version=true
+      ;;
+    b)
+      show_version=false
+      show_gitbranch=true
+      ;;
+    r)
+      show_version=false
+      show_gitremote=true
+      ;;
+    s)
+      show_version=false
+      show_gitsha=true
+      ;;
+    v)
+      show_version=true
+      ;;
+    *)
+      echo "Usage: $0 [-v]" >&2
+      exit 1
+      ;;
+  esac
+done
+
+_assert_git_repo()
+{
+  if [[ ! -d "$SCRIPTDIR/.git" ]]; then
+    echo "ASGS is not a git repo." >&2
+    exit 1
+  fi
+}
+
+# Show version if -v was passed
+if $show_version; then
+  pushd $SCRIPTDIR > /dev/null
+  if [[ -f VERSION ]]; then
+    echo -n version:$(head -n 1 VERSION) " "
+  else
+    echo "VERSION file not found." >&2
+    popd
+    exit 1
+  fi
+  popd > /dev/null
+fi
+
+# Show git branch if -b was passed
+if $show_gitbranch; then
+  _assert_git_repo
+  # command
+  pushd $SCRIPTDIR > /dev/null
+  echo -n branch:$(git branch | grep '*' | awk '{print $2}') " "
+  popd > /dev/null
+fi
+
+# Show git remote if -r was passed
+if $show_gitremote; then
+  _assert_git_repo
+  # command
+  pushd $SCRIPTDIR > /dev/null
+  echo -n remote:$(git remote -v | tail -n 1 | awk '{print $1 " " $2}') " "
+  popd > /dev/null
+fi
+
+# Show git SHA if -s was passed
+if $show_gitsha; then
+  _assert_git_repo
+  pushd $SCRIPTDIR > /dev/null
+  # command
+  echo -n commit:$(git log | head -n1 |awk '{print $2'}) " "
+  popd > /dev/null
+fi
+
+echo
