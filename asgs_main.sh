@@ -2638,7 +2638,7 @@ while [ true ]; do
    s=${properties['RunStartTime']}
    e=${properties['RunEndTime']}
    # Try to calculate lengthCheck; default to 0 on error
-   if ! lengthCheck=$(( e - s )) ; then
+   if ! lengthCheck=$(( e - s )) ; then # fails if $e or $s is not an int or unset
       # can't recover from either of the values of these parameters being anything other than 10 digit integers
       fatal "Could not compute nowcast run length. In '$PWD/${SCENARIO}.run-control.properties' the RunStartTime is'$s' and RunEndTime is '$e'."
    fi
