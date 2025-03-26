@@ -34,7 +34,7 @@ ifeq ($(compiler),intel)
    FC := ifort
    FFLAGS := -cpp -shared-intel
    ifeq ($(DEBUG),trace)
-      FFLAGS := -g -O0 -fpp -traceback 
+      FFLAGS := -g -O0 -fpp -traceback
    endif
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
@@ -48,7 +48,7 @@ ifeq ($(compiler),intel-oneapi)
    FC := ifx
    FFLAGS := -cpp -shared-intel -fpp
    ifeq ($(DEBUG),trace)
-      FFLAGS := -g -O0 -fpp -traceback 
+      FFLAGS := -g -O0 -fpp -traceback
    endif
    ifeq ($(DEBUG),full)
       FFLAGS := -cpp -g -O0 -traceback -debug all -check all -ftrapuv -fpe0 -shared-intel -DDEBUGSEGFAULT
@@ -71,7 +71,7 @@ INCLUDES := -I. -I$(OUTPUTDIR)
 LIBS := -L$(OUTPUTDIR)
 VPATH = $(OUTPUTDIR)
 #
-# if netcdf libraries are available on the target platform, 
+# if netcdf libraries are available on the target platform,
 # use NETCDF=enable on the make command line
 ifeq ($(NETCDF),enable)
    FFLAGS      := $(FFLAGS) -DASGSNETCDF
@@ -88,8 +88,8 @@ ifeq ($(NETCDF4_COMPRESSION),enable)
 endif
 #
 #
-OBJ := $(OUTPUTDIR)/adcmesh.o $(OUTPUTDIR)/asgsio.o $(OUTPUTDIR)/logging.o
-MODS := adcmesh.mod asgsio.mod logging.mod
+OBJ := adcmesh.o asgsio.o logging.o nodalattr.o kdtree2.o
+MODS := adcmesh.mod asgsio.mod logging.mod kdtree2_module.mod
 #
 # targets
 all : makeMax
@@ -100,11 +100,17 @@ clean :
 makeMax : $(MODS) makeMax.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-logging.mod : $(OUTPUTDIR)/logging.f90 
+logging.mod : $(OUTPUTDIR)/logging.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/logging.f90 $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 asgsio.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 adcmesh.f90 logging.mod kdtree2_module.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
-asgsio.mod : $(OUTPUTDIR)/asgsio.f90
+asgsio.mod : $(OUTPUTDIR)/asgsio.f90 nodalattr.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/asgsio.f90 $(LDFLAGS)
+#
+kdtree2_module.mod : $(OUTPUTDIR)/kdtree2.f90
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/kdtree2.f90 $(LDFLAGS)
+#
+nodalattr.mod : ./input/nodalattr/nodalattr.f90 adcmesh.mod
+	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c ./input/nodalattr/nodalattr.f90 $(LDFLAGS)

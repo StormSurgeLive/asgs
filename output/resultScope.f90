@@ -57,7 +57,6 @@ type(netCDFMetaDataFromExternalFile_t) :: a ! attribute data file
 type(realVector1D_t) :: timesec
 type(integerVector1D_t) :: it
 !
-
 integer :: snapi
 real(8) :: snapr
 integer :: nc_count(2)
@@ -96,6 +95,7 @@ integer :: wUnit ! to read wet dry file
 character(1000) :: toSet ! the variable to be set
 real(8) :: bathyValue    ! bathy value to reset data to
 logical :: setBathy      ! true if bathy data are to be set
+logical :: lessgreedy    ! true if nodes connected to selected nodes should not also be selected
 real(8) :: temp1, temp2
 
 character(1) :: junkc
@@ -114,6 +114,7 @@ meshonly = .false.
 wetonly = .false.
 nodelist = .false.
 setBathy = .false.
+lessgreedy = .false.
 dataFileBase = "null"
 fd%defaultFileName = "null"
 !
@@ -149,6 +150,9 @@ if (argcount.gt.0) then
       case('--meshonly')
          write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),'.'
          meshonly = .true.
+      case('--less-greedy')
+         write(6,'(a,a,a,a,a)') 'INFO: Processing ',trim(cmdlineopt),'.'
+         lessgreedy = .true.
       case('--attfile')
          i = i + 1
          call getarg(i, cmdlinearg)
@@ -382,7 +386,7 @@ endif
 !   S U B S E T   T H E   M E S H
 !
 call allMessage(INFO,'Selecting nodes and elements in the result mesh.')
-call subSetMesh(fm, rm, within, wetonly)
+call subSetMesh(fm, rm, within, wetonly, lessgreedy)
 call allMessage(INFO,'Finished selecting nodes and elements in the result mesh.')
 !
 ! Output sub-mesh as fort.14 if the output format is ascii
@@ -655,7 +659,7 @@ end program resultScope
 !----------------------------------------------------------------------
 !   S U B R O U T I N E    S U B  S E T  M E S H
 !----------------------------------------------------------------------
-subroutine subSetMesh(fm, rm, within, wetonly)
+subroutine subSetMesh(fm, rm, within, wetonly, lessgreedy)
 use adcmesh
 use ioutil
 use asgsio
@@ -665,6 +669,7 @@ type(mesh_t), intent(in)  :: fm ! full domain mesh
 type(mesh_t), intent(inout) :: rm ! resultShape mesh
 logical, intent(inout) :: within(*)
 logical, intent(in) :: wetonly
+logical, intent(in) :: lessgreedy
 !
 logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
 type(integerVector1D_t) :: l_ibtype
@@ -677,7 +682,7 @@ integer :: l_ifCount = 0
 integer :: l_ifwpCount = 0
 
 integer :: streak ! number of consecutive boundary elements
-integer :: e ! element counter
+integer :: e      ! element counter
 integer :: i, j, k, n
 !
 allocate(elementWithin(fm%ne))
@@ -686,23 +691,26 @@ elementWithin(:) = .false.
 ! Select elements inside the resultShape; first we need to count them
 ! so we can allocate an array of the proper size
 rm%ne = 0                 ! counter for elements that are included in the resultShape
-if ( wetonly.eqv..true.) then
+if ( (wetonly.eqv..true.).or.(lessgreedy.eqv..true.)) then
    do e = 1, fm%ne
       if (all(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
          elementWithin(e) = .true.
       endif
    enddo
-   ! remake the "within" list so that nodes that aren't in any
-   ! element are removed
+   ! remake the "within" list on the full mesh so that nodes that aren't in any
+   ! element are removed from the result mesh
    within(1:fm%np) = .false.
-   do e = 1, rm%ne
+   do e = 1, fm%ne
       if (elementWithin(e).eqv..true.) then
          within(fm%nm(e,:)) = .true.
       endif
    enddo
 else
    do e = 1, fm%ne
+      ! if any node on this element is within the result then
+      ! this element and all 3 of its nodes will be included
+      ! in the result set
       if (any(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape
          elementWithin(e) = .true.
@@ -714,7 +722,7 @@ allocate(sub2fullElements(rm%ne))
 allocate(full2subElements(fm%ne))
 full2subElements(:) = 0
 rm%ne = 0
-if ( wetonly.eqv..true.) then
+if ((wetonly.eqv..true.).or.(lessgreedy.eqv..true.)) then
    do e = 1, fm%ne
       if (all(within(fm%nm(e,:)).eqv..true.)) then
          rm%ne = rm%ne + 1     ! increment the number of elements included in the resultShape

@@ -41,11 +41,13 @@ use adcmesh
 use ioutil
 use logging
 use netcdf
+use asgsio
 implicit none
 type(mesh_t) :: m
+type(mesh_t), allocatable :: rm(:) ! result (diagnostic) meshes
 type(meshNetCDF_t) :: n
 integer :: nodeNumber
-logical :: ok  ! .true. if a test passes
+logical :: ok             ! .true. if a test passes
 real :: leveeHeight
 logical :: fileFound ! .true. if the file is already present
 integer :: nodeNumbers(2)
@@ -62,6 +64,31 @@ integer :: lowConnectedNodes
 !
 ! number of nodes with too many connected elements to meet SWAN's criterion
 integer :: highConnectedNodes
+!
+! true if a diagnostic mesh should be written as output with
+! low connected nodes removed
+logical :: removeLowConnectedNodes
+!
+! minimum number of neighbor nodes that each node
+! should have to be considered sufficiently connected
+integer :: minNeighborNodes
+!
+! minimum number of neighbor elements that each node
+! should have to be considered sufficiently connected
+integer :: minNeighborElements
+!
+! number of iterations for removing low connected nodes
+integer :: removeLowConnectedNodesPasses
+!
+! whether to write a mesh for each pass of removing
+! insufficiently connected nodes
+logical :: writeIntermediateMeshes
+!
+! (np) .true. if a node is within the diagnostic mesh
+logical, allocatable :: within(:)
+!
+! (np) .true. if an element is within the diagnostic mesh
+logical, allocatable :: elementWithin(:) ! (ne) .true. if an element is within the resultshape
 !
 ! set .true. if there are nodes with too many or not enough connected
 ! elements for SWAN; this will cause
@@ -151,8 +178,9 @@ integer :: l ! counter for nodes around an element
 integer :: i1, i2 ! counters for elements around a node
 integer :: e1, e2 ! element number neighboring a node
 integer :: icount ! counter for number of times two nodes have an element in common
+integer :: nodesInCommon
 !
-integer :: i, j, k
+integer :: i, j, k, n1, n2
 integer :: ie ! element loop counter
 !
 ! initializations
@@ -169,14 +197,18 @@ writeElementIDs = .false.
 writeElementAreas = .false.
 writeElementAreaGradients = .false.
 writeElementEdgeLengthGradients = .false.
+writeIntermediateMeshes = .false.
 computeMaxTimestepSizes = .false.
 computeImplicitDiagonalCoefficient = .false.
 inundationAboveLocalGround = .false.
 checkDryElementArea = .false.
+minNeighborNodes = 3
+minNeighborElements = 3
 dx_crit = 1750.d0
 dt = 1.d0
 tau0 = 0.03d0
 m%sfea0 = 30.d0
+m%slam0 = -70.d0
 a00 = 0.35d0  ! implicit mode
 onDiag = 2.d0 ! fully consistent LHS
 g = 9.81d0    ! gravitational acceleration
@@ -222,6 +254,25 @@ if (argcount.gt.0) then
             call getarg(i, cmdlinearg)
             write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
             read(cmdlinearg,*) m%slam0
+         case("--remove-low-connected-nodes")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            removeLowConnectedNodes = .true.
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) removeLowConnectedNodesPasses
+         case("--min-neighbor-nodes")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) minNeighborNodes
+         case("--min-neighbor-elements")
+            i = i + 1
+            call getarg(i, cmdlinearg)
+            write(6,'(a)') "INFO: Processing "//trim(cmdlineopt)//" "//trim(cmdlinearg)//"."
+            read(cmdlinearg,*) minNeighborElements
+         case("--write-intermediate-meshes")
+            write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
+            writeIntermediateMeshes = .true.
          case("--write-neighbor-tables")
             write(6,'(a,a,a)') "INFO: Processing ",trim(cmdlineopt),"."
             writeNeighborTables = .true.
@@ -437,25 +488,25 @@ if (writeNeighborTables.eqv..true.) then
    write(6,'("INFO: Writing neitab.generated file.")')
    open(11,file='neitab.generated',status='replace')
    do i=1,m%np
-      write(11,'(20(i0,2x))') i, (m%neiTabGenerated(i,j),j=1,m%nneigh(i))
+      write(11,'(20(i0,2x))') i, m%nneigh(i), (m%neiTabGenerated(i,j),j=1,m%nneigh(i))
    end do
    close(11)
    write(6,'("INFO: Writing neitab.sorted file.")')
    open(11,file='neitab.sorted',status='replace')
    do i=1,m%np
-      write(11,'(20(i0,2x))') i, (m%neiTab(i,j),j=1,m%nneigh(i))
+      write(11,'(20(i0,2x))') i, m%nneigh(i), (m%neiTab(i,j),j=1,m%nneigh(i))
    end do
    close(11)
    write(6,'("INFO: Writing neitabele.generated file.")')
    open(11,file='neitabele.generated',status='replace')
    do i=1,m%np
-      write(11,'(20(i0,2x))') i, (m%neiTabEleGenerated(i,j),j=1,m%nneighele(i))
+      write(11,'(20(i0,2x))') i, m%nneighele(i), (m%neiTabEleGenerated(i,j),j=1,m%nneighele(i))
    end do
    close(11)
    write(6,'("INFO: Writing neitabele.sorted file.")')
    open(11,file='neitabele.sorted',status='replace')
    do i=1,m%np
-      write(11,'(20(i0,2x))') i, (m%neiTabEle(i,j),j=1,m%nneighele(i))
+      write(11,'(20(i0,2x))') i, m%nneighele(i), (m%neiTabEle(i,j),j=1,m%nneighele(i))
    end do
    close(11)
 endif
@@ -494,6 +545,162 @@ close(11)
  2120 FORMAT(2X,1pE20.10E3,5X,I10)
  2453 FORMAT(2x, i8, 2x, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3, 1pE20.10E3)
  2452 FORMAT(2x, i8, 2x, i0, 5x, i0, 5x, i0, 5x, i0)
+!
+!        R E M O V E   I N S U F F I C I E N T L Y
+!             C O N N E C T E D   N O D E S
+!
+if (removeLowConnectedNodes.eqv..true.) then
+   write(6,'("INFO: Removing insufficiently connected nodes.")')
+   allocate(rm(0:removeLowConnectedNodesPasses))
+   ! iterate on the mesh, generating a new mesh with
+   ! each pass
+   do k=0,removeLowConnectedNodesPasses
+      rm(k)%slam0 = m%slam0
+      rm(k)%sfea0 = m%sfea0
+      write(rm(k)%meshFileName,'(a,a,i4.4,a)') trim(m%meshFileName), '-connected-sub-', k, '.14'
+      call get_command(cmdlinearg)
+      rm(k)%agrid = trim(m%agrid) // ' ! checkAdcircMesh.x: ' // trim(cmdlinearg)
+      ! do not try to write boundary table to resulting connected subset mesh
+      rm(k)%nope = 0
+      rm(k)%neta = 0
+      rm(k)%nbou = 0
+      rm(k)%nvel = 0
+      ! copy the full domain node and element tables from the original
+      ! if this is the 0th mesh in the series
+      if (k.eq.0) then
+         rm(k)%np = m%np
+         rm(k)%ne = m%ne
+         call allocateNodalAndElementalArrays(rm(k))
+         rm(k)%xyd(:,:) = m%xyd(:,:) ! 0th node table
+         rm(k)%nm(:,:) = m%nm(:,:)   ! 0th element table
+         call writeMesh(rm(k))
+         cycle ! series is initialized, go to the first pass
+      endif
+      call computeNeighborTable(rm(k-1))
+      rm(k-1)%nLowConnected = 0
+      allocate(within(rm(k-1)%np))
+      within(:) = .true.
+      do i=1, rm(k-1)%np
+         ! for a hanging element on the boundary (defined as only
+         ! connected to the mesh via a single edge) the node at the
+         ! point only has two neighboring nodes
+         ! the first node in the neighbor list is the node itself
+         ! ... so a hanging element can be identified because it
+         ! has less than 1+minNeighborNodes neighbor node entries in its table
+         if (rm(k-1)%nNeigh(i).lt.(minNeighborNodes+1)) then
+            within(i) = .false.
+            rm(k-1)%nLowConnected = rm(k-1)%nLowConnected + 1
+         endif
+         ! remove nodes connected to too few elements
+         if (rm(k-1)%nNeighEle(i).lt.minNeighborElements) then
+            within(i) = .false.
+            rm(k-1)%nLowConnected = rm(k-1)%nLowConnected + 1
+         endif
+         ! to check for two non-contiguous elements only connected at a single node,
+         ! the element neighbor table will be checked for sufficient connectivity
+         if (rm(k-1)%nNeighEle(i).eq.2) then
+            e1 = rm(k-1)%neiTabEleGenerated(i,1)
+            e2 = rm(k-1)%neiTabEleGenerated(i,2)
+            nodesInCommon = 0
+            do n1=1,3
+               do n2=1,3
+                  if (rm(k-1)%nm(e1,n1).eq.rm(k-1)%nm(e2,n2)) then
+                     nodesInCommon = nodesInCommon + 1
+                  endif
+               end do
+            end do
+            if (nodesInCommon.ne.2) then
+               write(6,'("INFO: Node ",i0," connects two noncontiguos elements.")') i
+               within(i) = .false.
+            endif
+         endif
+      end do
+      write(6,'("INFO: Pass ",i0," the number of nodes with less than ",i0," nodal neighbors is ",i0,".")') k, minNeighborNodes, rm(k-1)%nLowConnected
+      allocate(elementWithin(rm(k-1)%ne))
+      elementWithin(:) = .false.
+      !
+      ! Select elements from the previous pass to be included in the diagnostic mesh
+      ! first we need to count them in order to allocate an array of the proper size
+      rm(k)%ne = 0
+      do e = 1, rm(k-1)%ne
+         if (all(within(rm(k-1)%nm(e,:)).eqv..true.)) then
+            rm(k)%ne = rm(k)%ne + 1     ! increment the number of elements included in the result
+            elementWithin(e) = .true.
+         endif
+      enddo
+      ! remake the "within" list on the source mesh so that nodes that aren't in any
+      ! element are removed from the result mesh
+      within(1:rm(k-1)%np) = .false.
+      do e = 1, rm(k-1)%ne
+         if (elementWithin(e).eqv..true.) then
+            within(rm(k-1)%nm(e,:)) = .true.
+         endif
+      enddo
+      ! now allocate an array to hold the element numbers of the selected elements
+      allocate(sub2fullElements(rm(k)%ne))
+      allocate(full2subElements(rm(k-1)%ne))
+      full2subElements(:) = 0
+      rm(k)%ne = 0
+      do e = 1, rm(k-1)%ne
+         if (all(within(rm(k-1)%nm(e,:)).eqv..true.)) then
+            rm(k)%ne = rm(k)%ne + 1            ! increment the number of elements included in the result
+            sub2fullElements(rm(k)%ne) = e  ! record the element number mapping
+            full2subElements(e) = rm(k)%ne
+         endif
+      enddo
+      !
+      ! Count and record nodes on elements that have been selected into the result
+      allocate(full2subNodes(rm(k-1)%np))
+      full2subNodes(:) = -99999
+      rm(k)%np = 0  ! counter for nodes on elements that are included in the result
+      do i = 1, rm(k-1)%np
+         if ( within(i).eqv..true. ) then
+            rm(k)%np = rm(k)%np + 1         ! increment total number of nodes selected
+            full2subNodes(i) = rm(k)%np     ! record the index of node numbers that have been selected
+         endif
+      enddo
+      !
+      ! record the fulldomain node number of the sequential nodes in the selection
+      allocate(sub2fullNodes(rm(k)%np))
+      rm(k)%np = 0
+      do i=1,rm(k-1)%np
+         if (within(i).eqv..true.) then
+            rm(k)%np = rm(k)%np + 1
+            sub2fullNodes(rm(k)%np) = i ! record the node number of the selected node
+         end if
+      enddo
+      call allocateNodalAndElementalArrays(rm(k))
+      ! node table
+      do i=1,rm(k)%np
+         do j=1,3
+            rm(k)%xyd(j,i) = rm(k-1)%xyd(j,sub2fullNodes(i))
+         end do
+      end do
+      ! element table
+      do i=1,rm(k)%ne
+         do j=1,3
+            rm(k)%nm(i,j) = full2subNodes(rm(k-1)%nm(sub2fullElements(i),j))
+         end do
+      end do
+      write(6,'("INFO: Finished removing low connected nodes.")')
+      write(6,'("INFO: Writing mesh node and element tables without low connected nodes.")')
+      if ((rm(k)%np.eq.rm(k-1)%np) .and. (rm(k)%ne.eq.rm(k-1)%ne)) then
+         write(6,'("INFO: No change from previous pass.")')
+         call writeMesh(rm(k))
+         exit
+      endif
+      if ((writeIntermediateMeshes.eqv..true.).or.(k.eq.removeLowConnectedNodesPasses)) then
+         call writeMesh(rm(k))
+      endif
+      deallocate(within)
+      deallocate(elementWithin)
+      deallocate(sub2fullElements)
+      deallocate(full2subElements)
+      deallocate(full2subNodes)
+      deallocate(sub2fullNodes)
+   enddo
+   write(6,'("INFO: Finished writing mesh node and element tables without low connected nodes.")')
+endif
 !
 !   C H E C K   L E V E E   H E I G H T S
 !

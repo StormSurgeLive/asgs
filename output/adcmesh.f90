@@ -8,6 +8,8 @@
 module adcmesh
 !-----+---------+---------+---------+---------+---------+---------+
 use netcdf, only : NF90_MAX_NAME
+use kdtree2_module
+
 real(8), parameter :: R = 6378206.4d0 ! radius of the earth
 real(8), parameter :: pi = 3.141592653589793d0
 real(8), parameter :: deg2rad = pi/180.d0
@@ -19,18 +21,20 @@ logical :: verbose
 ! elevation boundaries and flux boundaries where
 ! ibtype = 0,1,2,10,11,12,20,21,22,30,52
 type simpleBoundary_t
+   integer :: ibtype                  ! boundary type
    integer :: indexNum                ! order within the fort.14 file (used to get IBTYPE etc)
    integer :: informationID           ! xdmf ID for IBTYPEE or IBTYPE info
    integer :: setID                   ! xdmf ID for node numbers
-   integer, allocatable :: nodes(:) ! node numbers on boundary
-   real(8), allocatable :: bGeom(:)  ! coordinates for visualization
+   integer, allocatable :: nodes(:)   ! node numbers on boundary
+   real(8), allocatable :: bGeom(:)   ! coordinates for visualization
 end type simpleBoundary_t
 !
 ! flux boundaries where ibtype = 3, 13, 23
 type externalFluxBoundary_t
-   integer :: indexNum               ! order within the fort.14 file
-   integer :: informationID              ! xdmf ID for IBTYPE info
-   integer :: setID                      ! xdmf ID for node numbers
+   integer :: ibtype                  ! boundary type
+   integer :: indexNum                ! order within the fort.14 file
+   integer :: informationID           ! xdmf ID for IBTYPE info
+   integer :: setID                   ! xdmf ID for node numbers
    integer :: numAttributes = 2
    integer :: attributeIDs(2) ! xdmf IDs for parameters
    integer, allocatable :: nodes(:)
@@ -41,9 +45,10 @@ end type externalFluxBoundary_t
 !
 ! flux boundaries where ibtype = 4, 24
 type internalFluxBoundary_t
-   integer :: indexNum               ! order within the fort.14 file
-   integer :: informationID              ! xdmf ID for IBTYPE info
-   integer :: setID                      ! xdmf ID for node numbers
+   integer :: ibtype                  ! boundary type
+   integer :: indexNum                ! order within the fort.14 file
+   integer :: informationID           ! xdmf ID for IBTYPE info
+   integer :: setID                   ! xdmf ID for node numbers
    integer :: numAttributes = 4
    integer :: attributeIDs(4) ! xdmf IDs for parameters
    integer, allocatable :: nodes(:)
@@ -57,9 +62,10 @@ end type internalFluxBoundary_t
 !
 ! flux boundaries where ibtype = 5, 25
 type internalFluxBoundaryWithPipes_t
+   integer :: ibtype                 ! boundary type
    integer :: indexNum               ! order within the fort.14 file
-   integer :: informationID              ! xdmf ID for IBTYPE info
-   integer :: setID                      ! xdmf ID for node numbers
+   integer :: informationID          ! xdmf ID for IBTYPE info
+   integer :: setID                  ! xdmf ID for node numbers
    integer :: numAttributes = 7
    integer :: attributeIDs(7) ! xdmf IDs for parameters
    integer, allocatable :: nodes(:)
@@ -72,6 +78,16 @@ type internalFluxBoundaryWithPipes_t
    real(8), allocatable :: pipediam(:)
    real(8), allocatable :: leveeGeom(:)
 end type internalFluxBoundaryWithPipes_t
+!
+! integer codes for boundary categories, used for reverse lookup
+! (given any random node number, tell what boundary type it is, what
+! index that boundary is within that boundary type, and what index that
+! node is on that boundary)
+integer, parameter :: ELEV_B = 0      ! elevation specified (open) boundary
+integer, parameter :: SFLUX_B = 1     ! simple (land, island, river) flux-specified boundary
+integer, parameter :: EXTFLUX_B = 2   ! external overflow flux-specified boundary
+integer, parameter :: INTFLUX_B = 3   ! internal flux-specified boundary (levee)
+integer, parameter :: INTFLUXWP_B = 4 ! internal flux-specified boundary with cross-barrier pipes
 !
 !
 type mesh_t
@@ -116,7 +132,7 @@ type mesh_t
    real(8), allocatable :: sfacAvg(:) ! (ne)
    real(8), allocatable :: fdx(:,:) ! (3,ne)
    real(8), allocatable :: fdy(:,:) ! (3,ne)
-   real(8), allocatable :: centroids(:,:) ! (2,ne) x and y coordinates of the element centroids
+   real(8), allocatable :: centroids(:,:) ! (2,ne) x and y cartesian coordinates of the element centroids
    integer :: mnei = 15  ! maximum number of neighbors for a node
    !
    character(2048) :: agrid
@@ -136,6 +152,7 @@ type mesh_t
    integer :: neta ! total number of nodes on open (ocean) elevation specified boundary nodes
    integer :: nbou ! number of flux specified boundaries
    integer :: nvel ! total number of nodes on flux specified boundaries
+   logical, allocatable :: isBoundaryNode(:) ! .true. if the node is on a boundary
    integer, allocatable :: nvdll(:)  ! number of nodes on each open boundary
    integer, allocatable :: nbdv(:,:) ! node numbers on each open boundary
    integer, allocatable :: nvell(:)  ! number of nodes on each flux boundary
@@ -163,6 +180,8 @@ type mesh_t
 
    logical :: elementAreasComputed = .false.
    logical :: elementDepthsComputed = .false.
+   logical :: elementCentroidsComputed = .false.
+   logical :: kdtree2SearchTreeComputed = .false.
    logical :: weightingCoefficientsComputed = .false.
    logical :: neighborTableComputed = .false.
    logical :: allLeveesOK ! .false. if there are any issues
@@ -174,6 +193,7 @@ type mesh_t
    integer, allocatable :: NeiTabEle(:,:)
    integer, allocatable :: NeiTabEleGenerated(:,:)
    integer, allocatable :: nneighele(:)
+   integer :: nLowConnected   ! number of nodes in the mesh with only 2 nodal neighbors
    real(8) :: slam0  ! longitude on which cpp projection is centered (degrees)
    real(8) :: sfea0  ! latitude on which cpp projection is centered (degrees)
    real(8) :: lonmin ! domain extents (degrees)
@@ -208,7 +228,44 @@ type mesh_t
    integer :: numInternalFluxBoundariesWithPipes
    integer :: ifwpCount ! index into the internalFluxBoundariesWithPipes array
 
+   integer, allocatable :: boundaryCategory(:)  ! (np) elevation, simpleFlux, externalFlux, etc
+   integer, allocatable :: boundaryIndex(:)     ! (np) e.g., within elevationBoundaries(:) array
+   integer, allocatable :: boundaryNodeIndex(:) ! (np) e.g., within elevationBoundaries(1)%nodes(:) array
+
    integer :: nfluxf ! =1 if there are any specified flux boundaries in the mesh
+   !
+   ! finding boundary nodes
+   integer, allocatable :: tbnode(:,:)   ! size(mnp,2)
+   integer :: nseg                       ! total number of element edges lying on boundaries
+   !
+   ! sorting boundary nodes
+   integer, allocatable :: conbnode(:)   ! connected boundary node numbers on contiguous boundaries
+   integer, allocatable :: nbn(:)        ! number of boundary nodes on each boundary
+   integer :: numBoundFound              ! number of contiguous boundaries found through search
+   integer :: externalBoundaryNodeHint   ! operator-specified node number that is on the external boundary
+   integer :: nodeOnExternalBoundary     ! number of a node known to be on external boundary
+   logical :: externalBoundaryFound      ! true if the external boundary has been identified
+   integer :: longestBoundary(1)         ! index of the longest boundary
+   integer, allocatable :: extbns(:)     ! node numbers in the external boundary (found with
+                                         !  hint) with first node repeated as last node
+   ! assigning boundary node types
+   integer :: minElevationBoundaryLength = 10 ! operator-specified min number of nodes for an elevation specified boundary
+   real :: minElevationBoundaryDepth = 2.d0   ! (m) operator specified min depth of elevation specified boundary
+   logical :: oneElevationBoundary       ! .true. if there should be one elevation specified boundary in the mesh
+   integer, allocatable :: ibbeg(:)      ! beginning node numbers of open boundaries
+   integer, allocatable :: ibend(:)      ! ending node numbers of open boundaries
+   integer :: nob                        ! number of open boundaries found in a mesh
+   integer :: itotobn                    ! total number of open boundary nodes found
+   integer, allocatable :: bsegbn(:)     ! beginning node numbers of flux boundaries
+   integer, allocatable :: bsegen(:)     ! ending node numbers of flux boundaries
+   integer :: nlb                        ! number of land boundaries found in a mesh
+   integer :: itotlbn                    ! total number of land boundary nodes found
+   integer :: nexlb
+   !
+   ! variables related to kdtree2 searches
+   integer                      :: srchdp       ! number of elements to return from search
+   type(kdtree2), pointer       :: tree         ! search tree
+   type(kdtree2_result), allocatable :: kdresults(:) ! list of elements to check
 
 end type mesh_t
 
@@ -272,6 +329,8 @@ end type xdmfMetaData_t
 type station_t
    real(8) :: lon            ! decimal degrees east
    real(8) :: lat            ! decimal degrees north
+   real(8) :: x_cpp          ! m east after reprojection with CPP
+   real(8) :: y_cpp          ! m north after reprojection with CPP
    real(8) :: z              ! vertical position (m) relative to mesh zero
    integer :: irtype         ! number of components; 1=scalar, 2=2D vector, 3=3D vector
    logical :: elementFound   ! true if the element number is known
@@ -279,6 +338,7 @@ type station_t
    real(8) :: elementArea    ! total area in m^2
    logical :: outsideWithinTolerance  ! if the station is actually outside mesh but within tolerance (for meshes where this criterion is active)
    real(8) :: elementBathyDepth       ! spatially weighted interpolation of nodal depths (m)
+   logical :: useBruteForceSearch     ! true if every element should be checked
    integer :: n(3)           ! nodes that surround the station
    real(8) :: w(3)           ! weights used to interpolate station values based on nodal values
    real(8), allocatable :: d(:,:)     ! station data (irtype, ntime)
@@ -420,6 +480,18 @@ if ( m%nvel_count.ne.m%nvel) then
    endif
 endif
 close(iunit)
+
+! allocate space for boundary reverse lookup (given a node number,
+! return boundary info and references about that node)
+allocate(m%isBoundaryNode(m%np))
+allocate(m%boundaryCategory(m%np))
+allocate(m%boundaryIndex(m%np))
+allocate(m%boundaryNodeIndex(m%np))
+m%isBoundaryNode(:) = .false.
+m%boundaryCategory(:) = 0
+m%boundaryIndex(:) = 0
+m%boundaryNodeIndex(:) = 0
+
 write(6,'(A)') 'INFO: Finished reading mesh file dimensions.'
 return
    !
@@ -545,6 +617,16 @@ if (m%nbou.ne.0) then
       call check(nf90_get_var(nc_id, n%nc_varid_nbvv, m%nbvv(i,:), (/ i, 1 /), (/ 1, m%nvell(i) /) ))
    end do
 endif
+! allocate space for boundary reverse lookup (given a node number,
+! return boundary info and references about that node)
+allocate(m%isBoundaryNode(m%np))
+allocate(m%boundaryCategory(m%np))
+allocate(m%boundaryIndex(m%np))
+allocate(m%boundaryNodeIndex(m%np))
+m%isBoundaryNode(:) = .false.
+m%boundaryCategory(:) = 0
+m%boundaryIndex(:) = 0
+m%boundaryNodeIndex(:) = 0
 !
 ! get 3D mesh dimensions if the data are 3D
 i = nf90_inq_dimid(nc_id, "num_v_nodes", n%nc_dimid_nfen)
@@ -757,12 +839,19 @@ lineNum = lineNum + 1
 read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%neta
 lineNum = lineNum + 1
 do k = 1, m%nope
+   ! not reading ibtypee, it may not be there and 0 is currently the only valid value anyway
    read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%nvdll(k)
    lineNum = lineNum + 1
    m%elevationBoundaries(k)%indexNum = k
+   m%elevationBoundaries(k)%ibtype = 0     ! hard coded b/c we don't have any other valid ibtype (for now)
    do j = 1, m%nvdll(k)
-      read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) m%elevationBoundaries(k)%nodes(j)
-      m%nbdv(k,j) = m%elevationBoundaries(k)%nodes(j)
+      read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) jn
+      m%elevationBoundaries(k)%nodes(j) = jn
+      m%nbdv(k,j) = jn
+      m%isBoundaryNode(jn) = .true.
+      m%boundaryCategory(jn) = ELEV_B
+      m%boundaryIndex(jn) = k
+      m%boundaryNodeIndex(jn) = j
       lineNum = lineNum + 1
    enddo
 enddo
@@ -780,26 +869,38 @@ do k = 1, m%nbou
    select case(m%ibtype_orig(k))
    case(0,1,2,10,11,12,20,21,22,30,52)
       m%simpleFluxBoundaries(m%sfCount)%indexNum = k
+      m%simpleFluxBoundaries(m%sfCount)%ibtype = m%ibtype_orig(k)
       do j = 1, m%nvell(k)
-         read(unit=iunit,fmt=*,err=10,end=20,iostat=ios)  &
-            m%simpleFluxBoundaries(m%sfCount)%nodes(j)
-         m%nbvv(k,j) = m%simpleFluxBoundaries(m%sfCount)%nodes(j)
+         read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) jn
+         m%simpleFluxBoundaries(m%sfCount)%nodes(j) = jn
+         m%nbvv(k,j) = jn
+         m%isBoundaryNode(jn) = .true.
+         m%boundaryCategory(jn) = SFLUX_B
+         m%boundaryIndex(jn) = m%sfCount
+         m%boundaryNodeIndex(jn) = j
          lineNum = lineNum + 1
       end do
       m%sfCount = m%sfCount + 1
    case(3,13,23)
       m%externalFluxBoundaries(m%efCount)%indexNum = k
+      m%externalFluxBoundaries(m%efCount)%ibtype = m%ibtype_orig(k)
       do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) &
                        m%externalFluxBoundaries(m%efCount)%nodes(j), &
                        m%externalFluxBoundaries(m%efCount)%barlanht(j), &
                        m%externalFluxBoundaries(m%efCount)%barlancfsp(j)
          m%nbvv(k,j) = m%externalFluxBoundaries(m%efCount)%nodes(j)
+         jn = m%externalFluxBoundaries(m%efCount)%nodes(j)
+         m%isBoundaryNode(jn) = .true.
+         m%boundaryCategory(jn) = EXTFLUX_B
+         m%boundaryIndex(jn) = m%efCount
+         m%boundaryNodeIndex(jn) = j
          lineNum = lineNum + 1
       end do
       m%efCount = m%efCount + 1
    case(4,24)
       m%internalFluxBoundaries(m%ifCount)%indexNum = k
+      m%internalFluxBoundaries(m%ifCount)%ibtype = m%ibtype_orig(k)
       do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) &
                        m%internalFluxBoundaries(m%ifCount)%nodes(j), &
@@ -808,11 +909,17 @@ do k = 1, m%nbou
                        m%internalFluxBoundaries(m%ifCount)%barincfsb(j), &
                        m%internalFluxBoundaries(m%ifCount)%barincfsp(j)
          m%nbvv(k,j) = m%internalFluxBoundaries(m%ifCount)%nodes(j)
+         jn = m%internalFluxBoundaries(m%ifCount)%nodes(j)
+         m%isBoundaryNode(jn) = .true.
+         m%boundaryCategory(jn) = INTFLUX_B
+         m%boundaryIndex(jn) = m%ifCount
+         m%boundaryNodeIndex(jn) = j
          lineNum = lineNum + 1
       end do
       m%ifCount = m%ifCount + 1
    case(5,25)
       m%internalFluxBoundaries(m%ifwpCount)%indexNum = k
+      m%internalFluxBoundaries(m%ifwpCount)%ibtype = m%ibtype_orig(k)
       do j = 1, m%nvell(k)
          read(unit=iunit,fmt=*,err=10,end=20,iostat=ios) &
                        m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j), &
@@ -824,6 +931,11 @@ do k = 1, m%nbou
                        m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipecoef(j), &
                        m%internalFluxBoundariesWithPipes(m%ifwpCount)%pipediam(j)
          m%nbvv(k,j) = m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j)
+         jn = m%internalFluxBoundariesWithPipes(m%ifwpCount)%nodes(j)
+         m%isBoundaryNode(jn) = .true.
+         m%boundaryCategory(jn) = INTFLUXWP_B
+         m%boundaryIndex(jn) = m%ifwpCount
+         m%boundaryNodeIndex(jn) = j
          lineNum = lineNum + 1
       end do
       m%ifwpCount = m%ifwpCount + 1
@@ -1285,6 +1397,180 @@ return
 end subroutine writeMesh
 !------------------------------------------------------------------
 
+
+!------------------------------------------------------------------
+!   S U B R O U T I N E   W R I T E   M E S H
+!------------------------------------------------------------------
+!  Writes the mesh file header to adcirc ascii fort.14 format.
+!------------------------------------------------------------------
+subroutine writeMeshHeaderASCII(m)
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+integer :: iunit
+integer :: ios
+!
+iunit = availableUnitNumber()
+open(unit=iunit,file=trim(m%meshFileName)//'-with-boundaries.14',status='replace',action='write')
+write(unit=iunit,fmt='(a)',iostat=ios) trim(m%agrid)
+write(unit=iunit,fmt='(2(i0,1x),a)',iostat=ios) m%ne, m%np, &
+   '! number of elements (ne), number of nodes (np)'
+close(iunit)
+!------------------------------------------------------------------
+end subroutine writeMeshHeaderASCII
+!------------------------------------------------------------------
+
+!------------------------------------------------------------------
+!                   S U B R O U T I N E
+!  W R I T E   M E S H   N O D E   T A B L E   A S C I I
+!------------------------------------------------------------------
+!  Writes the mesh node table header to adcirc ascii fort.14 format.
+!------------------------------------------------------------------
+subroutine writeMeshNodeTableASCII(m)
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+integer :: i, j, k, jn, je, nhy
+integer :: iunit
+integer :: ios     ! i/o status
+!
+iunit = availableUnitNumber()
+open(unit=iunit,file=trim(m%meshFileName)//'-with-boundaries.14',status='old',action='write')
+write(6,'(a)') 'INFO: Writing node table to "' // trim(m%meshFileName) // '".'
+write(unit=iunit,fmt='(i0,3(1x,f15.7),a)',iostat=ios) &
+   1, (m%xyd(j,1), j=1,3), ' ! node table: node number, x, y, depth'
+do k = 2, m%np
+   write(unit=iunit,fmt='(i0,3(1x,f15.7))',iostat=ios) &
+      k, (m%xyd(j,k), j=1,3)
+enddo
+close(iunit)
+!------------------------------------------------------------------
+end subroutine writeMeshNodeTableASCII
+!------------------------------------------------------------------
+
+!------------------------------------------------------------------
+!                   S U B R O U T I N E
+!  W R I T E   M E S H    E L E M E N T   T A B L E   A S C I I
+!------------------------------------------------------------------
+!  Writes the mesh element table header to adcirc ascii fort.14 format.
+!------------------------------------------------------------------
+subroutine writeMeshElementTableASCII(m)
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+integer :: iunit
+integer :: i, j, k, jn, je
+integer, parameter :: nhy = 3
+integer :: ios     ! i/o status
+!
+iunit = availableUnitNumber()
+open(unit=iunit,file=trim(m%meshFileName)//'-with-boundaries.14',status='old',action='write')
+write(6,'(a)') 'INFO: Writing element table to ' // trim(m%meshFileName) // '".'
+write(unit=iunit,fmt='(5(i0,2x),a)',iostat=ios) 1, nhy, ( m%nm(1,j), j = 1, 3 ), &
+   '! element table : element number, number of nodes per element, node numbers counter clockwise around the element '
+do k = 2, m%ne
+   write(unit=iunit,fmt='(5(i0,2x))',iostat=ios) k, nhy, ( m%nm(k,j), j = 1, 3 )
+enddo
+close(iunit)
+!------------------------------------------------------------------
+end subroutine writeMeshElementTableASCII
+!------------------------------------------------------------------
+
+
+!------------------------------------------------------------------
+!                   S U B R O U T I N E
+!  W R I T E   M E S H    E L E V A T I O N   B O U N D A R Y   T A B L E   A S C I I
+!------------------------------------------------------------------
+! Writes the elevation specified boundary table in adcirc ascii
+! format to the fort.14 file.
+!
+! Uses data related to boundary finding, rather than data read
+! in from a fort.14 file.
+!------------------------------------------------------------------
+subroutine writeMeshElevationBoundaryTableASCII(m)
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+integer :: nobn    ! number of nodes on this open boundary
+integer :: iunit
+integer :: ios     ! i/o status
+integer :: i, j, k
+!
+iunit = availableUnitNumber()
+open(unit=iunit,file=trim(m%meshFileName)//'-with-boundaries.14',status='old',action='write')
+write(6,'(a)') 'INFO: Writing elevation boundary table to ' // trim(m%meshFileName) // '".'
+
+! Compute the total number of open boundary nodes
+m%itotobn=0
+do k=1,m%nob
+   m%itotobn=m%itotobn+(m%bsegen(k)-m%bsegbn(k))+1
+end do
+
+! Write the open boundary information
+write(iunit,*) m%nob
+write(iunit,*) m%itotobn
+do k=1,m%nob
+   nobn=m%bsegen(k)-m%bsegbn(k)+1
+   write(iunit,*) nobn
+   write(iunit,*) m%extbns(m%bsegbn(k))
+   do j=m%bsegbn(k)+1,m%bsegen(k)-1
+      write(iunit,*) m%extbns(j)
+      m%extbns(j)=0
+   end do
+   write(iunit,*) m%extbns(m%bsegen(k))
+end do
+
+close(iunit)
+!------------------------------------------------------------------
+end subroutine writeMeshElevationBoundaryTableASCII
+!------------------------------------------------------------------
+
+!------------------------------------------------------------------
+!                   S U B R O U T I N E
+!  W R I T E   M E S H    F L U X    B O U N D A R Y   T A B L E   A S C I I
+!------------------------------------------------------------------
+! Writes the flux specified boundary table in adcirc ascii
+! format to the fort.14 file.
+!
+! Uses data related to boundary finding, rather than data read
+! in from a fort.14 file.
+!------------------------------------------------------------------
+subroutine writeMeshFluxBoundaryTableASCII(m)
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on
+integer :: nlbn    ! number of nodes on this open boundary
+integer :: iunit
+integer :: ios     ! i/o status
+integer :: i, j, k
+!
+iunit = availableUnitNumber()
+open(unit=iunit,file=trim(m%meshFileName)//'-with-boundaries.14',status='old',action='write')
+write(6,'(a)') 'INFO: Writing flux specified boundary table to ' // trim(m%meshFileName) // '".'
+
+! Write the land boundary information
+
+write(iunit,*) m%nlb
+write(iunit,*) m%itotlbn
+do k=1,m%nexlb
+   nlbn=m%bsegen(k)-m%bsegbn(k)+1
+   if((m%nob.eq.0).and.(m%nexlb.eq.1)) nlbn=nlbn+1
+   write(iunit,*) nlbn,m%ibtype(k)
+   write(iunit,*) m%extbns(m%bsegbn(k))
+   do j=m%bsegbn(k)+1,m%bsegen(k)-1
+      write(iunit,*) m%extbns(j)
+      m%extbns(j)=0
+   end do
+   write(iunit,*) m%extbns(m%bsegen(k))
+   end do
+if((m%nob.eq.0).and.(m%nexlb.eq.1)) write(iunit,*) m%extbns(m%bsegen(k)+1)
+
+close(iunit)
+!------------------------------------------------------------------
+end subroutine writeMeshFluxBoundaryTableASCII
+!------------------------------------------------------------------
+
+
 !----------------------------------------------------------------------
 !                  S U B R O U T I N E
 !     W R I T E   M E S H   D E F I N I T I O N S  T O   N E T C D F
@@ -1502,19 +1788,6 @@ end subroutine writeMeshDataToNetCDF
 !     entry last = element # defined by neighbors 1,nneigh,2
 !     a zero area means that the defined triangle lies outside the domain
 !
-!
-!    v1.0   R.L.   6/29/99  used in 3D code
-!    v2.0   R.L.   5/23/02  adapted to provide neighbor el table
-!-----------------------------------------------------------------------
-!
-! -  PARAMETERS WHICH MUST BE SET TO CONTROL THE DIMENSIONING OF ARRAYS
-!       ARE AS FOLLOWS:
-!
-!     MNP = MAXIMUM NUMBER OF NODAL POINTS
-!     MNE = MAXIMUM NUMBER OF ELEMENTS
-!     MNEI= 1+MAXIMUM NUMBER OF NODES CONNECTED TO ANY ONE NODE IN THE
-!              FINITE ELEMENT GRID
-!
 !-----------------------------------------------------------------------
 !
 ! VARIABLE DEFINITIONS:
@@ -1541,7 +1814,7 @@ double precision :: dely
 double precision :: dist
 integer :: nn1, nn2, nn3 ! node numbers around an element
 integer :: ne1, ne2, ne3 ! element numbers
-integer :: i, j, jj, jlow, k, n  ! loop counters
+integer :: i, j, jj, jlow, k, n, e  ! loop counters
 !
 ! Initialization
 if (m%cppComputed.eqv..false.) then
@@ -1556,10 +1829,10 @@ ne3 = 0
 ! will have one additional neighboring node.
 allocate(m%nneigh(m%np))
 m%nneigh = 0
-do i=1,m%ne
+do e=1,m%ne
    do j=1,3
       ! increment the number of nodal neighbors this node has
-      m%nneigh(m%nm(i,j)) = m%nneigh(m%nm(i,j)) + 1
+      m%nneigh(m%nm(e,j)) = m%nneigh(m%nm(e,j)) + 1
    end do
 end do
 m%mnei = maxval(m%nneigh)
@@ -1579,16 +1852,16 @@ m%NNeigh=0
 m%NNeighEle=0
 m%NeiTab=-99
 m%NeiTabEle=-99
-DO 10 N=1,m%NE
-   NN1 = m%NM(N,1)
-   NN2 = m%NM(N,2)
-   NN3 = m%NM(N,3)
+DO 10 e=1,m%NE
+   NN1 = m%NM(e,1)
+   NN2 = m%NM(e,2)
+   NN3 = m%NM(e,3)
    m%NNeighEle(NN1)=m%NNeighEle(NN1)+1 ! increment the number of elements that neighbor this node
    m%NNeighEle(NN2)=m%NNeighEle(NN2)+1
    m%NNeighEle(NN3)=m%NNeighEle(NN3)+1
-   m%NeiTabEle(NN1,m%NNeighEle(NN1))=N ! add element n to the neighboring elements list for this node
-   m%NeiTabEle(NN2,m%NNeighEle(NN2))=N
-   m%NeiTabEle(NN3,m%NNeighEle(NN3))=N
+   m%NeiTabEle(NN1,m%NNeighEle(NN1))=e ! add element e to the neighboring elements list for this node
+   m%NeiTabEle(NN2,m%NNeighEle(NN2))=e
+   m%NeiTabEle(NN3,m%NNeighEle(NN3))=e
    !
    ! repeat for the number of nodal neighbors of node 1 on element n
    DO J=1,m%NNeigh(NN1)
@@ -1836,6 +2109,635 @@ end subroutine computeNeighborEdgeLengthTable
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+!              F I N D   B O U N D A R Y   E D G E S
+!-----------------------------------------------------------------------
+!              jgf: Find edges that are on boundaries.
+!-----------------------------------------------------------------------
+subroutine findBoundaryEdges(m)
+use logging, only : scratchMessage, allMessage, INFO
+implicit none
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
+integer :: neinod1, neinod2, neinod3 ! three node numbers around an interior element
+integer :: neinum        ! index into a neighbor table
+integer :: neinump1      ! clockwise incremented index around a neighbor table
+integer :: i, j, k
+!
+! Space for boundary edges
+allocate(m%tbnode(m%np,2))
+!
+! On an interior element, we can can look for the next clockwise
+! neighbor node in a chain of three neighbor tables and get back
+! to the node we started on.
+!
+! A boundary edge is detected when the third neighbor table
+! lookup does not return the original starting node.
+!
+m%nseg=0
+! loop over all nodes in the mesh
+do i=1,m%np
+   ! loop clockwise over the neighbors of this node
+   do j=2,m%NNeigh(i)
+      ! record the node number of a neighbor
+      neinod1=m%NeiTab(i,j)
+      ! loop clockwise over that neighbor node's neighbors
+      do k=2, m%NNeigh(neinod1)
+         ! find and record this node's index in the neighbor's neighbor table
+         if (m%NeiTab(neinod1,k).eq.i) then
+            neinum=k
+         endif
+      end do
+      ! set the index of the next clockwise neighbor in this neighbor table
+      neinump1=neinum+1
+      ! loop back to the beginning of the neighbor table if we went off the end
+      if(neinum.eq.m%NNeigh(neinod1)) then
+         neinump1=2
+      endif
+      !
+      ! record the node number of the next clockwise neighbor
+      neinod2=m%NeiTab(neinod1,neinump1)
+      ! loop over the neighbors of the next clockwise neighbor
+      do k=2,m%NNeigh(neinod2)
+         ! find and record this node's index in the neighbor's neighbor table
+         if(m%NeiTab(neinod2,k).eq.neinod1) then
+            neinum=k
+         endif
+      end do
+      ! set the index of the next clockwise neighbor in this neighbor table
+      neinump1=neinum+1
+      ! loop back to the beginning of the neighbor table if we went off the end
+      if(neinum.eq.m%NNeigh(neinod2)) then
+         neinump1=2
+      endif
+      !
+      ! record the node number of the next clockwise neighbor
+      neinod3=m%NeiTab(neinod2,neinump1)
+      ! for interior nodes, this gets us back to the node we started with
+      ! for boundary nodes, this will be some other node
+      if(neinod3.ne.i) then
+         ! increment the total number of boundary edges
+         m%nseg=m%nseg+1
+         ! record the node numbers of the nodes on this boundary edge
+         m%tbnode(m%nseg,2)=i
+         m%tbnode(m%nseg,1)=neinod1
+      endif
+   end do
+end do
+write(scratchMessage,'(i0,1x,a)') m%nseg,' boundary edges were found.'
+call allMessage(INFO,trim(scratchMessage))
+!-----------------------------------------------------------------------
+end subroutine findBoundaryEdges
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+!              S O R T   B O U N D A R Y   E D G E S
+!-----------------------------------------------------------------------
+!   jgf: Sort edges that are on boundaries into contiguous groups.
+!-----------------------------------------------------------------------
+subroutine sortBoundaryEdges(m)
+implicit none
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
+integer :: npbn          ! total number of nodes on contiguous boundaries previous to the current one
+integer :: n             ! total number of boundary nodes
+integer :: i, j, k
+
+allocate(m%conbnode(m%nseg))
+allocate(m%nbn(m%nseg))
+!
+! All boundary node numbers appear twice in the list of
+! boundary edges, once as regular node, and once as a
+! "connected" node.
+!
+! The sorting algorithm starts with a node, then searches
+! for the edge where this node is listed as a neighbor.
+! The node on that edge is the next connected node
+! in the boundary list. Then that edge is retired from
+! the list by setting its neighbor node number to zero.
+!
+! If the neighbor node is found to be the same node number
+! as the starting node number, the boundary is complete
+! and sorting starts again with a new (unprocessed)
+! boundary node.
+!
+n=0      ! total number of boundary nodes
+npbn=0   ! total number of nodes on contiguous boundaries previous to the current one
+m%numBoundFound=0   ! number of contiguous boundaries
+9  continue
+! loop over all boundary edges
+do i=1,m%nseg
+   ! skip over neighbor nodes that have already been processed
+   if(m%tbnode(i,1).ne.0) then
+      goto 10
+   endif
+end do
+goto 99  ! exit once all boundary neighbor node numbers have been set to zero
+
+10  j=i   ! save segment number
+11  n=n+1 ! increment number of boundary nodes processed
+!
+! add the node number on segment to the list of nodes on this boundary
+m%conbnode(n)=m%tbnode(j,2)
+!
+if(m%conbnode(n).eq.m%tbnode(i,1)) then
+   !
+   m%tbnode(i,1)=0     ! remove this neighbor from the list
+   m%numBoundFound=m%numBoundFound+1       ! increment the number of boundaries
+   m%nbn(m%numBoundFound)=n-npbn  ! set number of nodes on this boundary equal to current count minus current count at the end of the last boundary
+   npbn=n
+   goto 9            ! get the next segment
+endif
+! loop over the segments, searching for a neighbor with the
+! same node number as the node being added to this boundary
+do j=1,m%nseg
+   if(m%tbnode(j,1).eq.m%conbnode(n)) then
+      m%tbnode(j,1)=0   ! eliminate this neighbor from the list
+      goto 11
+   endif
+end do
+99 continue
+
+!-----------------------------------------------------------------------
+end subroutine sortBoundaryEdges
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+!              F I N D   E X T E R N A L   B O U N D A R Y
+!-----------------------------------------------------------------------
+! Before this subroutine is called, the following three subroutines must
+! have already been called:
+! 1. readMesh(m)
+! 2. findBoundaryEdges(m)
+! 3. sortBoundaryEdges(m)
+!-----------------------------------------------------------------------
+subroutine findExternalBoundary(m)
+use logging, only : logMessage, ERROR, INFO
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m   ! mesh to operate on
+integer :: b  ! index into list of already-specified boundaries
+integer :: t  ! boundary type
+integer :: i, j, k
+!
+! initialize whether the external boundary has been found
+m%externalBoundaryFound = .false.
+!
+! if the operator provided a node number that falls on an external
+! boundary, start with that
+if (m%externalBoundaryNodeHint.ne.0) then
+   do i=1,m%nseg
+      if (m%conbnode(i).eq.m%externalBoundaryNodeHint) then
+         m%externalBoundaryFound = .true.
+         m%nodeOnExternalBoundary = m%externalBoundaryNodeHint
+      endif
+   end do
+endif
+! report whether the operator-specified node number was found on the external boundary
+if (m%externalBoundaryNodeHint.ne.0) then
+   if (m%externalBoundaryFound.eqv..false.) then
+      call logMessage(ERROR,"The node number specified as being on the external boundary was not found there.")
+   else
+      call logMessage(INFO,"The node number specified as being on the external boundary was found there.")
+   endif
+endif
+! if the external boundary was not found using a hint from the operator,
+! then go looking for it using existing boundary type assignments
+if (m%externalBoundaryFound.eqv..false.) then
+   if (m%numElevationBoundaries.gt.0) then
+      m%externalBoundaryFound = .true.
+      m%nodeOnExternalBoundary = m%elevationBoundaries(1)%nodes(1)
+   endif
+   if ((m%numSimpleFluxBoundaries.gt.0.and.m%externalBoundaryFound.eqv..false.)) then
+      do b=1, m%numSimpleFluxBoundaries
+         t = m%simpleFluxBoundaries(b)%ibtype
+         if ( (t.eq.0).or.(t.eq.20).or.(t.eq.2).or.(t.eq.22) ) then
+            m%externalBoundaryFound = .true.
+            m%nodeOnExternalBoundary = m%simpleFluxBoundaries(b)%nodes(1)
+            exit
+         endif
+      end do
+   endif
+   if ((m%numExternalFluxBoundaries.gt.0.and.m%externalBoundaryFound.eqv..false.)) then
+      m%externalBoundaryFound = .true.
+      m%nodeOnExternalBoundary = m%externalFluxBoundaries(1)%nodes(1)
+   endif
+endif
+! if the external boundary was not found using existing boundary type assignments
+! (perhaps there aren't any) then assume the longest contiguous boundary segment is
+! the external boundary
+if (m%externalBoundaryFound.eqv..false.) then
+   m%longestBoundary = maxloc(m%nbn)
+   ! connected boundary node that is one node past the end
+   ! of the boundaries preceding the longest boundary
+   m%nodeOnExternalBoundary = m%conbnode(sum(m%nbn(1:m%longestBoundary(1)-1))+1)
+   m%externalBoundaryFound = .true.
+endif
+!-----------------------------------------------------------------------
+end subroutine findExternalBoundary
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+!           E X T R A C T   E X T E R N A L   B O U N D A R Y
+!-----------------------------------------------------------------------
+! Before this subroutine is called, the following three subroutines must
+! have already been called:
+! 1. readMesh(m)
+! 2. findBoundaryEdges(m)
+! 3. sortBoundaryEdges(m)
+! 4. findExternalBoundary(m)
+!-----------------------------------------------------------------------
+subroutine extractExternalBoundary(m)
+use logging, only : logMessage, ERROR
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m   ! mesh to operate on
+integer :: nref          ! node number of first node on a boundary
+integer :: n             ! total number of boundary nodes
+integer :: ncheck
+!
+! determining which boundary is the external one (using hint)
+integer :: nbegnbnm1     ! the node index (minus 1) at the beginning of
+                         !  the boundary on which the operator-specified
+                         !  first open boundary node number is found
+integer :: nbegm1        ! node index (minus 1) of the operator-specified
+                         !  first open boundary node
+integer :: ib            ! index of the contiguous boundary where the
+                         !  first operator-specified open boundary node is found
+integer :: i, j, k
+!
+n=0
+! loop over all the contiguous boundaries
+do i=1,m%numBoundFound
+   ! store the node number of the first node on this boundary
+   nref=n
+   ! loop over all the nodes in this boundary
+   do j=1,m%nbn(i)
+      n=n+1
+      ! check to see whether the operator-specified node for
+      ! the start of the first open boundary is in the list of
+      ! connected boundary nodes
+      if (m%conbnode(n).eq.m%nodeOnExternalBoundary) then
+         ! set the node index (minus 1) at the beginning of the boundary
+         ! on which the external boundary node number is found
+         nbegnbnm1=nref
+         ! set the node index (minus 1) of the external boundary node
+         nbegm1=n-1
+         ! set the index of the contiguous boundary where the
+         ! first operator-specified open boundary node is found
+         ! i.e., the index of the external boundary
+         ib=i
+      endif
+   end do
+end do
+!
+! extract the external boundary into a single continuous array
+n=nbegm1
+! compute index at end of contiguous boundary where
+! operator-specified first open boundary node is found
+! ... this index may actually be out of range if the
+! boundary runs off the end of the conbnode array
+ncheck=nbegnbnm1+m%nbn(ib)
+do j=1,m%nbn(ib)
+   n=n+1
+   if (n.gt.ncheck) then
+   ! wrap back to beginning of the external boundary within the conbnode array
+   n=n-m%nbn(ib)
+   endif
+   ! write the list of external boundary nodes into their own array
+   m%extbns(j)=m%conbnode(n)
+   ! remove the list of external boundary nodes from the full list of boundary nodes
+   m%conbnode(n)=0
+end do
+! repeat the first node of the external boundary at the end
+m%extbns(m%nbn(ib)+1)=m%extbns(1)
+
+!-----------------------------------------------------------------------
+end subroutine extractExternalBoundary
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+! F I N D   E L E V A T I O N   S P E C I F I E D   B O U N D A R I E S
+!-----------------------------------------------------------------------
+! Before this subroutine is called, the following three subroutines must
+! have already been called:
+! 1. readMesh(m)
+! 2. findBoundaryEdges(m)
+! 3. sortBoundaryEdges(m)
+! 4. findExternalBoundary(m)
+! 5. extractExternalBoundary(m)
+!
+! If this is a subset mesh, it probably will not have any elevation
+! specified boundaries (they will all have been left behind on the full
+! domain mesh). In this case, in the absence of a hint, this subroutine
+! will set the starting and ending nodes of elevation-specified
+! boundaries to any string of external boundary nodes that exceed a
+! specified threshold depth and specified theshold number of nodes
+! in a contiguous string.
+!-----------------------------------------------------------------------
+subroutine findElevationSpecifiedBoundaries(m)
+use logging, only : logMessage, ERROR
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
+type(integerVector1D_t) :: ibbeg  ! list of starting node numbers for elevation specified boundaries
+type(integerVector1D_t) :: ibend  ! list of ending node numbers for elevation specified boundaries
+type(integerVector1D_t) :: iblen  ! number of nodes on the ith elevation specified boundary
+integer :: longestBoundary(1)
+integer :: n
+integer :: i, j, k
+logical :: foundElevationSpecifiedBoundary ! true if any external boundary node string met or exceeded the thresholds
+!
+call initI1D(ibbeg)
+call initI1D(ibend)
+call initI1d(iblen)
+foundElevationSpecifiedBoundary = .false.
+!
+! loop through the external boundary nodes looking for nodestrings that
+! exceed the depth threshold over the length threshold
+do i=1,size(m%extbns)
+   if (m%xyd(m%extbns(i),3).ge.m%minElevationBoundaryDepth) then
+      ! check the next nodes along the boundary to see if they
+      ! also exceed the depth threshold and how many of them
+      ! in a row do so
+      do n=1,size(m%extbns)-i
+         if (m%xyd(m%extbns(i+n),3).lt.m%minElevationBoundaryDepth) then
+            exit
+         endif
+      end do
+      if (n.ge.m%minElevationBoundaryLength) then
+         call appendI1D(ibbeg,m%extbns(i))
+         call appendI1D(ibend,m%extbns(i+n))
+         call appendI1D(iblen,n)
+         foundElevationSpecifiedBoundary = .true.
+      endif
+   endif
+end do
+! copy the beginning and ending node numbers for the open
+! boundary into the corresponding mesh struct array
+if (foundElevationSpecifiedBoundary.eqv..true.) then
+   ! if there is only supposed to be one elevation specified boundary
+   ! (most common case) then pick the longest one. There may be
+   ! other boundaries that are in water (e.g., rivers) but these will
+   ! have some sort of flux-specified boundary. And yet they may
+   ! still meet the minimum criteria (length and depth) for an elevation
+   ! specified boundary. Explicitly hinting that there is only one
+   ! elevation specified boundary will help the code to avoid specifying
+   ! elevation specified boundaries where they are not wanted.
+   if (m%oneElevationBoundary.eqv..true.) then
+      longestBoundary = maxloc(iblen%v)
+      allocate(m%ibbeg(1))
+      allocate(m%ibend(1))
+      m%ibbeg(1) = ibbeg%v(longestBoundary(1))
+      m%ibend(1) = ibend%v(longestBoundary(1))
+   else
+      allocate(m%ibbeg(ibbeg%n))
+      allocate(m%ibend(ibend%n))
+      do i=1,ibbeg%n
+         m%ibbeg(i) = ibbeg%v(i)
+         m%ibend(i) = ibend%v(i)
+      end do
+   endif
+endif
+!-----------------------------------------------------------------------
+end subroutine findElevationSpecifiedBoundaries
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+! F I N D   F L U X   S P E C I F I E D   E X T E R N A L   B O U N D A R I E S
+!-----------------------------------------------------------------------
+! Before this subroutine is called, the following three subroutines must
+! have already been called:
+! 1. readMesh(m)
+! 2. findBoundaryEdges(m)
+! 3. sortBoundaryEdges(m)
+! 4. findExternalBoundary(m)
+! 5. extractExternalBoundary(m)
+! 6. findElevationSpecifiedBoundaries(m)
+!
+! If this is a subset mesh, it probably will have some flux specified
+! boundaries already (brought in from the full domain mesh) along
+! with some unassigned boundary nodes that need to be assigned a flux
+! boundary type. These may be entirely new boundary node strings,
+! or they may need to be attached to existing boundary node strings
+! (i.e., those boundary node strings will need to be extended).
+!
+!-----------------------------------------------------------------------
+subroutine findFluxSpecifiedExternalBoundaries(m)
+use logging, only : logMessage, ERROR
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m  ! mesh to operate on
+type(integerVector1D_t) :: ibbeg  ! list of starting node numbers for elevation specified boundaries
+type(integerVector1D_t) :: ibend  ! list of ending node numbers for elevation specified boundaries
+logical :: foundElevationSpecifiedBoundary
+integer :: n
+integer :: i, j, k
+!
+call initI1D(ibbeg)
+call initI1D(ibend)
+foundElevationSpecifiedBoundary = .false.
+!
+! loop through the external boundary nodes looking for nodes that
+! 1, exceed the depth threshold over the length threshold
+do i=1,size(m%extbns)
+   if (m%xyd(m%extbns(i),3).ge.m%minElevationBoundaryDepth) then
+      ! check the next nodes along the boundary to see if they
+      ! also exceed the depth threshold and how many of them
+      ! in a row do so
+      do n=1,size(m%extbns)-i
+         if (m%xyd(m%extbns(i+n),3).lt.m%minElevationBoundaryDepth) then
+            exit
+         endif
+      end do
+      if (n.ge.m%minElevationBoundaryLength) then
+         call appendI1D(ibbeg,m%extbns(i))
+         call appendI1D(ibend,m%extbns(i+n))
+         foundElevationSpecifiedBoundary = .true.
+      endif
+   endif
+end do
+if (foundElevationSpecifiedBoundary.eqv..true.) then
+   m%nob = ibbeg%n
+   allocate(m%ibbeg(m%nob))
+   allocate(m%ibend(m%nob))
+   do i=1,m%nob
+      m%ibbeg(i) = ibbeg%v(i)
+      m%ibend(i) = ibend%v(i)
+   end do
+endif
+
+!-----------------------------------------------------------------------
+end subroutine findFluxSpecifiedExternalBoundaries
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
+!                       S U B R O U T I N E
+!           S E T   D E F A U L T   B O U N D A R Y   T Y P E S
+!-----------------------------------------------------------------------
+! Before this subroutine is called, the following three subroutines must
+! have already been called:
+! 1. readMesh(m)
+! 2. findBoundaryEdges(m)
+! 3. sortBoundaryEdges(m)
+! 4. findExternalBoundary(m)
+! 5. extractExternalBoundary(m)
+!-----------------------------------------------------------------------
+subroutine setDefaultBoundaryTypes(m)
+use logging, only : logMessage, ERROR
+use ioutil
+implicit none
+type(mesh_t), intent(inout) :: m   ! mesh to operate on
+integer :: edgeNodeIndex ! index of node on edge found by findBoundaryNodes (m%conbnode)
+integer :: streak ! number of nodes in a row on a boundary node string
+logical :: land   ! .true. if the node should be assigned a no flux boundary
+integer :: i, j, k
+type(integerVector1D_t) :: bnodes  ! boundary nodes
+
+logical, allocatable :: boundaryTypeAlreadyAssigned(:)
+integer :: b  ! index into list of already-specified boundaries
+integer :: bn ! index into list of nodes on an already-specified boundary
+!
+! initialize whether the connected boundary nodes already have a
+! boundary type assigned to them
+allocate(boundaryTypeAlreadyAssigned(m%nseg))
+boundaryTypeAlreadyAssigned(:) = .false.
+!
+! search through the existing nodes that have boundary types
+! (of any kind) already specified and remove those from our
+! list of boundary edges
+!
+! the nodes on the remaining edges must have boundary types
+! assigned to them
+!
+! node strings with positive bathymetric depth will automatically
+! have elevation-specified boundary types specified;
+! node strings with negative bathymetric depth will automatically
+! have zero flux (land) boundary types assigned
+!
+! any nodes that are found on the external boundary but have
+! island or weir boundary types will automatically be reset
+! to land (zero flux) boundary types
+!
+if (m%externalBoundaryFound.eqv..false.) then
+   ! loop over open boundaries
+   do b=1, m%numElevationBoundaries
+      ! loop over the nodes of this open boundary
+      do bn=1, size(m%elevationBoundaries(b)%nodes)
+         ! loop over the boundary nodes found by the
+         ! findBoundaryNodes subroutine
+         do edgeNodeIndex=1, m%nseg
+            if (m%conbnode(edgeNodeIndex).eq.m%elevationBoundaries(b)%nodes(bn)) then
+               boundaryTypeAlreadyAssigned(edgeNodeIndex) = .true.
+            endif
+         end do
+      end do
+   end do
+   ! simple flux (land, island, river) boundaries
+   do b=1, m%numSimpleFluxBoundaries
+      do bn=1, size(m%simpleFluxBoundaries(b)%nodes)
+         do edgeNodeIndex=1, m%nseg
+            if (m%conbnode(edgeNodeIndex).eq.m%simpleFluxBoundaries(b)%nodes(bn)) then
+               boundaryTypeAlreadyAssigned(edgeNodeIndex) = .true.
+            endif
+         end do
+      end do
+   end do
+   ! external flux boundaries
+   do b=1, m%numExternalFluxBoundaries
+      do bn=1, size(m%externalFluxBoundaries(b)%nodes)
+         do edgeNodeIndex=1, m%nseg
+            if (m%conbnode(edgeNodeIndex).eq.m%externalFluxBoundaries(b)%nodes(bn)) then
+               boundaryTypeAlreadyAssigned(edgeNodeIndex) = .true.
+            endif
+         end do
+      end do
+   end do
+   ! internal flux boundaries
+   do b=1, m%numInternalFluxBoundaries
+      do bn=1, size(m%internalFluxBoundaries(b)%nodes)
+         do edgeNodeIndex=1, m%nseg
+            if (m%conbnode(edgeNodeIndex).eq.m%internalFluxBoundaries(b)%nodes(bn)) then
+               boundaryTypeAlreadyAssigned(edgeNodeIndex) = .true.
+            endif
+         end do
+      end do
+   end do
+   ! internal flux boundaries with cross barrier pipes
+   do b=1, m%numInternalFluxBoundariesWithPipes
+      do bn=1, size(m%internalFluxBoundariesWithPipes(b)%nodes)
+         do edgeNodeIndex=1, m%nseg
+            if (m%conbnode(edgeNodeIndex).eq.m%internalFluxBoundariesWithPipes(b)%nodes(bn)) then
+               boundaryTypeAlreadyAssigned(edgeNodeIndex) = .true.
+            endif
+         end do
+      end do
+   end do
+endif
+!
+! now make new boundaries with the nodes that do not have an
+! assigned boundary type
+!
+! walk along the unassigned connected boundary nodes that were found
+! during the search and make new boundaries with them according to
+! the bathymetric depth (elevation-specified for node strings with
+! positive bathy depth (ocean) and flux-specified (land) for node strings
+! with negative bathy depth
+!
+streak=0
+land=.true.
+call initI1D(bnodes)
+! loop over all the found boundary nodes
+do edgeNodeIndex=1, m%nseg
+   ! if a boundary type is already assigned, reset the
+   ! streak counter to zero and go to the next node
+   if (boundaryTypeAlreadyAssigned(edgeNodeIndex).eqv..true.) then
+      if (streak.eq.1) then
+         call logMessage(ERROR,"Created a boundary that is only one node long.")
+      endif
+      streak=0
+      cycle
+   endif
+   streak=streak + 1
+   if (m%xyd(m%conbnode(edgeNodeIndex),3).ge.0.d0) then
+      land = .true.
+   else
+      land = .false.
+   endif
+   ! if this is the first node of the new boundary, create the
+   ! new boundary type
+   if (streak.eq.1) then
+      if (land.eqv..true.) then
+         m%numSimpleFluxBoundaries = m%numSimpleFluxBoundaries + 1
+         m%nbou=m%nbou + 1
+      endif
+      if (land.eqv..false.) then
+         m%numElevationBoundaries = m%numElevationBoundaries + 1
+         m%nope=m%nope + 1
+      endif
+   endif
+   !
+   ! in order to get the boundaries in the right order, we are going
+   ! to have to count them and figure out how many we have of each
+   ! type, and what nodes are on them
+   !
+   ! and then either rearrange the
+   ! existing boundaries, or make a whole new mesh and copy the
+   ! boundaries over in the correct order
+end do
+
+!-----------------------------------------------------------------------
+end subroutine setDefaultBoundaryTypes
+!-----------------------------------------------------------------------
+
+
+!-----------------------------------------------------------------------
 !                         S U B R O U T I N E
 !     C O M P U T E  A L B E R S   E Q U A L   A R E A   C O N I C
 !-----------------------------------------------------------------------
@@ -1928,6 +2830,26 @@ m%y_cpp = m%xyd(2,:)*deg2rad * R
 return
 !-----------------------------------------------------------------------
 END SUBROUTINE computeCPP
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!     S U B R O U T I N E   C O M P U T E  C P P  S T A T I O N
+!-----------------------------------------------------------------------
+!     jgf: Compute the CPP projection for the lat/on of a station
+!     without overwriting the original lat/lon data.
+!-----------------------------------------------------------------------
+SUBROUTINE computeCPPStation(station, slam0, sfea0)
+IMPLICIT NONE
+type(station_t), intent(inout) :: station      ! station to operate on
+real(8), intent(in)            :: slam0        ! longitude center of cpp projection
+real(8), intent(in)            :: sfea0        ! latitude center of cpp projection
+
+station%x_cpp = R * (station%lon*deg2rad - slam0*deg2rad) * cos(sfea0*deg2rad)
+station%y_cpp = station%lat*deg2rad * R
+
+return
+!-----------------------------------------------------------------------
+END SUBROUTINE computeCPPStation
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
@@ -2041,6 +2963,10 @@ SUBROUTINE computeElementCentroids(m)
 IMPLICIT NONE
 type(mesh_t), intent(inout) :: m ! mesh to operate on
 integer :: i
+
+if (m%elementCentroidsComputed.eqv..true.) then
+   return
+endif
 if (m%cppComputed.eqv..false.) then
    call computeCPP(m)
 endif
@@ -2050,6 +2976,7 @@ do i=1,m%ne
    m%centroids(1,i) = oneThird * sum(m%x_cpp(m%nm(i,1:3)))
    m%centroids(2,i) = oneThird * sum(m%y_cpp(m%nm(i,1:3)))
 end do
+m%elementCentroidsComputed = .true.
 write(6,'("INFO: Finished computing element centroids.")')
 !-----------------------------------------------------------------------
       END SUBROUTINE computeElementCentroids
@@ -2100,7 +3027,6 @@ write(6,'("INFO: Finished computing element depths.")')
       END SUBROUTINE computeElementDepths
 !-----------------------------------------------------------------------
 
-
 !-----------------------------------------------------------------------
 !  S U B R O U T I N E   C O M P U T E   S T A T I O N   W E I G H T S
 !-----------------------------------------------------------------------
@@ -2109,65 +3035,68 @@ write(6,'("INFO: Finished computing element depths.")')
 ! station location.
 !-----------------------------------------------------------------------
 subroutine computeStationWeights(station, m)
+use kdtree2_module
 implicit none
+!
 type(station_t), intent(inout) :: station
 type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
 !
 real(8) :: x1, x2, x3 ! longitude temporary variables
 real(8) :: y1, y2, y3 ! latitude temporary variables
-real(8) :: subArea1, subArea2, subArea3, TotalArea
-integer :: e
+real(8) :: TotalArea
+integer :: e          ! element loop counter
+integer :: se         ! element search results loop counter
+!
+real(8) :: ds1(2),ds2(2),ds3(2)  ! vectors from element nodes to station
+real(8) :: c1,c2,c3              ! cross products of distance vectors from nodes to station
 
+call computeKdtree2SearchTree(m)
+
+call computeCPPStation(station, m%slam0, m%sfea0)
+
+! first try a kdtree2 search
 if (station%elementFound.eqv..false.) then
+   ! Find the element centroids that are closest to the station
+   call kdtree2_n_nearest(tp=m%tree,qv=(/station%x_cpp,station%y_cpp/),nn=m%srchdp,results=m%kdresults)
+   ! see if the particle is inside one of the elements in the list of results
+   do se=1,m%srchdp
+      ! distances from nodes of this element to the station
+      e = m%kdresults(se)%idx
+      ds1(1) = m%x_cpp(m%nm(e,1)) - station%x_cpp  ! vector 1
+      ds1(2) = m%y_cpp(m%nm(e,1)) - station%y_cpp
+      ds2(1) = m%x_cpp(m%nm(e,2)) - station%x_cpp  ! vector 2
+      ds2(2) = m%y_cpp(m%nm(e,2)) - station%y_cpp
+      ds3(1) = m%x_cpp(m%nm(e,3)) - station%x_cpp  ! vector 3
+      ds3(2) = m%y_cpp(m%nm(e,3)) - station%y_cpp
+      ! all positive cross products indicate the particle is within
+      ! the element because element nodes are listed counter clockwise
+      c1 = (ds1(1)*ds2(2))-(ds1(2)*ds2(1))
+      c2 = (ds2(1)*ds3(2))-(ds2(2)*ds3(1))
+      c3 = (ds3(1)*ds1(2))-(ds3(2)*ds1(1))
 
-   station%outsideWithinTolerance = .false.
-   do e=1,m%ne
-      X1 = station%lon
-      X2 = m%xyd(1,m%nm(e,2))
-      X3 = m%xyd(1,m%nm(e,3))
-      Y1 = station%lat
-      Y2 = m%xyd(2,m%nm(e,2))
-      Y3 = m%xyd(2,m%nm(E,3))
-      SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = m%xyd(1,m%nm(e,1))
-      X2 = station%lon
-      X3 = m%xyd(1,m%nm(e,3))
-      Y1 = m%xyd(2,m%nm(e,1))
-      Y2 = station%lat
-      Y3 = m%xyd(2,m%nm(e,3))
-      SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = m%xyd(1,m%nm(e,1))
-      X2 = m%xyd(1,m%nm(e,2))
-      X3 = station%lon
-      Y1 = m%xyd(2,m%nm(e,1))
-      Y2 = m%xyd(2,m%nm(e,2))
-      Y3 = station%lat
-      SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      X1 = m%xyd(1,m%nm(e,1))
-      X2 = m%xyd(1,m%nm(e,2))
-      X3 = m%xyd(1,m%nm(e,3))
-      Y1 = m%xyd(2,m%nm(e,1))
-      Y2 = m%xyd(2,m%nm(e,2))
-      Y3 = m%xyd(2,m%nm(e,3))
-      TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
-
-      if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+      if ((c1.ge.0.d0).and.(c2.ge.0.d0).and.(c3.gt.0.d0)) then
          station%elementIndex = e
          station%elementFound = .true.
-         exit
-      endif
-      if (m%useStationTolerance.and.(SubArea1+SubArea2+SubArea3).LE.((1.0+m%stationTolerance)*TotalArea))THEN
-         station%elementIndex = e
-         station%elementFound = .true.
-         station%outsideWithinTolerance = .true.
          exit
       endif
    end do
 endif
 
+! now try a brute force search
+if (station%useBruteForceSearch.eqv..true.) then
+   if (station%elementFound.eqv..false.) then
+      station%outsideWithinTolerance = .false.
+      do e=1,m%ne
+         call isStationWithinElement(station, e, m)
+         if (station%elementFound.eqv..true.) Then
+            exit
+         endif
+      end do
+   endif
+endif
+
+! compute station weights if the element containing the station was found
+! or set the weights to a missing value if the element was not found
 if (station%elementFound.eqv..true.) then
    X1 = m%xyd(1,m%nm(station%elementIndex,1))
    X2 = m%xyd(1,m%nm(station%elementIndex,2))
@@ -2188,9 +3117,110 @@ else
    station%elementArea = -99999.d0
    station%w = -99999.0
 endif
-
 !-----------------------------------------------------------------------
 END SUBROUTINE computeStationWeights
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!  S U B R O U T I N E   I S   S T A T I O N   W I T H I N   E L E M E N T
+!-----------------------------------------------------------------------
+! jgf: Check a set of cartesian coordinates to see if it is inside
+! a specified element.
+!-----------------------------------------------------------------------
+subroutine isStationWithinElement(station, e, m)
+implicit none
+type(station_t), intent(inout) :: station
+type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
+integer, intent(in) :: e
+!
+real(8) :: x1, x2, x3 ! longitude temporary variables
+real(8) :: y1, y2, y3 ! latitude temporary variables
+real(8) :: subArea1, subArea2, subArea3, TotalArea
+
+if (station%elementFound.eqv..false.) then
+
+   station%outsideWithinTolerance = .false.
+
+   X1 = station%lon
+   X2 = m%xyd(1,m%nm(e,2))
+   X3 = m%xyd(1,m%nm(e,3))
+   Y1 = station%lat
+   Y2 = m%xyd(2,m%nm(e,2))
+   Y3 = m%xyd(2,m%nm(e,3))
+   SubArea1 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = m%xyd(1,m%nm(e,1))
+   X2 = station%lon
+   X3 = m%xyd(1,m%nm(e,3))
+   Y1 = m%xyd(2,m%nm(e,1))
+   Y2 = station%lat
+   Y3 = m%xyd(2,m%nm(e,3))
+   SubArea2 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = m%xyd(1,m%nm(e,1))
+   X2 = m%xyd(1,m%nm(e,2))
+   X3 = station%lon
+   Y1 = m%xyd(2,m%nm(e,1))
+   Y2 = m%xyd(2,m%nm(e,2))
+   Y3 = station%lat
+   SubArea3 = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   X1 = m%xyd(1,m%nm(e,1))
+   X2 = m%xyd(1,m%nm(e,2))
+   X3 = m%xyd(1,m%nm(e,3))
+   Y1 = m%xyd(2,m%nm(e,1))
+   Y2 = m%xyd(2,m%nm(e,2))
+   Y3 = m%xyd(2,m%nm(e,3))
+   TotalArea = ABS((X2*Y3-X3*Y2)-(X1*Y3-X3*Y1)+(X1*Y2-X2*Y1))
+
+   if ((SubArea1+SubArea2+SubArea3).LE.(1.01*TotalArea))THEN
+      station%elementIndex = e
+      station%elementFound = .true.
+   endif
+   if (m%useStationTolerance.and.(SubArea1+SubArea2+SubArea3).LE.((1.0+m%stationTolerance)*TotalArea))THEN
+      station%elementIndex = e
+      station%elementFound = .true.
+      station%outsideWithinTolerance = .true.
+   endif
+
+endif
+
+!-----------------------------------------------------------------------
+END SUBROUTINE isStationWithinElement
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!      S U B R O U T I N E   C O M P U T E   K D T R E E 2
+!                    S E A R C H   T R E E
+!-----------------------------------------------------------------------
+! jgf: Check a set of cartesian coordinates to see if it is inside
+! a specified element.
+!-----------------------------------------------------------------------
+subroutine computeKdtree2SearchTree(m)
+implicit none
+type(mesh_t), intent(inout) :: m ! mesh to operate on (may compute element areas as a side effect)
+
+if (m%kdtree2SearchTreeComputed.eqv..true.) then
+   return
+endif
+
+call computeElementCentroids(m)
+
+write(6,'("INFO: Computing kdtree2 search tree.")')
+
+! set search depth (not to exceed number of elements)
+m%srchdp = min(12,m%ne)
+! allocate space for kdtree2 search and create the tree
+m%tree => kdtree2_create(m%centroids,rearrange=.true.,sort=.true.)
+! allocate space for search results from the tree
+allocate(m%kdresults(m%srchdp))
+
+m%kdtree2SearchTreeComputed = .true.
+
+write(6,'("INFO: Finished computing kdtree2 search tree.")')
+
+!-----------------------------------------------------------------------
+END SUBROUTINE computeKdtree2SearchTree
 !-----------------------------------------------------------------------
 
 !-----+---------+---------+---------+---------+---------+---------+
