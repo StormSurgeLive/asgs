@@ -109,7 +109,7 @@ clean :
 boundaryFinder : $(MODS) boundaryFinder.f90
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -o $@.x $@.f90 $(OBJ) $(LDFLAGS)
 #
-adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod
+adcmesh.mod : $(OUTPUTDIR)/adcmesh.f90 logging.mod kdtree2_module.mod
 	$(FC) $(FFLAGS) $(INCLUDES) $(LIBS) -c $(OUTPUTDIR)/adcmesh.f90 $(LDFLAGS)
 #
 asgsio.mod : $(OUTPUTDIR)/asgsio.f90 nodalattr.mod logging.mod
