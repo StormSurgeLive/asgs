@@ -93,10 +93,6 @@ $ns = $cs;
 #
 #  A D C I R C   C O N T R O L   F I L E
 #
-
-
-
-
 # open template file for fort.15
 unless (open(TEMPLATE,"<$p->{controltemplate}")) {
    ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file '$p->{controltemplate}' for reading: $!.");
@@ -307,7 +303,7 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
    }
 }
 #
-# construct metControl namelist line
+# construct &metControl namelist line %met_control_namelist%
 # &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue, invertedBarometerOnElevationBoundary=logicalValue /
 # ADCIRC defaults for these namelist parameters, if they are not included in
 # the namelist, are as follows:
@@ -331,7 +327,7 @@ if ( $p->{adcirc_version} ne "v53.05-modified" ) {
 }
 $met_control_line   .="            /\n";
 #
-# construct wetDryControl namelist
+# construct &wetDryControl namelist %wetdry_control_namelist%
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
 #        slim=floatValue, windlim=logicalValue, directvelWD=logicalValue, useHF=logicalValue /
 # available in v53release (and later)
@@ -372,14 +368,14 @@ if ( $p->{adcirc_version} eq "v56.0.3" ) {
 }
 $wetdry_control_line    .= "/\n";
 #
-# construct inundationOutput namelist
+# construct &inundationOutput namelist %inundation_output_control_namelist%
 # &inundationOutputControl inundationOutput=logicalValue0, inunThresh=floatValue /
 my $inundationOutput = $p->{output}->{inundationOutputControl}->{inundationOutput} eq 'yes' ? 'T' : 'F';
 my $inundation_output_control_line = "&inundationOutputControl inundationOutput=$inundationOutput, inunThresh=$p->{output}->{inundationOutputControl}->{inunThresh} /";
 #
 my $dynamic_water_level_correction_line = 'NO LINE HERE';
 #
-# construct SWANOutputControl name list
+# construct &SWANOutputControl name list %swan_output_control_namelist%
 my $SWAN_OutputTPS = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTPS} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTM01 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTM01} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputHS = $p->{swan}->{SWANOutputControl}->{SWAN_OutputHS} eq 'yes' ? 'T' : 'F';
@@ -387,7 +383,8 @@ my $SWAN_OutputDIR = $p->{swan}->{SWANOutputControl}->{SWAN_OutputDIR} eq 'yes' 
 my $SWAN_OutputTMM10 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTMM10} eq 'yes' ? 'T' : 'F';
 my $SWAN_OutputTM02 = $p->{swan}->{SWANOutputControl}->{SWAN_OutputTM02} eq 'yes' ? 'T' : 'F';
 my $swan_output_control_line = "&SWANOutputControl SWAN_OutputTPS=$SWAN_OutputTPS, SWAN_OutputTM01=$SWAN_OutputTM01, SWAN_OutputHS=$SWAN_OutputHS, SWAN_OutputDIR=$SWAN_OutputDIR, SWAN_OutputTMM10=$SWAN_OutputTMM10, SWAN_OutputTM02=$SWAN_OutputTM02 /";
-# smagorinsky control; defaults as follows if not set
+#
+# contstruct &Smag_control namelist %smag_control_namelist% ; defaults as follows if not set
 my $smag_comp_flag = $p->{lateral_turbulence}->{smag_comp_flag} eq 'on' ? 'T' : 'F';
 my $smag_upper_lim = $p->{lateral_turbulence}->{smag_upper_lim};
 my $smag_lower_lim = $p->{lateral_turbulence}->{smag_lower_lim};
@@ -397,6 +394,42 @@ $smag_control_line    .= "smag_comp_flag=$smag_comp_flag,\n";
 $smag_control_line    .= "smag_upper_lim=$smag_upper_lim,\n";
 $smag_control_line    .= "smag_comp_flag=$smag_lower_lim\n";
 $smag_control_line    .= "/ \n";
+#
+# construct &WarnElevControl namelist %warnelevcontrol_namelist%
+# &WarnElevControl WarnElev=floatValue, WarnElevDump=logicalValue, WarnElevDumpLimit=integerValue, ErrorElev=floatValue /
+#
+# the following values are specified on the NFOVER line in v53release and
+# both on the NFOVER line as well as the WarnElevControl namelist in later
+# versions (through v56); default values (if they are not set in the
+# fort.15):
+#  WarnElev = 20.0         ! default
+# iWarnElevDump = 0       ! init
+# WarnElevDump = .False.  ! default
+#     WarnElevDumpLimit = 50  ! default
+#     WarnElevDumpCounter = 0 ! init
+#     ErrorElev = 1000.0      ! default
+my $warnElev = $p->{output}->{non_fatal_override}->{WarnElev};
+my $iWarnElevDump = $p->{output}->{non_fatal_override}->{iWarnElevDump};
+my $warnElevDump = $iWarnElevDump eq '1' ? 'T' : 'F' ;
+my $warnElevDumpLimit = $p->{output}->{non_fatal_override}->{WarnElevDumpLimit};
+my $errorElev = $p->{output}->{non_fatal_override}->{ErrorElev};
+my $warnelevcontrol_line = "&WarnElevControl\n";
+$warnelevcontrol_line .= "WarnElev=$WarnElev,\n";
+$warnelevcontrol_line .= "WarnElevDump=$warnElevDump,\n";
+$warnelevcontrol_line .= "WarnElevDumpLimit=$warnElevDumpLimit,\n";
+$warnelevcontrol_line .= "ErrorElev=$errorElev\n";
+$warnelevcontrol_line .= "/\n";
+#
+# construct &WaveCoupling namelist %wavecoupling_namelist%
+# &waveCoupling WaveWindMultiplier=floatValue, Limit_WaveStressGrad=logicalValue, WaveStressGrad_Cap=floatValue /
+my $waveWindMultiplier = $p->{wave_coupling}->{wave_wind_multipler};
+my $limitWaveStressGrad = $p->{wave_coupling}->{limit_wave_stress_grad} eq 'yes' ? 'T' : 'F' ;
+my $waveStressGradCap = $p->{wave_coupling}->{wave_stress_grad_cap};
+my $wavecoupling_line = "&WaveCoupling\n";
+$wavecoupling_line .= "WaveWindMultiplier=$waveWindMultiplier,\n";
+$wavecoupling_line .= "Limit_WaveStressGrad=$limitWaveStressGrad,\n";
+$wavecoupling_line .= "WaveStressGradCap=$waveStressGradCap\n";
+$wavecoupling_line .= "/\n";
 #
 # LINTER: check for consistency between solver time integration
 #         type and time weighting coefficients
@@ -623,12 +656,10 @@ while(<TEMPLATE>) {
     s/%wetdry_control_namelist%/$wetdry_control_line/;
     s/%inundation_output_control_namelist%/$inundation_output_control_line/;
     s/%dynamic_water_level_correction_namelist%/$dynamic_water_level_correction_line/;
-
-%smag_control_namelist%
-%warnelevcontrol_namelist%
-%wavecoupling_namelist%
-
-
+    s/%swan_output_control_namelist%/$swan_output_control_line/;
+    s/%smag_control_namelist%/$smag_control_line/;
+    s/%warnelevcontrol_namelist%/$warnelevcontrol_line/;
+    s/%wavecoupling_namelist%/$wavecoupling_line/;
     # individual namelist parameters
     s/%WindDragLimit%/$p->{metControl}->{WindDragLimit}/;          # &metControl
     s/%DragLawString%/\"$p->{metControl}->{DragLawString}\"/;
