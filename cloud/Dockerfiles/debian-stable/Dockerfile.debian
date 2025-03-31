@@ -98,12 +98,6 @@ RUN   cd /home/asgsuser/asgs      && \
 RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps perl-modules"    || echo perl-modules    - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
-      ./init-asgs.sh -b -x "--run-steps image-magick"    || echo image-magick    - something went wonky but preserving docker image
-RUN   cd /home/asgsuser/asgs      && \
-      ./init-asgs.sh -b -x "--run-steps python3"         || echo python3         - something went wonky but preserving docker image
-RUN   cd /home/asgsuser/asgs      && \
-      ./init-asgs.sh -b -x "--run-steps ffmpeg"          || echo ffmpeg          - something went wonky but preserving docker image
-RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps gnuplot"         || echo gnuplot         - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps units"           || echo units           - something went wonky but preserving docker image
