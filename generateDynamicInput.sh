@@ -183,11 +183,16 @@ generateDynamicInput()
         -e "s/%windlim%/${wetDryControl["windlim"]}/" \
         -e "s/%directvelWD%/${wetDryControl["directvelWD"]}/" \
         -e "s/%useHF%/${wetDryControl["useHF"]}/" \
+        -e "s/%StatPartWetFix%/${wetDryControl["StatPartWetFix"]}/" \
+        -e "s/%How2FixStatPartWet%/${wetDryControl["How2FixStatPartWet"]}/" \
         -e "s/%inundationOutput%/${inundationOutputControl["inundationOutput"]}/" \
         -e "s/%inunThresh%/${inundationOutputControl["inunThresh"]}/" \
         -e "s/%WAVES%/$WAVES/" \
         -e "s/%wave_model%/$wave_model/" \
         -e "s/%RSTIMINC%/$SWANDT/" \
+        -e "s/%wave_wind_multiplier%/${waveCoupling["WaveWindMultiplier"]}/" \
+        -e "s/%limit_wave_stress_grad%/${waveCoupling["Limit_WaveStressGrad"]}/" \
+        -e "s/%wave_stress_grad_cap%/${waveCoupling["WaveStressGrad_Cap"]}/" \
         -e "s?%SWANTEMPLATE%?${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE}?" \
         -e "s/%HOTSWAN%/$HOTSWAN/" \
         -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \

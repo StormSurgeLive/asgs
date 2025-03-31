@@ -123,6 +123,12 @@ declare -g -A inundationOutputControl
 inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
 inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
 #
+# # &waveCoupling WaveWindMultiplier=floatValue, Limit_WaveStressGrad=logicalValue, WaveStressGrad_Cap=floatValue /
+declare -g -A waveCoupling
+waveCoupling["WaveWindMultiplier"]="1.0"
+waveCoupling["Limit_WaveStressGrad"]="no"
+waveCoupling["WaveStressGrad_Cap"]="1000.0"
+#
 # &SWANOutputControl SWAN_OutputTPS=logicalValue, SWAN_OutputTM01=logicalValue, SWAN_OutputHS=logicalValue, SWAN_OutputDIR=logicalValue, SWAN_OutputTMM10=logicalValue, SWAN_OutputTM02=logicalValue /
 declare -g -A SWANOutputControl
 SWANOutputControl["SWAN_OutputTPS"]="yes"

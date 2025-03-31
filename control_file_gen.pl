@@ -121,7 +121,7 @@ if ( $ics >=20 && $ics <=24 && $p->{coordinate_system}->{rotation} ne "northpole
    if ( $p->{coordinate_system}->{rotation} eq "greenland-antarctica" ) {
       $zNorth = "-42.8906  72.3200  ! Greenland-Antarctica";
    } elsif ( $p->{coordinate_system}->{rotation} eq "china-argentina" ) {
-      $zNorth = ="112.8516  40.3289  ! China-Argentina";
+      $zNorth = "112.8516  40.3289  ! China-Argentina";
    } elsif ( $p->{coordinate_system}->{rotation} eq "borneo-brazil" ) {
       $zNorth = "114.16991  0.77432 ! Borneo-Brazil";
    } else {
@@ -130,7 +130,8 @@ if ( $ics >=20 && $ics <=24 && $p->{coordinate_system}->{rotation} ne "northpole
 }
 if ( $zNorth ne "northpole" ) {
    $ics *= -1;
-   unless (open(my $rotm,">fort.rotm")) {
+   my $rotm; # rotation file
+   unless (open($rotm,">fort.rotm")) {
       ASGSUtil::stderrMessage("ERROR","Failed to open the coordinate rotation file fort.rotm for writing: $!.");
       die;
    }
@@ -337,8 +338,8 @@ my $noffActive = $p->{wetDryControl}->{noffActive} eq 'on' ? 'T' : 'F';
 # available in v55release and later; defaults if not set:
 # StatPartWetFix = .false ! global.F
 # How2FixStatPartWet = 0  ! global.F
-my $StatPartWetFix = $p->{wetDryControl}->{StatPartWetFix} eq 'on' ? 'T' : 'F';
-my $How2FixStatPartWet = $p->{wetDryControl}->{How2FixStatPartWet}
+my $StatPartWetFix = $p->{output}->{stations}->{wetdry}->{StatPartWetFix} eq 'on' ? 'T' : 'F';
+my $How2FixStatPartWet = $p->{output}->{stations}->{wetdry}->{How2FixStatPartWet};  # integer
 # available in v56.0.3; defaults if not set:
 # slim = 1.de9            ! global.F ! Large value on slim effectively assures limiter is not applied anywhere.
 # windlim = .false        ! global.F
@@ -414,7 +415,7 @@ my $warnElevDump = $iWarnElevDump eq '1' ? 'T' : 'F' ;
 my $warnElevDumpLimit = $p->{output}->{non_fatal_override}->{WarnElevDumpLimit};
 my $errorElev = $p->{output}->{non_fatal_override}->{ErrorElev};
 my $warnelevcontrol_line = "&WarnElevControl\n";
-$warnelevcontrol_line .= "WarnElev=$WarnElev,\n";
+$warnelevcontrol_line .= "WarnElev=$warnElev,\n";
 $warnelevcontrol_line .= "WarnElevDump=$warnElevDump,\n";
 $warnelevcontrol_line .= "WarnElevDumpLimit=$warnElevDumpLimit,\n";
 $warnelevcontrol_line .= "ErrorElev=$errorElev\n";
