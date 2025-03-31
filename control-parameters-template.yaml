@@ -10,8 +10,8 @@
   timestepsize: %TIMESTEPSIZE%
   coordinate_system:
     projection: "%projection%"
-    reprojection: "%reprojection%""
-    earth_curvature: "%earthCurvature%""
+    reprojection: "%reprojection%"
+    earth_curvature: "%earthCurvature%"
     rotation: "%rotation%"
   solver_time_integration: "%IM_ETC%"
   initialization_length: %HINDCASTLENGTH%
@@ -127,6 +127,9 @@
         incr_seconds: %fort62incr%
         format: "%fort62format%"
         append: "%fort62append%"
+      wetdry:
+        StatPartWetFix: "%StatPartWetFix%"
+        How2FixStatPartWet: %How2FixStatPartWet%
       fort7172:
         metstations_file: "%METSTATIONS%"
         incr_seconds: %fort7172incr%
