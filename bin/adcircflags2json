@@ -1,0 +1,56 @@
+#!/usr/bin/env perl
+
+use v5.10;
+use warnings;
+
+use Util::H2O::More qw/ddd/;
+use JSON::XS qw/decode_json encode_json/;
+
+my $FLAGSTXT = shift @ARGV;
+my $INITJSON = shift @ARGV;
+
+die "initial build JSON not found!\n" if not $INITJSON or not -e $INITJSON;
+
+my $json = do { local $/; open my $fh, "<", $INITJSON or die $!; <$fh> };
+my $initial_JSON = decode_json $json;
+
+my $USER = (getpwuid($<))[0];
+
+my $content = do { local $/; open my $fh, "<", $FLAGSTXT or die $!; <$fh> };
+
+# sanitize $USER
+$content =~ s/$USER/\$USER/g;
+
+# breaks up each work/actualflags.txt into non-empty sections
+my @sections = grep { ! /^\n$/ } split /^-+$/m, $content;
+
+# parse out sections
+my $sectioninfo = [];
+
+foreach my $section (@sections) {
+  my $info = {};
+
+  my @lines = split /\n/, $section;
+  shift @lines; # first element is empty due to \n
+  my $datestamp = shift @lines;
+  my $stage = shift @lines;
+  my $compiler = pop @lines;
+
+  next if not $stage;
+
+  $info->{stage}     = $stage;
+  $info->{datestamp} = $datestamp;
+  $info->{compiler}  = $compiler;
+
+  foreach my $line (@lines) {
+    my ($var, $value) = split / *:= */, $line;
+    $info->{build}->{$var} = $value;
+  }
+
+  push @$sectioninfo, $info;
+}
+
+$FLAGSTXT =~ s/$USER/\$USER/g;
+$initial_JSON->{"adcirc.build.actualflags.file"} = $FLAGSTXT;
+$initial_JSON->{"adcirc.build.actualflags.info"} = $sectioninfo;
+say encode_json($initial_JSON);
