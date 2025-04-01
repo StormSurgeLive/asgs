@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use v5.10;
-use warnings;
+use strict;
 
 use JSON::XS qw/decode_json encode_json/;
 
