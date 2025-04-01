@@ -5,7 +5,7 @@ use warnings;
 
 use JSON::XS qw/decode_json encode_json/;
 
-my ($FLAGSTXT, $INITJSON) = @ARGV;
+my ( $FLAGSTXT, $INITJSON ) = @ARGV;
 
 #
 # This utility is meant for a very specific use in bin/init-adcirc.sh,
@@ -17,45 +17,45 @@ my ($FLAGSTXT, $INITJSON) = @ARGV;
 #  bin/adcircflags2json path/to/work/actualflags.txt path/to/adcirc.bin.buildinfo.json.tmp > path/to/adcirc.bin.buildinfo.json
 #
 
-die "actualflags.txt not found!\n" if not $FLAGSTXT or not -e $FLAGSTXT;
+die "actualflags.txt not found!\n"    if not $FLAGSTXT or not -e $FLAGSTXT;
 die "initial build JSON not found!\n" if not $INITJSON or not -e $INITJSON;
 
-my $content = do { local $/; open my $fh, "<", $FLAGSTXT or die $!; <$fh> };
-my $json = do { local $/; open my $fh, "<", $INITJSON or die $!; <$fh> };
+my $content      = do { local $/; open my $fh, "<", $FLAGSTXT or die $!; <$fh> };
+my $json         = do { local $/; open my $fh, "<", $INITJSON or die $!; <$fh> };
 my $initial_JSON = decode_json $json;
 
-my $USER = (getpwuid($<))[0];
+my $USER = ( getpwuid($<) )[0];
 
 # sanitize $USER
 $content =~ s/$USER/\$USER/g;
 
 # breaks up each work/actualflags.txt into non-empty sections
-my @sections = grep { ! /^\n$/ } split /^-+$/m, $content;
+my @sections = grep { !/^\n$/ } split /^-+$/m, $content;
 
 # parse out sections
 my $sectioninfo = [];
 
 foreach my $section (@sections) {
-  my $info = {};
+    my $info = {};
 
-  my @lines = split /\n/, $section;
-  shift @lines; # first element is empty due to \n
-  my $datestamp = shift @lines;
-  my $stage = shift @lines;
-  my $compiler = pop @lines;
+    my @lines = split /\n/, $section;
+    shift @lines;    # first element is empty due to \n
+    my $datestamp = shift @lines;
+    my $stage     = shift @lines;
+    my $compiler  = pop @lines;
 
-  next if not $stage;
+    next if not $stage;
 
-  $info->{stage}     = $stage;
-  $info->{datestamp} = $datestamp;
-  $info->{compiler}  = $compiler;
+    $info->{stage}     = $stage;
+    $info->{datestamp} = $datestamp;
+    $info->{compiler}  = $compiler;
 
-  foreach my $line (@lines) {
-    my ($var, $value) = split / *:= */, $line;
-    $info->{build}->{$var} = $value;
-  }
+    foreach my $line (@lines) {
+        my ( $var, $value ) = split / *:= */, $line;
+        $info->{build}->{$var} = $value;
+    }
 
-  push @$sectioninfo, $info;
+    push @$sectioninfo, $info;
 }
 
 $FLAGSTXT =~ s/$USER/\$USER/g;
