@@ -3,20 +3,28 @@
 use v5.10;
 use warnings;
 
-use Util::H2O::More qw/ddd/;
 use JSON::XS qw/decode_json encode_json/;
 
-my $FLAGSTXT = shift @ARGV;
-my $INITJSON = shift @ARGV;
+my ($FLAGSTXT, $INITJSON) = @ARGV;
 
+#
+# This utility is meant for a very specific use in bin/init-adcirc.sh,
+# so there are limited options and no flags.
+#
+# Usage - there are exactly 2 required arguments (no flags,) paths to
+# to 2 files
+#
+#  bin/adcircflags2json path/to/work/actualflags.txt path/to/adcirc.bin.buildinfo.json.tmp > path/to/adcirc.bin.buildinfo.json
+#
+
+die "actualflags.txt not found!\n" if not $FLAGSTXT or not -e $FLAGSTXT;
 die "initial build JSON not found!\n" if not $INITJSON or not -e $INITJSON;
 
+my $content = do { local $/; open my $fh, "<", $FLAGSTXT or die $!; <$fh> };
 my $json = do { local $/; open my $fh, "<", $INITJSON or die $!; <$fh> };
 my $initial_JSON = decode_json $json;
 
 my $USER = (getpwuid($<))[0];
-
-my $content = do { local $/; open my $fh, "<", $FLAGSTXT or die $!; <$fh> };
 
 # sanitize $USER
 $content =~ s/$USER/\$USER/g;
