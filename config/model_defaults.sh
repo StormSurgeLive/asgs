@@ -48,12 +48,12 @@ advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
 # zNorth="114.16991  0.77432 ! Borneo-Brazil"
 # Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
 # Model coordinate system reference: https://wiki.adcirc.org/ICS
-zNorth="northpole"
+zNorth="northpole"                          # greenland-antarctica|china-argentina|borneo-brazil
 declare -g -A coordinateSystem
 coordinateSystem["projection"]="geographic" # cartesian|geographic
 coordinateSystem["reprojection"]="CPP"      # CPP|equal-area|merator|miller|gall-stereographic
 coordinateSystem["earthCurvature"]="no"     # no|yes
-coordinateSystem["rotation"]="northpole"    # greenland-antarctica|china-argentina|borneo-brazil
+coordinateSystem["rotation"]=$zNorth
 #
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:

@@ -11,7 +11,7 @@
   coordinate_system:
     projection: "%projection%"
     reprojection: "%reprojection%"
-    earth_curvature: "%earthCurvature%"
+    earthCurvature: "%earthCurvature%"
     rotation: "%rotation%"
   solver_time_integration: "%IM_ETC%"
   initialization_length: %HINDCASTLENGTH%
@@ -86,9 +86,9 @@
     waves: "%WAVES%"
     wave_model: "%wave_model%"
     rstiminc: %RSTIMINC%
-    wave_wind_multiplier: %wave_wind_multiplier%
-    limit_wave_stress_grad: "%limit_wave_stress_grad%"
-    wave_stress_grad_cap: %wave_stress_grad_cap%
+    WaveWindMultiplier: %WaveWindMultiplier%
+    Limit_WaveStressGrad: "%Limit_WaveStressGrad%"
+    WaveStressGrad_Cap: %WaveStressGrad_Cap%
   swan:
     template: "%SWANTEMPLATE%"
     hot: "%HOTSWAN%"
