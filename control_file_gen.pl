@@ -65,7 +65,6 @@ my $fluxdata = "NO LINE HERE";  # data from the $periodic_flux file
 my $nffr = "NO LINE HERE";      # for flux boundaries; -1: top of fort.20 corresponds to hs
 #
 our $addHours; # duration of the run (hours)
-our $nds;      # number of datasets expected to be placed in a file
 my $parameters;  # YAML document that defines model control options
 #
 # load YAML document containing model control parameters from stdin
@@ -98,12 +97,17 @@ unless (open(TEMPLATE,"<$p->{controltemplate}")) {
    ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file '$p->{controltemplate}' for reading: $!.");
    die;
 }
-my $ics = 2; # most common setting
+# ICS
+my $ics = 2;
 if ( $p->{coordinate_system}->{projection} eq "cartesian" ) {
    $ics = 1;
+   # the only input projections for ADCIRC are cartesian and geographic; all of the below
+   # assume the input projection is geographic (lon/lat)
 } else {
    if ( $p->{coordinate_system}->{reprojection} eq "equal-area" ) {
       $ics = 20;
+   } elsif ($p->{coordinate_system}->{reprojection} eq "CPP" && $p->{coordinate_system}->{earthCurvature} eq "no" ) {
+      $ics = 2; # ICS=2 is the most common setting
    } elsif ($p->{coordinate_system}->{reprojection} eq "CPP" && $p->{coordinate_system}->{earthCurvature} eq "yes" ) {
       $ics = 21;
    } elsif ( $p->{coordinate_system}->{reprojection} eq "mercator" ) {
@@ -315,18 +319,41 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 # invertedBarometerOnElevationBoundary = .false. ! gwce.F
 # nPowellSearchDomains = -1   ! owiwind.F (the -1 indicates that all domains should be searched for the minimum pressure)
 #
+my $writeMetControlLine = 0;  # only write this namelist if any specified value is not the default value
 my $outputWindDrag = $p->{meteorology}->{wind_drag}->{outputWindDrag} eq "yes" ? "T" : "F";
 my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
-my $met_control_line ="&metControl WindDragLimit=$p->{meteorology}->{wind_drag}->{WindDragLimit}, \n";
-$met_control_line   .="            DragLawString=\"$p->{meteorology}->{wind_drag}->{DragLawString}\",\n";
-$met_control_line   .="            outputWindDrag=$outputWindDrag,\n";
-$met_control_line   .="            rhoAir=$p->{meteorology}->{rhoAir},\n";
-$met_control_line   .="            invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary,\n";
+my $met_control_line ="&metControl \n";
+if ( $p->{meteorology}->{wind_drag}->{WindDragLimit} != "0.0035" ) {
+   $met_control_line   .="            WindDragLimit=$p->{meteorology}->{wind_drag}->{WindDragLimit}, \n";
+   $writeMetControlLine = 1;
+}
+if ( $p->{meteorology}->{wind_drag}->{DragLawString} ne "garratt" ) {
+   $met_control_line   .="            DragLawString=\"$p->{meteorology}->{wind_drag}->{DragLawString}\",\n";
+   $writeMetControlLine = 1;
+}
+if ( $outputWindDrag eq "T" ) {
+   $met_control_line   .="            outputWindDrag=$outputWindDrag,\n";
+   $writeMetControlLine = 1;
+}
+if ( $p->{meteorology}->{rhoAir} != 1.293 ) {
+   $met_control_line   .="            rhoAir=$p->{meteorology}->{rhoAir},\n";
+   $writeMetControlLine = 1;
+}
+if ( $invertedBarometerOnElevationBoundary eq "T" ) {
+   $met_control_line   .="            invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary,\n";
+   $writeMetControlLine = 1;
+}
 # nPowellSearch domains requires ADCIRC version v55relase or later
 if ( $p->{adcirc_version} ne "v53.05-modified" ) {
-   $met_control_line.="            nPowellSearchDomains=$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},\n";
+   if ( $p->{meteorology}->{wind_drag}->{nPowellSearchDomains} != -1 ) {
+      $met_control_line.="            nPowellSearchDomains=$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},\n";
+      $writeMetControlLine = 1;
+   }
 }
 $met_control_line   .="            /\n";
+if ( $writeMetControlLine == 0 ) {
+   $met_control_line = "NO LINE HERE";
+}
 #
 # construct &wetDryControl namelist %wetdry_control_namelist%
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
@@ -423,9 +450,9 @@ $warnelevcontrol_line .= "/\n";
 #
 # construct &WaveCoupling namelist %wavecoupling_namelist%
 # &waveCoupling WaveWindMultiplier=floatValue, Limit_WaveStressGrad=logicalValue, WaveStressGrad_Cap=floatValue /
-my $waveWindMultiplier = $p->{wave_coupling}->{wave_wind_multipler};
-my $limitWaveStressGrad = $p->{wave_coupling}->{limit_wave_stress_grad} eq 'yes' ? 'T' : 'F' ;
-my $waveStressGradCap = $p->{wave_coupling}->{wave_stress_grad_cap};
+my $waveWindMultiplier = $p->{wave_coupling}->{WaveWindMultiplier};
+my $limitWaveStressGrad = $p->{wave_coupling}->{Limit_WaveStressGrad} eq 'yes' ? 'T' : 'F' ;
+my $waveStressGradCap = $p->{wave_coupling}->{WaveStressGrad_Cap};
 my $wavecoupling_line = "&WaveCoupling\n";
 $wavecoupling_line .= "WaveWindMultiplier=$waveWindMultiplier,\n";
 $wavecoupling_line .= "Limit_WaveStressGrad=$limitWaveStressGrad,\n";
@@ -476,9 +503,9 @@ if ( $p->{solver_time_integration} eq "full-gravity-wave-implicit" ) {
 my $im="$IMDig1"."1111"."$IMDig6";
 #
 # lateral turbulence formulation
-my $eslm = $p->{eddy_viscosity_coefficient};  # this is the default
-if ( $p->{lateral_turbulence} eq "smagorinsky" ) {
-   $eslm = -$p->{smagorinsky_coefficient};    # must be set to negative in fort.15
+my $eslm = $p->{lateral_turbulence}->{eddy_viscosity_coefficient};  # this is the default
+if ( $p->{lateral_turbulence}->{formulation} eq "smagorinsky" ) {
+   $eslm = -$p->{lateral_turbulence}->{smagorinsky_coefficient};    # must be set to negative in fort.15
 }
 #
 # advection terms in control file (fort.15), does not affect nodal attributes
@@ -868,7 +895,7 @@ printf RUNPROPS "adcirc.control.monitoring.nabout : $logLevelsNABOUT{$p->{output
 printf RUNPROPS "adcirc.control.physics.rnday : $RNDAY\n";
 printf RUNPROPS "adcirc.control.numerics.input.ihot : $ihot\n";
 printf RUNPROPS "adcirc.control.physics.nwp : $nwp\n";
-printf RUNPROPS "adcirc.control.physics.elsm : $eslm\n";
+printf RUNPROPS "adcirc.control.physics.eslm : $eslm\n";
 printf RUNPROPS "adcirc.control.numerics.nffr : $nffr\n";
 printf RUNPROPS "adcirc.control.numerics.output.nhsinc : $NHSINC\n";
 printf RUNPROPS "adcirc.control.numerics.output.nhstar : $NHSTAR\n";
@@ -910,7 +937,7 @@ if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}-
    writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
    writeFileName("swan_HS_max.63",(split(' ',$fort7374))[0],1);
    writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
-   writeFileName("swan_TMM10_max.63",(split(' ',$fort7374))[0]),1;
+   writeFileName("swan_TMM10_max.63",(split(' ',$fort7374))[0],1);
    writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
    writeFileName("swan_TPS_max.63",(split(' ',$fort7374))[0],1);
 }

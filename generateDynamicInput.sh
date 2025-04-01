@@ -123,7 +123,10 @@ generateDynamicInput()
         -e "s/%adcircVersions%/$avs/" \
         -e "s/%CSDATE%/$CSDATE/" \
         -e "s/%HSTIME%/$HSTIME/" \
-        -e "s/%ICS%/$ics/" \
+        -e "s/%projection%/${coordinateSystem["projection"]}/" \
+        -e "s/%reprojection%/${coordinateSystem["reprojection"]}/" \
+        -e "s/%earthCurvature%/${coordinateSystem["earthCurvature"]}/" \
+        -e "s/%rotation%/${coordinateSystem["rotation"]}/" \
         -e "s/%ADVISORY%/$ADVISORY/" \
         -e "s/%SCENARIO%/$SCENARIO/" \
         -e "s/%ENDTIME%/$endTime/" \
@@ -145,6 +148,9 @@ generateDynamicInput()
         -e "s/%lateral_turbulence%/$lateral_turbulence/" \
         -e "s/%ESLM%/$eddy_viscosity_coefficient/" \
         -e "s/%ESLM_Smagorinsky%/$smagorinsky_coefficient/" \
+        -e "s/%smag_comp_flag%/${Smag_Control["smag_comp_flag"]}/" \
+        -e "s/%smag_upper_lim%/${Smag_Control["smag_upper_lim"]}/" \
+        -e "s/%smag_lower_lim%/${Smag_Control["smag_lower_lim"]}/" \
         -e "s/%tidal_forcing%/$TIDEFAC/" \
         -e "s?%tidefac_file%?$tidefac_file?" \
         -e "s?%tidal_potential_comment%?$tidal_potential_comment?" \
@@ -190,9 +196,9 @@ generateDynamicInput()
         -e "s/%WAVES%/$WAVES/" \
         -e "s/%wave_model%/$wave_model/" \
         -e "s/%RSTIMINC%/$SWANDT/" \
-        -e "s/%wave_wind_multiplier%/${waveCoupling["WaveWindMultiplier"]}/" \
-        -e "s/%limit_wave_stress_grad%/${waveCoupling["Limit_WaveStressGrad"]}/" \
-        -e "s/%wave_stress_grad_cap%/${waveCoupling["WaveStressGrad_Cap"]}/" \
+        -e "s/%WaveWindMultiplier%/${waveCoupling["WaveWindMultiplier"]}/" \
+        -e "s/%Limit_WaveStressGrad%/${waveCoupling["Limit_WaveStressGrad"]}/" \
+        -e "s/%WaveStressGrad_Cap%/${waveCoupling["WaveStressGrad_Cap"]}/" \
         -e "s?%SWANTEMPLATE%?${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE}?" \
         -e "s/%HOTSWAN%/$HOTSWAN/" \
         -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \
