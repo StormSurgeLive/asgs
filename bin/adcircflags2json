@@ -61,4 +61,8 @@ foreach my $section (@sections) {
 $FLAGSTXT =~ s/$USER/\$USER/g;
 $initial_JSON->{"adcirc.build.actualflags.file"} = $FLAGSTXT;
 $initial_JSON->{"adcirc.build.actualflags.info"} = $sectioninfo;
-say encode_json($initial_JSON);
+
+# pretty print for easy inspection with requiring external
+# helper programs like "jq"
+my $coder = JSON::XS->new->ascii->pretty->allow_nonref;
+say $coder->encode($initial_JSON);
