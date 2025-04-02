@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use v5.10;
+use v5.10;  # includes 'use warnings', imports 'say' by default
 use strict;
 
 use JSON::XS qw/decode_json encode_json/;
@@ -58,11 +58,18 @@ foreach my $section (@sections) {
     push @$sectioninfo, $info;
 }
 
+# redact $USER name
 $FLAGSTXT =~ s/$USER/\$USER/g;
+
+# add newly built up sections to the initial JSON dumped by init-adcirc.sh
 $initial_JSON->{"adcirc.build.actualflags.file"} = $FLAGSTXT;
 $initial_JSON->{"adcirc.build.actualflags.info"} = $sectioninfo;
 
-# pretty print for easy inspection with requiring external
+# pretty print for easy inspection without requiring external
 # helper programs like "jq"
 my $coder = JSON::XS->new->ascii->pretty->allow_nonref;
 say $coder->encode($initial_JSON);
+
+exit 0;
+
+__END__
