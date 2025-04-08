@@ -1,5 +1,5 @@
 diff --git a/work/makefile b/work/makefile
-index b823fda..e0236b5 100644
+index b823fda..cbb2324 100644
 --- a/work/makefile
 +++ b/work/makefile
 @@ -160,7 +160,10 @@ ifeq ($(BUILDTYPE),adcswan)
@@ -8,8 +8,8 @@ index b823fda..e0236b5 100644
    $(shell echo "SWANLASTCOMPILE := serial" > $(SRCDIR)/work/.swanlastcompile)
 +  $(warning (INFO) perl ../swan/switch.pl $(swch) -adcirc ../swan/*.ftn ../swan/*.ftn90)
    $(shell perl ../swan/switch.pl $(swch) -adcirc ../swan/*.ftn ../swan/*.ftn90)
-+  $(warning (INFO) perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
-+  $(shell perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
++  $(warning (INFO) CC=$(CC) FC=$(FC) perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
++  $(shell CC=$(CC) FC=$(FC) perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
  endif
  #                                      $(PARALLEL_ADCIRC)
  ifeq ($(BUILDTYPE),$(PARALLEL_ADCIRC))
@@ -19,8 +19,8 @@ index b823fda..e0236b5 100644
    $(shell echo "SWANLASTCOMPILE := parallel" > $(SRCDIR)/work/.swanlastcompile)
 +  $(warning (INFO) perl ../swan/switch.pl $(swch) -pun -adcirc ../swan/*.ftn ../swan/*.ftn90)
    $(shell perl ../swan/switch.pl $(swch) -pun -adcirc ../swan/*.ftn ../swan/*.ftn90)
-+  $(warning (INFO) perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
-+  $(shell perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
++  $(warning (INFO) CC=$(CC) FC=$(FC) perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
++  $(shell CC=$(CC) FC=$(FC) perl ../swan/platform.pl && mv -f ./macros.inc ../swan/macros.inc)
  endif
  #                                    libadc.a
  ifeq ($(BUILDTYPE),$(LIBADC))
