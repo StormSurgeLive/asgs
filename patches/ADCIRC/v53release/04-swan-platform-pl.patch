@@ -1,0 +1,83 @@
+diff --git a/swan/platform.pl b/swan/platform.pl
+index 92842ed..a90e96c 100644
+--- a/swan/platform.pl
++++ b/swan/platform.pl
+@@ -209,7 +209,51 @@ elsif ($os =~ /HP-UX/i) {
+ }
+ elsif ($os =~ /Linux/i) {
+   my $compiler = getcmpl();
+-  if ( $compiler eq "ifort" )
++  my $Ccompiler = getCcmpl();
++  if ( grep {/$compiler/} (qw/ifort ifx/) and $Ccompiler eq "icx" ) {
++    print OUTFILE "##############################################################################\n";
++    print OUTFILE "# Intel/x86-64_Intel: Intel Pentium with Linux using Intel OneAPI compiler 11.\n";
++    print OUTFILE "##############################################################################\n";
++    print OUTFILE "F90_SER = ifort\n";
++    print OUTFILE "F90_OMP = ifort\n";
++    print OUTFILE "F90_MPI = mpiifort\n";
++    print OUTFILE "FLAGS_OPT = -O2\n";
++    print OUTFILE "FLAGS_MSC = -W0 -assume byterecl -traceback -diag-disable remark\n";
++    print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC)\n";
++    print OUTFILE "FLAGS_DYN = -fPIC\n";
++    print OUTFILE "FLAGS_SER =\n";
++    print OUTFILE "FLAGS_OMP = -qopenmp\n";
++    print OUTFILE "FLAGS_MPI =\n";
++    print OUTFILE "NETCDFROOT =\n";
++    print OUTFILE "ifneq (\$(NETCDFROOT),)\n";
++    print OUTFILE "  INCS_SER = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  INCS_OMP = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  INCS_MPI = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  LIBS_SER = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  LIBS_OMP = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  LIBS_MPI = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  NCF_OBJS = nctablemd.o agioncmd.o swn_outnc.o\n";
++    print OUTFILE "else\n";
++    print OUTFILE "  INCS_SER =\n";
++    print OUTFILE "  INCS_OMP =\n";
++    print OUTFILE "  INCS_MPI =\n";
++    print OUTFILE "  LIBS_SER =\n";
++    print OUTFILE "  LIBS_OMP =\n";
++    print OUTFILE "  LIBS_MPI =\n";
++    print OUTFILE "  NCF_OBJS =\n";
++    print OUTFILE "endif\n";
++    print OUTFILE "O_DIR = ../work/odir4/\n";
++    print OUTFILE "OUT = -o \n";
++    print OUTFILE "EXTO = o\n";
++    print OUTFILE "MAKE = make\n";
++    print OUTFILE "RM = rm -f\n";
++    print OUTFILE "ifneq (\$(NETCDFROOT),)\n";
++    print OUTFILE "  swch = -unix -impi -netcdf\n";
++    print OUTFILE "else\n";
++    print OUTFILE "  swch = -unix -impi\n";
++    print OUTFILE "endif\n";
++  }
++  elsif ( $compiler eq "ifort" and $Ccompiler eq "icc" )
+   {
+     print OUTFILE "##############################################################################\n";
+     print OUTFILE "# IA32_Intel/x86-64_Intel:	Intel Pentium with Linux using Intel compiler 11.\n";
+@@ -686,7 +730,24 @@ sub getcmpl {
+    my $compiler = $ENV{'FC'};
+ 
+    unless ( $compiler ) {
+-      foreach ('ifort','f90','ifc','efc','pgf90','xlf90', 'lf95','gfortran','g95') {
++      foreach ('ifort','ifx','f90','ifc','efc','pgf90','xlf90', 'lf95','gfortran','g95') {
++         $compiler = $_;
++         my $path  = `which $compiler`;
++         last if $path;
++      }
++   }
++
++   return $compiler;
++}
++
++# =============================================================================
++
++sub getCcmpl {
++
++   my $compiler = $ENV{'CC'};
++
++   unless ( $compiler ) {
++      foreach ('gcc','icc','icx') {
+          $compiler = $_;
+          my $path  = `which $compiler`;
+          last if $path;

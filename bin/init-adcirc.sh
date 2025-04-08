@@ -32,6 +32,29 @@ if [ "${1}" = "clean" ]; then
   exit 0
 fi
 
+# get compiler info
+case "$ADCIRC_COMPILER" in
+intel)
+  # default
+  _FC=fort
+  _CC=icc
+;;
+intel-oneapi)
+  # default, above
+  _FC=ifort
+  _CC=icx
+;;
+gfortran)
+  _FC=gfortran
+  _CC=gcc
+;;
+*)
+  echo '${W} unknown compiler is unsupported...; defaulting to "intel"'
+esac
+_FC_VERSION=$($_FC --version | head -n 1)
+_CC_VERSION=$($_CC --version | head -n 1)
+
+
 while getopts "bN:" optname; do
    case $optname in
       b) BATCH=1
@@ -444,7 +467,7 @@ ADCSWAN_MAKE_CMD="make $ADCSWAN_BINS compiler=${ADCIRC_COMPILER} MACHINENAME=${A
 # SWAN related utilities other than adcswan/padcswan
 #  + do not include anything related to netCDF
 SWAN_UTIL_BINS="unhcat.exe"
-SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG}"
+SWAN_UTIL_BINS_MAKE_CMD="make unhcat compiler=${ADCIRC_COMPILER} MACHINENAME=${ASGS_MACHINE_NAME} DEBUG=${DEBUG} NETCDFROOT=${NETCDFHOME}"
 
 #
 # W R I T E   M E T A D A T A  &  B U I L D  A D C I R C
@@ -465,28 +488,6 @@ function dumpJSON()
     local ADCIRC_BUILD_INFO="$2"
     local BUILD_TIME=$(date +%Y-%b-%d-T%H:%M:%S%z)
     local MODULE_LIST=$(module list 2>&1 | grep '1)');
-
-    # get compiler info
-    local _FC=$(which ifort 2> /dev/null)
-    local _CC=$(which icc   2> /dev/null)
-    case "$ADCIRC_COMPILER" in
-    intel)
-      # default, above
-    ;;
-    intel-oneapi)
-      # default, above
-      local _FC=$(which ifort 2> /dev/null)
-      local _CC=$(which icx   2> /dev/null)
-    ;;
-    gfortran)
-      _FC=$(which gfortran)
-      _CC=$(which gcc)
-    ;;
-    *)
-      echo '${W} unknown compiler is unsupported...; defaulting to "intel"'
-    esac
-    local _FC_VERSION=$($_FC --version | head -n 1)
-    local _CC_VERSION=$($_CC --version | head -n 1)
 
     # mpif90 info
     MPIF90=$(which mpif90)
@@ -681,8 +682,12 @@ if [[ "${ADCIRC_COMPILER}" == 'gfortran' && -e "${SWANDIR}/macros.inc.gfortran" 
 fi
 echo                                     >> ${BUILDSCRIPT}
 echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
-echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
+echo " touch macros.inc && \\"           >> ${BUILDSCRIPT}
+echo " make clean && \\"                 >> ${BUILDSCRIPT}
+echo " CC=$_CC FC=$_FC perl platform.pl && \\" >> ${BUILDSCRIPT}
+echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\"       >> ${BUILDSCRIPT}
 echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
+echo " make clobber && \\"               >> ${BUILDSCRIPT}
 echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
 echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
 
