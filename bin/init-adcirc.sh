@@ -331,8 +331,9 @@ fi
 
 # some variables based on ADCIRCBASE that we can define now
 ADCIRCDIR=${ADCIRCBASE}/work
-BUILDSCRIPT="${ADCIRCBASE}/asgs-build.sh"
+BUILDSCRIPT=${ADCIRCBASE}/asgs-build.sh
 ADCIRC_BUILD_INFO=${ADCIRCBASE}/adcirc.bin.buildinfo.json
+ADCIRC_BUILD_INFO_TMP=${ADCIRC_BUILD_INFO}.tmp
 
 #
 # L O C A T E  &  G E T  C O D E  L O G I C
@@ -462,7 +463,7 @@ function splitMacrosInc
 function dumpJSON()
 {
     local patchJSON="$1"
-    local ADCIRC_BUILD_INFO="$2"
+    local ADCIRC_BUILD_INFO_TMP="$2"
     local BUILD_TIME=$(date +%Y-%b-%d-T%H:%M:%S%z)
     local MODULE_LIST=$(module list 2>&1 | grep '1)');
 
@@ -509,7 +510,7 @@ function dumpJSON()
     local FLAGS_MPI=$(splitMacrosInc   FLAGS_MPI   $MACROSINC)
 
     # output JSON, redact $USE:
-    cat <<JSON | sed "s/$USER/\$USER/g" > $ADCIRC_BUILD_INFO
+    cat <<JSON | sed "s/$USER/\$USER/g" > $ADCIRC_BUILD_INFO_TMP
   {
     "adcirc.build.swan.macros-inc"             : "$MACROSINC",
     "adcirc.build.swan.macros-inc.F90_SER"     : "$F90_SER",
@@ -566,12 +567,6 @@ $patchJSON
     "adcirc.build.debug"                  : "$DEBUG"
   }
 JSON
-export ADCIRC_SRC_TYPE=remote-zip
-export ADCIRC_BASE_URL=https://zenodo.org/record/3911282/files
-export ADCIRC_SRC_FILE=adcirc-cg-GLOBAL.zip
-export ADCIRC_EXTRACT_DIR=adcirc-cg-GLOBAL
-export ADCIRC_ARCHIVE_URL=${ADCIRC_BASE_URL}/${ADCIRC_SRC_FILE}
-export ADCIRC_EXTRACT_CMD=unzip
 }
 
 function dumpMETA()
@@ -694,9 +689,9 @@ echo
 
 # dump JSON with build details into $ADCIRCBASE
 echo
-echo JSON build info in ${ADCIRC_BUILD_INFO}
+echo JSON build info in ${ADCIRC_BUILD_INFO_TMP}
 echo
-dumpJSON "$patchJSON" "$ADCIRC_BUILD_INFO"
+dumpJSON "$patchJSON" "$ADCIRC_BUILD_INFO_TMP"
 echo
 
 _answer=yes
@@ -726,6 +721,10 @@ fi
 mkdir -p $ADCIRC_META_DIR 2> /dev/null
 
 dumpMETA "$ADCIRC_META_DIR/$ADCIRC_PROFILE_NAME"
+
+adcircflags2json $ADCIRCDIR/actualflags.txt $ADCIRC_BUILD_INFO_TMP > $ADCIRC_BUILD_INFO
+
+rm -v $ADCIRC_BUILD_INFO_TMP
 
 echo '                               _                                 '
 echo '                             ,"_".                               '
