@@ -849,7 +849,7 @@ case $GRIDNAME in
          nodal_attribute_default_values["advection_state"]="-100.0"
          # meteorological forcing
          metControl["WindDragLimit"]="0.002"                      # max wind drag coefficient, unitless
-         metControl["invertedBarometerOnElevationBoundary"]="yes" 
+         metControl["invertedBarometerOnElevationBoundary"]="yes"
 	 # wetting and drying
 	 wetDryControl["slim"]=1000000000.0
 	 # wave coupling
@@ -1064,20 +1064,20 @@ case $GRIDNAME in
       "default")
          CONTROLTEMPLATE=NGOMv19.15.ASGS2024.1.template
          # numerics/physics (fort.15)
-         advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-         solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
-         time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
-         lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
-         eddy_viscosity_coefficient="20.0"     # ESLM
-         bottom_friction_limit=0.0             # min when using Manning's n (CF/FFACTOR)
+         advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+         solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
+         lateral_turbulence="smagorinsky"      # "smagorinsky" or "eddy_viscosity"
+         smagorinsky_coefficient="0.2"         # ESLM
+         bottom_friction_limit=0.001           # min when using Manning's n (CF/FFACTOR)
          h0=0.1                                # min depth (m) to be considered wet
          velmin=0.01
          metControl["WindDragLimit"]="0.002"
+         metControl["invertedBarometerOnElevationBoundary"]="yes" # yes|no to include inverse barometer effect on boundary
+         wetDryControl["slim"]=1000000000.0
          nodal_attribute_activate=( sea_surface_height_above_geoid )
          nodal_attribute_activate+=( elemental_slope_limiter )
          nodal_attribute_activate+=( surface_submergence_state )
          nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
-         nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
          nodal_attribute_activate+=( mannings_n_at_sea_floor )
          nodal_attribute_activate+=( surface_canopy_coefficient )
          nodal_attribute_activate+=( surface_directional_effective_roughness_length )
@@ -1091,10 +1091,11 @@ case $GRIDNAME in
          nodal_attribute_default_values["elemental_slope_limiter"]="0.02"
          nodal_attribute_default_values["surface_submergence_state"]="0.0"
          nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
-         nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="2.0"
          nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.022"
          nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
          nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+         # SWAN coupling
+         SWANDT=1800
          ;;
       *)
          fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
