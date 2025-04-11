@@ -476,8 +476,8 @@ function dumpJSON()
     ;;
     intel-oneapi)
       # default, above
-      local _FC=$(which ifort 2> /dev/null)
-      local _CC=$(which icx   2> /dev/null)
+      local _FC=$(which ifx 2> /dev/null)
+      local _CC=$(which icx 2> /dev/null)
     ;;
     gfortran)
       _FC=$(which gfortran)
