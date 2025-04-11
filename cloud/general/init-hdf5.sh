@@ -37,8 +37,8 @@ if [ $COMPILER == "intel" ]; then
 fi
 if [ $COMPILER == "intel-oneapi" ]; then
   export CC=icx
-  export FC=ifort
-  export CXX=icx
+  export FC=ifx
+  export CXX=icpx
 fi
 if [ $COMPILER == "gfortran" ]; then
   echo Compiling HDF5 with GCC suite
