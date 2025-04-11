@@ -59,7 +59,7 @@ fi
 
 mkdir -p $OPT 2> /dev/null
 
-if [ ! -e $OPT/bin/nc-config ]; then
+if [ ! -e $OPT/lib/libnetcdff.so ]; then
   tar zxvf netcdf-${NETCDF4_C_VERSION}.tar.gz
   cd netcdf-${NETCDF4_C_VERSION}
   make clean
@@ -68,8 +68,8 @@ if [ ! -e $OPT/bin/nc-config ]; then
   cd ..
 fi
 
-if [ ! -e $OPT/bin/nc-config ]; then
-  echo something went wrong with NETCDF
+if [ ! -e $OPT/lib/libnetcdff.so ]; then
+  echo "something went wrong with NETCDF (can't find '$OPT/lib/libnetcdff.so')"
   exit 1
 else
   rm -rvf $_ASGS_TMP/netcdf-${NETCDF4_C_VERSION}*
