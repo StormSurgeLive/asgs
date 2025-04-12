@@ -436,7 +436,7 @@ ADCIRC_MAKE_CMD="make $ADCIRC_BINS SWAN=enable compiler=${ADCIRC_COMPILER} NETCD
 
 # for building coupled adcswan/padcswan (include all netCDF flags, no 'SWAN=enable')
 if [ "$BUILD_PARALLEL_ADCIRC" == "yes" ]; then
-  ADCSWAN_BINS="adcswan padcswan"
+  ADCSWAN_BINS="padcswan adcswan"
 else
   ADCSWAN_BINS="adcswan"
 fi
@@ -676,8 +676,11 @@ if [[ "${ADCIRC_COMPILER}" == 'gfortran' && -e "${SWANDIR}/macros.inc.gfortran" 
 fi
 echo                                     >> ${BUILDSCRIPT}
 echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
+echo "   make clean && \\"               >> ${BUILDSCRIPT}
+echo "   perl platform.pl && \\"         >> ${BUILDSCRIPT}
 echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
 echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
+echo "   make clobber clean && \\"       >> ${BUILDSCRIPT}
 echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
 echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
 
