@@ -124,7 +124,7 @@ index 9f89de7..5562b46 100644
 +    FC          :=  ifx
 +    PFC         :=  mpiifx
 +  endif
-+  FFLAGS1       :=  $(INCDIRS) -O2 -assume byterecl -132 -xSSE4.2
++  FFLAGS1       := $(INCDIRS) -O2 -assume byterecl -132 -xSSE4.2
    CFLAGS        := $(INCDIRS) -O2 -xSSE4.2 -m64 -mcmodel=medium -DLINUX
    FLIBS         :=
    ifeq ($(DEBUG),full)
