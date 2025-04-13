@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 9f89de7..7dd6976 100644
+index 9f89de7..5562b46 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,46 @@
@@ -119,6 +119,7 @@ index 9f89de7..7dd6976 100644
 -  FFLAGS1       := $(INCDIRS) -O2 -g -traceback -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
 +  PFC           :=  mpif90
 +  ifneq (,$(filter intel-oneapi,$(compiler)))
++    CC          :=  icx
 +    PPFC        :=  ifx
 +    FC          :=  ifx
 +    PFC         :=  mpiifx
@@ -276,7 +277,6 @@ index 9f89de7..7dd6976 100644
 +     endif
 +  endif
 +  ifeq ($(MACHINENAME),debian)
-+     CC      := icx
 +     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX2 -axCORE-AVX512 -Wno-implicit-function-declaration
 +     FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
