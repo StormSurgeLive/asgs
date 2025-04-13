@@ -3,7 +3,7 @@
 # mesh_defaults.sh : Functions required for initializing
 # parameters that are mesh dependent.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2024 Jason Fleming
+# Copyright(C) 2019--2025 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -62,24 +62,25 @@ selfAttractionEarthLoadTide="notprovided"
 # Wind10m layer; the wind10m layer will not be produced automatically
 CONTROLTEMPLATENOROUGH="null"
 #
+INPUTDIR="null"
 #
 case $GRIDNAME in
    "CPRA23v05b"|"CPRA23v05c")
-      source $SCRIPTDIR/config/parameter_packages/CPRA23.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23
       ;;
    "CPRA24v04a"|"CPRA24v04b"|"CPRA24v04b2"|"CPRA24v04c")
-      source $SCRIPTDIR/config/parameter_packages/CPRA24.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/CPRA24
       ;;
    "AGT")
       # adcirc-global-test mesh, from ADCIRC test suite repository
       # https://github.com/adcirc/adcirc-testsuite
-      source $SCRIPTDIR/config/parameter_packages/AGT.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/AGT
       ;;
    "LA_v19k-WithUpperAtch_chk")
-      source $SCRIPTDIR/config/parameter_packages/LAv19.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v19k
       ;;
    "LA_v20a-WithUpperAtch_chk"|"LAv20a")
-      source $SCRIPTDIR/config/parameter_packages/LAv20.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/LA_v20a
       ;;
    "LAERDCv5k")
       # This is the successor to the LAv20a mesh (Louisiana) for 2022.
@@ -87,76 +88,76 @@ case $GRIDNAME in
       # the version number unfortunately). Not sure why ERDC is in
       # the file name, that's how we received it.
       # This mesh requires ADCIRC v55.02.
-      source $SCRIPTDIR/config/parameter_packages/LAERDCv5k.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/LAERDC
       ;;
    "ec95d"|"EC95d")
-      source $SCRIPTDIR/config/parameter_packages/EC95d.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/ec95d
       ;;
    "tx2008_r35h"|"TX2008")
-      source $SCRIPTDIR/config/parameter_packages/TX2008.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/texas2008_r35h
       ;;
    "tx2017"|"CTXCS2017")
-      source $SCRIPTDIR/config/parameter_packages/CTXCS2017.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/tx2017
       ;;
    "tx2020a"|"TX2020a")
-      source $SCRIPTDIR/config/parameter_packages/TX2020a.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/tx2020
       ;;
    "TXLA22a")
-      source $SCRIPTDIR/config/parameter_packages/TXLA22a.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/TXLA22a
       ;;
    "neflga_v12_geo"|"NEFLGAv12"|"NEFLGAv12b")
-      source $SCRIPTDIR/config/parameter_packages/NEFLGAv12.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/neflga
       ;;
    "NCv6d")
-      source $SCRIPTDIR/config/parameter_packages/NCv6d.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/nc_v6b
       ;;
    "nc_inundation_v9.99_w_rivers"|"NCv999")
-      source $SCRIPTDIR/config/parameter_packages/NCv999.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       ;;
    "uriv18"|"URIv18")
-      source $SCRIPTDIR/config/parameter_packages/URIv18.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/uriv18
       ;;
    "hsofs"|"HSOFS")
-      source $SCRIPTDIR/config/parameter_packages/HSOFS.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/hsofs
       ;;
    "SABv20a")
-      source $SCRIPTDIR/config/parameter_packages/SABv20a.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/SABv20a
       ;;
    "WFLv18")
-      source $SCRIPTDIR/config/parameter_packages/WFLv18.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/WFLv18
       ;;
    "southfl_v11-1_final"|"SFLv111")
-      source $SCRIPTDIR/config/parameter_packages/SFLv111.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/southfl
       ;;
    "CenFlv7"|"eccl_v7_geo_z")
-      source $SCRIPTDIR/config/parameter_packages/CenFlv7.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/cenfl
       ;;
    "FEMAR3")
-      source $SCRIPTDIR/config/parameter_packages/FEMAR3.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/femar3
       ;;
    "FEMAR2")
-      source $SCRIPTDIR/config/parameter_packages/FEMAR2.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/femar2
       ;;
    "NAC2014")
-      source $SCRIPTDIR/config/parameter_packages/NAC2014.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/naccs
       ;;
    "NGOMv19b")
-      source $SCRIPTDIR/config/parameter_packages/NGOMv19b.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/NGOMv19b
       ;;
    "EGOMv20b")
-      source $SCRIPTDIR/config/parameter_packages/EGOMv20b.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/EGOMv20b
       ;;
    "Shinnecock")
-      source $SCRIPTDIR/config/parameter_packages/Shinnecock.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/shinnecock
       ;;
    "ec2001_v2e"|"EC2001v2e")
-      source $SCRIPTDIR/config/parameter_packages/EC2001v2e.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       ;;
    "OPENWATERv1e")
-      source $SCRIPTDIR/config/parameter_packages/OPENWATER.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/OPENWATER
       ;;
    "PRVI15")
-      source $SCRIPTDIR/config/parameter_packages/PRVI15.sh
+      INPUTDIR=$SCRIPTDIR/input/meshes/PRVI15
       ;;
    *)
       LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
@@ -177,3 +178,8 @@ case $GRIDNAME in
       fi
       ;;
 esac
+#
+# set the parameters
+if [[ $INPUTDIR != "null" ]]; then
+   source $INPUTDIR/init.sh
+fi
