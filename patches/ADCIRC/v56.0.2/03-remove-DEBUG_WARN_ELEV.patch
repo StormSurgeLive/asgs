@@ -1,0 +1,121 @@
+diff --git a/src/read_input.F b/src/read_input.F
+index 2d4009b..2c50d11 100644
+--- a/src/read_input.F
++++ b/src/read_input.F
+@@ -682,6 +682,32 @@ C     WJP add namelist
+       call logMessage(ECHO,trim(scratchMessage))
+       rewind(15)
+ 
++!     Patch Applied by ASGS' ADCIRC Build Wizard
++      if(iWarnElevDump.ne.0) WarnElevDump = .True.
++      write(scratchMessage,'(A,e16.8)') 'A warning will be issued '//
++     &                     'if elevation exceeds WarnElev = ',WarnElev
++      call logMessage(INFO,scratchMessage)
++      if(WarnElevDump)then
++          write(scratchMessage,'(A,e16.8,A)')
++     &     'A global elevation file (fort.69)'//
++     &     ' will be written if WarnElev (',WarnElev,') is exceeded'
++          call logMessage(INFO,scratchMessage)
++          write(scratchMessage,'(A,I0,A)')
++     &     'Execution will be terminated '//
++     &     'if ',WarnElevDumpLimit,' global elevation snaps have been '//
++     &     'written as warning.'
++          call logMessage(INFO,scratchMessage)
++      else
++          write(scratchMessage,'(A,e16.8,A)')
++     &     'A global elevation file (fort.69)'//
++     &     ' will NOT be written if WarnElev (',WarnElev,') is exceeded'
++          call logMessage(INFO,scratchMessage)
++      endif
++      write(scratchMessage,'(A,e16.8)')
++     &     'Execution will be terminated if elevation exceeds ',
++     &     ErrorElev
++      call logMessage(INFO,scratchMessage)
++
+ !     WJP add namelist for Ali's dispersion
+ !     Defaults are already in global 
+       namelistSpecifier = 'AliDispersionControl'
+@@ -787,17 +813,9 @@ C...
+ C...
+ C... READ AND PROCESS NFOVER - NONFATAL ERROR OVERRIDE OPTION
+ C...
+-C
+-#ifndef DEBUG_WARN_ELEV
++
+       READ(15,*) NFOVER
+-#else
+-C     jgf46.10 Add user-controllable warning, output, and stop criteria
+-C     for elevations. 
+-#warning The -DDEBUG_WARN_ELEV flag will be removed in a future release. Please begin using the &warnElevControl namelist to avoid future issues 
+-      READ(15,*) NFOVER, WarnElev, iWarnElevDump, WarnElevDumpLimit,
+-     &  ErrorElev
+-#endif
+-C
++
+       WRITE(16,1112)
+       WRITE(16,1250)
+  1250 FORMAT(//,1X,'GENERAL RUN INFORMATION',/)
+@@ -811,23 +829,11 @@ C
+  1952    FORMAT(/,5X,'NFOVER = ',I3,
+      &        /,9X,'NON-FATAL INPUT ERRORS WILL STOP EXECUTION ',/)
+       ENDIF
+-#ifdef DEBUG_WARN_ELEV
+-      IF (iWarnElevDump .ne. 0) WarnElevDump = .True.
+-      WRITE(16,1953) WarnElev,WarnElevDump,WarnElevDumpLimit,ErrorElev
+- 1953 FORMAT(//,5X,
+-     &     'A warning will be issued if elevation exceeds WarnElev = ',
+-     &     e16.8,
+-     &     /,5X,'A global elevation file (fort.69) will be written if '
+-     &     /,5X,'WarnElev is exceeded and WarnElevDump is true: ',L2,
+-     &     /,5X,'Execution will be terminated if ',
+-     &     '(WarnElevDumpLimit = 'I3,') ',
+-     &     /,5X,'global elevation files have been written as warning.'
+-     &     /,5X,'Execution will be terminated if elevation exceeds'
+-     &     ' ErrorElev =',e16.8)
+-#endif
++
+ C...
+ C...  READ AND PROCESS NABOUT - ABBREVIATED UNIT 16 OUTPUT OPTION
+ C...
++
+       READ(15,*) NABOUT
+       IF(NABOUT.EQ.1) THEN
+          WRITE(16,3501) NABOUT
+diff --git a/src/timestep.F b/src/timestep.F
+index fb6c9e6..c17d7ef 100644
+--- a/src/timestep.F
++++ b/src/timestep.F
+@@ -1333,12 +1333,15 @@ C     output the global node number to debug the local PE fort.14s
+      &           3X,'** WARNING: Elevation.gt.WarnElev **')
+             IF (WarnElevDump) WarnElevExceeded=1
+          ENDIF
+-#ifdef DEBUG_WARN_ELEV
+-         call WarnElevSum(WarnElevExceeded)
+-         IF (WarnElevExceeded.ne.0) THEN
+-            CALL WriteWarnElev(TimeLoc, IT)
++
++!     Patch Applied by ASGS' ADCIRC Build Wizard
++         IF(WarnElevDump)THEN
++             call WarnElevSum(WarnElevExceeded)
++             IF (WarnElevExceeded.ne.0) THEN
++                CALL WriteWarnElev(TimeLoc, IT)
++             ENDIF
+          ENDIF
+-#endif
++
+          ErrorElevExceeded = 0                ! Clint's Zombie Slyaer
+          IF(ELMAX.GT.ErrorElev) THEN
+ 
+@@ -1409,9 +1412,10 @@ C     output the global node number to debug the local PE fort.14s
+      &           /,2X,'ELMAX = ', 1pE12.4E3,' AT NODE ',I9,
+      &           2X,'SPEEDMAX = ',1pE12.4E3,' AT NODE ',I9,
+      &           2X,'** WARNING: Elevation.gt.WarnElev **')
+-#ifdef DEBUG_WARN_ELEV
++
++!     Patch Applied by ASGS' ADCIRC Build Wizard
+             IF (WarnElevDump) CALL WriteWarnElev(TimeLoc, IT)
+-#endif
++
+          ENDIF
+          IF(ELMAX.GT.ErrorElev) THEN
+             write(6,*) 'elmax, errorelev',elmax, errorelev !jgf
