@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 9f89de7..5562b46 100644
+index 9f89de7..3435029 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,46 @@
@@ -82,6 +82,15 @@ index 9f89de7..5562b46 100644
          FLIBS          :=$(FLIBS) -L/usr/lib64 -lnetcdff
       else
          FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
+@@ -81,7 +119,7 @@ ifeq ($(compiler),gfortran)
+     FFLAGS1	:=  $(INCDIRS) -pg -O0 -fprofile-arcs -ftest-coverage -ffixed-line-length-none
+   endif
+   ifeq ($(DEBUG),full)
+-    FFLAGS1	:=  $(INCDIRS) -g -O0 -ffixed-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,overflow,denormal -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK -DDEBUG_HOLLAND -DDEBUG_WARN_ELEV
++    FFLAGS1	:=  $(INCDIRS) -g -O0 -ffixed-line-length-none -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,overflow,denormal -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK -DDEBUG_HOLLAND
+   endif
+   ifeq ($(DEBUG),compiler-warnings)
+     FFLAGS1	:=  $(INCDIRS) -g -O0 -Wall -Wextra -ffixed-line-length-none -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK
 @@ -136,12 +174,7 @@ ifeq ($(compiler),gfortran)
          FFLAGS2 := $(FFLAGS2) -I/usr/lib64/gfortran/modules
          FFLAGS3 := $(FFLAGS3) -I/usr/lib64/gfortran/modules
@@ -211,15 +220,13 @@ index 9f89de7..5562b46 100644
 +     PFC     :=  mpiifort
 +     FFLAGS1 := $(INCDIRS) -O2 -132
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
-      FLIBS   := $(INCDIRS) -xAVX
-      ifeq ($(DEBUG),trace)
--        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX -assume buffered_io
--        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX 
++     FLIBS   := $(INCDIRS) -xAVX
++     ifeq ($(DEBUG),trace)
 +        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -assume byterecl -132 -xAVX
 +        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
-         FLIBS   := $(INCDIRS) -xAVX
-      endif
-   endif
++        FLIBS   := $(INCDIRS) -xAVX
++     endif
++  endif
 +  ifeq ($(MACHINENAME),supermic)
 +     PFC     :=  mpiifort
 +     FFLAGS1 := $(INCDIRS) -O2 -132
@@ -258,13 +265,15 @@ index 9f89de7..5562b46 100644
 +     PFC     :=  mpiifort
 +     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132 -xAVX
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xAVX
-+     FLIBS   := $(INCDIRS) -xAVX
-+     ifeq ($(DEBUG),trace)
+      FLIBS   := $(INCDIRS) -xAVX
+      ifeq ($(DEBUG),trace)
+-        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -xAVX -assume buffered_io
+-        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX 
 +        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -assume byterecl -132 -xAVX
 +        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX  -xAVX
-+        FLIBS   := $(INCDIRS) -xAVX
-+     endif
-+  endif
+         FLIBS   := $(INCDIRS) -xAVX
+      endif
+   endif
 +  ifeq ($(MACHINENAME),stampede3)
 +     CC      := icx
 +     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
@@ -532,7 +541,7 @@ index 9f89de7..5562b46 100644
    DA  	        :=  -DREAL8 -DLINUX -DCSCA
 -  DP  	        :=  -DREAL8 -DLINUX -DCMPI -DCSCA -DDEBUG_WARN_ELEV
 -#  DP  	        :=  -DREAL8 -DLINUX -DCMPI -DCSCA
-+  DP  	        :=  -DREAL8 -DLINUX -DCMPI -DHAVE_MPI_MOD -DCSCA -DDEBUG_WARN_ELEV
++  DP  	        :=  -DREAL8 -DLINUX -DCMPI -DHAVE_MPI_MOD -DCSCA
 +#  DP  	        :=  -DREAL8 -DLINUX -DCMPI -DHAVE_MPI_MOD -DCSCA
    DPRE	        :=  -DREAL8 -DLINUX
    CFLAGS	:=  -c89 $(INCDIRS) -DLINUX
