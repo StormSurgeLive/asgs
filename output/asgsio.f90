@@ -1948,6 +1948,7 @@ endif
 if (f%dataFileCategory.eq.INITRIVER) then
    l = -99 ! fort.88 files always contain only a single dataset
 endif
+
 !
 return
 !
@@ -2064,6 +2065,7 @@ case(ASCII,SPARSE_ASCII,ASCIIG)
             write(f%fun,2120) snapr, snapi
             ! write full dataset
             if (allocated(f%rdata).eqv..true.) then
+
                do h=1,f%numValuesPerDataset       ! came from ascii
                   write(f%fun,2453) h, (f%rdata(c,h), c=1,f%irtype)
                end do
@@ -2127,10 +2129,9 @@ case(NETCDFG,NETCDF3,NETCDF4)
                call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%ncds(c)%rdata,nc_start,nc_count))
             else
                ! data came from ascii
+               print *, 'writing full dataset from ascii'
                if ((f%dataFileCategory.eq.MINMAX).and.(f%timeOfOccurrence.eqv..true.).and.(s.eq.2)) then
                   call check(nf90_put_var(f%nc_id,f%ncds(2)%nc_varID,f%rdata(c,:),nc_start,nc_count))
-               else if (f%defaultFileName.eq.'ESLNodes.63') then
-                  call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),(/ 1 /), (/ 1 /)))
                else
                   call check(nf90_put_var(f%nc_id,f%ncds(c)%nc_varID,f%rdata(c,:),nc_start,nc_count))
                endif
