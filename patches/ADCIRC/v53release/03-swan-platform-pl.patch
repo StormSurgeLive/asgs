@@ -8,7 +8,7 @@ index 92842ed..dc15158 100644
    }
 +  elsif ( $compiler eq "ifx" )
 +  {
-+    print <<EOF;
++    print OUTFILE <<EOF;
 +    ##############################################################################
 +    # x86-64_Intel:	Intel Pentium with Linux using Intel OneAPI Compiler    .
 +    ##############################################################################
