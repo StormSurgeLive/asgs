@@ -489,6 +489,9 @@ function dumpJSON()
     local _FC_VERSION=$($_FC --version | head -n 1)
     local _CC_VERSION=$($_CC --version | head -n 1)
 
+    CC=$_CC
+    FC=$_FC
+
     # mpif90 info
     MPIF90=$(which mpif90)
 
@@ -670,10 +673,6 @@ case "${ADCIRC_SRC_TYPE}" in
   ;;
 esac
 
-# what macros.inc should SWAN use?
-if [[ "${ADCIRC_COMPILER}" == 'gfortran' && -e "${SWANDIR}/macros.inc.gfortran" ]]; then
-  echo "mv ${SWANDIR}/macros.inc.gfortran ${SWANDIR}/macros.inc # added by init-adcirc.sh wizard"  >> ${BUILDSCRIPT}
-fi
 echo                                     >> ${BUILDSCRIPT}
 echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
 echo "   make clean && \\"               >> ${BUILDSCRIPT}
