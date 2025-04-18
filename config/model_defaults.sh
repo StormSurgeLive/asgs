@@ -26,6 +26,7 @@
 #
 # ADCIRC parameters (fort.15) file
 parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and static nodal attributes
+subvariant="null"             # most parameter packages will not have subvariants
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
 adcirc_version="notset"
 TIMESTEPSIZE="1.0"            # ADCIRC time step in seconds
