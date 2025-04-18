@@ -1,0 +1,39 @@
+diff --git a/src/read_input.F b/src/read_input.F
+index 3e619a9..3847946 100644
+--- a/src/read_input.F
++++ b/src/read_input.F
+@@ -682,14 +682,12 @@ C...
+ C... READ AND PROCESS NFOVER - NONFATAL ERROR OVERRIDE OPTION
+ C...
+ C
+-#ifndef DEBUG_WARN_ELEV
+-      READ(15,*) NFOVER
+-#else
++
+ C     jgf46.10 Add user-controllable warning, output, and stop criteria
+ C     for elevations. 
+       READ(15,*) NFOVER, WarnElev, iWarnElevDump, WarnElevDumpLimit,
+      &  ErrorElev
+-#endif
++
+ C
+       WRITE(16,1112)
+       WRITE(16,1250)
+@@ -704,7 +702,7 @@ C
+  1952    FORMAT(/,5X,'NFOVER = ',I3,
+      &        /,9X,'NON-FATAL INPUT ERRORS WILL STOP EXECUTION ',/)
+       ENDIF
+-#ifdef DEBUG_WARN_ELEV
++
+       IF (iWarnElevDump .ne. 0) WarnElevDump = .True.
+       WRITE(16,1953) WarnElev,WarnElevDump,WarnElevDumpLimit,ErrorElev
+  1953 FORMAT(//,5X,
+@@ -717,7 +715,7 @@ C
+      &     /,5X,'global elevation files have been written as warning.'
+      &     /,5X,'Execution will be terminated if elevation exceeds'
+      &     ' ErrorElev =',e16.8)
+-#endif
++
+ C...
+ C...  READ AND PROCESS NABOUT - ABBREVIATED UNIT 16 OUTPUT OPTION
+ C...

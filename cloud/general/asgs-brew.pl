@@ -773,21 +773,21 @@ sub get_steps {
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin = qq{$opts_ref->{'install-path'}/bin};
+                my $lib = qq{$opts_ref->{'install-path'}/lib};
                 my $ok  = 1;
-                map { $ok = -e qq[$bin/$_] && $ok } (qw/gif2h5 h5cc h5debug h5dump h5import h5ls h5perf_serial h5repack h5stat h52gif h5copy h5diff h5fc h5jam h5mkgrp h5redeploy h5repart h5unjam/);
+                map { $ok = -e qq[$lib/$_] && $ok } (qw/libhdf5_fortran.so/);
                 return $ok;
             },    # if true and --force is not used, unilaterally skips the run step
             precondition_check  => sub { 1 },    # just a "1" indicates no checking is done
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin = qq{$opts_ref->{'install-path'}/bin};
+                my $lib = qq{$opts_ref->{'install-path'}/lib};
                 my $ok  = 1;
-                map { $ok = -e qq[$bin/$_] && $ok } (qw/gif2h5 h5cc h5debug h5dump h5import h5ls h5perf_serial h5repack h5stat h52gif h5copy h5diff h5fc h5jam h5mkgrp h5redeploy h5repart h5unjam/);
+                map { $ok = -e qq[$lib/$_] && $ok } (qw/libhdf5_fortran.so/);
                 return $ok;
             },
         },
-        {
+        {   # requires HDF5
             key         => q{netcdf4},
             name        => q{Step for NetCDF4 libraries and utilities},
             description => q{Downloads and builds the versions of NetCDF and NetCFD-Fortran that have been tested to work on all platforms for ASGS.},
@@ -802,23 +802,23 @@ sub get_steps {
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin = qq{$opts_ref->{'install-path'}/bin};
+                my $lib = qq{$opts_ref->{'install-path'}/lib};
                 my $ok  = 1;
-                map { $ok = -e qq[$bin/$_] && $ok } (qw/nc-config ncdump ncgen3 nccopy ncgen nf-config/);
+                map { $ok = -e qq[$lib/$_] && $ok } (qw/libnetcdff.so/);
                 return $ok;
             },    # if true and --force is not used, unilaterally skips the run step
-            precondition_check => sub {    # requires HDF5, so the precondition here is the same as the post condition of the hdf5 step above
+            precondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin = qq{$opts_ref->{'install-path'}/bin};
+                my $lib = qq{$opts_ref->{'install-path'}/lib};
                 my $ok  = 1;
-                map { $ok = -e qq[$bin/$_] && $ok } (qw/gif2h5 h5cc h5debug h5dump h5import h5ls h5perf_serial h5repack h5stat h52gif h5copy h5diff h5fc h5jam h5mkgrp h5redeploy h5repart h5unjam/);
+                map { $ok = -e qq[$lib/$_] && $ok } (qw/libnetcdff.so/);
                 return $ok;
             },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
-                my $bin = qq{$opts_ref->{'install-path'}/bin};
+                my $lib = qq{$opts_ref->{'install-path'}/lib};
                 my $ok  = 1;
-                map { $ok = -e qq[$bin/$_] && $ok } (qw/nc-config ncdump ncgen3 nccopy ncgen nf-config/);
+                map { $ok = -l qq[$lib/$_] && $ok } (qw/libnetcdff.so/);
                 return $ok;
             },
         },

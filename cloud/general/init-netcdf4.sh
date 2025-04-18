@@ -36,7 +36,7 @@ if [ $COMPILER == "intel" ]; then
 fi
 if [ $COMPILER == "intel-oneapi" ]; then
   export CC=icx
-  export FC=ifort
+  export FC=ifx
   export CXX=icx
 fi
 if [ $COMPILER == "gfortran" ]; then
@@ -75,7 +75,7 @@ else
   rm -rvf $_ASGS_TMP/netcdf-${NETCDF4_C_VERSION}*
 fi
 
-if [  ! -e $OPT/bin/nf-config ] && [ -z "$($OPT/bin/nf-config --all  | grep '\-\-has\-f90   \-> yes')" ]; then
+if [[ ! -L $OPT/lib/libnetcdff.so || ! -e $(readlink -f  $OPT/lib/libnetcdff.so) ]]; then
   tar zxvf netcdf-fortran-${NETCDF4_F_VERSION}.tar.gz
   cd netcdf-fortran-${NETCDF4_F_VERSION}
   make clean
@@ -84,7 +84,7 @@ if [  ! -e $OPT/bin/nf-config ] && [ -z "$($OPT/bin/nf-config --all  | grep '\-\
   cd ..
 fi
 
-if [  ! -e $OPT/bin/nf-config ] && [ -z "$($OPT/bin/nf-config --all  | grep '\-\-has\-f90   \-> yes')" ]; then
+if [[ ! -L $OPT/lib/libnetcdff.so || ! -e $(readlink -f  $OPT/lib/libnetcdff.so) ]]; then
   echo something went wrong with NETCDF Fortran support
   exit 1
 else
