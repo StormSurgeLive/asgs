@@ -57,6 +57,33 @@ _is_a_num()
   return
 }
 
+_set_compilers()
+{
+    # get compiler info
+    case "$ADCIRC_COMPILER" in
+    intel)
+      FC=ifort
+      MPIF90=mpif90
+      CC=icc
+    ;;
+    intel-oneapi)
+      # default, above
+      FC=ifx
+      MPIF90=mpiifx
+      CC=icx
+    ;;
+    gfortran)
+      FC=gfortran
+      MPIF90=mpif90
+      CC=gcc
+    ;;
+    *)
+      echo '${W} unknown compiler is unsupported...; defaulting to "intel"'
+    esac
+}
+
+_set_compilers
+
 #
 # M E N U  D I S P L A Y  &  S E L E C T I O N  L O G I C
 #
@@ -467,33 +494,8 @@ function dumpJSON()
     local BUILD_TIME=$(date +%Y-%b-%d-T%H:%M:%S%z)
     local MODULE_LIST=$(module list 2>&1 | grep '1)');
 
-    # get compiler info
-    local _FC=$(which ifort 2> /dev/null)
-    local _CC=$(which icc   2> /dev/null)
-    case "$ADCIRC_COMPILER" in
-    intel)
-      # default, above
-    ;;
-    intel-oneapi)
-      # default, above
-      local _FC=$(which ifx 2> /dev/null)
-      local _CC=$(which icx 2> /dev/null)
-    ;;
-    gfortran)
-      _FC=$(which gfortran)
-      _CC=$(which gcc)
-    ;;
-    *)
-      echo '${W} unknown compiler is unsupported...; defaulting to "intel"'
-    esac
-    local _FC_VERSION=$($_FC --version | head -n 1)
-    local _CC_VERSION=$($_CC --version | head -n 1)
-
-    CC=$_CC
-    FC=$_FC
-
-    # mpif90 info
-    MPIF90=$(which mpif90)
+    local _FC_VERSION=$($FC --version | head -n 1)
+    local _CC_VERSION=$($CC --version | head -n 1)
 
     # get SHA of ADCIRC git repo before patching
     pushd $ADCIRCBASE 2> /dev/null
@@ -673,10 +675,9 @@ case "${ADCIRC_SRC_TYPE}" in
   ;;
 esac
 
-echo                                     >> ${BUILDSCRIPT}
 echo "cd $SWANDIR && \\"                 >> ${BUILDSCRIPT}
 echo "   make clean && \\"               >> ${BUILDSCRIPT}
-echo "   perl platform.pl && \\"         >> ${BUILDSCRIPT}
+echo "   CC=$CC FC=$FC perl platform.pl && \\" >> ${BUILDSCRIPT}
 echo "   $SWAN_UTIL_BINS_MAKE_CMD && \\" >> ${BUILDSCRIPT}
 echo "cd $ADCIRCDIR && \\"               >> ${BUILDSCRIPT}
 echo "   make clobber clean && \\"       >> ${BUILDSCRIPT}
