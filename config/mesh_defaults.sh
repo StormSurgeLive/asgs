@@ -180,6 +180,6 @@ case $GRIDNAME in
 esac
 #
 # set the parameters
-if [[ $INPUTDIR != "null" ]]; then
+if [[ $INPUTDIR != "null" && -e $INPUTDIR/init.sh ]]; then
    source $INPUTDIR/init.sh
 fi
