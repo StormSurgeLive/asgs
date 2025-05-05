@@ -40,7 +40,7 @@ use JSON::PP;
 use Storable;
 use File::Basename;
 use Cwd;
-use ASGSUtil qw[ASGSUtil::setParameter];
+use ASGSUtil;
 ######################################################
 #             Variables declarations                 #
 ######################################################
