@@ -1,0 +1,45 @@
+ STEADY               ! CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ.   NODAL FACTOR   EQUIL. ARG.
+ STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+15.0  .000000    !...River 1 Node 1 (MS River Total River Flow: jgf: 36kcms, Avg Lat/Long: -91.198941,30.425086)
+33.0  .000000    !...River 1 Node 2
+37.5  .000000    !...River 1 Node 3
+40.5  .000000    !...River 1 Node 4
+43.5  .000000    !...River 1 Node 5
+44.0  .000000    !...River 1 Node 6
+43.5  .000000    !...River 1 Node 7
+37.5  .000000    !...River 1 Node 8
+29.0  .000000    !...River 1 Node 9
+20.5  .000000    !...River 1 Node 10
+13.0  .000000    !...River 1 Node 11
+9.0   .000000    !...River 1 Node 12
+4.0   .000000    !...River 1 Node 13
+0.000000 .000000    !...River 2 Node 1 (Total River Flow: .0000 cms, Avg Lat/Long: -91.619574,30.776798)
+0.000000 .000000    !...River 2 Node 2
+0.000000 .000000    !...River 2 Node 3
+0.000000 .000000    !...River 2 Node 4
+0.000000 .000000    !...River 2 Node 5
+0.000000 .000000    !...River 2 Node 6
+0.000000 .000000    !...River 2 Node 7
+4.5   .000000    !...River 3 Node 1 (Atch - Total River Flow: jgf: 18kcms, Avg Lat/Long: -91.801121,30.979759)
+9.3   .000000    !...River 3 Node 2
+10.0  .000000    !...River 3 Node 3
+10.5  .000000    !...River 3 Node 4
+10.5  .000000    !...River 3 Node 5
+12.0  .000000    !...River 3 Node 6
+12.0  .000000    !...River 3 Node 7
+12.0  .000000    !...River 3 Node 8
+12.0  .000000    !...River 3 Node 9
+12.5  .000000    !...River 3 Node 10
+12.5  .000000    !...River 3 Node 11
+12.5  .000000    !...River 3 Node 12
+12.5  .000000    !...River 3 Node 13
+12.5  .000000    !...River 3 Node 14
+12.5  .000000    !...River 3 Node 15
+12.5  .000000    !...River 3 Node 16
+12.5  .000000    !...River 3 Node 17
+12.0  .000000    !...River 3 Node 18
+12.0  .000000    !...River 3 Node 19
+11.5  .000000    !...River 3 Node 20
+10.5  .000000    !...River 3 Node 21
+5.0   .000000    !...River 3 Node 22
