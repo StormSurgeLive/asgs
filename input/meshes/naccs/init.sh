@@ -43,7 +43,7 @@ case $parameterPackage in
     nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.109"
     ;;
 "2025.1"|"default")
-    CONTROLTEMPLATE=NAC2014.15.ASGS2024.1.template
+    CONTROLTEMPLATE=NAC2014.15.ASGS2025.1.template
     # numerics/physics (fort.15)
     advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
     solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
