@@ -1369,7 +1369,7 @@ submitJob()
       JOBLAUNCHER="mpiexec -n %totalcpu%"
       if [[ -n "$ASGS_MPI_HOSTFILE" ]]; then
         if [[ -e "$ASGS_MPI_HOSTFILE" ]]; then
-          JOBLAUNCHER="$JOBLAUNCHER --hostfile $ASGS_MPI_HOSTFILE" # if HOSTFILE is defined in the platform's init.sh
+          JOBLAUNCHER="$JOBLAUNCHER --hostfile \$ASGS_MPI_HOSTFILE" # if HOSTFILE is defined in the platform's init.sh
           echo "hpc.job.${JOBTYPE}.asgs_mpi_hostfile : $ASGS_MPI_HOSTFILE" >> $ADVISDIR/$ENSTORM/run.properties
         else
           warn "ASGS_MPI_HOSTFILE is defined as '$ASGS_MPI_HOSTFILE', but it doesn't exist!"
