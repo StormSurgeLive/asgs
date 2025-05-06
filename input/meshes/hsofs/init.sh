@@ -35,8 +35,6 @@ HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
-# unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
-UNITOFFSETFILE=unit_offset_hsofs.dat
 case $parameterPackage in
 "hardcoded")
    CONTROLTEMPLATE=hsofs_explicit.15.template
@@ -45,9 +43,11 @@ case $parameterPackage in
    NAFILE=hsofs.13
    # interaction between mesh and models:
    SWANDT=1800                 # swan timestep / coupling interval (seconds)
+   # unit offset url https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets/unit_offset_hsofs.dat.xz
+   UNITOFFSETFILE=unit_offset_hsofs.dat
    ;;
 "2025.1"|"default")
-   CONTROLTEMPLATE=hsofs-parameters.15.template
+   CONTROLTEMPLATE=HSOFS.15.2025.1.template
    # interaction between mesh and models:
    SWANDT=1800                 # swan timestep / coupling interval (seconds)
    # tidal forcing
@@ -75,6 +75,7 @@ case $parameterPackage in
    nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
    nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
    nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+   nodal_attribute_default_values["surface_submergence_state"]="0.0"
    ;;
 *)
    fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."
