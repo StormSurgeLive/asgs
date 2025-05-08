@@ -659,7 +659,6 @@ sub get_steps {
             util/input/nodalattr
             util/output
             util/troubleshooting
-            git/asgs-mon/bin
             git/ourPerl/KML
             git/ourPerl/StwaveUtils
             git/ourPerl/Date
@@ -1055,6 +1054,56 @@ sub get_steps {
             postcondition_check => sub {
                 local $?;
                 system(qq{readlink -f bin/asgs-lint > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{asgs-mon},
+            name        => q{Step for installing asgs-mon},
+            description => q{Install asgs-mon, moniter for ASGS configuration files},
+            pwd         => qq{$scriptdir},
+            command     => qq{bash ./bin/fetch asgs-mon $scriptdir},
+            clean       => sub {
+                local $?;
+                system(qq{rm -rvf bin/asgs-mon git/asgs-mon});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            skip_if             => sub { undef }, # if exists, bin/fetch will update the repo
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{readlink -f bin/asgs-mon > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{adcirclive-cli},
+            name        => q{Step for installing adcirclive-cli},
+            description => q{Install adcirclive-cli, moniter for ASGS configuration files},
+            pwd         => qq{$scriptdir},
+            command     => qq{bash ./bin/fetch adcirclive-cli $scriptdir},
+            clean       => sub {
+                local $?;
+                system(qq{rm -rvf bin/adlclient git/adcirclive-cli});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            skip_if             => sub { undef }, # if exists, bin/fetch will update the repo
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{readlink -f bin/adlclient > /dev/null 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );
