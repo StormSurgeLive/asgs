@@ -142,7 +142,7 @@ error()
   done
   # email the operator
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-     echo $MSG | mail -s "[ASGS] Attn: Error for $INSTANCENAME" "${ASGSADMIN}"
+     echo $MSG | asgs-sendmail --subject "[ASGS] Attn: Error for $INSTANCENAME" --to "${ASGSADMIN}"
   fi
 }
 #
@@ -161,7 +161,7 @@ fatal()
     fi
   done
   if [[ $EMAILNOTIFY = yes || $EMAILNOTIFY = YES ]]; then
-     echo $MSG | mail -s "[ASGS] Fatal Error for PROCID ($$)" "${ASGSADMIN}"
+     echo $MSG | asgs-sendmail --subject "[ASGS] Fatal Error for PROCID ($$)" --to "${ASGSADMIN}"
   fi
   echo ${MSG} # send to console
   exit ${EXIT_NOT_OK}

@@ -23,7 +23,7 @@ _sq() {
      echo "No jobs in queue for user '$USER'".
     fi
   elif [[ "$QUEUESYS" == "mpiexec" ]]; then
-    ps -ejHu $USER # lists processes
+    ps -ejHu $USER | grep padc # lists processes
     uptime        # gives load info
   else
     echo "$0 - Can't determine platform or command to use to report state of batch queues." >&2

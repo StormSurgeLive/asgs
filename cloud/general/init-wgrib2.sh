@@ -22,7 +22,7 @@ fi
 rm -rf grib2 > /dev/null 2>&1
 tar zxvf wgrib2-${VERSION}.tgz 
 
-if [ "$compiler" == "intel" ]; then
+if [ "$compiler" == "gfortran" ]; then
   CC=gcc
   FC=gfortran
   COMP_SYS=gnu_linux
