@@ -39,7 +39,7 @@ case "${ITEM}" in
     fi
     popd > /dev/null 2>&1
     # force this always
-    ln -f -s $SCRIPTDIR/git/adcirclive-cli/bin/adcirclive $SCRIPTDIR/bin/adcirclive
+    ln -f -s $SCRIPTDIR/git/adcirclive-cli/bin/adcirclive $SCRIPTDIR/bin/adlclient
     ;;
   asgs-lint)
     pushd $SCRIPTDIR
