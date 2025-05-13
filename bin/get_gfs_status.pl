@@ -57,7 +57,6 @@ GetOptions(
     # replaces the $ftp->ls for files, looks only for gfs.* files
     sub http_ls {
         my $dir = shift;
-        $dir =~ s/\/pub\///g;
         my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s/ls-l}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
@@ -71,7 +70,6 @@ GetOptions(
     # replaces the $ftp->ls for directory listings, extracts from the HTML listing
     sub http_dir {
         my $dir = shift;
-        $dir =~ s/\/pub\///g;
         my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
