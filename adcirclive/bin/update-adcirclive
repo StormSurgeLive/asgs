@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 cat <<EOF
+
 Updating ADCIRC Live is still a experimental. It is recommended that
 you make a back up of the working directory and any work that has not
 been saved.
