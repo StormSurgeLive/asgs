@@ -1,5 +1,9 @@
 #!/usr/bin/env bash 
 
+echo "Type 'asgsh', then 'list adcirc' to see what ADCIRC installations are available." >&2
+
+exit 1
+
 BIN=$(adcirclive which padcirc)
 
 $BIN $@
