@@ -12,7 +12,8 @@ EOF
 read foo
 
 cat <<EOF
-ADCIRC Live is being updated in 10 seconds. You should not have to rebuild ADCIRC.
+ADCIRC Live is being updated in 10 seconds. You should not have to rebuild
+anything.
 
 EOF
 sleep 10
