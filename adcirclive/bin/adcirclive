@@ -486,23 +486,23 @@ sub cmd_activate {
   return EXIT_SUCCESS;
 }
 
-# direct asgsh's "build adcirc"
 sub cmd_build {
   my $ARGV = shift;
   __ASSERT_VALID_SUPPORT_LICENSE__;
   my $flavor = shift @$ARGV;
-  if ($flavor eq q{adcirc}) {
+
+  if ($flavor and $flavor eq q{adcirc}) {
     $flavor = shift @$ARGV;
   }
 
-  if ($flavor eq q{wizard}) {
+  if ($flavor and $flavor eq q{wizard}) {
     return system(<<EOCMD);
     asgsh -A "build adcirc "
 EOCMD
   }
-  elsif (not $flavor) {
-    $flavor = q{v56.0.2};
-  }
+
+  # default version to build
+  $flavor = q{v56.0.2} if not defined $flavor;
 
   return system(<<EOCMD);
     asgsh -A "build adcirc -b -N $flavor"
