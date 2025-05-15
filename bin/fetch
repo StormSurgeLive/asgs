@@ -9,8 +9,23 @@ if [ -z "$_ASGSH_PID" ]; then
   fi
 fi
 
+# detect git remote protocol of asgs local repo, assume the same
+# for all "git clone" calls here - solves issue of there being not
+# key set up prior to adcirclive installation
+set_gitprotocol_repo() {
+  BASEURL="https://github.com/" # terminal character (/) matters 
+  local check=$(git remote -v 2> /dev/null | grep -c "git@github")
+  if [ "$check" -gt 0 ]; then
+    BASEURL="git@github.com:" # terminal character (:) matters
+  else
+    echo using default https to clone or update repo ...
+  fi
+}
+
 # this is just a starter, the above stuff might go into a shell "library" at some
 # point
+
+set_gitprotocol_repo
 
 ITEM=${1}
 
@@ -35,7 +50,7 @@ case "${ITEM}" in
       cd ./adcirclive-cli  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/adcirclive-cli.git $SCRIPTDIR/git/adcirclive-cli
+      git clone ${BASEURL}StormSurgeLive/adcirclive-cli.git $SCRIPTDIR/git/adcirclive-cli
     fi
     popd > /dev/null 2>&1
     # force this always
@@ -49,7 +64,7 @@ case "${ITEM}" in
       cd ./asgs-lint  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
+      git clone ${BASEURL}StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
     fi
     popd > /dev/null 2>&1
     # force this always
@@ -63,7 +78,7 @@ case "${ITEM}" in
       cd ./asgs-mon  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
+      git clone ${BASEURL}StormSurgeLive/asgs-mon.git $SCRIPTDIR/git/asgs-mon
     fi
     popd > /dev/null 2>&1
     ;;
@@ -74,7 +89,7 @@ case "${ITEM}" in
       cd ./asgs-configs  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
+      git clone ${BASEURL}StormSurgeLive/asgs-configs.git $SCRIPTDIR/git/asgs-configs
     fi
     popd > /dev/null 2>&1
     ;;
@@ -85,7 +100,7 @@ case "${ITEM}" in
       cd ./asgs.wiki  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
+      git clone ${BASEURL}StormSurgeLive/asgs.wiki.git $SCRIPTDIR/git/asgs.wiki
     fi
     popd > /dev/null 2>&1
     ;;
@@ -97,16 +112,16 @@ case "${ITEM}" in
       cd ./cera-asgs-environment  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
+      git clone ${BASEURL}CERA-GROUP/cera-asgs-environment.git $SCRIPTDIR/git/cera-asgs-environment
     fi
     popd > /dev/null 2>&1 
 
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
-    if [ -d ./asgs-local-assets ]; then
-      cd ./asgs-local-assets  > /dev/null  2>&1
+    if [ -d ./cera-asgs-local-assets ]; then
+      cd ./cera-asgs-local-assets  > /dev/null  2>&1
       git pull origin main
     else
-      git clone git@github.com:CERA-GROUP/asgs-local-assets.git $SCRIPTDIR/git/cera-asgs-local-assets
+      git clone ${BASEURL}CERA-GROUP/asgs-local-assets.git $SCRIPTDIR/git/cera-asgs-local-assets
     fi
     popd > /dev/null 2>&1 
     ;;
@@ -117,7 +132,7 @@ case "${ITEM}" in
       cd ./ourPerl  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
+      git clone ${BASEURL}StormSurgeLive/ourPerl.git $SCRIPTDIR/git/ourPerl
     fi
     popd > /dev/null 2>&1
     ;;
@@ -128,7 +143,7 @@ case "${ITEM}" in
       cd ./storm-archive  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
+      git clone ${BASEURL}StormSurgeLive/storm-archive.git $SCRIPTDIR/git/storm-archive
     fi
     popd > /dev/null 2>&1
     ;;
@@ -139,7 +154,7 @@ case "${ITEM}" in
       cd ./adcirc-testsuite  > /dev/null  2>&1
       git pull origin master
     else
-      git clone git@github.com:adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
+      git clone ${BASEURL}adcirc/adcirc-testsuite.git $SCRIPTDIR/git/adcirc-testsuite
     fi
     popd > /dev/null 2>&1
     ;;
