@@ -64,6 +64,8 @@ _is_a_num()
 # This function is just to support the menu that comes up when the utility is run
 _show_supported_versions()
 {
+  echo
+  printf "/## ASGS ADCIRC Builder ##############\ \n"
   local num=0
   _ADCIRCS=
   for VERSION in $(ls -1 $SCRIPTDIR/patches/ADCIRC); do
@@ -90,11 +92,12 @@ _show_supported_versions()
   fi
   # final menu entry for custom directory
   num=$(($num+1))
-  printf "%2s. %-33s | %-66s\n" $num custom "(*) select this option for custom directory"
+  printf "%2s. %-33s | %-66s\n" $num custom "select this option for custom directory *,**"
   num=$(($num+1))
   printf "%2s. %-33s | %-66s\n" $num quit "type 'quit', 'q', or 'ctrl-c' to quit"
   echo  "--"
-  echo "* Contact <help@support.adcirc.live> if additional ADCIRC version supported is required."
+  echo "* Contact <help@support.adcirc.live> if privately patched ADCIRC support is required."
+  echo "** See more about ADCIRC version support options at https://tools.adcirc.live/install"
   echo
   ADCIRCS=($_ADCIRCS custom)
   if [ "${1}" != "noexit" ]; then
