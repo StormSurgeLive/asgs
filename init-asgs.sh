@@ -421,39 +421,54 @@ fi
 # For ADCIRC pro's who up their game with ADCIRC Live (c) #
 #   via https://tools.adcirc.live                         #
 if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
-  echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"                             > adcirclive/etc/bashrc
-  echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive"                            >> adcirclive/etc/bashrc
-  echo "export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile"          >> adcirclive/etc/bashrc
-  echo "alias adl='adcirclive'"                                                  >> adcirclive/etc/bashrc
-  echo "alias adcl='pushd \$ADCIRCLIVE_ROOT; dirs -c'"                           >> adcirclive/etc/bashrc
-  echo "alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                          >> adcirclive/etc/bashrc
-  echo "alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                        >> adcirclive/etc/bashrc
-
   # gives access to "asgsh" via updated PATH
   ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
 
-  cp adcirclive/etc/bashrc adcirclive/etc/initial-bashrc
+  cat <<EOF >> etc/setvars.sh
+export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH
+export LD_LIBRARY_PATH=\$SCRIPTDIR/opt/lib:\$LD_LIBRARY_PATH
+export LD_INCLUDE_PATH=\$SCRIPTDIR/opt/include:\$LD_INCLUDE_PATH
+export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive
+export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile
+alias adl='adcirclive'
+alias adcl='pushd \$ADCIRCLIVE_ROOT; dirs -c'
+alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'
+alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'
 
-  echo "adcirclive build"                                                        >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc 
-  echo "adcirclive load adcirc"                                                  >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc 
-  echo "ADCV=\$(adcirc -v)"                                                      >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "adcirclive verify adcirc"                                                >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "cat<<EOF"                                                                >> adcirclive/etc/initial-bashrc
-  echo "ADCIRC \$ADCV and the ADCIRC Live (c) cli is now installed and ready:"   >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "If you have any questions, please email us at help@support.adcirc.live"  >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "The following line was added to your ~/.bashrc file:"                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "  source $SCRIPTDIR/adcirclive/etc/bashrc           "                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "To get started, type the command                    "                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "  adcirclive help                                   "                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "EOF"                                                                     >> adcirclive/etc/initial-bashrc
+To build the most most current supported ADCIRC, run the following command:
+
+  adcirclive build
+
+To load it,
+
+  adcirclive load adcirc
+
+ADCV=\$(adcirc -v)
+
+To verify it run,
+
+  adcirclive verify adcirc
+
+ADCIRC \$ADCV and the ADCIRC Live (c) cli is now installed and ready:
+
+To persist this environment outside of the ASGS Shell Environment, add the
+following to your ~/.bashrc file:
+
+  source $SCRIPTDIR/etc/setvars.sh
+
+To get started, type the command
+
+  adcirclive help
+
+If all you want is to export PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH needed
+for loading the version of ADCIRC you're managing with ASGS, type the following:
+
+TODO TODO TODO ...
+  adcirclive export adcirc # <- need to implement!, combo of 'load adcirc'
+                           and a dump of PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH
+TODO TODO TODO ...
+
+If you have any questions, please email us at help@support.adcirc.live
+
+EOF
 fi
