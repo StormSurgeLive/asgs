@@ -87,6 +87,7 @@ my $subcommands = {
     define    => sub {cmd_define(\@ARGV)   },
     verify    => sub {cmd_verify(\@ARGV)   }, # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
     list      => sub {cmd_list(\@ARGV)     }, # primarily to list adcirc versions
+    export    => sub {cmd_export(\@ARGV)   }, # dumps PATH, LD_LIBRARY_PATH, & LD_INCLUDE_PATH needed to share ADCIRC outside of ASGS
     activate  => sub {cmd_activate(\@ARGV) }, # primarily to activate adcirc versions
     build     => sub {cmd_build(\@ARGV)    }, # primarily access to "asgsh build adcirc"
     load      => sub {cmd_load(\@ARGV)     }, # primarily to load adcirc versions
@@ -143,7 +144,14 @@ sub cmd_list_meshes() {
 
 sub __ASSERT_VALID_SUPPORT_LICENSE__() {
   if (!_auth) {
-    die qq{\nADCIRC Live (c) 2024. Support License check failed. Please email help\@support.adcirc.live for more information.\n\n};
+    die qq{\nADCIRC Live (c) 2024-2025. Support License check failed. Please email help\@support.adcirc.live for more information.\n\n};
+  }
+  return;
+}
+
+sub __ASSERT_VALID_SUPPORT_LICENSE_TRY_ASGSH__() {
+  if (!_auth) {
+    die qq{\nADCIRC Live (c) 2024-2025. Support License check failed. Please email help\@support.adcirc.live for more information.\nTry using the ASGSH Shell - type, 'asgsh'.\n};
   }
   return;
 }
@@ -217,7 +225,7 @@ sub cmd_show_help {
   __ASSERT_VALID_SUPPORT_LICENSE__;
   print <<EOHELP;
                                                                                    Support License is VALID
-adcirclive - general client for ADCIRC Live (c) 2024                               help\@support.adcirc.live
+adcirclive - general client for ADCIRC Live (c) 2024-2025                         help\@support.adcirc.live
                                                                                   https://tools.adcirc.live
 usage: adcirclive <command> [<args>]
 
@@ -300,6 +308,14 @@ sub verify_adcirc {
     my $ARGV  = shift;
     return system(<<EOCMD);
       asgsh -A "verify adcirc -k"
+EOCMD
+}
+
+# dumps ADCIRC's environmental variables for using it outside of ASGS/ADCIRC Live (c) 
+sub cmd_export {
+  my $thing = shift;
+  return system(<<EOCMD);
+      asgsh -A "export_adcirc"
 EOCMD
 }
 
@@ -458,14 +474,14 @@ sub _get_signed_headers($) {
 
 sub cmd_auth {
   __ASSERT_VALID_SUPPORT_LICENSE__;
-  print STDERR qq{ADCIRC Live (c) 2024. Support License is valid.\n};
+  print STDERR qq{ADCIRC Live (c) 2024-2025. Support License is valid.\n};
   return EXIT_SUCCESS;
 }
 
 sub cmd_activate {
   my $already_activated = eval { __ASSERT_VALID_SUPPORT_LICENSE__; 1} or undef;
   if ($already_activated) {
-    print qq{ADCIRC Live (c) 2024. Support License is valid.\n};
+    print qq{ADCIRC Live (c) 2024-2025. Support License is valid.\n};
     return EXIT_SUCCESS; 
   }
   # if support license is not valid, ask for keys
@@ -488,7 +504,7 @@ sub cmd_activate {
 
 sub cmd_build {
   my $ARGV = shift;
-  __ASSERT_VALID_SUPPORT_LICENSE__;
+  __ASSERT_VALID_SUPPORT_LICENSE_TRY_ASGSH__;
   my $flavor = shift @$ARGV;
 
   if ($flavor and $flavor eq q{adcirc}) {
