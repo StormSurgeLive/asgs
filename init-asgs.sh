@@ -423,39 +423,51 @@ fi
 if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
   # gives access to "asgsh" via updated PATH
   ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
+fi
 
-  cat <<EOF >> etc/setvars.sh
-export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH
-export LD_LIBRARY_PATH=\$SCRIPTDIR/opt/lib:\$LD_LIBRARY_PATH
-export LD_INCLUDE_PATH=\$SCRIPTDIR/opt/include:\$LD_INCLUDE_PATH
-export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive
-export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile
-alias adl='adcirclive'
-alias adcl='pushd \$ADCIRCLIVE_ROOT; dirs -c'
-alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'
-alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'
+# checks for etc/servars.sh, asks if okay to overwrite .. for now, just allow it
+# if [ -e "etc/setvars.sh" ]; then
+#   read -p "WARNING: $SCRIPTDIR/etc/setvars.sh exists. Overwrite? [y/N] " overwrite
+#   if [ "$overwrite" == "y" ]; then
+#     echo "proceeding ..."
+#   else
+#     cat<<EOF
+# 
+# The existing '$SCRIPTDIR/etc/setvars.sh' has been retained, to apply it run:
+# 
+#   source $SCRIPTDIR/etc/setvars.sh
+# 
+# And add that line to your ~/.bashrc to run it each time you login.
+# 
+# EOF
+#     exit
+#   fi 
+# fi
 
-To build the most most current supported ADCIRC, run the following command:
+cat <<EOF > etc/setvars.sh
+# Copyright(C) 2025 Jason Fleming <jason.fleming@adcirc.live>
+# Copyright(C) 2025 Brett Estrade <brett.estrade@adcirc.live>
 
-  adcirclive build
+# All Copyright information must be retained when sharing, modifying,
+# or deriving works from this source code file;
 
-To load it,
+FORCE=\$1
+# check if it looks like this script has been run before because 'adcirclive'
+# was found via PATH ...
+if [[ -n "\$ADCIRCLIVE_ROOT" && -z "\$FORCE" ]]; then
+  echo "ADCIRC Live (c)'s setvars.sh appears to have been run once before because 'adcirclive' was found via PATH. Script not applied." >&2
+else
+  #set -x
+  export PATH=$SCRIPTDIR/adcirclive/bin:$SCRIPTDIR/opt/bin:$PATH
+  export LD_LIBRARY_PATH=$SCRIPTDIR/opt/lib:\$LD_LIBRARY_PATH
+  export LD_INCLUDE_PATH=$SCRIPTDIR/opt/include:\$LD_INCLUDE_PATH
+  export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive
+  export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile
+  alias adl=adcirclive
+  #set +x
 
-  adcirclive load adcirc
-
-ADCV=\$(adcirc -v)
-
-To verify it run,
-
-  adcirclive verify adcirc
-
-ADCIRC \$ADCV and the ADCIRC Live (c) cli is now installed and ready:
-
-To persist this environment outside of the ASGS Shell Environment, add the
-following to your ~/.bashrc file:
-
-  source $SCRIPTDIR/etc/setvars.sh
-
+  # print to screen
+  cat <<EOFF
 To get started, type the command
 
   adcirclive help
@@ -463,12 +475,21 @@ To get started, type the command
 If all you want is to export PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH needed
 for loading the version of ADCIRC you're managing with ASGS, type the following:
 
-TODO TODO TODO ...
-  adcirclive export adcirc # <- need to implement!, combo of 'load adcirc'
-                           and a dump of PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH
-TODO TODO TODO ...
+  adcirclive export
+
+Then copy 'n paste the output into your ~/.bashrc, or advanced users may put
+it somewhere to then "source" as needed.
 
 If you have any questions, please email us at help@support.adcirc.live
+EOFF
+
+fi
+EOF
+
+cat<<EOF
+'$SCRIPTDIR/etc/setvars.sh' has been created, to access some of the ASGS Shell Environment
+outside of 'asgsh', set up the environment by running:
+
+  source $SCRIPTDIR/etc/setvars.sh # add your ~/.bashrc to persist b/w logins
 
 EOF
-fi
