@@ -43,3 +43,4 @@ adcirclive/etc/bashrc
 adcirclive/bin/asgsh
 adcirclive/etc/initial-bashrc
 bin/adlclient
+etc/setvars.sh
