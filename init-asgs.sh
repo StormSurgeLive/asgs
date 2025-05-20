@@ -467,12 +467,10 @@ else
   alias adl=adcirclive
   #set +x
 
-  adcirclive verify
-
   # print to screen
   cat <<EOFF
 
-ADCIRC Live (C) 2024-2025 is an environment geared more towards commercial
+ADCIRC Live (C) 2024-present is an environment geared more towards commercial
 supported clients and managing ADCIRC Live (C) Cluster deployments. Most
 people, even commercial users of ASGS / ADCIRC Live (C) will find the ASGS
 Shell Environemnt a much more complete environment in which to work. Please
