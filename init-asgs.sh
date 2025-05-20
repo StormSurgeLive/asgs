@@ -470,9 +470,9 @@ else
   # print to screen
   cat <<EOFF
 
-ADCIRC Live (C) 2024-present is an environment geared more towards commercial
-supported clients and managing ADCIRC Live (C) Cluster deployments. Most
-people, even commercial users of ASGS / ADCIRC Live (C) will find the ASGS
+ADCIRC Live (c) 2024-present is an environment geared more towards commercial
+supported clients and managing ADCIRC Live (c) Cluster deployments. Most
+people, even commercial users of ASGS / ADCIRC Live (c) will find the ASGS
 Shell Environemnt a much more complete environment in which to work. Please
 see information on getting started below:
 
