@@ -451,6 +451,7 @@ cat <<EOF > etc/setvars.sh
 # All Copyright information must be retained when sharing, modifying,
 # or deriving works from this source code file;
 
+clear
 FORCE=\$1
 # check if it looks like this script has been run before because 'adcirclive'
 # was found via PATH ...
@@ -466,30 +467,48 @@ else
   alias adl=adcirclive
   #set +x
 
+  adcirclive verify
+
   # print to screen
   cat <<EOFF
-To get started, type the command
 
-  adcirclive help
+ADCIRC Live (C) 2024-2025 is an environment geared more towards commercial
+supported clients and managing ADCIRC Live (C) Cluster deployments. Most
+people, even commercial users of ASGS / ADCIRC Live (C) will find the ASGS
+Shell Environemnt a much more complete environment in which to work. Please
+see information on getting started below:
 
 If all you want is to export PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH needed
 for loading the version of ADCIRC you're managing with ASGS, type the following:
 
   adcirclive export
 
+  # (note: requires at least one ADCIRC version is already built)
+
 Then copy 'n paste the output into your ~/.bashrc, or advanced users may put
 it somewhere to then "source" as needed.
 
+To build the default version of ADCIRC, run:
+
+  adcirclive build adcirc
+
+To learn more about the 'adcirclive' commandline too, ype the command
+
+  adcirclive help
+
 If you have any questions, please email us at help@support.adcirc.live
+
 EOFF
 
 fi
 EOF
 
 cat<<EOF
-'$SCRIPTDIR/etc/setvars.sh' has been created, to access some of the ASGS Shell Environment
-outside of 'asgsh', set up the environment by running:
+'$SCRIPTDIR/etc/setvars.sh' has been created, to access some of the ASGS Shell
+Environment outside of 'asgsh', set up the environment by running:
 
-  source $SCRIPTDIR/etc/setvars.sh # add your ~/.bashrc to persist b/w logins
+  # add your ~/.bashrc to persist b/w logins
+  source $SCRIPTDIR/etc/setvars.sh
 
+If you have any questions, please email us at help@support.adcirc.live
 EOF

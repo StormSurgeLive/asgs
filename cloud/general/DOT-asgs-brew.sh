@@ -215,8 +215,9 @@ export_adcirc() {
   if [[ -n "$adcirc_profile_name" && -e "$ADCIRC_META_DIR/$adcirc_profile_name" ]]; then
     source $ADCIRC_META_DIR/$adcirc_profile_name
     cat <<EOENV
-#-- BEGIN ADCIRC Live (C) exported environment
-## copy n' paste this entire BLOCL anywhere ADCIRC must be accessed
+## copy n' paste this entire BLOCK anywhere ADCIRC must be accessed
+
+#-- BEGIN ADCIRC Live (C) 2024-2025 exported environment
 export PATH=$ADCIRCDIR:\$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\$LD_LIBRARY_PATH
 export LD_INCLUDE_PATH=$LD_INCLUDE_PATH:\$LD_INCLUDE_PATH
@@ -224,7 +225,7 @@ export LD_INCLUDE_PATH=$LD_INCLUDE_PATH:\$LD_INCLUDE_PATH
 ## or visit https://adcirc.live for more information
 # Copyright(C) 2024-2025 Brett Estrade <brett.estrade@adcirc.live>
 # Copyright(C) 2024-2025 Jason Fleming <jason.fleming@adcirc.live>
-#-- END ADCIRC Live (C) exported environment 
+#-- END ADCIRC Live (C) 2024-2025 exported environment 
 EOENV
   else
     echo "It appears as if ADCIRC must be loaded first. You may email help@support.adcirc.live for assistance."
