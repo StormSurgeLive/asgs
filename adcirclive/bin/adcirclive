@@ -144,16 +144,28 @@ sub cmd_list_meshes() {
 
 sub __ASSERT_VALID_SUPPORT_LICENSE__() {
   if (!_auth) {
-    die qq{\nADCIRC Live (c) 2024-2025. Support License check failed. Please email help\@support.adcirc.live for more information.\n\n};
-  }
-  return;
-}
+    warn <<EOF;
 
-sub __ASSERT_VALID_SUPPORT_LICENSE_TRY_ASGSH__() {
-  if (!_auth) {
-    die qq{\nADCIRC Live (c) 2024-2025. Support License check failed. Please email help\@support.adcirc.live for more information.\nTry using the ASGSH Shell - type, 'asgsh'.\n};
+ADCIRC Live (c) 2024-2025. Support License check failed.
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+License is expired.  License is expired.  License is expired.
+
+Please email help\@support.adcirc.live for more information.
+
+License is expired.  License is expired.  License is expired.
+
+Please email help\@support.adcirc.live for more information.
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+command continuing in 3 seconds ...
+EOF
+
+    sleep 3;
+    
+    return undef;
   }
-  return;
+  return 1;
 }
 
 # this API call is behind HMAC auth, so need to check ahead of call
@@ -223,10 +235,9 @@ sub cmd_get_xdmf {
 
 sub cmd_show_help {
   __ASSERT_VALID_SUPPORT_LICENSE__;
-  print <<EOHELP;
-                                                                                   Support License is VALID
-adcirclive - general client for ADCIRC Live (c) 2024-2025                         help\@support.adcirc.live
-                                                                                  https://tools.adcirc.live
+  print STDERR <<EOHELP;
+adcirclive - general client for ADCIRC Live (c) 2024-2025     help\@support.adcirc.live
+                                                             https://tools.adcirc.live
 usage: adcirclive <command> [<args>]
 
 These are common ADCIRC Live (c) commands used in various situations:
@@ -283,9 +294,11 @@ working with the ADCIRC Live (c) API
 Handy Aliases:
 
    adl                      alias for the "adcirclive" command
-   adcl                     change current directory to the main adcirclive directory
-   asgs                     change current directory to the parent ASGS directory
 
+If you have any questions, please email us at help\@support.adcirc.live
+
+Copyright ADCIRC Live (C) 2024-2025 Brett Estrade <brett.estrade\@adcirc.live>
+Copyright ADCIRC Live (C) 2024-2025 Jason Fleming <jason.fleming\@adcirc.live>
 EOHELP
 }
 
@@ -473,13 +486,15 @@ sub _get_signed_headers($) {
 }
 
 sub cmd_auth {
-  __ASSERT_VALID_SUPPORT_LICENSE__;
-  print STDERR qq{ADCIRC Live (c) 2024-2025. Support License is valid.\n};
-  return EXIT_SUCCESS;
+  if(__ASSERT_VALID_SUPPORT_LICENSE__) {
+    print STDERR qq{ADCIRC Live (c) 2024-2025. Support License is valid.\n};
+    return EXIT_SUCCESS;
+  }
+  return EXIT_ERROR;
 }
 
 sub cmd_activate {
-  my $already_activated = eval { __ASSERT_VALID_SUPPORT_LICENSE__; 1} or undef;
+  my $already_activated = __ASSERT_VALID_SUPPORT_LICENSE__;
   if ($already_activated) {
     print qq{ADCIRC Live (c) 2024-2025. Support License is valid.\n};
     return EXIT_SUCCESS; 
@@ -504,7 +519,7 @@ sub cmd_activate {
 
 sub cmd_build {
   my $ARGV = shift;
-  __ASSERT_VALID_SUPPORT_LICENSE_TRY_ASGSH__;
+  __ASSERT_VALID_SUPPORT_LICENSE__;
   my $flavor = shift @$ARGV;
 
   if ($flavor and $flavor eq q{adcirc}) {
