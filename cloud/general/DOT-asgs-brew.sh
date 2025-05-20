@@ -217,7 +217,7 @@ export_adcirc() {
     cat <<EOENV
 ## copy n' paste this entire BLOCK anywhere ADCIRC must be accessed
 
-#-- BEGIN ADCIRC Live (C) 2024-present exported environment
+#-- BEGIN ADCIRC Live (c) 2024-present exported environment
 export PATH=$ADCIRCDIR:\$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\$LD_LIBRARY_PATH
 export LD_INCLUDE_PATH=$LD_INCLUDE_PATH:\$LD_INCLUDE_PATH
@@ -225,7 +225,7 @@ export LD_INCLUDE_PATH=$LD_INCLUDE_PATH:\$LD_INCLUDE_PATH
 ## or visit https://adcirc.live for more information
 # Copyright(C) 2024-present Brett Estrade <brett.estrade@adcirc.live>
 # Copyright(C) 2024-present Jason Fleming <jason.fleming@adcirc.live>
-#-- END ADCIRC Live (C) 2024-present exported environment 
+#-- END ADCIRC Live (c) 2024-present exported environment 
 EOENV
   else
     echo "It appears as if ADCIRC must be loaded first. You may email help@support.adcirc.live for assistance."
