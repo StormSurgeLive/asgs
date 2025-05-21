@@ -231,7 +231,7 @@ EOCMD
 sub cmd_export {
   my $thing = shift;
   return system(<<EOCMD);
-      asgsh -A "export_adcirc"
+      asgsh -A "export-adcirc"
 EOCMD
 }
 
