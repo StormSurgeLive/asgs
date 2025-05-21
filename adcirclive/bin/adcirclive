@@ -88,7 +88,6 @@ my $subcommands = {
     verify    => sub {cmd_verify(\@ARGV)   }, # verifies if auth info in ~/asgs-global.conf works at tools.adcirc.live for API access
     list      => sub {cmd_list(\@ARGV)     }, # primarily to list adcirc versions
     export    => sub {cmd_export(\@ARGV)   }, # dumps PATH, LD_LIBRARY_PATH, & LD_INCLUDE_PATH needed to share ADCIRC outside of ASGS
-    activate  => sub {cmd_activate(\@ARGV) }, # primarily to activate adcirc versions
     build     => sub {cmd_build(\@ARGV)    }, # primarily access to "asgsh build adcirc"
     load      => sub {cmd_load(\@ARGV)     }, # primarily to load adcirc versions
     exec      => sub {cmd_exec(\@ARGV)     }, # general passthrough command to asgs (run anything without a direct command)
@@ -96,10 +95,7 @@ my $subcommands = {
     which     => sub {cmd_which_any(\@ARGV)}, # return path 
     help      => sub {cmd_show_help(\@ARGV)},
 
-    xdmf      => sub {cmd_get_xdmf(\@ARGV) },
-
     # TODO; not started
-    xdmftv   => sub { },                     # tools.adcirc.live API call
     update   => sub {cmd_update(\@ARGV) },   # run "update-asgs"
 };
 
@@ -158,83 +154,13 @@ License is expired.  License is expired.  License is expired.
 Please email help\@support.adcirc.live for more information.
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-command continuing in 3 seconds ...
 EOF
-
-    sleep 3;
-    
     return undef;
   }
   return 1;
 }
 
-# this API call is behind HMAC auth, so need to check ahead of call
-sub cmd_get_xdmf {
-  my $ARGV         = shift;
-  my $o            = {};
-  my $ret          = GetOptionsFromArray( $ARGV, $o, qw/mesh=s name=s elements=i nodes=i paraview=s adcirc=s maxele maxvel maxwvel minpr maxrs swantpmax swanhsmax/ );
-  my $auth_headers = _get_signed_headers($config);
-
-  # build up POST request
-  my $mesh         = {};
-  if ($o->{name}) {
-    die qq{--elements, --nodes are required when --name is used\n} if (not $o->{elements} or not $o->{nodes}); 
-    $mesh = {
-      name     => $o->{name}      // q{No Name Mesh},
-      elements => $o->{elements},
-      nodes    => $o->{nodes},
-    };
-  }
-  # look up mesh by name
-  elsif ($o->{mesh}) {
-    my $meshes       = _lookup_mesh();
-    my %meshes       = map { $_->{name} => $_ } @$meshes; # makes web request to get mesh meta data
-    my $m            = $o->{mesh};
-    $mesh            = {
-      name     => $meshes{$m}->{name},
-      elements => $meshes{$m}->{elements},
-      nodes    => $meshes{$m}->{nodes},
-    };
-  }
-  my $output = {
-    maxEle     => ($o->{maxele}    ) ? true : false, # bareword true/false defined at top of
-    maxWVel    => ($o->{maxwvel}   ) ? true : false, # file, required by JSON::PP::encode_json
-    maxVel     => ($o->{maxvel}    ) ? true : false,
-    minPr      => ($o->{minpr}     ) ? true : false,
-    maxRS      => ($o->{maxrs}     ) ? true : false,
-    swanHSMax  => ($o->{swanhsmax} ) ? true : false,
-    swanTPSMax => ($o->{swantpsmax}) ? true : false,
-  };
-
-  my $request = {
-    adcircVersion   => $o->{adcirc}   // q{unknown},
-    paraviewVersion => $o->{paraview} // q{unknown},
-    mesh            => $mesh,
-    output          => $output,
-  };
-
-  my $JSON = encode_json($request);
-
-  my $URL  = sprintf qq{%s/spa/paraview/XDMF/api/file/static}, BASEURL;
-
-  local $@;
-  my $resp = eval {
-    my $JSON = App::Perlbrew::HTTP::http_postJSON($URL, $JSON, $auth_headers);
-    return decode_json($JSON);
-  } or undef;
-
-  if ($@ or not $resp->{content}) {
-     warn qq{Bad request for XDMF\n};
-     return EXIT_ERROR;
-  }
-
-  print $resp->{content};
-
-  return EXIT_SUCCESS;
-}
-
 sub cmd_show_help {
-  __ASSERT_VALID_SUPPORT_LICENSE__;
   print STDERR <<EOHELP;
 adcirclive - general client for ADCIRC Live (c) 2024-present     help\@support.adcirc.live
                                                              https://tools.adcirc.live
@@ -266,31 +192,6 @@ listing various important entities
    list profiles            list all currently saved profiles
    list supported           list all officially supported versions of ADCIRC
 
-working with the ADCIRC Live (c) API
-
-   xdmf  OPTIONS            generate a Paraview XDMF file for visualizing the following ADCIRC file,
-                            which is also available as a web tool at tools.adcirc.live
-         examples,
-           xdmf --mesh APES --adcirc v56.0.2 --paraview 9.1.0 mesh=APES --maxele --maxvel --maxwvel --minpr    \\
-             --maxrs --swantpmax --swanhsma
-
-           xdmf --mesh APES --adcirc v56.0.2 --paraview 9.1.0 name=APES --nodes 22425 --elements 41330 -maxele \\
-             --maxvel --maxwvel --minpr --maxrs --swantpmax --swanhsma
-
-         OPTIONS: 
-           required:
-                --mesh GRIDNAME or --name GRIDNAME --nodes NUMNODES --elements NUMELEMENTS
-                --adcirc   VERSION 
-                --paraview VERSION
-           optional:
-                --maxele
-                --maxvel
-                --maxwvel
-                --minpr
-                --maxrs
-                --swantpmax
-                --swanhsma
-
 Handy Aliases:
 
    adl                      alias for the "adcirclive" command
@@ -300,6 +201,8 @@ If you have any questions, please email us at help\@support.adcirc.live
 Copyright ADCIRC Live (c) 2024-present Brett Estrade <brett.estrade\@adcirc.live>
 Copyright ADCIRC Live (c) 2024-present Jason Fleming <jason.fleming\@adcirc.live>
 EOHELP
+  __ASSERT_VALID_SUPPORT_LICENSE__;
+  return EXIT_SUCCESS;
 }
 
 # verify dispatcher
@@ -354,11 +257,11 @@ sub cmd_list {
 
 # generic "asgsh -A 'list ...'" handler 
 sub cmd_list_any {
-  __ASSERT_VALID_SUPPORT_LICENSE__;
   my $thing = shift;
   return system(<<EOCMD);
       asgsh -A "list $thing"
 EOCMD
+  __ASSERT_VALID_SUPPORT_LICENSE__;
 }
 
 sub cmd_which_any {
@@ -367,11 +270,11 @@ sub cmd_which_any {
   return system(<<EOCMD);
       asgsh -A "which $thing"
 EOCMD
+  __ASSERT_VALID_SUPPORT_LICENSE__;
 }
 
 # direct asgsh's "init-adcirc.sh supported"
 sub cmd_list_supported {
-  __ASSERT_VALID_SUPPORT_LICENSE__;
   my @supported = qw/v53release v55.01-5bc04d6 v55.02 v56.0.2/;
   print <<EOF;
 
@@ -382,6 +285,7 @@ EOF
     printf qq{%s\n}, $flavor; 
   }
   print qq{\n};
+  __ASSERT_VALID_SUPPORT_LICENSE__;
 }
 
 # access to asgsh's "load adcirc" command
@@ -491,30 +395,6 @@ sub cmd_auth {
     return EXIT_SUCCESS;
   }
   return EXIT_ERROR;
-}
-
-sub cmd_activate {
-  my $already_activated = __ASSERT_VALID_SUPPORT_LICENSE__;
-  if ($already_activated) {
-    print qq{ADCIRC Live (c) 2024-present. Support License is valid.\n};
-    return EXIT_SUCCESS; 
-  }
-  # if support license is not valid, ask for keys
-  print qq{Please enter your user key from https://tools.adcirc.live: };
-  my $userkey = <STDIN>; 
-  chomp $userkey;
-  print qq{\nPlease enter your secret key from https://tools.adcirc.live: };
-  my $secretkey = <STDIN>; 
-  chomp $secretkey;
-
-  # update $config_file
-  $config->{authentication}->{userkey}   = $userkey;
-  $config->{authentication}->{secretkey} = $secretkey;
-  $config->write($config_file);
-
-  print qq{\n\nConfiguration updated!\n};
-
-  return EXIT_SUCCESS;
 }
 
 sub cmd_build {
