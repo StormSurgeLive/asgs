@@ -469,22 +469,30 @@ else
 
   # print to screen
   cat <<EOFF
-
 ADCIRC Live (c) 2024-present is an environment geared more towards commercial
 supported clients and managing ADCIRC Live (c) Cluster deployments. Most
 people, even commercial users of ASGS / ADCIRC Live (c) will find the ASGS
 Shell Environemnt a much more complete environment in which to work. Please
-see information on getting started below:
+see information on getting started with the ASGSH Shell Environment below:
+
+asgsh # will place you in the more featureful interactive ASGS Shell
+
+Othewise, to use the limite "adcirclive" client, continue below:
+
+  adcirclive help
 
 If all you want is to export PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH needed
 for loading the version of ADCIRC you're managing with ASGS, type the following:
 
   adcirclive export
 
-  # (note: requires at least one ADCIRC version is already built)
-
 Then copy 'n paste the output into your ~/.bashrc, or advanced users may put
 it somewhere to then "source" as needed.
+
+  # (note 1: requires at least one ADCIRC version is already built)
+  # (note 2: if there are no ADCIRCs built, you must build one via
+
+  'adcirclive build' # or by jumping into the shell)
 
 To build the default version of ADCIRC, run:
 
