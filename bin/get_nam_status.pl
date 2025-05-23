@@ -52,7 +52,7 @@ GetOptions(
     # replaces the $ftp->ls for files, looks only for nam.* files
     sub http_ls {
         my $dir = shift;
-        my $url         = sprintf( qq{https:/nomads.ncep.noaa.gov/%s/ls-l}, $dir );
+        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s/ls-l}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
         my @files       = ( $raw_listing =~ m/ +(nam.+)\n/g );
@@ -65,7 +65,7 @@ GetOptions(
     # replaces the $ftp->ls for directory listings, extracts from the HTML listing
     sub http_dir {
         my $dir = shift;
-        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s}, $dir );
+        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
         my @dirs        = ( $raw_listing =~ m/href="(nam\.\d{8}|\d\d)\/"/g );
