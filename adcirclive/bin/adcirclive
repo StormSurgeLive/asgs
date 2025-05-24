@@ -108,6 +108,9 @@ exit EXIT_ERROR;
 
 # internal authorization check
 sub _auth() {
+  return "valid"; # remove or comment this line to re-enable auth check
+
+  # ... check currently disabled
   my $auth_headers = _get_signed_headers($config);
   my $url  = q{https://tools.adcirc.live/licensecheck};
   local $@;

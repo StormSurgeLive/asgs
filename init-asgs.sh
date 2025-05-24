@@ -481,6 +481,14 @@ Othewise, to use the limite "adcirclive" client, continue below:
 
   adcirclive help
 
+To build the default version of ADCIRC, run:
+
+  adcirclive build adcirc  # builds latest
+
+  adcirclive load adcirc   # loads ADCIRC to default ASGS Shell profile
+
+  adcirclive verify adcirc # runs a small serial and 2-processor padcirc job
+
 If all you want is to export PATH, LD_LIBRARY_PATH, LD_INCLUDE_PATH needed
 for loading the version of ADCIRC you're managing with ASGS, type the following:
 
@@ -491,12 +499,6 @@ it somewhere to then "source" as needed.
 
   # (note 1: requires at least one ADCIRC version is already built)
   # (note 2: if there are no ADCIRCs built, you must build one via
-
-  'adcirclive build' # or by jumping into the shell)
-
-To build the default version of ADCIRC, run:
-
-  adcirclive build adcirc
 
 To learn more about the 'adcirclive' commandline too, ype the command
 
