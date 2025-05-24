@@ -475,7 +475,8 @@ people, even commercial users of ASGS / ADCIRC Live (c) will find the ASGS
 Shell Environemnt a much more complete environment in which to work. Please
 see information on getting started with the ASGSH Shell Environment below:
 
-asgsh # will place you in the more featureful interactive ASGS Shell
+  asgsh                    # will place you in the more featureful interactive
+                           #  ASGS Shell
 
 Othewise, to use the limite "adcirclive" client, continue below:
 
@@ -515,8 +516,7 @@ cat<<EOF
 '$SCRIPTDIR/etc/setvars.sh' has been created, to access some of the ASGS Shell
 Environment outside of 'asgsh', set up the environment by running:
 
-  # add your ~/.bashrc to persist b/w logins
-  source $SCRIPTDIR/etc/setvars.sh
+  source $SCRIPTDIR/etc/setvars.sh # add your ~/.bashrc to persist b/w logins
 
 If you have any questions, please email us at help@support.adcirc.live
 EOF
