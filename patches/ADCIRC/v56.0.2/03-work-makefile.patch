@@ -1,0 +1,12 @@
+diff --git a/work/makefile b/work/makefile
+index d5fc76f..06f5dc5 100644
+--- a/work/makefile
++++ b/work/makefile
+@@ -534,6 +534,7 @@ ifeq ($(MAKELEVEL),0)
+ 	$(MAKE) BUILDTYPE=$(PARALLEL_ADCIRC) CC="$(CCBE)" CFLAGS="$(CFLAGS)" $@
+ #Casey 090302: Added the following lines for coupling to unstructured SWAN.
+    adcswan:
++	@perl ../thirdparty/swan/switch.pl $(swch) -pun -adcirc ../thirdparty/swan/*.ftn ../thirdparty/swan/*.ftn90
+ 	$(MAKE) BUILDTYPE=adcswan CC="$(CCBE)" CFLAGS="$(CFLAGS)" $@
+    padcswan:
+ 	@perl ../thirdparty/swan/switch.pl $(swch) -pun -adcirc ../thirdparty/swan/*.ftn ../thirdparty/swan/*.ftn90

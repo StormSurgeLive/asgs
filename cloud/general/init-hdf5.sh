@@ -3,7 +3,7 @@
 OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=${2:-intel}
 JOBS=${3:-1}
-HDF5_VERSION=${4:-1.12.2}
+HDF5_VERSION=${4:-1_12_3}
 
 # may need to make this available in asgs generally
 HDF5_USE_FILE_LOCKING=FALSE
@@ -37,8 +37,8 @@ if [ $COMPILER == "intel" ]; then
 fi
 if [ $COMPILER == "intel-oneapi" ]; then
   export CC=icx
-  export FC=ifort
-  export CXX=icx
+  export FC=ifx
+  export CXX=icpx
 fi
 if [ $COMPILER == "gfortran" ]; then
   echo Compiling HDF5 with GCC suite
@@ -52,7 +52,7 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e hdf5-${HDF5_VERSION}.tar.gz ]; then
-  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/hdf5-${HDF5_VERSION}.tar.gz
+  wget --no-check-certificate https://codeload.github.com/HDFGroup/hdf5/tar.gz/refs/tags/hdf5-${HDF5_VERSION} -O hdf5-${HDF5_VERSION}.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null
@@ -60,17 +60,17 @@ mkdir -p $OPT/bin 2> /dev/null
 mkdir -p $OPT/lib 2> /dev/null
 mkdir -p $OPT/include 2> /dev/null # avoid warnings for missing include directories [-Wmissing-include-dirs]
 
-if [ ! -e $OPT/bin/h5diff ]; then
+if [ ! -e $OPT/lib/libhdf5_fortran.so ]; then
   tar zxvf hdf5-${HDF5_VERSION}.tar.gz
-  cd hdf5-${HDF5_VERSION}
+  cd hdf5-hdf5-${HDF5_VERSION}
   make clean
   ./configure --prefix $OPT --enable-fortran
   make -j $JOBS install
   cd ../
 fi
 
-if [ ! -e $OPT/bin/h5diff ]; then
-  echo something went wrong with HD5
+if [ ! -e $OPT/lib/libhdf5_fortran.so ]; then
+  echo "something went wrong with HD5 (can't find '$OPT/lib/libhdf5_fortran.so')"
   exit 1
 else
   # no errors, so clean up

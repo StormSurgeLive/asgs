@@ -822,6 +822,10 @@ define() {
       export EDITOR=${2}
       echo "${I} EDITOR is now defined as '${EDITOR}'"
       ;;
+    hostfile)
+      export ASGS_MPI_HOSTFILE=${2}
+      echo "${I} ASGS_MPI_HOSTFILE is now defined as '${ASGS_MPI_HOSTFILE}'"
+      ;;
     scriptdir)
       export SCRIPTDIR=${2}
       echo "${I} SCRIPTDIR is now defined as '${SCRIPTDIR}'"
@@ -834,7 +838,7 @@ define() {
       export SCRATCH=${2}
       echo "${I} SCRATCH is now defined as '${SCRATCH}'"
       ;;
-    *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, scratchdir, scriptdir, or workdir"
+    *) echo "define requires one of the supported parameters: adcircdir, adcircbranch, adcircremote, config, editor, hostfile, scratchdir, scriptdir, or workdir"
       _DEFINE_OK=0
       ;;
   esac
@@ -910,6 +914,13 @@ edit() {
       else
         echo "$W profile '$ASGS_CONFIG' has been edited, but the profile has not been reloaded. To reload, use the 'rl' or 'load profile $_ASGSH_CURRENT_PROFILE' command."
       fi
+    fi
+    ;;
+  hostfile)
+    if [ -e "$ASGS_MPI_HOSTFILE" ]; then
+      $EDITOR $ASGS_MPI_HOSTFILE
+    else
+      echo $I "ASGS_MPI_HOSTFILE is not defined or is not set. It's current value is '$ASGS_MPI_HOSTFILE'"
     fi
     ;;
   mail-log)

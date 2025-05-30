@@ -81,6 +81,13 @@ _show() {
         echo "${W} ASGS_HOME is not defined as anything. This should have been defined via asgs-brew.pl."
       fi
       ;;
+    hostfile)
+      if [ -n "${ASGS_MPI_HOSTFILE}" ]; then
+        echo "${I} ASGS_MPI_HOSTFILE is defined as '${ASGS_MPI_HOSTFILE}'"
+      else
+        echo "${W} ASGS_MPI_HOSTFILE is not defined as anything. This should have been defined via ~/.asgsh_profile or ASGS_CONFIG."
+      fi
+      ;;
     installpath)
       if [ -n "${ASGS_INSTALL_PATH}" ]; then
         echo "${I} ASGS_INSTALL_PATH is defined as '${ASGS_INSTALL_PATH}'"
