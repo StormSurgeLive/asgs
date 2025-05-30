@@ -35,6 +35,11 @@ writeProperties()
    # should overwrite whatever may have been there
    #
    # basic asgs configuration
+   echo "asgs.version : $ASGS_VERSION" > $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.commit : $ASGS_GIT_COMMIT" > $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.remote : $ASGS_GIT_REMOTE" > $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.branch : $ASGS_GIT_BRANCH" > $STORMDIR_RUN_PROPERTIES
+
    echo "config.file : $CONFIG" > $STORMDIR_RUN_PROPERTIES  # <--<< OVERWRITE
    echo "instancename : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "operator : $operator" >> $STORMDIR_RUN_PROPERTIES
