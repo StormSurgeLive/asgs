@@ -1,4 +1,3 @@
-IO::Socket::SSL
 Config::Tiny
 Date::Calc
 File::ShareDir
