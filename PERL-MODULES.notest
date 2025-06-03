@@ -1,3 +1,4 @@
+IO::Socket::SSL
 File::Map
 Date::Format
 Date::Handler
