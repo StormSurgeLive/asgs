@@ -36,10 +36,9 @@ _list() {
       fi
       ;;
     meshes)
-      for m in $(cat $ASGS_MESH_DEFAULTS | grep '")' | sed 's/[")]//g' | awk '{print $1}'); do
-        printf "% 2d. %s\n" $LISTNUM $m
-        LISTNUM=$(($LISTNUM+1))
-      done
+      pushd $SCRIPTDIR/input/meshes > /dev/null
+      find . -name init.sh | xargs grep nodes | awk -F= '{print $2 " " $1}' | sort -nr | sed -E 's#^([0-9]+).*\.\/([^/]+)/.*#\1 \2#' | column -t
+      popd > /dev/null
       # list locally defined meshes if they exist
       local LOCAL_MESH_DEFAULTS="${ASGS_LOCAL_DIR}/config/mesh_defaults.sh"
       if [[ -n "$ASGS_LOCAL_DIR" && -e "$LOCAL_MESH_DEFAULTS" ]]; then
