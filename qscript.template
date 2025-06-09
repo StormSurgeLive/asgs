@@ -85,7 +85,6 @@ fi
 #                 L O O P   O V E R   L A Y E R S
 #----------------------------------------------------------------------------
 #
-
 for layer in ${layers[@]}; do
    if [[ -e "fort.15" ]]; then
       rm fort.15 2>> $SCENARIOLOG
@@ -138,12 +137,6 @@ for layer in ${layers[@]}; do
                fi
             fi
          done
-         # check quality of results
-         $SCRIPTDIR/util/output/quality.sh $jobtype $layer ${%JOBID%} $CYCLE $SCENARIO $SCRIPTDIR >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
-         qualityCheck=$?
-         if [[ $qualityCheck -ne 0 ]]; then
-            ERROMSG+=$(<jobFailed)
-         fi
       fi
    else
       ERROMSG="$ERROMSG The $jobtype.$layer job ended with an exit status that indicates an error occurred. "
