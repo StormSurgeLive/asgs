@@ -385,6 +385,7 @@ for server in ${SERVERS[*]}; do
    #  "$subject" as it's determined above
    if [[ $TROPICALCYCLONE == "on" ]]; then
       subject="${subject} (TC)"
+      NWPMODEL=gahm # replaces BACKGROUNDMET model used (NAM, GFS, etc) for subject
    fi
    subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $_ASGSADMIN_ID"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
@@ -395,7 +396,9 @@ for server in ${SERVERS[*]}; do
    fi
    if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
-      subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
+      # <MESH>_<FORCING>_<MACHINE>_<OPERATORID>
+      statusof="${GRIDNAME}_${NWPMODE}_${HPCENVSHORT}_${_ASGSADMIN_ID}"
+      subject="ADCIRC POSTED status of $statusof"
       echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
 cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
