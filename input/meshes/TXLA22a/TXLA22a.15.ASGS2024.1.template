@@ -1269,5 +1269,4 @@ K2
 !
 ! namelists:
 %met_control_namelist%
-%wetdry_control_namelist%
 %inundation_output_control_namelist%
