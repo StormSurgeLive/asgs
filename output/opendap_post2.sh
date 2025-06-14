@@ -387,7 +387,10 @@ for server in ${SERVERS[*]}; do
       subject="${subject} (TC)"
       NWPMODEL=gahm # replaces BACKGROUNDMET model used (NAM, GFS, etc) for subject line
    fi
-   subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $_ASGSADMIN_ID"
+   # <MESH>_<FORCING>_<MACHINE>_<OPERATORID>
+   statusof="${GRIDNAME}_${NWPMODEL}_${HPCENVSHORT}_${_ASGSADMIN_ID}"
+
+   subject="${subject} ${statusof}"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
    if [ "$OPENDAPINDEX" == "catalog.html" ]; then
      POSTED_LINK=$CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
@@ -396,13 +399,11 @@ for server in ${SERVERS[*]}; do
    fi
    if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
-      # <MESH>_<FORCING>_<MACHINE>_<OPERATORID>
-      statusof="${GRIDNAME}_${NWPMODEL}_${HPCENVSHORT}_${_ASGSADMIN_ID}"
       subject="ADCIRC POSTED status of $statusof"
       echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
-cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
+      cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
-The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
+The status of $statusof has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
 
 The instance status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
 The hook status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json
