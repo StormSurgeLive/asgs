@@ -48,7 +48,7 @@ my @deprecated_properties = qw( forecast.ensemblesize asgs.path.fromdir
 # the following properties from run.properties are array valued and designated in
 # run.properties file with ( ) and should be stored as an array in json
 # e.g.:
-# post.executable.postprocess : (  createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post.sh )
+# post.executable.postprocess : (  createMaxCSV.sh includeWind10m.sh createOPeNDAPFileList.sh opendap_post2.sh )
 my @paren_properties;
 # = qw ( post.executable.postprocess post.opendap.tds
 #   hpc.job.padcswan.jobenv hpc.job.prep15.jobenv hpc.job.prep15.subshellpids
