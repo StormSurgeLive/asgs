@@ -1,7 +1,7 @@
  STEADY               ! 6kcms CONSTITUENT. 1  ALPHA DESCRIPTOR
  0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
   STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
-0.798108299  .000000    !...River 1 Node 1 (Atch -  River Flow 30% of Total 8571.42857142857 cms: 2571.42857142857 cms, Avg Lat/Long: -91.801121,30.979759)
+0.798108299  .000000    !...River 1 Node 1 (Atch -  River Flow 30% of Total 8.5 kcms: 2.5 kcms, Avg Lat/Long: -91.801121,30.979759)
 1.659715715  .000000    !...River 1 Node 2
 1.784060624  .000000    !...River 1 Node 3
 1.899489700  .000000    !...River 1 Node 4
@@ -23,7 +23,7 @@
 2.051489700  .000000    !...River 1 Node 20
 1.904998823  .000000    !...River 1 Node 21
 0.9122778105 .000000    !...River 1 Node 22
-4.389322543  .000000    !...River 2 Node 1 (MS River River Flow 70% of Total 8571.42857142857 cms: 6000 cms, Avg Lat/Long: -91.198941,30.425086)
+4.389322543  .000000    !...River 2 Node 1 (MS River River Flow 70% of Total 8.5 kcms: 6.0 kcms, Avg Lat/Long: -91.198941,30.425086)
 11.90443378  .000000    !...River 2 Node 2
 15.65709300  .000000    !...River 2 Node 3
 13.20804473  .000000    !...River 2 Node 4
