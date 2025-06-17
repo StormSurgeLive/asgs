@@ -1,0 +1,32 @@
+ STEADY               ! 8kcms CONSTITUENT. 1  ALPHA DESCRIPTOR
+ 0.00000E-00  1.0 0.0   ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG.
+  STEADY       ! ALPHA NUMERIC DESCRIPTION OF ELEVATION BOUNDARY FORCING
+1.064144399 .000000    !...River 1 Node 1 (Atch -  River Flow 30% of Total 11.4 kcms: 3.4 cms, Avg Lat/Long: -91.801121,30.979759)
+2.212954287 .000000    !...River 1 Node 2
+2.378747499 .000000    !...River 1 Node 3
+2.532652933 .000000    !...River 1 Node 4
+2.695940357 .000000    !...River 1 Node 5
+2.834968020 .000000    !...River 1 Node 6
+2.883487542 .000000    !...River 1 Node 7
+2.885780655 .000000    !...River 1 Node 8
+2.902339415 .000000    !...River 1 Node 9
+2.936877379 .000000    !...River 1 Node 10
+2.966032568 .000000    !...River 1 Node 11
+2.975513439 .000000    !...River 1 Node 12
+2.976124779 .000000    !...River 1 Node 13
+2.976135766 .000000    !...River 1 Node 14
+2.973564057 .000000    !...River 1 Node 15
+2.955545615 .000000    !...River 1 Node 16
+2.919507161 .000000    !...River 1 Node 17
+2.891201883 .000000    !...River 1 Node 18
+2.853435354 .000000    !...River 1 Node 19
+2.735319600 .000000    !...River 1 Node 20
+2.539998430 .000000    !...River 1 Node 21
+1.216370414 .000000    !...River 1 Node 22
+5.852430057 .000000    !...River 2 Node 1 (MS River River Flow 70% of Total 11.4 kcms: 8.0 kcms, Avg Lat/Long: -91.198941,30.425086)
+15.87257838 .000000    !...River 2 Node 2
+20.87612399 .000000    !...River 2 Node 3
+17.61072631 .000000    !...River 2 Node 4
+11.22578615 .000000    !...River 2 Node 5
+7.352268393 .000000    !...River 2 Node 6
+2.881233667 .000000    !...River 2 Node 7
