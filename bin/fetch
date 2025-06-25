@@ -13,12 +13,14 @@ fi
 # for all "git clone" calls here - solves issue of there being not
 # key set up prior to adcirclive installation
 set_gitprotocol_repo() {
-  BASEURL="https://github.com/" # terminal character (/) matters 
   local check=$(git remote -v 2> /dev/null | grep -c "git@github")
   if [ "$check" -gt 0 ]; then
     BASEURL="git@github.com:" # terminal character (:) matters
-  else
+  elif [ -d $SCRIPTDIR/.git ]; then
     echo using default https to clone or update repo ...
+    BASEURL="https://github.com/" # terminal character (/) matters 
+  else
+    BASEURL=ZIP #https://github.com/StormSurgeLive/asgs-mon/archive/refs/heads/master.zip
   fi
 }
 
@@ -60,11 +62,20 @@ case "${ITEM}" in
     pushd $SCRIPTDIR
     mkdir $SCRIPTDIR/git 2> /dev/null
     pushd $SCRIPTDIR/git  > /dev/null  2>&1
-    if [ -d ./asgs-lint ]; then
+    if [[ -d ./asgs-lint ]]; then
+#
+# how to handle update when ZIP?
+#
       cd ./asgs-lint  > /dev/null  2>&1
       git pull origin master
     else
-      git clone ${BASEURL}StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
+      if [ $BASEURL != "ZIP" ]; then # CHANGE back to '=='
+        wget https://github.com/StormSurgeLive/asgs-lint/archive/refs/heads/master.zip -O asgs-lint-master.zip
+        unzip ./asgs-lint-master.zip
+        mv asgs-lint-master asgs-lint
+      else
+        git clone ${BASEURL}StormSurgeLive/asgs-lint.git $SCRIPTDIR/git/asgs-lint
+      fi
     fi
     popd > /dev/null 2>&1
     # force this always
