@@ -65,6 +65,7 @@ else
    # this does not actually seem to be used in this script
    HSTIME=${properties['InitialHotStartTime']}
 fi
+basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
 HPCENV=${properties['hpc.hpcenv']}
 SCENARIO=${properties['scenario']}
 SYSLOG=${properties['monitoring.logging.file.syslog']}
@@ -267,7 +268,6 @@ for server in ${SERVERS[*]}; do
       STORMNAME=${properties["forcing.tropicalcyclone.stormname"]}
       STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
       STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-      basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
       if [ -n "${OPENDAPADDROOT}" ]; then
         STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$basin$STORMNUMBER
         ALTSTORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$STORMNAMELC  # symbolic link with name
@@ -385,7 +385,8 @@ for server in ${SERVERS[*]}; do
    #  "$subject" as it's determined above
    if [[ $TROPICALCYCLONE == "on" ]]; then
       subject="${subject} (TC)"
-      NWPMODEL=gahm # replaces BACKGROUNDMET model used (NAM, GFS, etc) for subject line
+      # replaces BACKGROUNDMET model used (NAM, GFS, etc) for subject line
+      NWPMODEL="${basin}${$STORMNUMBER}${YEAR}" # alNNYYYY
    fi
    # <MESH>_<FORCING>_<MACHINE>_<OPERATORID>
    statusof="${GRIDNAME}_${NWPMODEL}_${HPCENVSHORT}_${_ASGSADMIN_ID}"
