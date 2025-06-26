@@ -1312,9 +1312,16 @@ monitorJobs()
       postScenarioStatus
    fi
    sleep 30 # give buffers a chance to flush to the filesystem
-   if [[ $QUALITYCONTROL != "off" ]]; then
-      if [[ $JOBTYPE == "padcirc" || $JOBTYPE == "padcswan" ]]; then
-         $QUALITYCONTROL >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
+   if [[ $JOBTYPE == "padcirc" || $JOBTYPE == "padcswan" ]]; then
+      if [[ $QUALITYCONTROL != "off" ]]; then
+         logMessage "$ENSTORM_TEMP: $THIS: Running quality control checks."
+         if [[ ! -e $QUALITYCONTROL ]]; then
+            warn "$ENSTORM_TEMP: $THIS: The quality control script '$QUALITYCONTROL', specified by the QUALITYCONTROL parameter, was not found."
+         else
+            $QUALITYCONTROL >> $SCENARIOLOG
+         fi
+      else
+         logMessage "$ENSTORM_TEMP: $THIS: Quality control checks have been deactivated by setting QUALITYCONTROL='off'."
       fi
    fi
    #

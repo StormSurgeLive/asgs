@@ -26,7 +26,7 @@ THIS=$(basename -- $0)
 # run.properties if not.
 declare -A properties
 dir=$PWD
-RUNPROPERTIES=$SCENARIODIR/run.properties
+RUNPROPERTIES=$dir/run.properties
 # this script can be called with just one command line option: the
 # full path to the run.properties file
 if [[ $# -eq 1 ]]; then
@@ -152,7 +152,7 @@ for file in ${filesFoundList[@]}; do
         # to see if any of the min, max, avg, or stdev are set to the missing value or zero
         numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999  { print $0 }' statistics_${file}.txt | wc -l)
         # also check to see if the number of missing values is greater than the number of coldstart dry values
-        compareDry=$(awk '$5>$numLand { print $0 }' statistics_${file}.txt | wc -l)
+        compareDry=$(awk -v nl=$numLand '$5>nl { print $0 }' statistics_${file}.txt | wc -l)
         # just a warning
         if [[ $compareDry -gt 0 ]]; then
             echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK WARNING: There are more dry values in '$compareDry' datasets in the '$file' file than the total number of negative topobathy depths ('$numLand') in the mesh for job ID '$jobID'." 2>&1 | awk -v level=WARN -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
