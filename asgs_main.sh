@@ -1312,6 +1312,11 @@ monitorJobs()
       postScenarioStatus
    fi
    sleep 30 # give buffers a chance to flush to the filesystem
+   if [[ $QUALITYCONTROL != "off" ]]; then
+      if [[ $JOBTYPE == "padcirc" || $JOBTYPE == "padcswan" ]]; then
+         $QUALITYCONTROL >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
+      fi
+   fi
    #
    # final messages
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
@@ -2745,7 +2750,6 @@ while [ true ]; do
       THIS="asgs_main.sh"
       # check once per minute until all jobs have finished
       monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$NOWCASTWALLTIME"
-      $SCRIPTDIR/util/output/quality.sh $JOBTYPE $SCENARIO $(<jobID) $CYCLE $SCENARIO $SCRIPTDIR >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
       THIS="asgs_main.sh"
       # check to see that the nowcast job did not conspicuously fail
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
@@ -3231,8 +3235,6 @@ while [ true ]; do
       (
          monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$FORECASTWALLTIME"
          THIS="asgs_main.sh"
-         # check quality of results
-         $SCRIPTDIR/util/output/quality.sh $JOBTYPE $SCENARIO $(<jobID) $CYCLE $SCENARIO $SCRIPTDIR >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
          handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
          THIS="asgs_main.sh"
          # only attempt post processing if this scenario
