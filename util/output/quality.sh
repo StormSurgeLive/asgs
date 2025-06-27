@@ -66,6 +66,10 @@ netcdfVarName["maxele.63.nc"]="zeta_max"
 netcdfVarName["fort.63.nc"]="zeta"
 netcdfVarName["swan_HS_max.63.nc"]="swan_HS_max"
 netcdfVarName["swan_HS.63.nc"]="swan_HS"
+netcdfVarName["swan_TPS_max.63.nc"]="swan_TPS_max"
+netcdfVarName["swan_TPS.63.nc"]="swan_TPS"
+netcdfVarName["swan_DIR_max.63.nc"]="swan_DIR_max"
+netcdfVarName["swan_DIR.63.nc"]="swan_DIR"
 netcdfVarName["maxwvel.63.nc"]="wind_max"
 netcdfVarName["fort.74.nc"]="windx"
 declare -A filesNumDataSets    # number of datasets in each file
@@ -93,7 +97,7 @@ if [[ $SCENARIO != *"Wind10m" ]]; then
     # if it is not a met-only scenario or tidal initialization
     # then also check the swan output files for issues
     if [[ $runPropWaves == "on" && $SCENARIO != "hindcast" ]]; then
-        fileList+=( swan_HS_max.63.nc swan_HS.63.nc )
+        fileList+=( swan_HS_max.63.nc swan_HS.63.nc swan_TPS.63.nc swan_TPS_max.63.nc swan_DIR.63.nc swan_DIR_max.63.nc )
     fi
 fi
 # any scenario other than tidal initialization will have
@@ -133,6 +137,8 @@ echo "cycle $CYCLE: $SCENARIO: Finished computing statistics for job ID '$jobID'
 # perform quality checks
 echo "cycle $CYCLE: $SCENARIO: Checking quality of results for job ID '$jobID' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
 for file in ${filesFoundList[@]}; do
+    numMissing=0
+    numZero=0
     if [[ ${filesNumDataSets[$file]} -eq 0 ]]; then
         continue   # skip checks on files now known to be empty
     fi
@@ -160,11 +166,23 @@ for file in ${filesFoundList[@]}; do
         # also check for min, max, avg, or stdev set to zero
         numZero=$(awk '$1==0.0 || $2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
         ;;
-    "swan_HS_max.63.nc"|"swan_HS.63.nc")
-        # wave height results should not have zero or the missing value in summary statistics (min can be zero)
+    "swan_HS_max.63.nc"|"swan_HS.63.nc"|"swan_TPS_max.63.nc"|"swan_TPS.63.nc"|"swan_DIR_max.63.nc"|"swan_DIR.63.nc")
+        # swan results can have zero or the missing value in summary statistics if it was cold
+        # started, so only a warning (not an error) will be issued (min can be zero in any case)
         numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 { print $0 }' statistics_${file}.txt | wc -l)
+        # issue a warning if these are found
+        if [[ $numMissing -gt 0 ]]; then
+            echo "cycle $CYCLE: $SCENARIO: There were '$numMissing' missing values in the statistics for file '$file' for job ID '$jobID'. This may be ok if SWAN is cold starting." 2>&1 | awk -v level=WARNING -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        fi
         # also check for max, avg, or stdev are zero (min can be zero)
         numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
+        if [[ $numZero -gt 0 ]]; then
+            echo "cycle $CYCLE: $SCENARIO: There were '$numZero' zero values in the statistics for file '$file' for job ID '$jobID'. This may be ok if SWAN is cold starting." 2>&1 | awk -v level=WARNING -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        fi
+        # SWAN results should skip the checks and associated error messages below
+        if [[ $numMissing -gt 0 || $numZero -gt 0 ]]; then
+            continue
+        fi
         ;;
     *)
         # should be unreachable
