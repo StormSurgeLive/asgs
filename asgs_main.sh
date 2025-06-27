@@ -1578,7 +1578,6 @@ handleFailedJob()
    ARCHIVEBASE=${15}
    ARCHIVEDIR=${16}
    THIS="asgs_main.sh>handleFailedJob()"
-   debugMessage "$ENSTORM: $THIS: handleFailedJob called with the following arguments: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "$ENSTORM: $THIS: The job has failed."
@@ -1595,6 +1594,7 @@ handleFailedJob()
       fi
    fi
 }
+#
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh            # this includes source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/properties.sh           # read properties file into a hash

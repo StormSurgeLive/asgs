@@ -99,7 +99,7 @@ fi
 # any scenario other than tidal initialization will have
 # meteorological output
 if [[ $SCENARIO != "hindcast" ]]; then
-    fileList=( maxwvel.63.nc fort.74.nc )
+    fileList+=( maxwvel.63.nc fort.74.nc )
 fi
 #
 # compile statistics for each file
@@ -186,7 +186,7 @@ for file in ${filesFoundList[@]}; do
     fi
 done
 if [[ $ERROVALUE -ne 0 ]]; then
-    echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk
+    echo "cycle $CYCLE: $SCENARIO: Error summary: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk
     echo $ERROMSG > jobFailed
 fi
 exit $ERROVALUE

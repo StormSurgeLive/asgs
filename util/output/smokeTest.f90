@@ -122,12 +122,12 @@ allocate(squares(m%np))
 !
 write(error_unit,'(a)') 'INFO: Compiling a record of values across all data sets.'
 call check(nf90_inq_varid(ft%nc_id, trim(varname), varid))
-nc_start = (/ 1, i /)
 nc_count = (/ m%np, 1 /)
 ! loop over datasets
 do i=1,ft%nSnaps
     !
     ! read the dataset from netcdf
+    nc_start = (/ 1, i /)
      call check(nf90_get_var(ft%nc_id, varid, adcirc_data, nc_start, nc_count))
     ! check to see if each value exceeds the recorded extreme value
     ! at that node
