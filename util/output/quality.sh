@@ -76,7 +76,11 @@ declare -A filesNumDataSets    # number of datasets in each file
 #
 # look for numerical instability errors in the stdout/stderr files
 for file in adcirc.log scenario.log padcirc.out padcswan.out ; do
+jobtype="null"
 if [ -e $file ]; then
+    if [[ $file == "padcswan.out" || $file == "padcirc.out" ]]; then
+        jobtype=${file%.*}
+    fi
     numMsg=$(grep WarnElev $file | wc -l)
     if [ $numMsg -eq 0 ]; then
         echo "cycle ${CYCLE}: ${SCENARIO}: No numerical instability detected in '$file' after completion of job '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
