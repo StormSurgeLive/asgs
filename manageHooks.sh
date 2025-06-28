@@ -220,3 +220,188 @@ executeHookScripts()
         nullifyNowcastForecastHooks # clears out the timestamps and statuses of these hooks
     fi
 }
+#
+# generic routine to add a script to a hook
+#
+# sample usage:
+#
+#  addHookScript FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
+#
+addHookScript()
+{
+    local hook="$1"
+    local hookScript="$2"
+    local THIS="asgs_main->manageHooks->addHookScript()"
+    if [[ ! -e "$hookScript" ]]; then
+        consoleMessage "$W ${THIS}: The '$hook' hook script '$hookScript' was not found."
+    else
+        logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
+        hooksScripts["$hook"]+=" $hookScript"
+    fi
+}
+#
+# generic routine to remove a script from a hook
+#
+# sample usage:
+#
+#  removeHookScript FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
+#
+removeHookScript()
+{
+    local hook="$1"
+    local hookScript="$2"
+    local s=""          # list of scripts for this hook
+    local THIS="asgs_main->manageHooks->removeHookScript()"
+    for k in ${hookScripts["$hook"]}; do
+        if [[ $k != "$hookScript" ]]; then
+            s+=" $k"
+        fi
+    done
+    hookScripts["$hook"]="$s"
+}
+#
+# hook-specific routine to add a hook script
+#
+# sample usage:
+#
+#    addScriptTo_FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
+#
+addScriptTo_FINISH_NOWCAST_SCENARIO()
+{
+    hookScript="$1"
+    local THIS="asgs_main->manageHooks->addScriptTo_FINISH_NOWCAST_SCENARIO()"
+    if [[ ! -e "$hookScript" ]]; then
+        consoleMessage "$W ${THIS}: The FINISH_NOWCAST_SCENARIO hook script '$hookScript' was not found."
+    else
+        logMessage "$I ${THIS}: Adding the FINISH_NOWCAST_SCENARIO hook script '$hookScript'."
+        hooksScripts["FINISH_NOWCAST_SCENARIO"]+=" $hookScript"
+    fi
+}
+#
+# hook-specific routine to remove a hook script
+#
+# sample usage:
+#
+#    removeScriptFrom_FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
+#
+removeScriptFrom_FINISH_NOWCAST_SCENARIO()
+{
+    hookScript="$1"
+    local s=""          # list of scripts for this hook
+    local THIS="asgs_main->manageHooks->removeScriptFrom_FINISH_NOWCAST_SCENARIO()"
+    for k in ${hookScripts["FINISH_NOWCAST_SCENARIO"]}; do
+        if [[ $k != "$hookScript" ]]; then
+            s+=" $k"
+        fi
+    done
+    hookScripts["FINISH_NOWCAST_SCENARIO"]="$s"
+}
+
+#
+# list of hook-specific routines
+#
+
+addScriptTo_FINISH_INIT()
+{}
+removeScriptFrom_FINISH_INIT()
+{}
+
+addScriptTo_START_SPINUP_STAGE()
+{}
+removeScriptFrom_START_SPINUP_STAGE()
+{}
+
+addScriptTo_HOT_SPINUP()
+{}
+removeScriptFrom_HOT_SPINUP()
+{}
+
+addScriptTo_FINISH_SPINUP_STAGE()
+{}
+removeScriptFrom_FINISH_SPINUP_STAGE()
+{}
+
+addScriptTo_BUILD_SPINUP()
+{}
+removeScriptFrom_BUILD_SPINUP()
+{}
+
+addScriptTo_SUBMIT_SPINUP()
+{}
+removeScriptFrom_SUBMIT_SPINUP()
+{}
+
+addScriptTo_FINISH_SPINUP_SCENARIO()
+{}
+removeScriptFrom_FINISH_SPINUP_SCENARIO()
+{}
+
+addScriptTo_START_NOWCAST_STAGE()
+{}
+removeScriptFrom_START_NOWCAST_STAGE()
+{}
+
+addScriptTo_NOWCAST_POLLING()
+{}
+removeScriptFrom_NOWCAST_POLLING()
+{}
+
+addScriptTo_NOWCAST_TRIGGERED()
+{}
+removeScriptFrom_NOWCAST_TRIGGERED()
+{}
+
+addScriptTo_BUILD_NOWCAST_SCENARIO()
+{}
+removeScriptFrom_BUILD_NOWCAST_SCENARIO()
+{}
+
+addScriptTo_SUBMIT_NOWCAST_SCENARIO()
+{}
+removeScriptFrom_SUBMIT_NOWCAST_SCENARIO()
+{}
+
+addScriptTo_FINISH_NOWCAST_SCENARIO()
+{}
+removeScriptFrom_FINISH_NOWCAST_SCENARIO()
+{}
+
+addScriptTo_FINISH_NOWCAST_STAGE()
+{}
+removeScriptFrom_FINISH_NOWCAST_STAGE()
+{}
+
+addScriptTo_START_FORECAST_STAGE()
+{}
+removeScriptFrom_START_FORECAST_STAGE()
+{}
+
+addScriptTo_INITIALIZE_FORECAST_SCENARIO()
+{}
+removeScriptFrom_INITIALIZE_FORECAST_SCENARIO()
+{}
+
+addScriptTo_CAPACITY_WAIT()
+{}
+removeScriptFrom_CAPACITY_WAIT()
+{}
+
+addScriptTo_BUILD_FORECAST_SCENARIO()
+{}
+removeScriptFrom_BUILD_FORECAST_SCENARIO()
+{}
+
+addScriptTo_SUBMIT_FORECAST_SCENARIO()
+{}
+removeScriptFrom_SUBMIT_FORECAST_SCENARIO()
+{}
+
+addScriptTo_FINISH_FORECAST_STAGE()
+{}
+removeScriptFrom_FINISH_FORECAST_STAGE()
+{}
+
+addScriptTo_EXIT_STAGE()
+{}
+removeScriptFrom_EXIT_STAGE()
+{}

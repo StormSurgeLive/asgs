@@ -1,0 +1,11 @@
+#!/bin/bash
+
+OPT=${1:-$ASGS_INSTALL_PATH}
+COMPILER=${2:-intel}
+
+if [ $COMPILER == "clean" ]; then
+  make clean
+  exit
+fi
+
+make NETCDF_CAN_DEFLATE=enable NETCDFPATH=$ASGS_INSTALL_PATH NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$ASGS_MACHINE_NAME compiler=$ASGS_COMPILER

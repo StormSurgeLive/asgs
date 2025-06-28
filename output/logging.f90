@@ -126,6 +126,7 @@ end subroutine initLogging
 !  Writes a log message to stdout (i.e., screen or console).
 !--------------------------------------------------------------------
 subroutine stdout(level, message)
+use iso_fortran_env, only : output_unit
 implicit none
 integer, intent(in) :: level
 character(*), intent(in) :: message
@@ -135,10 +136,32 @@ character(*), intent(in) :: message
 !   stop
 !endif
 if (level.ge.logLevel) then
-   write(6,'(a,": ",a,": ",a)') trim(logLevelNames(level)),trim(adjustl(logSource)),trim(message)
+   write(output_unit,'(a,": ",a,": ",a)') trim(logLevelNames(level)),trim(adjustl(logSource)),trim(message)
 endif
 !--------------------------------------------------------------------
 end subroutine stdout
+!--------------------------------------------------------------------
+
+!--------------------------------------------------------------------
+!     S U B R O U T I N E    S T D E R R
+!--------------------------------------------------------------------
+!  Writes a log message to stderr
+!--------------------------------------------------------------------
+subroutine stderr(level, message)
+use iso_fortran_env, only : error_unit
+implicit none
+integer, intent(in) :: level
+character(*), intent(in) :: message
+!
+!if (loggingInitialized.eqv..false.) then
+!   write(6,*) 'ERROR: Must call subroutine initLogging before using logging module.'
+!   stop
+!endif
+if (level.ge.logLevel) then
+   write(error_unit,'(a,": ",a,": ",a)') trim(logLevelNames(level)),trim(adjustl(logSource)),trim(message)
+endif
+!--------------------------------------------------------------------
+end subroutine stderr
 !--------------------------------------------------------------------
 
 !--------------------------------------------------------------------
@@ -176,7 +199,7 @@ character(*), intent(in) :: message
 !   write(6,*) 'ERROR: Must call subroutine initLogging before using logging module.'
 !   stop
 !endif
-call stdout(level, message)
+call stderr(level, message)
 call logMessage(level, message)
 !--------------------------------------------------------------------
 end subroutine allMessage
