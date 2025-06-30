@@ -227,16 +227,28 @@ executeHookScripts()
 #
 #  addHookScript FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
 #
-addHookScript()
+addScriptTo()
 {
     local hook="$1"
     local hookScript="$2"
-    local THIS="asgs_main->manageHooks->addHookScript()"
-    if [[ ! -e "$hookScript" ]]; then
-        consoleMessage "$W ${THIS}: The '$hook' hook script '$hookScript' was not found."
+    local wasFound="false"
+    local THIS="asgs_main->manageHooks->addScriptTo_${hook}()"
+    if [[ ! -x "$hookScript" ]]; then
+        consoleMessage "$W ${THIS}: The '$hook' hook script '$hookScript' was not found or is not executable, so it will not be used."
     else
-        logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
-        hooksScripts["$hook"]+=" $hookScript"
+        # check for duplicates
+        for k in ${hookScripts["$hook"]} ; do
+            if [[ "$k" == "$hookScript" ]]; then
+                wasFound="true"
+            fi
+        done
+        if [[ $wasFound == "false" ]]; then
+            logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
+            hooksScripts["$hook"]+=" $hookScript"
+        else
+            # this script has already been added to this hook
+            logMessage "$I ${THIS}: The the '$hook' hook script '$hookScript' had already been added, and will not be added again (to avoid duplication)."
+        fi
     fi
 }
 #
@@ -246,18 +258,25 @@ addHookScript()
 #
 #  removeHookScript FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
 #
-removeHookScript()
+removeScriptFrom()
 {
     local hook="$1"
     local hookScript="$2"
     local s=""          # list of scripts for this hook
-    local THIS="asgs_main->manageHooks->removeHookScript()"
+    local wasFound="false"
+    local THIS="asgs_main->manageHooks->removeScriptFrom_${hook}()"
     for k in ${hookScripts["$hook"]}; do
         if [[ $k != "$hookScript" ]]; then
             s+=" $k"
+        else
+            wasFound="true"
+            logMessage "$I ${THIS}: Removing the '$hook' hook script '$hookScript'."
         fi
     done
     hookScripts["$hook"]="$s"
+    if [[ $wasFound == "false" ]]; then
+        logMessage "$I ${THIS}: Tried to remove the '$hook' hook script '$hookScript' but it was not found in the list of scripts for that hook."
+    fi
 }
 #
 # hook-specific routine to add a hook script
@@ -268,14 +287,8 @@ removeHookScript()
 #
 addScriptTo_FINISH_NOWCAST_SCENARIO()
 {
-    hookScript="$1"
-    local THIS="asgs_main->manageHooks->addScriptTo_FINISH_NOWCAST_SCENARIO()"
-    if [[ ! -e "$hookScript" ]]; then
-        consoleMessage "$W ${THIS}: The FINISH_NOWCAST_SCENARIO hook script '$hookScript' was not found."
-    else
-        logMessage "$I ${THIS}: Adding the FINISH_NOWCAST_SCENARIO hook script '$hookScript'."
-        hooksScripts["FINISH_NOWCAST_SCENARIO"]+=" $hookScript"
-    fi
+    local hookScript="$1"
+    addScriptTo "FINISH_NOWCAST_SCENARIO", "$hookScript"
 }
 #
 # hook-specific routine to remove a hook script
@@ -286,122 +299,229 @@ addScriptTo_FINISH_NOWCAST_SCENARIO()
 #
 removeScriptFrom_FINISH_NOWCAST_SCENARIO()
 {
-    hookScript="$1"
-    local s=""          # list of scripts for this hook
-    local THIS="asgs_main->manageHooks->removeScriptFrom_FINISH_NOWCAST_SCENARIO()"
-    for k in ${hookScripts["FINISH_NOWCAST_SCENARIO"]}; do
-        if [[ $k != "$hookScript" ]]; then
-            s+=" $k"
-        fi
-    done
-    hookScripts["FINISH_NOWCAST_SCENARIO"]="$s"
+    local hookScript="$1"
+    removeScriptFrom "FINISH_NOWCAST_SCENARIO", "$hookScript"
 }
-
 #
 # list of hook-specific routines
 #
-
+# FINISH_INIT
 addScriptTo_FINISH_INIT()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "FINISH_INIT", "$hookScript"
+}
 removeScriptFrom_FINISH_INIT()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "FINISH_INIT", "$hookScript"
+}
+# START_SPINUP_STAGE
 addScriptTo_START_SPINUP_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "START_SPINUP_STAGE", "$hookScript"
+}
 removeScriptFrom_START_SPINUP_STAGE()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "START_SPINUP_STAGE", "$hookScript"
+}
+# HOT_SPINUP
 addScriptTo_HOT_SPINUP()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "HOT_SPINUP", "$hookScript"
+}
 removeScriptFrom_HOT_SPINUP()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "HOT_SPINUP", "$hookScript"
+}
+# FINISH_SPINUP_STAGE
 addScriptTo_FINISH_SPINUP_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "FINISH_SPINUP_STAGE", "$hookScript"
+}
 removeScriptFrom_FINISH_SPINUP_STAGE()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "FINISH_SPINUP_STAGE", "$hookScript"
+}
+# BUILD_SPINUP
 addScriptTo_BUILD_SPINUP()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "BUILD_SPINUP", "$hookScript"
+}
 removeScriptFrom_BUILD_SPINUP()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "BUILD_SPINUP", "$hookScript"
+}
+# SUBMIT_SPINUP
 addScriptTo_SUBMIT_SPINUP()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "SUBMIT_SPINUP", "$hookScript"
+}
 removeScriptFrom_SUBMIT_SPINUP()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "SUBMIT_SPINUP", "$hookScript"
+}
+# FINISH_SPINUP_SCENARIO
 addScriptTo_FINISH_SPINUP_SCENARIO()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "FINISH_SPINUP_SCENARIO", "$hookScript"
+}
 removeScriptFrom_FINISH_SPINUP_SCENARIO()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "FINISH_SPINUP_SCENARIO", "$hookScript"
+}
+# START_NOWCAST_STAGE
 addScriptTo_START_NOWCAST_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "START_NOWCAST_STAGE", "$hookScript"
+}
 removeScriptFrom_START_NOWCAST_STAGE()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "START_NOWCAST_STAGE", "$hookScript"
+}
+# NOWCAST_POLLING
 addScriptTo_NOWCAST_POLLING()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "NOWCAST_POLLING", "$hookScript"
+}
 removeScriptFrom_NOWCAST_POLLING()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "NOWCAST_POLLING", "$hookScript"
+}
+# NOWCAST_TRIGGERED
 addScriptTo_NOWCAST_TRIGGERED()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "NOWCAST_TRIGGERED", "$hookScript"
+}
 removeScriptFrom_NOWCAST_TRIGGERED()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "NOWCAST_TRIGGERED", "$hookScript"
+}
+# BUILD_NOWCAST_SCENARIO
 addScriptTo_BUILD_NOWCAST_SCENARIO()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "BUILD_NOWCAST_SCENARIO", "$hookScript"
+}
 removeScriptFrom_BUILD_NOWCAST_SCENARIO()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "BUILD_NOWCAST_SCENARIO", "$hookScript"
+}
+# SUBMIT_NOWCAST_SCENARIO
 addScriptTo_SUBMIT_NOWCAST_SCENARIO()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "SUBMIT_NOWCAST_SCENARIO", "$hookScript"
+}
 removeScriptFrom_SUBMIT_NOWCAST_SCENARIO()
-{}
-
-addScriptTo_FINISH_NOWCAST_SCENARIO()
-{}
-removeScriptFrom_FINISH_NOWCAST_SCENARIO()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "SUBMIT_NOWCAST_SCENARIO", "$hookScript"
+}
+# FINISH_NOWCAST_STAGE
 addScriptTo_FINISH_NOWCAST_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "FINISH_NOWCAST_STAGE", "$hookScript"
+}
 removeScriptFrom_FINISH_NOWCAST_STAGE()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "FINISH_NOWCAST_STAGE", "$hookScript"
+}
+# START_FORECAST_STAGE
 addScriptTo_START_FORECAST_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "START_FORECAST_STAGE", "$hookScript"
+}
 removeScriptFrom_START_FORECAST_STAGE()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "START_FORECAST_STAGE", "$hookScript"
+}
+# INITIALIZE_FORECAST_SCENARIO
 addScriptTo_INITIALIZE_FORECAST_SCENARIO()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "INITIALIZE_FORECAST_SCENARIO", "$hookScript"
+}
 removeScriptFrom_INITIALIZE_FORECAST_SCENARIO()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "INITIALIZE_FORECAST_SCENARIO", "$hookScript"
+}
+# CAPACITY_WAIT
 addScriptTo_CAPACITY_WAIT()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "CAPACITY_WAIT", "$hookScript"
+}
 removeScriptFrom_CAPACITY_WAIT()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "CAPACITY_WAIT", "$hookScript"
+}
+# BUILD_FORECAST_SCENARIO
 addScriptTo_BUILD_FORECAST_SCENARIO()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "BUILD_FORECAST_SCENARIO", "$hookScript"
+}
 removeScriptFrom_BUILD_FORECAST_SCENARIO()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "BUILD_FORECAST_SCENARIO", "$hookScript"
+}
+# SUBMIT_FORECAST_SCENARIO
 addScriptTo_SUBMIT_FORECAST_SCENARIO()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "SUBMIT_FORECAST_SCENARIO", "$hookScript"
+}
 removeScriptFrom_SUBMIT_FORECAST_SCENARIO()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "SUBMIT_FORECAST_SCENARIO", "$hookScript"
+}
+# FINISH_FORECAST_STAGE
 addScriptTo_FINISH_FORECAST_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "FINISH_NOWCAST_SCENARIO", "$hookScript"
+}
 removeScriptFrom_FINISH_FORECAST_STAGE()
-{}
-
+{
+    local hookScript="$1"
+    removeScriptFrom "FINISH_FORECAST_STAGE", "$hookScript"
+}
+# EXIT_STAGE
 addScriptTo_EXIT_STAGE()
-{}
+{
+    local hookScript="$1"
+    addScriptTo "EXIT_STAGE", "$hookScript"
+}
 removeScriptFrom_EXIT_STAGE()
-{}
+{
+    local hookScript="$1"
+    removeScriptFrom "EXIT_STAGE", "$hookScript"
+}
