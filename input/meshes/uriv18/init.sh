@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=URIv18
 nodes=2617704
 elements=5149248
 GRIDFILE=hsofs_NE-hires_v18_weir_rivers_depsm2_nopump.grd
