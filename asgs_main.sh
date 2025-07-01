@@ -128,6 +128,8 @@ readConfig()
       fi
       INSTANCENAME=${STDMESHNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
    fi
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 }
 #
 # helper subroutine to check for the existence of required files that have
