@@ -29,6 +29,7 @@ variables_init()
    NWS=0
    BASENWS=0
    # tides
+   QUALITYCONTROL=$SCRIPTDIR/util/output/quality.sh
    TIDEFAC=off
    selfAttractionEarthLoadTide="notprovided"
    LOADTIDEURL=null

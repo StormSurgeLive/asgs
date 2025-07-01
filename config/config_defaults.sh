@@ -56,3 +56,13 @@ ASGSADMIN_ID=null
 
 # post
 INITPOST=( null_post.sh )
+#
+#  H O O K S
+#
+# set the list of scripts for each hook to the empty string ;
+# this will prevent the same script from being re-added to a hook
+# whenever the ASGS config file containing the "addScriptTo_*" functions
+# is re-read
+for k in ${allHooks[@]} ; do
+    hooksScripts[$k]=""
+done

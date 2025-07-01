@@ -28,23 +28,17 @@ HPCENVSHORT=$1
 # the queue script was submitted, and the file "jobID" has
 # been used to capture stdout.
 case $HPCENVSHORT in
-"stampede3"|"frontera"|"ls6")
+"stampede3"|"frontera"|"ls6"|"queenbeeC")
    # lots of info here that we don't need, but has
    # been appended to the scenario.log file
+   # e.g. on qbc:
+   # > sbatch partmesh.slurm
+   # sbatch: 488040.79 SUs available in loni_ceraloni24  # to stderr
+   # sbatch: 2.00 SUs estimated for this job.            # to stderr
+   # sbatch: lua: Submitted job 568119                   # to stderr
+   # Submitted batch job 568119                          # to stdout
    mv jobID jobID.tmp
    grep 'batch job' jobID.tmp | grep -Eo [0-9]+ > jobID
-   rm jobID.tmp
-   ;;
-"queenbeeC")
-   # SLURM returns information similar to the following when a
-   # job is submitted:
-   #
-   # asgs (LAv20a_nam_jgf_10kcms)> sbatch prep15.slurm
-   # Submitted batch job 127652 estimates 2 SUs from allocation xxxx_xxxx_xxxx. Estimated remaining SUs: 2306129
-   # JOBID      NAME                PARTITION  TIME_LIMIT  ST  NODES  REASON
-   # 127652     prep15.nowcast      single     2:00:00     PD  1      None
-   mv jobID jobID.tmp
-   cat jobID.tmp | awk '$1~/[0-9]+/ { print $1 }' > jobID
    rm jobID.tmp
    ;;
 "mike"|"qbd"|"supermic")

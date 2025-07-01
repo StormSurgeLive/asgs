@@ -354,7 +354,7 @@ sub _install_asgs_shell {
         ██████  █████   ███████ ██   ██   ████   ██ 
         ██   ██ ██      ██   ██ ██   ██    ██       
         ██   ██ ███████ ██   ██ ██████     ██    ██ 
-                                
+                             
     :.....::.....::.....::.....:::..::.....::.....:.....:
         ::::::::::::The ASGS Shell Environment:::::::::::::::
 	    :::::::..::::::::::::::::::::::::::::::::::::::::::::
@@ -366,7 +366,7 @@ Quick Start:
    ./asgsh
 
 Next, build ADCIRC using the command,
-  
+
    build adcirc
 
 To report bugs or request enhancements, please file them at
@@ -475,7 +475,7 @@ echo
 echo ' :.....::.....::.....::.....:::..::.....::.....:.....:'
 echo '   ::::::::::::The ASGS Shell Environment:::::::::::::::'
 echo '      :::::::..::::::::::::::::::::::::::::::::::::::::::::'
-echo               
+echo
 echo
   if [ -n "\$_ASGSH_PID" ]; then
     echo
@@ -869,9 +869,20 @@ sub get_steps {
             postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./makeMax.x}; },
         },
         {
+            key                 => q{util-output},
+            name                => q{Step for util-output/},
+            description         => q{Runs the makefile and builds all associated utilities in the util/output directory.},
+            pwd                 => qq{$scriptdir/util/output},
+	    command             => qq{bash init-util-output.sh $asgs_install_path $asgs_compiler},
+	    clean               => qq{bash init-util-output.sh $asgs_install_path clean},
+            skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./smokeTest.x}; },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./smokeTest.x}; },
+        },
+        {
             key                 => q{input-mesh},
             name                => q{Step for util/input/mesh},
-            description         => q{Runs the makefile and builds all associated util/input/mesh in the input-mesh/ directory.},
+            description         => q{Runs the makefile and builds all associated utilities in the util/input/mesh directory.},
             pwd                 => qq{$scriptdir/util/input/mesh},
 	    command             => qq{bash init-input-mesh.sh $asgs_install_path $asgs_compiler},
 	    clean               => qq{bash init-input-mesh.sh $asgs_install_path clean},

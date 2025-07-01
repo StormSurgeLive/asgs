@@ -1312,6 +1312,18 @@ monitorJobs()
       postScenarioStatus
    fi
    sleep 30 # give buffers a chance to flush to the filesystem
+   if [[ $JOBTYPE == "padcirc" || $JOBTYPE == "padcswan" ]]; then
+      if [[ "$QUALITYCONTROL" != "off" ]]; then
+         logMessage "$ENSTORM_TEMP: $THIS: Running quality control checks."
+         if [[ ! -x $QUALITYCONTROL ]]; then
+            warn "$ENSTORM_TEMP: $THIS: The quality control script '$QUALITYCONTROL', specified by the QUALITYCONTROL parameter, was not found or is not executable."
+         else
+            $QUALITYCONTROL >> $SCENARIOLOG
+         fi
+      else
+         logMessage "$ENSTORM_TEMP: $THIS: Quality control checks have been deactivated by setting QUALITYCONTROL=off."
+      fi
+   fi
    #
    # final messages
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
@@ -1566,7 +1578,6 @@ handleFailedJob()
    ARCHIVEBASE=${15}
    ARCHIVEDIR=${16}
    THIS="asgs_main.sh>handleFailedJob()"
-   debugMessage "$ENSTORM: $THIS: handleFailedJob called with the following arguments: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "$ENSTORM: $THIS: The job has failed."
@@ -1583,6 +1594,7 @@ handleFailedJob()
       fi
    fi
 }
+#
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh            # this includes source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/properties.sh           # read properties file into a hash
