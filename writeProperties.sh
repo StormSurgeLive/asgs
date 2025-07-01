@@ -73,6 +73,7 @@ writeProperties()
    echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.properties.meshproperties : $MESHPROPERTIES" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.file.mesh.stdmeshname : $STDMESHNAME" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.input.nafile : $NAFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.template.controltemplate : $CONTROLTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.elevstations : $ELEVSTATIONS" >> $STORMDIR_RUN_PROPERTIES
