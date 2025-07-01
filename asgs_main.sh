@@ -109,6 +109,25 @@ readConfig()
    fi
    #
    RUNARCHIVEBASE=$SCRATCHDIR
+   #
+   # set the instancename if it was not set in the Operator's config file
+   if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
+      local forcing=""
+      if [[ $TROPICALCYCLONE != "off" ]]; then
+         s=$(printf "%02d" $STORM)
+         forcing="al$s$YEAR"
+         if [[ $BACKGROUNDMET != "off" ]]; then # could be namBlend or gfsBlend
+            forcing+="-$BACKGROUNDMET"
+         fi
+      fi
+      if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" || $BACKGROUNDMET == "nam" ]]; then
+         forcing="nam"
+      fi
+      if [[ $BACKGROUNDMET == "GFS" ]]; then
+         forcing="gfs"
+      fi
+      INSTANCENAME=${STDMESHNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
+   fi
 }
 #
 # helper subroutine to check for the existence of required files that have

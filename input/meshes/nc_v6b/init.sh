@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=NCv6d
 nodes=295328
 elements=575512
 GRIDFILE=nc_inundation_v6d_rivers_msl.grd

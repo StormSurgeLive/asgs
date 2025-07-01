@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=NEFLGAv12b
 nodes=2968735
 elements=5910443
 GRIDFILE=neflga_v12_geo.14 # mesh (fort.14) file

@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=TXLA22a
 nodes=1947485
 elements=3832707
 INPUTDIR=$SCRIPTDIR/input/meshes/TXLA22a

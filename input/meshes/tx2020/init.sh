@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=TX2020a
 nodes=4266444
 elements=8456596
 GRIDFILE=tx2020a.14 # mesh (fort.14) file

@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=Shinnecock
 nodes=3070
 elements=5780
 GRIDFILE=shinnecock_inlet_coarse.grd

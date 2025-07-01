@@ -24,6 +24,7 @@
 #
 # adcirc-global-test mesh, from ADCIRC test suite repository
 # https://github.com/adcirc/adcirc-testsuite
+STDMESHNAME=AGT
 nodes=27330
 elements=50859
 GRIDFILE=agt.14
