@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=TX2008
 nodes=3352598
 elements=6675517
 GRIDFILE=tx2008_r35h.grd # mesh (fort.14) file

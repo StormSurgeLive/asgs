@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=TX2017
 nodes=4535035
 elements=8975076
 GRIDFILE=ctx_gr_p01E01.grd # mesh (fort.14) file

@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=SFLv111
 nodes=2249093
 elements=4480230
 INPUTDIR=$SCRIPTDIR/input/meshes/southfl

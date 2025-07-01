@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=PRVI15
 nodes=2733258
 elements=5392748
 GRIDFILE=PRVI15_fort.14  # mesh (fort.14) file

@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=WFLv18
 nodes=1147947
 elements=2283949
 GRIDFILE=fema_wfl_fort.14  # mesh (fort.14) file

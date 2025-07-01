@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=HSOFS
 nodes=1813443
 elements=3564104
 GRIDFILE=hsofs.14  # mesh (fort.14) file

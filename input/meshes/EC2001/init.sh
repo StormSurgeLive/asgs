@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=EC2001v2e
 nodes=254565
 elements=492179
 GRIDFILE=ec2001_v2e.grd   # mesh (fort.14) file

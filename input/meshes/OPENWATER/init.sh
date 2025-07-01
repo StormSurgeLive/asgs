@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=OPENWATER
 nodes=616113
 elements=1198417
 GRIDFILE=openwater.grd  # mesh (fort.14) file

@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=NCv999
 nodes=624782
 elements=1234231
 GRIDFILE=nc_inundation_v9.99a_w_rivers.grd

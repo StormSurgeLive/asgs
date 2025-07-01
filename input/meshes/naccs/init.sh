@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=NAC2014
 nodes=3110470
 elements=6167588
 GRIDFILE=NAC2014_R01_ClosedRivers.grd
