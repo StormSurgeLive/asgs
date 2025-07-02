@@ -389,7 +389,7 @@ for server in ${SERVERS[*]}; do
       NWPMODEL="${basin}${$STORMNUMBER}${YEAR}" # alNNYYYY
    fi
    # <MESH>_<FORCING>_<MACHINE>_<OPERATORID>
-   statusof="${GRIDNAME}_${NWPMODEL}_${HPCENVSHORT}_${_ASGSADMIN_ID}"
+   statusof="${GRIDNAME}_${NWPMODEL}_${HPCENVSHORT}_${_ASGSADMIN_ID} ${ASGSADMIN}"
 
    subject="${subject} ${statusof}"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
