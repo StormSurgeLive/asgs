@@ -2796,6 +2796,9 @@ while [ true ]; do
 
    # write the ASGS state file
    if [[ $hotstartURL != "null" ]]; then
+      if [[ ! -e $ADVISDIR/$ENSTORM/fort.67.nc ]]; then
+         cp $RUNDIR/fort.67.nc $ADVISDIR/$ENSTORM 2>> $SYSLOG
+      fi
       hotstartURL=null
    fi
    LUN=67  # asgs always tells adcirc to read a 68 file and write a 67 file
