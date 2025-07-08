@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=LAv20a
 nodes=1593485
 elements=3102441
 GRIDFILE=LA_v20a-WithUpperAtch_chk.grd   # mesh (fort.14) file

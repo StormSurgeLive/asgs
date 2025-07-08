@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=FEMAR2
 nodes=604790
 elements=1188640
 GRIDFILE=FEMA_R2_norivers_gcs_mNAVD.grd

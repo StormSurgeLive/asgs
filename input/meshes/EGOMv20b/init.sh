@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=EGOMv20b
 nodes=2219482
 elements=4398700
 GRIDFILE=EGOM-RT_v20b_chk.grd

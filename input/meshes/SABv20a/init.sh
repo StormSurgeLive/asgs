@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=SABv20a
 nodes=5584241
 elements=11066018
 GRIDFILE=SABv20a.14  # mesh (fort.14) file
