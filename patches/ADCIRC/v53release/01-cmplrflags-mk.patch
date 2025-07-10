@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 2c0eb06..b8d3d6e 100644
+index 2c0eb06..59074ff 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -89,13 +89,10 @@ ifeq ($(compiler),gnu)
@@ -258,7 +258,7 @@ index 2c0eb06..b8d3d6e 100644
 +        FLIBS   := $(INCDIRS) -axCORE-AVX512,COMMON-AVX512
 +     endif
 +  endif
-+  ifeq ($(MACHINENAME),debian)
++  ifeq ($(filter debian debian+%,$(MACHINENAME)), $(MACHINENAME))
 +     FFLAGS1 := $(INCDIRS) -O2 -FI -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX2 -axCORE-AVX512 -Wno-implicit-function-declaration
 +     FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
@@ -343,7 +343,7 @@ index 2c0eb06..b8d3d6e 100644
 +     ifeq ($(MACHINENAME),mike)
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 +     endif
-+     ifeq ($(MACHINENAME),debian)
++     ifeq ($(filter debian debian+%,$(MACHINENAME)), $(MACHINENAME))
          FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
       endif
       # jgf20150817: Adding support for spirit.afrl.hpc.mil;

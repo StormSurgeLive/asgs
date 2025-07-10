@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 9f89de7..3435029 100644
+index 9f89de78..4d3d7932 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -1,5 +1,46 @@
@@ -285,7 +285,7 @@ index 9f89de7..3435029 100644
 +        FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +     endif
 +  endif
-+  ifeq ($(MACHINENAME),debian)
++  ifeq ($(filter debian debian+%,$(MACHINENAME)), $(MACHINENAME))
 +     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132 -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -xCORE-AVX2 -axCORE-AVX512 -Wno-implicit-function-declaration
 +     FLIBS   := $(INCDIRS) -xCORE-AVX2 -axCORE-AVX512,COMMON-AVX512
@@ -395,7 +395,7 @@ index 9f89de7..3435029 100644
 +     ifeq ($(MACHINENAME),mike)
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 +     endif
-+     ifeq ($(MACHINENAME),debian)
++     ifeq ($(filter debian debian+%,$(MACHINENAME)), $(MACHINENAME))
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 +     endif
 +     ifeq ($(MACHINENAME),rhel)
