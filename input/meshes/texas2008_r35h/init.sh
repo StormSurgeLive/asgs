@@ -46,12 +46,13 @@ case $parameterPackage in
     # numerics/physics (fort.15)
     advection="off"                       # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
     solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
-    time_weighting_coefficients="0.30 0.35 0.30" # A00 B00 C00 in fort.15
+    time_weighting_coefficients="0.35 0.30 0.35" # A00 B00 C00 in fort.15
     lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
-    eddy_viscosity_coefficient="20.0"     # ESL
+    eddy_viscosity_coefficient="50.0"     # ESL
     bottom_friction_limit=0.0             # min when using Manning's n (CF/FFACTOR)
     h0=0.1                                # min depth (m) to be considered wet
     velmin=0.01
+    metControl["WindDragLimit"]="0.002"   # max wind drag coefficient, unitless
     nodal_attribute_activate=( surface_submergence_state )
     nodal_attribute_activate+=( surface_directional_effective_roughness_length )
     nodal_attribute_activate+=( surface_canopy_coefficient )
