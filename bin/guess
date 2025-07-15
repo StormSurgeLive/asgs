@@ -114,6 +114,10 @@ _guess_platform()
     default_platform=oracle
   elif [ -e /etc/debian_version ]; then
     default_platform=debian
+    sbatch=$(which sbatch)
+    if [ -x "$sbatch" ]; then
+      default_platform=debian+slurm
+    fi
   elif [ -e /etc/redhat-release ]; then
     default_platform=rhel
   fi
