@@ -252,13 +252,13 @@ writeASGSInstanceStatus()
     echo "post.opendap.files : ( $statusFiles )" >> $statfile
     echo "status.file.previous : $previousStatusFile" >> $statfile
     echo "status.hook.latest : $latestHook" >> $statfile
-    echo "monitoring.logging.file.syslog : $SYSLOG" >> $statfile   # for use in opendap_post.sh
-    echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post.sh
-    echo "monitoring.logging.file.scenariolog : $statusDir/asgs.instance.status.log" >> $statfile # for use in opendap_post.sh
-    echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post.sh
-    echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post.sh
-    echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post.sh
-    echo "InitialHotStartTime : $HSTIME" >> $statfile    # for use in opendap_post.sh
+    echo "monitoring.logging.file.syslog : $SYSLOG" >> $statfile   # for use in opendap_post2.sh
+    echo "monitoring.logging.file.cyclelog : null" >> $statfile    # for use in opendap_post2.sh
+    echo "monitoring.logging.file.scenariolog : $statusDir/asgs.instance.status.log" >> $statfile # for use in opendap_post2.sh
+    echo "scenario : asgs.instance.status" >> $statfile  # for use in opendap_post2.sh
+    echo "path.advisdir : $RUNDIR/$ADVISORY" >> $statfile             # for use in opendap_post2.sh
+    echo "advisory : $ADVISORY" >> $statfile             # for use in opendap_post2.sh
+    echo "InitialHotStartTime : $HSTIME" >> $statfile    # for use in opendap_post2.sh
     # forecast scenario package
     echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $statfile
     local myscenarios=$(str="( " ; si=0 ; while [[ $si -lt $SCENARIOPACKAGESIZE ]]; do source $ASGS_CONFIG > /dev/null 2>&1 ; str+="$ENSTORM " ; si=$(($si + 1)) ; done ; str+=")" ; echo $str )
@@ -424,7 +424,7 @@ postScenarioStatus() {
     cp $SCENARIODIR/run.properties $scenarioStatusDir 2>> $SYSLOG
     # FIXME: need to have a better way of separating the list of
     # files to be posted to opendap on any particular execution of
-    # output/opendap_post.sh from the run.properties file
+    # output/opendap_post2.sh from the run.properties file
     echo "post.opendap.files : ( $SCENARIODIR/scenario.status.json sendNotification )" >> $scenarioStatusDir/run.properties 2>> $SYSLOG
     # this would seem to count on the behavior that the last value
     # of a property in the file will take precedence; this would fail
