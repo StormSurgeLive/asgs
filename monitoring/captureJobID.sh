@@ -28,7 +28,7 @@ HPCENVSHORT=$1
 # the queue script was submitted, and the file "jobID" has
 # been used to capture stdout.
 case $HPCENVSHORT in
-"stampede3"|"frontera"|"ls6"|"queenbeeC")
+"stampede3"|"frontera"|"ls6"|"queenbeeC"|"debian+slurm")
    # lots of info here that we don't need, but has
    # been appended to the scenario.log file
    # e.g. on qbc:
