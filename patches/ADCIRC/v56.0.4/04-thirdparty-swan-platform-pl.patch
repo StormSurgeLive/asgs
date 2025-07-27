@@ -1,5 +1,5 @@
 diff --git a/thirdparty/swan/platform.pl b/thirdparty/swan/platform.pl
-index 2cb2390..12d619b 100644
+index 2cb23908..7d19e64c 100644
 --- a/thirdparty/swan/platform.pl
 +++ b/thirdparty/swan/platform.pl
 @@ -299,6 +299,59 @@ elsif ($os =~ /Linux/i) {
@@ -62,12 +62,87 @@ index 2cb2390..12d619b 100644
    elsif ( $compiler eq "ifc" )
    {
      print OUTFILE "##############################################################################\n";
-@@ -883,7 +936,7 @@ sub getcmpl {
+@@ -498,6 +551,50 @@ elsif ($os =~ /Linux/i) {
+     print OUTFILE "  swch = -unix\n";
+     print OUTFILE "endif\n";
+   }
++  elsif ( $compiler eq "gfortran10.1" )
++  {
++    print OUTFILE "##############################################################################\n";
++    print OUTFILE "# IA32_GNU:		Intel Pentium with Linux using GNU compiler gfortran >= 10.1.\n";
++    print OUTFILE "##############################################################################\n";
++    print OUTFILE "F90_SER = gfortran\n";
++    print OUTFILE "F90_OMP = gfortran\n";
++    print OUTFILE "F90_MPI = mpif90\n";
++    print OUTFILE "FLAGS_OPT = -O\n";
++    print OUTFILE "FLAGS_MSC = -w -fno-second-underscore -fallow-argument-mismatch\n";
++    print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC) -ffree-line-length-none\n";
++    print OUTFILE "FLAGS_DYN =\n";
++    print OUTFILE "FLAGS_SER =\n";
++    print OUTFILE "FLAGS_OMP = -fopenmp\n";
++    print OUTFILE "FLAGS_MPI =\n";
++    print OUTFILE "NETCDFROOT =\n";
++    print OUTFILE "ifneq (\$(NETCDFROOT),)\n";
++    print OUTFILE "  INCS_SER = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  INCS_OMP = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  INCS_MPI = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  LIBS_SER = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  LIBS_OMP = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff -static-libgcc\n";
++    print OUTFILE "  LIBS_MPI = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  NCF_OBJS = nctablemd.o agioncmd.o swn_outnc.o\n";
++    print OUTFILE "else\n";
++    print OUTFILE "  INCS_SER =\n";
++    print OUTFILE "  INCS_OMP =\n";
++    print OUTFILE "  INCS_MPI =\n";
++    print OUTFILE "  LIBS_SER =\n";
++    print OUTFILE "  LIBS_OMP = -static-libgcc\n";
++    print OUTFILE "  LIBS_MPI =\n";
++    print OUTFILE "  NCF_OBJS =\n";
++    print OUTFILE "endif\n";
++    print OUTFILE "O_DIR = ../work/odir4/\n";
++    print OUTFILE "OUT = -o \n";
++    print OUTFILE "EXTO = o\n";
++    print OUTFILE "MAKE = make\n";
++    print OUTFILE "RM = rm -f\n";
++    print OUTFILE "ifneq (\$(NETCDFROOT),)\n";
++    print OUTFILE "  swch = -unix -netcdf\n";
++    print OUTFILE "else\n";
++    print OUTFILE "  swch = -unix\n";
++    print OUTFILE "endif\n";
++  }
+   elsif ( $compiler eq "g95" )
+   {
+     print OUTFILE "##############################################################################\n";
+@@ -882,11 +979,27 @@ sub getcmpl {
+ 
     my $compiler = $ENV{'FC'};
  
-    unless ( $compiler ) {
+-   unless ( $compiler ) {
 -      foreach ('ifort','gfortran','f90','ifc','efc','pgf90','xlf90', 'lf95','g95','ifort.exe') {
-+      foreach ('ifx','ifort','gfortran','f90','ifc','efc','pgf90','xlf90', 'lf95','g95','ifort.exe') {
-          $compiler = $_;
-          my $path  = `which $compiler`;
-          last if $path;
+-         $compiler = $_;
+-         my $path  = `which $compiler`;
+-         last if $path;
++   # Try to find an available Fortran compiler if not set
++   unless ($compiler) {
++      foreach my $try ('ifx','ifort','f90','ifc','efc','pgf90','xlf90','lf95','gfortran','g95') {
++         my $path = `which $try 2>/dev/null`;
++         if ($path) {
++            chomp($path);
++            $compiler = $try;
++            last;
++         }
++      }
++   }
++
++   # Check if gfortran is being used
++   if (defined $compiler && $compiler eq 'gfortran') {
++      my $version_str = `gfortran -dumpversion 2>/dev/null`;
++      chomp($version_str);
++      if ($version_str =~ /^(\d+)(\.\d+)?/) {
++         my ($major, $minor) = ($1, $2);
++         if ($major > 10 || ($major == 10 && $minor >= 1)) {
++            return "gfortran10.1";
++         }
+       }
+    }
+ 
