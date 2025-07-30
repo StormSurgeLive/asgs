@@ -1,8 +1,8 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 2c0eb06..3118063 100644
+index 2c0eb06..86cbc8d 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
-@@ -11,12 +11,17 @@ ifeq ($(MACHINE)-$(OS),i686-mingw32)
+@@ -11,6 +11,7 @@ ifeq ($(MACHINE)-$(OS),i686-mingw32)
  #
  compiler=gnu
  ifeq ($(compiler),gnu)
@@ -10,7 +10,8 @@ index 2c0eb06..3118063 100644
    PPFC		:=  gfortran
    FC		:=  gfortran
    PFC		:=  mpif90
-   FFLAGS1	:=  $(INCDIRS) -O2 -mcmodel=medium -ffixed-line-length-none -march=corei7-avx -m64 -static
+@@ -77,6 +78,10 @@ ifeq ($(compiler),gnu)
+   FFLAGS1	:=  $(INCDIRS) -O2 -mcmodel=medium -ffixed-line-length-none -march=k8 -m64
    FFLAGS2	:=  $(FFLAGS1)
    FFLAGS3	:=  $(FFLAGS1)
 +  ifeq ($(shell expr $(GCC_VERSION) \>= 10.1), 1)
