@@ -25,7 +25,7 @@ nodes=1578794
 elements=3073010
 GRIDFILE=cpra_2025_hurricane_v02a_chk.grd
 MESHPROPERTIES=${GRIDFILE}.properties
-ELEVSTATIONS=combined_stations_20230824.txt
+ELEVSTATIONS=combined_stations_20250729.txt
 VELSTATIONS=$ELEVSTATIONS
 METSTATIONS=$ELEVSTATIONS
 # intersection between mesh, models, hpc platform, and number of compute cores:
