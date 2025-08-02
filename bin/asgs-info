@@ -7,7 +7,7 @@ show_gitsha=false
 show_version=true
 
 # Parse options
-while getopts "abrsv" opt; do
+while getopts "abrstv" opt; do
   case $opt in
     a)
       show_gitbranch=true
@@ -26,6 +26,11 @@ while getopts "abrsv" opt; do
     s)
       show_version=false
       show_gitsha=true
+      ;;
+    t)
+      show_version=false
+      show_gitsha=false
+      show_gittags=true
       ;;
     v)
       show_version=true
@@ -82,6 +87,15 @@ if $show_gitsha; then
   pushd $SCRIPTDIR > /dev/null
   # command
   echo -n commit:$(git log | head -n1 |awk '{print $2'}) " "
+  popd > /dev/null
+fi
+
+# Show git tags if -t was passed
+if $show_gittags; then
+  _assert_git_repo
+  pushd $SCRIPTDIR > /dev/null
+  # command
+  echo -n tags:$(git tag --points-at HEAD) " "
   popd > /dev/null
 fi
 
