@@ -40,7 +40,6 @@ load() {
           echo "${I}   + $SWANDIR"
           PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
           export PATH
-          save profile ${_ASGSH_CURRENT_PROFILE}
       else
           echo "ADCIRC build, '$__ADCIRC_BUILD' does not exist. Use 'list adcirc' to see a which ADCIRCs are available to load"
       fi
