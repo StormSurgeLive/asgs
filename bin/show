@@ -53,6 +53,9 @@ _show() {
       # there is no 'else', so this is just silent if ASGS_LOCAL_DIR is not defined
       fi
       ;;
+    asgsversion)
+      echo "${I} ASGS_VERSION is '${ASGS_VERSION}'"
+      ;;
     machinename)
       if [ -n "${ASGS_MACHINE_NAME}" ]; then
         echo "${I} ASGS_MACHINE_NAME is defined as '${ASGS_MACHINE_NAME}'"
