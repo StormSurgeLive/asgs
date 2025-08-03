@@ -213,7 +213,7 @@
 -89.836597  29.935181  ! LPV144  ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
 -89.906833  29.858667  ! LPV149  ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760)
 -90.27097   29.90839   ! WBV7274 ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
--89.601692  29.376756  ! NOV-13  ! CPRA ! Mississippi River at Empire Floodgate (cf USGS 07380260)
+-89.601692  29.376756  ! NOV13   ! CPRA ! Mississippi River at Empire Floodgate (cf USGS 07380260)
 -89.596464  29.389372  ! NOV14   ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)
 -90.018814  30.039944  ! LakefrontAirport ! CPRA ! Lake Pontchartrain at Lakefront Airport (cf USACE 85670)
 -90.089764  30.362581  ! Mandeville ! CPRA ! Lake Pontchartrain at Mandeville (cf USACE 85575)
