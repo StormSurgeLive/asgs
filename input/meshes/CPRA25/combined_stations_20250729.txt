@@ -204,8 +204,8 @@
 -90.273214  29.909636  ! WBV7274 ! CPRA ! Bayou Verret / W. Tie-In Sector Gate Flood Side
 -90.07104   29.81263   ! WBV90 ! CPRA ! GIWW at West Closure Complex - Flood Side
 -90.115644  30.022164  ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
--90.034667  30.030417  ! IHNC-01 ! CPRA ! Seabrook Complex - Flood Side (cf USGS 073802332)
--89.900528  30.012389  ! IHNC-02 ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
+-90.034667  30.030417  ! IHNC01 ! CPRA ! Seabrook Complex - Flood Side (cf USGS 073802332)
+-89.900528  30.012389  ! IHNC02 ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
 -90.068578  29.815764  ! WBV90   ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
 -90.03692   29.79062   ! WBV09b  ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
 -90.03417   29.78305   ! WBV09a  ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770)
