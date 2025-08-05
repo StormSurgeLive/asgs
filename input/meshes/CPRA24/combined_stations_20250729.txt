@@ -198,16 +198,16 @@
 -91.7983333000 30.9825000000 ! SMML1 ! NOAA RFC ! Atchafalaya River at Simmesport
 -91.9928975000 30.2174229000 ! VLSL1 ! NOAA RFC ! Vermilion River at Surrey St. at Lafayette
 -92.1563610000 29.9511110000 ! VRPL1 ! NOAA RFC ! Vermilion River at Perry
--90.1235900 30.0241600 ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
+-90.124153  30.028190  ! 17StCanal ! CPRA ! Outfall 17th St London Ave Orleans Ave Outfall Canals (cf USACE 85625)
 -90.0351500	30.0335500 ! IHNC01 ! CPRA ! Seabrook Complex - Flood Side (cf USGS 073802332)
 -89.8990000 30.0156400 ! IHNC02 ! CPRA ! IHNC Surge Barrier East - Flood Side (cf USACE 76030)
 -90.07104   29.81263   ! WBV90   ! CPRA ! GIWW at West Closure Complex - Flood Side (cf USACE 76265)
--90.03692   29.79062   ! WBV09b  ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
+-90.0386352 29.789833  ! WBV09b  ! CPRA ! Hero Canal Stop-Log Gate - Flood Side/West (cf USACE 82762)
 -90.03417   29.78305   ! WBV09a  ! CPRA ! Oakville Sluice Gate - Flood Side/South (cf USACE 82770)
 -90.15714   29.88288   ! WBV162  ! CPRA ! Bayou Segnette Closure - Flood Side (cf USACE 82742)
 -89.83563   29.936000  ! LPV144  ! CPRA ! Bayou Dupre Sector Gate - East/Flood Side (cf USACE 76010)
 -89.90434   29.85293   ! LPV149  ! CPRA ! Caernarvon Canal Sector Gate - South/Flood Side (cf USACE 85760)
--90.27097   29.90839   ! WBV7274 ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
+-90.268661  29.904783  ! WBV7274 ! CPRA ! Bayou Verret / Western Tie-In Sector Gate - Flood Side (cf USACE 82715)
 -89.600929  29.3710994 ! NOV13   ! CPRA ! Mississippi River at Empire Floodgate (cf USGS 07380260)
 -89.59537   29.38984   ! NOV14   ! CPRA ! Mississippi River at Empire Lock (cf USACE 01440)
 -90.0191800 30.0463500 ! LakefrontAirport ! CPRA ! Lake Pontchartrain at Lakefront Airport (cf USACE 85670)
