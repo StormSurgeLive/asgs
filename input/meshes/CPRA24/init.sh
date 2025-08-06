@@ -37,7 +37,7 @@ if [[ $GRIDNAME == "CPRA24v04b2" ]]; then
     GRIDFILE=cpra_2024_hurricane_v04b2_chk.14
 fi
 MESHPROPERTIES=${GRIDFILE}.properties
-ELEVSTATIONS=combined_stations_20230824.txt
+ELEVSTATIONS=combined_stations_20250729.txt
 VELSTATIONS=$ELEVSTATIONS
 METSTATIONS=$ELEVSTATIONS
 # intersection between mesh, models, hpc platform, and number of compute cores:
