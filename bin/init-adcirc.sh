@@ -340,7 +340,8 @@ else
 fi
 echo
 
-if [[ -d "${ADCIRCBASE}" ]]; then
+# skip if $BATCH is set -b
+if [[ -d "${ADCIRCBASE}" && -z "${BATCH}" ]]; then
   _delete=no
   echo "$W \"$ADCIRCBASE\" exists!"
   echo $W
@@ -357,6 +358,15 @@ if [[ -d "${ADCIRCBASE}" ]]; then
     echo "exiting ADCIRC building ..."
     exit
   fi
+fi
+
+# if batch is set (-b) and $ADCIRCBASE exists, delete
+# and start over (could be not what you want?)
+if [[ -d "${ADCIRCBASE}" && "${BATCH}" == 1 ]]; then
+  echo "$W \"$ADCIRCBASE\" exists!"
+  echo " ... deleting '$ADCIRCBASE'"
+  rm -rf $ADCIRCBASE
+  echo
 fi
 
 # some variables based on ADCIRCBASE that we can define now
