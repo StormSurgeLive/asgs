@@ -34,6 +34,13 @@ writeProperties()
    # a stray file from a previous (interrupted) asgs execution, this function
    # should overwrite whatever may have been there
 
+   # get the latest values here
+   ASGS_VERSION=$(asgs-info -sv)
+   ASGS_GIT_COMMIT=$(asgs-info -s)
+   ASGS_GIT_BRANCH=$(asgs-info -b)
+   ASGS_GIT_REMOTE=$(asgs-info -r)
+   ASGS_GIT_TAGS=$(asgs-info -t)
+
    # basic asgs configuration
    echo "config.file : $CONFIG" > $STORMDIR_RUN_PROPERTIES  # <--<< OVERWRITE
 
