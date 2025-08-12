@@ -54,6 +54,7 @@ _show() {
       fi
       ;;
     asgsversion)
+      ASGS_VERSION=$(asgs-info -sv | sed 's/[ \t]*$//')
       echo "${I} ASGS_VERSION is '${ASGS_VERSION}'"
       ;;
     machinename)

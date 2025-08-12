@@ -1208,13 +1208,6 @@ screen() { # disable call tmux inside of asgsh
   echo 'The use of the "screen" utility *inside* of asgsh is strongly discouraged.'
 }
 
-# set version
-export ASGS_VERSION=$(asgs-info -sv)
-export ASGS_GIT_COMMIT=$(asgs-info -s)
-export ASGS_GIT_BRANCH=$(asgs-info -b)
-export ASGS_GIT_REMOTE=$(asgs-info -r)
-export ASGS_GIT_TAGS=$(asgs-info -t)
-
 # common aliases users expect - if you see something missing, please create a github issue
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'

@@ -45,8 +45,8 @@ done
 _assert_git_repo()
 {
   if [[ ! -d "$SCRIPTDIR/.git" ]]; then
-    echo "ASGS is not a git repo." >&2
-    exit 1
+    echo "$SCRIPTDIR is not a git repo." >&2
+    exit
   fi
 }
 
