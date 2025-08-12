@@ -1,5 +1,5 @@
 diff --git a/thirdparty/swan/platform.pl b/thirdparty/swan/platform.pl
-index a56dfcc..12d619b 100644
+index a56dfcc..7d19e64 100644
 --- a/thirdparty/swan/platform.pl
 +++ b/thirdparty/swan/platform.pl
 @@ -39,6 +39,12 @@ if ($os =~ /IRIX64/i) {
@@ -209,22 +209,19 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -398,14 +496,21 @@ elsif ($os =~ /Linux/i) {
+@@ -397,15 +495,72 @@ elsif ($os =~ /Linux/i) {
+     print OUTFILE "swch = -unix\n";
    }
    elsif ( $compiler eq "gfortran" )
-   {
--    print OUTFILE "##############################################################################\n";
--    print OUTFILE "# IA32_GNU:		Intel Pentium with Linux using GNU compiler gfortran.\n";
--    print OUTFILE "##############################################################################\n";
++  {
 +    my $ver = `gcc -dumpversion`;
 +    print OUTFILE "###############################################################################\n";
 +    print OUTFILE "# IA32_GNU:		Intel Core/Xeon with Linux using GNU compiler gfortran.\n";
 +    print OUTFILE "###############################################################################\n";
-     print OUTFILE "F90_SER = gfortran\n";
-     print OUTFILE "F90_OMP = gfortran\n";
-     print OUTFILE "F90_MPI = mpif90\n";
-     print OUTFILE "FLAGS_OPT = -O\n";
--    print OUTFILE "FLAGS_MSC = -w -fno-second-underscore\n";
++    print OUTFILE "F90_SER = gfortran\n";
++    print OUTFILE "F90_OMP = gfortran\n";
++    print OUTFILE "F90_MPI = mpif90\n";
++    print OUTFILE "FLAGS_OPT = -O\n";
 +    if ($ver =~ /10/i) {
 +      print OUTFILE "# gfortran 10 does not accept argument mismatches; see https://gcc.gnu.org/gcc-10/porting_to.html\n";
 +      print OUTFILE "FLAGS_MSC = -w -fno-second-underscore -fallow-argument-mismatch\n";
@@ -232,23 +229,62 @@ index a56dfcc..12d619b 100644
 +    else {
 +      print OUTFILE "FLAGS_MSC = -w -fno-second-underscore\n";
 +    }
-     print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC) -ffree-line-length-none\n";
-     print OUTFILE "FLAGS_DYN =\n";
-     print OUTFILE "FLAGS_SER =\n";
-@@ -430,6 +535,12 @@ elsif ($os =~ /Linux/i) {
-     print OUTFILE "  NCF_OBJS =\n";
-     print OUTFILE "endif\n";
-     print OUTFILE "O_DIR = ../work/odir4/\n";
++    print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC) -ffree-line-length-none\n";
++    print OUTFILE "FLAGS_DYN =\n";
++    print OUTFILE "FLAGS_SER =\n";
++    print OUTFILE "FLAGS_OMP = -fopenmp\n";
++    print OUTFILE "FLAGS_MPI =\n";
++    print OUTFILE "NETCDFROOT =\n";
++    print OUTFILE "ifneq (\$(NETCDFROOT),)\n";
++    print OUTFILE "  INCS_SER = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  INCS_OMP = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  INCS_MPI = -I\$(NETCDFROOT)/include\n";
++    print OUTFILE "  LIBS_SER = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  LIBS_OMP = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff -static-libgcc\n";
++    print OUTFILE "  LIBS_MPI = -L\$(NETCDFROOT)/lib -lnetcdf -lnetcdff\n";
++    print OUTFILE "  NCF_OBJS = nctablemd.o agioncmd.o swn_outnc.o\n";
++    print OUTFILE "else\n";
++    print OUTFILE "  INCS_SER =\n";
++    print OUTFILE "  INCS_OMP =\n";
++    print OUTFILE "  INCS_MPI =\n";
++    print OUTFILE "  LIBS_SER =\n";
++    print OUTFILE "  LIBS_OMP = -static-libgcc\n";
++    print OUTFILE "  LIBS_MPI =\n";
++    print OUTFILE "  NCF_OBJS =\n";
++    print OUTFILE "endif\n";
++    print OUTFILE "O_DIR = ../work/odir4/\n";
 +    print OUTFILE "BOU_OBJ = \$(O_DIR)boundaries.o\n";
 +    print OUTFILE "ifneq (\"\$(wildcard \$(BOU_OBJ))\",\"\")\n";
 +    print OUTFILE "  MSG_OBJS = \$(O_DIR)mkdir.o \$(O_DIR)boundaries.o \$(O_DIR)sizes.o \$(O_DIR)global.o \$(O_DIR)global_3dvs.o \$(O_DIR)version.o \$(O_DIR)messenger.o\n";
 +    print OUTFILE "else\n";
 +    print OUTFILE "  MSG_OBJS = \$(O_DIR)mkdir.o \$(O_DIR)sizes.o \$(O_DIR)global.o \$(O_DIR)global_3dvs.o \$(O_DIR)version.o \$(O_DIR)messenger.o\n";
 +    print OUTFILE "endif\n";
-     print OUTFILE "OUT = -o \n";
-     print OUTFILE "EXTO = o\n";
-     print OUTFILE "MAKE = make\n";
-@@ -443,7 +554,7 @@ elsif ($os =~ /Linux/i) {
++    print OUTFILE "OUT = -o \n";
++    print OUTFILE "EXTO = o\n";
++    print OUTFILE "MAKE = make\n";
++    print OUTFILE "RM = rm -f\n";
++    print OUTFILE "ifneq (\$(NETCDFROOT),)\n";
++    print OUTFILE "  swch = -unix -netcdf\n";
++    print OUTFILE "else\n";
++    print OUTFILE "  swch = -unix\n";
++    print OUTFILE "endif\n";
++  }
++  elsif ( $compiler eq "gfortran10.1" )
+   {
+     print OUTFILE "##############################################################################\n";
+-    print OUTFILE "# IA32_GNU:		Intel Pentium with Linux using GNU compiler gfortran.\n";
++    print OUTFILE "# IA32_GNU:		Intel Pentium with Linux using GNU compiler gfortran >= 10.1.\n";
+     print OUTFILE "##############################################################################\n";
+     print OUTFILE "F90_SER = gfortran\n";
+     print OUTFILE "F90_OMP = gfortran\n";
+     print OUTFILE "F90_MPI = mpif90\n";
+     print OUTFILE "FLAGS_OPT = -O\n";
+-    print OUTFILE "FLAGS_MSC = -w -fno-second-underscore\n";
++    print OUTFILE "FLAGS_MSC = -w -fno-second-underscore -fallow-argument-mismatch\n";
+     print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC) -ffree-line-length-none\n";
+     print OUTFILE "FLAGS_DYN =\n";
+     print OUTFILE "FLAGS_SER =\n";
+@@ -443,7 +598,7 @@ elsif ($os =~ /Linux/i) {
    elsif ( $compiler eq "g95" )
    {
      print OUTFILE "##############################################################################\n";
@@ -257,7 +293,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "##############################################################################\n";
      print OUTFILE "F90_SER = g95\n";
      print OUTFILE "F90_OMP = NO_OPENMP_WITH_G95\n";
-@@ -474,6 +585,12 @@ elsif ($os =~ /Linux/i) {
+@@ -474,6 +629,12 @@ elsif ($os =~ /Linux/i) {
      print OUTFILE "  NCF_OBJS =\n";
      print OUTFILE "endif\n";
      print OUTFILE "O_DIR = ../work/odir4/\n";
@@ -270,7 +306,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -518,6 +635,12 @@ elsif ($os =~ /Linux/i) {
+@@ -518,6 +679,12 @@ elsif ($os =~ /Linux/i) {
      print OUTFILE "  NCF_OBJS =\n";
      print OUTFILE "endif\n";
      print OUTFILE "O_DIR = ../work/odir4/\n";
@@ -283,7 +319,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -535,14 +658,14 @@ elsif ($os =~ /Linux/i) {
+@@ -535,14 +702,14 @@ elsif ($os =~ /Linux/i) {
  }
  elsif ($os =~ /WindowsNT/i || $os =~ /MSWin32/i || $os =~ /CYGWIN/i) {
    my $compiler = getcmpl();
@@ -303,7 +339,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "FLAGS_OPT = /O2\n";
  #    print OUTFILE "FLAGS_MSC = /assume:byterecl /traceback /nowarn /nologo /Qdiag-disable:remark\n";
      print OUTFILE "FLAGS_MSC = /assume:byterecl /traceback /nowarn /nologo /Qdiag-disable:8290 /Qdiag-disable:8291 /Qdiag-disable:8293\n";
-@@ -564,13 +687,16 @@ elsif ($os =~ /WindowsNT/i || $os =~ /MSWin32/i || $os =~ /CYGWIN/i) {
+@@ -564,13 +731,16 @@ elsif ($os =~ /WindowsNT/i || $os =~ /MSWin32/i || $os =~ /CYGWIN/i) {
  #    print OUTFILE "!ELSE\n";
      print OUTFILE "INCS_SER =\n";
      print OUTFILE "INCS_OMP =\n";
@@ -322,7 +358,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = /exe:\n";
      print OUTFILE "EXTO = obj\n";
      print OUTFILE "MAKE = nmake\n";
-@@ -615,6 +741,7 @@ elsif ($os =~ /WindowsNT/i || $os =~ /MSWin32/i || $os =~ /CYGWIN/i) {
+@@ -615,6 +785,7 @@ elsif ($os =~ /WindowsNT/i || $os =~ /MSWin32/i || $os =~ /CYGWIN/i) {
      print OUTFILE "NCF_OBJS =\n";
      print OUTFILE "!ENDIF\n";
      print OUTFILE "O_DIR =\n";
@@ -330,7 +366,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = /exe:\n";
      print OUTFILE "EXTO = obj\n";
      print OUTFILE "MAKE = nmake\n";
-@@ -634,14 +761,21 @@ elsif ($os =~ /Darwin/i) {
+@@ -634,14 +805,21 @@ elsif ($os =~ /Darwin/i) {
    my $compiler = getcmpl();
    if ( $compiler eq "gfortran" )
    {
@@ -355,7 +391,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC) -ffree-line-length-none\n";
      print OUTFILE "FLAGS_DYN =\n";
      print OUTFILE "FLAGS_SER =\n";
-@@ -666,6 +800,12 @@ elsif ($os =~ /Darwin/i) {
+@@ -666,6 +844,12 @@ elsif ($os =~ /Darwin/i) {
      print OUTFILE "  NCF_OBJS =\n";
      print OUTFILE "endif\n";
      print OUTFILE "O_DIR = ../work/odir4/\n";
@@ -368,7 +404,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -678,13 +818,13 @@ elsif ($os =~ /Darwin/i) {
+@@ -678,13 +862,13 @@ elsif ($os =~ /Darwin/i) {
    }
    elsif ( $compiler eq "ifort" )
    {
@@ -387,7 +423,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "FLAGS_OPT = -O2\n";
      print OUTFILE "FLAGS_MSC = -W0 -assume byterecl -traceback -diag-disable 8290 -diag-disable 8291 -diag-disable 8293\n";
      print OUTFILE "FLAGS90_MSC = \$(FLAGS_MSC)\n";
-@@ -711,6 +851,12 @@ elsif ($os =~ /Darwin/i) {
+@@ -711,6 +895,12 @@ elsif ($os =~ /Darwin/i) {
      print OUTFILE "  NCF_OBJS =\n";
      print OUTFILE "endif\n";
      print OUTFILE "O_DIR = ../work/odir4/\n";
@@ -400,7 +436,7 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -755,6 +901,12 @@ elsif ($os =~ /Darwin/i) {
+@@ -755,6 +945,12 @@ elsif ($os =~ /Darwin/i) {
      print OUTFILE "  NCF_OBJS =\n";
      print OUTFILE "endif\n";
      print OUTFILE "O_DIR =\n";
@@ -413,12 +449,36 @@ index a56dfcc..12d619b 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -784,7 +936,7 @@ sub getcmpl {
+@@ -783,11 +979,27 @@ sub getcmpl {
+ 
     my $compiler = $ENV{'FC'};
  
-    unless ( $compiler ) {
+-   unless ( $compiler ) {
 -      foreach ('ifort','gfortran','f90','ifc','efc','pgf90','xlf90', 'lf95','g95') {
-+      foreach ('ifx','ifort','gfortran','f90','ifc','efc','pgf90','xlf90', 'lf95','g95','ifort.exe') {
-          $compiler = $_;
-          my $path  = `which $compiler`;
-          last if $path;
+-         $compiler = $_;
+-         my $path  = `which $compiler`;
+-         last if $path;
++   # Try to find an available Fortran compiler if not set
++   unless ($compiler) {
++      foreach my $try ('ifx','ifort','f90','ifc','efc','pgf90','xlf90','lf95','gfortran','g95') {
++         my $path = `which $try 2>/dev/null`;
++         if ($path) {
++            chomp($path);
++            $compiler = $try;
++            last;
++         }
++      }
++   }
++
++   # Check if gfortran is being used
++   if (defined $compiler && $compiler eq 'gfortran') {
++      my $version_str = `gfortran -dumpversion 2>/dev/null`;
++      chomp($version_str);
++      if ($version_str =~ /^(\d+)(\.\d+)?/) {
++         my ($major, $minor) = ($1, $2);
++         if ($major > 10 || ($major == 10 && $minor >= 1)) {
++            return "gfortran10.1";
++         }
+       }
+    }
+ 

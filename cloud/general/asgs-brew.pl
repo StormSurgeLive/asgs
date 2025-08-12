@@ -734,7 +734,7 @@ sub get_steps {
         },
         {
             key         => q{openmpi},
-            name        => q{Step for OpenMPI 1.8.1 for gfortran},
+            name        => q{Step for OpenMPI for gfortran},
             description => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
             pwd         => qq{$scriptdir/cloud/general},
             command     => qq{bash init-openmpi.sh $asgs_install_path $asgs_compiler $makejobs},
