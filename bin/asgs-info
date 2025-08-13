@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 # Default behavior
+show_version=true
 show_gitbranch=false
 show_gitremote=false
 show_gitsha=false
-show_version=true
+show_gittags=false
 
 # Parse options
 while getopts "abrstv" opt; do
@@ -14,6 +15,7 @@ while getopts "abrstv" opt; do
       show_gitremote=true
       show_gitsha=true
       show_version=true
+      show_tags=true
       ;;
     b)
       show_version=false
@@ -29,7 +31,6 @@ while getopts "abrstv" opt; do
       ;;
     t)
       show_version=false
-      show_gitsha=false
       show_gittags=true
       ;;
     v)
