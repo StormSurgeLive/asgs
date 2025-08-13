@@ -1,7 +1,1 @@
-v1.3  - rjw20080811: Added the adcprep scripts and modified asgs_main to accomodate submiting adcprep using qsub to the queue.
-v1.3  - rjw20080803: Added the post processing scripts to the output directory, and made changed to accommodate ranger (still debugging), added template
-                     files and perl scripts to create the submit scripts for ranger SGE, modified the asgs_main and config to allow for SGE /ranger 
-v1.2  - jgf20080729: made changes to accommodate Tezpur; set up NWS19 preprocessing with aswip; created and added fort.15 template file for CERA.
-v1.1  - jgf20080727: included several new configuration file additions; nhc_advisory_bot.pl now parses advisories successfully; many bug fixes
-v1.01 - jgf20080710: added STARTADVISORYNUM and PERCENT to config file.
-v1.00 - jgf20080710: Initial release.
+development
