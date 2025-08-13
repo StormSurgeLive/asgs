@@ -35,7 +35,7 @@ writeProperties()
    # should overwrite whatever may have been there
 
    # get the latest values here
-   ASGS_VERSION=$(asgs-info -sv)
+   ASGS_VERSION=$(asgs-info -v)
    ASGS_GIT_COMMIT=$(asgs-info -s)
    ASGS_GIT_BRANCH=$(asgs-info -b)
    ASGS_GIT_REMOTE=$(asgs-info -r)
