@@ -56,6 +56,7 @@ case $parameterPackage in
     h0=0.1                                # min depth (m) to be considered wet
     velmin=0.01
     TIMESTEPSIZE=2.0                      # adcirc time step size (seconds)
+    metControl["WindDragLimit"]="0.002"   # max wind drag coefficient, unitless
     nodal_attribute_activate=( sea_surface_height_above_geoid )
     nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
     nodal_attribute_activate+=( mannings_n_at_sea_floor )
