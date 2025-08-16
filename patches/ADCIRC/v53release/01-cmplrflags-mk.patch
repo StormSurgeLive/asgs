@@ -1,5 +1,5 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index 2c0eb06..febaf6f 100644
+index 2c0eb06..21621b3 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
 @@ -11,6 +11,7 @@ ifeq ($(MACHINE)-$(OS),i686-mingw32)
@@ -96,7 +96,7 @@ index 2c0eb06..febaf6f 100644
    endif
    IMODS 	:=  -I
    CC		:= gcc
-@@ -194,13 +192,22 @@ ifeq ($(compiler),gfortran)
+@@ -194,13 +192,23 @@ ifeq ($(compiler),gfortran)
    else
       MULTIPLE := TRUE
    endif
@@ -106,6 +106,7 @@ index 2c0eb06..febaf6f 100644
 +
 +  ifeq ($(shell test $(GCC_VER_MAJOR) -gt 10 || (test $(GCC_VER_MAJOR) -eq 10 && test $(GCC_VER_MINOR) -ge 1) && echo 1), 1)
 +    $(info GCC $(GCC_VER_MAJOR).$(GCC_VER_MINOR) detected - adding -fallow-argument-mismatch flag)
++    FFLAGS1 += -fallow-argument-mismatch
 +    FFLAGS2 += -fallow-argument-mismatch
 +    FFLAGS3 += -fallow-argument-mismatch
 +  endif
@@ -120,7 +121,7 @@ index 2c0eb06..febaf6f 100644
    FFLAGS2	:=  $(FFLAGS1)
    FFLAGS3	:=  $(FFLAGS1)
    DA		:=  -DREAL8 -DLINUX -DCSCA
-@@ -222,14 +229,22 @@ ifeq ($(compiler),g95)
+@@ -222,14 +230,22 @@ ifeq ($(compiler),g95)
  endif
  #
  # jgf45.12 These flags work on the UNC Topsail Cluster.
@@ -147,7 +148,7 @@ index 2c0eb06..febaf6f 100644
    CFLAGS        := $(INCDIRS) -O2 -xSSE4.2 -m64 -mcmodel=medium -DLINUX
    FLIBS         :=
    ifeq ($(DEBUG),full)
-@@ -248,45 +263,123 @@ ifeq ($(compiler),intel)
+@@ -248,45 +264,123 @@ ifeq ($(compiler),intel)
       FFLAGS1       :=  $(INCDIRS) -g -O0 -traceback -FI -assume byterecl -132 -DNETCDF_TRACE -DFULL_STACK -DFLUSH_MESSAGES
    endif
    #
@@ -296,7 +297,7 @@ index 2c0eb06..febaf6f 100644
    endif
    #
    #@jasonfleming Added to fix bus error on hatteras@renci
-@@ -302,67 +395,66 @@ ifeq ($(compiler),intel)
+@@ -302,67 +396,66 @@ ifeq ($(compiler),intel)
       DPRE          := $(DPRE) -DADCSWAN
    endif
    IMODS         :=  -I
@@ -391,7 +392,7 @@ index 2c0eb06..febaf6f 100644
       ifeq ($(MACHINENAME),killdevil)
          HDF5HOME       :=/nas02/apps/hdf5-1.8.5/lib
          NETCDFHOME     :=/nas02/apps/netcdf-4.1.1
-@@ -384,7 +476,7 @@ ifeq ($(compiler),intel-ND)
+@@ -384,7 +477,7 @@ ifeq ($(compiler),intel-ND)
    PPFC            :=  ifort
    FC            :=  ifort
    PFC           :=  mpif90
@@ -400,7 +401,7 @@ index 2c0eb06..febaf6f 100644
    ifeq ($(DEBUG),full)
       FFLAGS1       :=  $(INCDIRS) -g -O0 -traceback -debug -check all -i-dynamic -FI -assume byterecl -132 -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
    endif
-@@ -399,15 +491,15 @@ ifeq ($(compiler),intel-ND)
+@@ -399,15 +492,15 @@ ifeq ($(compiler),intel-ND)
    IMODS         :=  -I
    CC            := icc
    CCBE          := $(CC)
@@ -419,7 +420,7 @@ index 2c0eb06..febaf6f 100644
    CLIBS         :=
    MSGLIBS       :=
    $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
-@@ -428,7 +520,7 @@ ifeq ($(compiler),intel-sgi)
+@@ -428,7 +521,7 @@ ifeq ($(compiler),intel-sgi)
    PFC           :=  mpif90
    CC            :=  icc -O2 -no-ipo
    CCBE          :=  icc -O2 -no-ipo
@@ -428,7 +429,7 @@ index 2c0eb06..febaf6f 100644
  #  FFLAGS1      :=  $(INCDIRS) -Mextend -g -O0 -traceback
    FFLAGS2       :=  $(FFLAGS1)
    FFLAGS3       :=  $(FFLAGS1) -assume buffered_stdout
-@@ -473,8 +565,7 @@ ifeq ($(compiler),cray_xt3)
+@@ -473,8 +566,7 @@ ifeq ($(compiler),cray_xt3)
    FFLAGS2	:=  $(FFLAGS1)
    FFLAGS3	:=  $(FFLAGS1) -r8 -Mr8 -Mr8intrinsics
    DA  	        :=  -DREAL8 -DLINUX -DCSCA
@@ -438,7 +439,7 @@ index 2c0eb06..febaf6f 100644
    DPRE	        :=  -DREAL8 -DLINUX
    CFLAGS	:=  -c89 $(INCDIRS) -DLINUX
    IMODS		:=  -module
-@@ -504,7 +595,7 @@ ifeq ($(compiler),cray_xt4)
+@@ -504,7 +596,7 @@ ifeq ($(compiler),cray_xt4)
    PFC	        :=  ftn
    CC		:=  pgcc
    CCBE		:=  cc
@@ -447,7 +448,7 @@ index 2c0eb06..febaf6f 100644
    ifeq ($(DEBUG),full)
       FFLAGS1	:=  $(INCDIRS) -Mextend -g -O0 -traceback -Mbounds -Mchkfpstk -Mchkptr -Mchkstk -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK
    endif
-@@ -584,7 +675,7 @@ ifeq ($(compiler),xtintel)
+@@ -584,7 +676,7 @@ ifeq ($(compiler),xtintel)
    PFC           :=  ftn
    CC            :=  cc -O2 -no-ipo
    CCBE          :=  cc -O2 -no-ipo
@@ -456,7 +457,7 @@ index 2c0eb06..febaf6f 100644
  #  FFLAGS1      :=  $(INCDIRS) -Mextend -g -O0 -traceback
    FFLAGS2       :=  $(FFLAGS1)
    FFLAGS3       :=  $(FFLAGS1) -assume buffered_stdout
-@@ -716,8 +807,8 @@ ifeq ($(compiler),diamond)
+@@ -716,8 +808,8 @@ ifeq ($(compiler),diamond)
    PPFC          :=  ifort
    FC            :=  ifort
    PFC           :=  ifort
@@ -467,7 +468,7 @@ index 2c0eb06..febaf6f 100644
    ifeq ($(DEBUG),full)
       FFLAGS1	:=  $(INCDIRS) -g -O0 -debug -fpe0 -132 -traceback -check all -DALL_TRACE -DFLUSH_MESSAGES -DFULL_STACK
    endif
-@@ -732,8 +823,8 @@ ifeq ($(compiler),diamond)
+@@ -732,8 +824,8 @@ ifeq ($(compiler),diamond)
    IMODS         :=  -I
    CC            := icc
    CCBE          := $(CC)
@@ -478,7 +479,7 @@ index 2c0eb06..febaf6f 100644
    ifeq ($(DEBUG),full)
       CFLAGS        := $(INCDIRS) -g -O0
    endif
-@@ -784,7 +875,7 @@ ifeq ($(compiler),garnet)
+@@ -784,7 +876,7 @@ ifeq ($(compiler),garnet)
       CFLAGS	:=  $(INCDIRS) -DLINUX -g -O0
    endif
    IMODS		:=  -module
@@ -487,7 +488,7 @@ index 2c0eb06..febaf6f 100644
  # jgf20110728: on Garnet, NETCDFHOME=/opt/cray/netcdf/4.1.1.0/netcdf-pgi
  # jgf20110815: on Garnet, HDF5HOME=/opt/cray/hdf5/default/hdf5-pgi
  # jgf20130815: on Garnet, load module cray-netcdf, with the path to the
-@@ -809,7 +900,7 @@ ifeq ($(compiler),kraken)
+@@ -809,7 +901,7 @@ ifeq ($(compiler),kraken)
    PPFC          :=  ftn
    FC            :=  ftn
    PFC           :=  ftn
@@ -496,7 +497,7 @@ index 2c0eb06..febaf6f 100644
    FFLAGS2       :=  $(FFLAGS1)
    FFLAGS3       :=  $(FFLAGS1)
    DA            :=  -DREAL8 -DLINUX -DCSCA -DPOWELL
-@@ -845,7 +936,7 @@ ifeq ($(compiler),circleci)
+@@ -845,7 +937,7 @@ ifeq ($(compiler),circleci)
    IMODS 	:=  -I
    CC		:= gcc
    CCBE		:= $(CC)
@@ -505,7 +506,7 @@ index 2c0eb06..febaf6f 100644
    CLIBS	:=
    LIBS		:=
    MSGLIBS	:=
-@@ -859,8 +950,7 @@ ifeq ($(compiler),circleci)
+@@ -859,8 +951,7 @@ ifeq ($(compiler),circleci)
       MULTIPLE := TRUE
    endif
  endif
@@ -515,7 +516,7 @@ index 2c0eb06..febaf6f 100644
  #$(MACHINE)
  ########################################################################
  # Compiler flags for Linux operating system on 32bit x86 CPU
-@@ -950,7 +1040,7 @@ ifeq ($(compiler),gnu)
+@@ -950,7 +1041,7 @@ ifeq ($(compiler),gnu)
       FFLAGS1	:=  $(INCDIRS) -g -O0 -ffixed-line-length-132 -ftrace=full -fbounds-check -DNETCDF_TRACE -DFLUSH_MESSAGES -DFULL_STACK
    endif
    ifeq ($(DEBUG),valgrind)
@@ -524,7 +525,7 @@ index 2c0eb06..febaf6f 100644
    endif
    ifeq ($(SWAN),enable)
       FFLAGS1    :=  $(FFLAGS1) -freal-loops
-@@ -988,69 +1078,6 @@ ifeq ($(compiler),gnu)
+@@ -988,69 +1079,6 @@ ifeq ($(compiler),gnu)
    endif
  endif
  #
@@ -594,7 +595,7 @@ index 2c0eb06..febaf6f 100644
  endif
  
  ########################################################################
-@@ -1095,7 +1122,7 @@ ifeq ($(arch),altix)
+@@ -1095,7 +1123,7 @@ ifeq ($(arch),altix)
    PPFC            := ifort
    FC              := ifort
    PFC             := ifort
@@ -603,7 +604,7 @@ index 2c0eb06..febaf6f 100644
    FFLAGS2	  := $(FFLAGS1)
    FFLAGS3	  := $(FFLAGS1)
    DA	          :=  -DREAL8 -DCSCA
-@@ -1168,7 +1195,7 @@ ifeq ($(IBM),p5)
+@@ -1168,7 +1196,7 @@ ifeq ($(IBM),p5)
    FFLAGS0       := $(INCDIRS) -w -qfixed=132 -qarch=auto -qcache=auto
    FFLAGS1       := $(FFLAGS0) -O2
    FFLAGS2       := $(FFLAGS0) -qhot -qstrict
@@ -612,7 +613,7 @@ index 2c0eb06..febaf6f 100644
    DA            := -WF,"-DREAL8,-DIBM,-DCSCA"
    DP            := -tF -WF,"-DREAL8,-DIBM,-DCSCA,-DCMPI"
    DPRE          := -tF -WF,"-DREAL8,-DIBM"
-@@ -1488,9 +1515,9 @@ ifneq (,$(findstring powerpc-darwin,$(MACHINE)-$(OS)))
+@@ -1488,9 +1516,9 @@ ifneq (,$(findstring powerpc-darwin,$(MACHINE)-$(OS)))
    PPFC	        := f90
    FC	        := f90
    PFC	        := mpif77
@@ -625,7 +626,7 @@ index 2c0eb06..febaf6f 100644
    DA  	   	:=  -DREAL8 -DCSCA -DLINUX
    DP  	   	:=  -DREAL8 -DCSCA -DCMPI -DLINUX
    DPRE	   	:=  -DREAL8 -DLINUX
-@@ -1518,17 +1545,17 @@ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
+@@ -1518,17 +1546,17 @@ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
    PPFC	        := ifort
    FC	        := ifort
    PFC	        := mpif77
