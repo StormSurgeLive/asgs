@@ -53,6 +53,10 @@ _show() {
       # there is no 'else', so this is just silent if ASGS_LOCAL_DIR is not defined
       fi
       ;;
+    asgsversion)
+      ASGS_VERSION=$(asgs-info -sv | sed 's/[ \t]*$//')
+      echo "${I} ASGS_VERSION is '${ASGS_VERSION}'"
+      ;;
     machinename)
       if [ -n "${ASGS_MACHINE_NAME}" ]; then
         echo "${I} ASGS_MACHINE_NAME is defined as '${ASGS_MACHINE_NAME}'"
@@ -198,6 +202,12 @@ _show() {
       if [ -n "${PLATFORM_INIT}" ]; then
         echo "${I} PLATFORM_INIT is defined as '${PLATFORM_INIT}'"
       fi
+      ;;
+    age)
+      guess age
+      ;;
+    info)
+      asgs-info -a
       ;;
     *) echo "'${1}' is not known to the 'show' command"
       ;;
