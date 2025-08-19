@@ -37,7 +37,7 @@ while getopts "abrstv" opt; do
       show_version=true
       ;;
     *)
-      echo "Usage: $0 [-v]" >&2
+      echo "Usage: $0 [-abrstv]" >&2
       exit 1
       ;;
   esac
@@ -55,7 +55,8 @@ _assert_git_repo()
 if $show_version; then
   pushd $SCRIPTDIR > /dev/null
   if [[ -f VERSION ]]; then
-    echo -n version:$(head -n 1 VERSION) " "
+    version=$(head -n 1 VERSION)
+    echo -n "$version "
   else
     echo "VERSION file not found." >&2
     popd
@@ -69,7 +70,8 @@ if $show_gitbranch; then
   _assert_git_repo
   # command
   pushd $SCRIPTDIR > /dev/null
-  echo -n branch:$(git branch | grep '*' | awk '{print $2}') " "
+  branch=$(git branch | grep '*' | awk '{print $2}')
+  echo -n "$branch "
   popd > /dev/null
 fi
 
@@ -78,7 +80,8 @@ if $show_gitremote; then
   _assert_git_repo
   # command
   pushd $SCRIPTDIR > /dev/null
-  echo -n remote:$(git remote -v | tail -n 1 | awk '{print $1 " " $2}') " "
+  remote=$(git remote -v | tail -n 1 | awk '{print $1 " " $2}')
+  echo -n "$remote "
   popd > /dev/null
 fi
 
@@ -87,7 +90,8 @@ if $show_gitsha; then
   _assert_git_repo
   pushd $SCRIPTDIR > /dev/null
   # command
-  echo -n commit:$(git log | head -n1 |awk '{print $2'}) " "
+  sha=$(git log | head -n1 | awk '{print $2'})
+  echo -n "$sha "
   popd > /dev/null
 fi
 
@@ -96,7 +100,11 @@ if $show_gittags; then
   _assert_git_repo
   pushd $SCRIPTDIR > /dev/null
   # command
-  echo -n tags:$(git tag --points-at HEAD) " "
+  tags=$(git tag --points-at HEAD)
+  if [ -z "$tags" ]; then
+    tags="no-tags"
+  fi
+  echo -n "$tags "
   popd > /dev/null
 fi
 

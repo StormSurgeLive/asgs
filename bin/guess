@@ -165,8 +165,17 @@ _guess_installation_age()
   echo ${I} "ASGS directory is about ${CY}${B}$avg_age_days${R} days old"
 }
 
+_assert_git_repo()
+{
+  if [[ ! -d "$SCRIPTDIR/.git" ]]; then
+    echo ${W} " Health check skipped, .git not found!"
+    exit
+  fi
+}
+
 _guess_health()
 {
+  _assert_git_repo
   missing=$(git fsck --full 2> /dev/null | grep 'missing' | wc -l)
   if [[ $missing == 0 ]]; then
     echo " ${CY}${B}healthy${R}"

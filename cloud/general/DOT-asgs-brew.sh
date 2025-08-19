@@ -1284,7 +1284,6 @@ if [ -n "$_asgsh_splash" ]; then
     echo $(guess age)
     echo -n ${I} "Checking ASGS directory health, please wait ... "
     echo $(guess health)
-    echo "(* startup checks run because '-c' flag was used)"
     echo
   fi
   echo "${YW}${B}Quick start:${R}"
