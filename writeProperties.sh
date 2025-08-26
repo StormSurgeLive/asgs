@@ -33,9 +33,23 @@ writeProperties()
    # this is the first set of properties that will be written; if there is
    # a stray file from a previous (interrupted) asgs execution, this function
    # should overwrite whatever may have been there
-   #
+
+   # get the latest values here
+   ASGS_VERSION=$(asgs-info -v)
+   ASGS_GIT_COMMIT=$(asgs-info -s)
+   ASGS_GIT_BRANCH=$(asgs-info -b)
+   ASGS_GIT_REMOTE=$(asgs-info -r)
+   ASGS_GIT_TAGS=$(asgs-info -t)
+
    # basic asgs configuration
    echo "config.file : $CONFIG" > $STORMDIR_RUN_PROPERTIES  # <--<< OVERWRITE
+
+   echo "asgs.version : $ASGS_VERSION"       >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.commit : $ASGS_GIT_COMMIT" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.remote : $ASGS_GIT_REMOTE" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.branch : $ASGS_GIT_BRANCH" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.tags : $ASGS_GIT_TAGS"     >> $STORMDIR_RUN_PROPERTIES
+
    echo "instancename : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "operator : $operator" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR_RUN_PROPERTIES
