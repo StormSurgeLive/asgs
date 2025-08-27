@@ -24,4 +24,4 @@ export SERQUEUE=general
 export ACCOUNT=null
 # export JOBLAUNCHER='srun -N %nnodes%'  # use if cluster assigns whole nodes
 export JOBLAUNCHER='srun -n %totalcpu%' # assuming slurm is set up to share nodes/cores
-export PPN=28                           # this will vary wildly from cluster to cluster
+export PPN=40                           # this will vary wildly from cluster to cluster
