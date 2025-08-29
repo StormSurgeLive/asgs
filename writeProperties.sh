@@ -402,3 +402,17 @@ writeJobResourceRequestProperties()
    echo "ncpu : $NCPU" >> ${STORMDIR}/run.properties  # number of compute CPUs
    echo "numwriters : $NUMWRITERS" >> ${STORMDIR}/run.properties  # number of dedicated writer CPUs
 }
+#
+# write properties to the run.properties file that are associated with
+writeNodalAttributesProperties()
+{
+   SCENARIODIR=$1
+   local THIS="asgs_main->writeNodalAttributesProperties()"
+   local SCENARIODIR_RUN_PROPERTIES="$SCENARIODIR/run.properties"
+   logMessage "$THIS: Writing active nodal attributes and their default values as array properties to $1/run.properties."
+
+   echo "adcirc.nodalattributes.activated : ( ${nodal_attribute_activate[@]} )" >> $SCENARIODIR_RUN_PROPERTIES
+   for k in ${nodal_attribute_activate[@]}; do
+      echo "adcirc.nodalattribute.${k}.default : ( ${nodal_attribute_default_values[$k]} )"
+   done
+}

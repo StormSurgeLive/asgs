@@ -54,6 +54,7 @@ generateDynamicInput()
     fi
     #
     # nodal attribute default values to be written to nodal attributes (fort.13) file
+    writeNodalAttributesProperties $SCENARIODIR
     na_defaults="\n"
     for k in ${!nodal_attribute_default_values[@]}; do
         na_defaults="$na_defaults      $k: \"${nodal_attribute_default_values[$k]}\"\n"
