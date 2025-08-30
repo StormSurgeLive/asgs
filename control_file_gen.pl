@@ -612,6 +612,7 @@ while(<TEMPLATE>) {
     s/%NCREF-Line%//;
     s/%NCCOM-Line%//;
     s/%NCHOST-Line%//;
+    s/%NCCONV-Line%//;
     s/%NCCONT-Line%//;
     s/%NCDATE-Line%//;
     # namelists
