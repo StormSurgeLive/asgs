@@ -209,6 +209,7 @@ goto() {
 
 # load environment related things like an ADCIRC environment or saved ASGS environment
 load() {
+  trap 'echo && exit 1' SIGINT
   CHOICES=();
   case "${1}" in
     adcirc)
@@ -282,7 +283,9 @@ load() {
         export _ASGSH_CURRENT_PROFILE="$NAME"
         _reset_ephemeral_envars
        source "$ASGS_META_DIR/$NAME"
-        echo "${I} loaded '$NAME' into current profile"
+        if [ -n "$_asgsh_splash" ]; then
+          echo "${I} loaded '$NAME' into current profile"
+        fi
         if [ -e "$ASGS_CONFIG" ]; then
           # extracts info such as 'instancename' so we can derive the location of
           # the state file, then the log file path and actual run directory
@@ -1177,6 +1180,40 @@ fi
 # initialization, do after bash functions have been loaded
 source $SCRIPTDIR/etc/PS1.sh
 
+# 'build' is basically ASGS Shell Environment's "package manager"
+# these are the "optional" installs - from individual utilities
+# to "bundles" (e.g., a set of related, but optional Perl modules)
+build() {
+  TO_BUILD=${1}
+  shift
+  BUILD_OPTS=$@
+  case "${TO_BUILD}" in
+    adcirc)
+      init-adcirc.sh $@
+      ;;
+    jq)
+      init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    pdl)
+      init-perl-data-language.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    perl-dev)
+      init-perldev-env.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    replaycli)
+      init-replaycli.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
+      ;;
+    *)
+      echo 'Supported "build" options:'
+      echo '  adcirc    - ADCIRC build wizard supporting different versions and patchsets'
+      echo '  jq        - "a lightweight and flexible command-line JSON processor"'
+      echo '  pdl       - installs the latest version of the Perl Data Language (PDL)'
+      echo '  perl-dev  - installs tools useful for Perl development (e.g., Dist::Zilla)'
+      echo '  replaycli - a client for StormReplay.com, an ASGS related service'
+      ;;
+  esac
+}
+
 # deprecation (may change *again* if we create a general install manager
 initadcirc(){
   echo "(deprecation notice): 'initadcirc' should now be called as, 'build adcirc'."
@@ -1297,6 +1334,10 @@ fi
 
 # construct to handle "autorun" options
 case "$_asgsh_flag_do" in
+  run_any)
+    eval "${_asgsh_flag_do_cmd}"
+    exit
+  ;;
   run_list)
     list ${_asgsh_flag_do_args}
     exit

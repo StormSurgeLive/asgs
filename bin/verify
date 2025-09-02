@@ -10,10 +10,10 @@ fi
 _verify() {
   case "${1}" in
     adcirc)
-     verify_adcirc
+     verify_adcirc ${2}
      ;;
     email)
-     verify_email "${2}"
+     verify_email ${2}
      ;;
     perl)
      verify_perl
@@ -38,7 +38,7 @@ verify_adcirc() {
   echo +
   echo ++ Verifying ADCIRC in $ADCIRCDIR runs serially
   echo ++ ... downloading test case from adcirc.org
-  $SCRIPTDIR/cloud/general/t/verify-adcirc.sh
+  $SCRIPTDIR/cloud/general/t/verify-adcirc.sh $@
 }
 
 verify_perl() {

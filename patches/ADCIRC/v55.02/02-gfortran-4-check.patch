@@ -1,0 +1,15 @@
+diff --git a/src/owiwind_netcdf.F b/src/owiwind_netcdf.F
+index 50ba8fe..a0ecb95 100644
+--- a/src/owiwind_netcdf.F
++++ b/src/owiwind_netcdf.F
+@@ -395,7 +395,10 @@
+       USE MESH, ONLY: NP
+       USE netcdf
+       USE SIZES, ONLY: MYPROC
++
++#if defined(GFORTRAN_VERSION) && GFORTRAN_VERSION >= 50000
+       USE,INTRINSIC :: IEEE_ARITHMETIC
++#endif
+ 
+       IMPLICIT NONE
+ 

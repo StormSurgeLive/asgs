@@ -317,24 +317,17 @@ env_dispatch() {
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "queenbee") logMessage "$I Queenbee (LONI) configuration found."
-          init_queenbee
+   "queenbee") init_queenbee
           ;;
-  "supermic") logMessage "$I SuperMIC (LSU HPC) configuration found."
-          init_supermic
+   "supermic") init_supermic
           ;;
-  "queenbeeC") logMessage "$I QueenbeeC (LONI) configuration found."
-          init_queenbeeC
+  "queenbeeC") init_queenbeeC
           ;;
-  "frontera") logMessage "$I Frontera (TACC) configuration found."
-          init_frontera
+   "frontera") init_frontera
           ;;
-
-  "test") consoleMessage "$I test environment (default) configuration found."
-          init_test
+       "test") init_test
           ;;
-  *) # fallback for new method of initializing a platform
-          init_platform
+            *) init_platform # fallback for new method of initializing a platform
           ;;
   esac
 
