@@ -63,12 +63,13 @@ case $parameterPackage in
    velmin=0.05                               # pseudovelocity threshold
    metControl["WindDragLimit"]="0.0028"      # max wind drag coefficient, unitless
    # nodal attributes
-   NAFILE=hsofs-parameters.13
+   NAFILE=hsofs-parameters-v2.13
    nodal_attribute_activate=( mannings_n_at_sea_floor )
    nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
    nodal_attribute_activate+=( surface_canopy_coefficient )
    nodal_attribute_activate+=( surface_directional_effective_roughness_length  )
    nodal_attribute_activate+=( surface_submergence_state )
+   nodal_attribute_activate+=( sea_surface_height_above_geoid )
    nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
    nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
    nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
