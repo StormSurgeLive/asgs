@@ -220,7 +220,7 @@ export-adcirc() {
 ## copy n' paste this entire BLOCK anywhere ADCIRC must be accessed
 
 #-- BEGIN ADCIRC Live (c) 2024-present exported environment
-export PATH=$ADCIRCDIR:\$PATH
+export PATH=$ADCIRCDIR:$SCRIPTDIR:\$PATH # adds path to default ADCIRC bins, asgsh Virtual Environment
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\$LD_LIBRARY_PATH
 export LD_INCLUDE_PATH=$LD_INCLUDE_PATH:\$LD_INCLUDE_PATH
 ## For commercial support options, email help@support.adcirc.live
