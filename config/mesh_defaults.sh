@@ -153,7 +153,7 @@ case $GRIDNAME in
    "Shinnecock")
       INPUTDIR=$SCRIPTDIR/input/meshes/shinnecock
       ;;
-   "ec2001_v2e"|"EC2001v2e")
+   "ec2001_v2e"|"EC2001v2e"|"EC2001")
       INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       ;;
    "OPENWATERv1e")
