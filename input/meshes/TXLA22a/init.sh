@@ -35,6 +35,8 @@ HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time,including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="14:00:00" # forecast wall clock time
+# relax quality control
+QUALITYCONTROL="allow-nonfatal-instability"
 case $parameterPackage in
 "hardcoded")
     CONTROLTEMPLATE=TXLA22a_fort.15.template  # fort.15 template
