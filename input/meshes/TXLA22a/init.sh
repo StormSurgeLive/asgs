@@ -67,7 +67,7 @@ case $parameterPackage in
     # nodal attributes file
     NAFILE=TXLA22a.13.template
     nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.022"
-    nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2347"
+    nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2763"
     nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
     nodal_attribute_default_values["internal_tide_friction"]="0.0 0.0 0.0"
     nodal_attribute_default_values["subgrid_barrier"]="99999.0"
