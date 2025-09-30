@@ -26,10 +26,11 @@ variables_init()
    HPCENVSHORT=${HPCENVSHORT:-null}
    HPCENV=${HPCENV:-null}
    BACKGROUNDMET=on
+   QUALITYCONTROL=$SCRIPTDIR/util/output/quality.sh
+   QUALITYSETTING=strict
    NWS=0
    BASENWS=0
    # tides
-   QUALITYCONTROL=$SCRIPTDIR/util/output/quality.sh
    TIDEFAC=off
    selfAttractionEarthLoadTide="notprovided"
    LOADTIDEURL=null

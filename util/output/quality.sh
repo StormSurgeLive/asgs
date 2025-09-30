@@ -56,6 +56,8 @@ if [[ -e jobID ]]; then
 fi
 CYCLE=${properties['advisory']}     # e.g., 2025080600 for NAM or GFS, two digit advisory number for TCs
 SCENARIO=${properties['scenario']}  # namforecast|veerRight100|etc
+QUALITYCONTROL=${properties['post.qualitycontrol.script']}  # off|$SCRIPTDIR/util/output/quality.sh
+QUALITYSETTING=${properties['post.qualitycontrol.setting']}  # strict|allow-nonfatal-instability
 #
 THIS=quality.sh             # name of this script for use in log messages
 #
@@ -85,8 +87,14 @@ if [ -e $file ]; then
     if [ $numMsg -eq 0 ]; then
         echo "cycle ${CYCLE}: ${SCENARIO}: No numerical instability detected in '$file' after completion of job '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
     else
-        ERROVALUE=1
-        ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. "
+        if [[ $QUALITYSETTING == "allow-nonfatal-instability" ]]; then
+            echo "cycle ${CYCLE}: ${SCENARIO}: WARNING: Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. QUALITYSETTING is set to '$QUALITYSETTING' so this will only result in a warning."
+            # write this result to run.properties for downstream notification
+            echo "post.qualitycontrol.warnelev.nummessages : $numMsg" >> $RUNPROPERTIES
+        else
+            ERROVALUE=1
+            ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. "
+        fi
     fi
 fi
 done
@@ -167,8 +175,8 @@ for file in ${filesFoundList[@]}; do
         if [[ $compareDry -gt 0 ]]; then
             echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK WARNING: There are more dry values in '$compareDry' datasets in the '$file' file than the total number of negative topobathy depths ('$numLand') in the mesh for job ID '$jobID'." 2>&1 | awk -v level=WARN -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         fi
-        # also check for min, max, avg, or stdev set to zero
-        numZero=$(awk '$1==0.0 || $2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
+        # also check for max, avg, or stdev set to zero (ok for min to be zero, although presumably unusual)
+        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
         ;;
     "swan_HS_max.63.nc"|"swan_HS.63.nc"|"swan_TPS_max.63.nc"|"swan_TPS.63.nc"|"swan_DIR_max.63.nc"|"swan_DIR.63.nc")
         # swan results can have zero or the missing value in summary statistics if it was cold

@@ -170,6 +170,8 @@ writeProperties()
    if [ -n "$OPENDAPADDROOT" ]; then
      echo "post.opendap.addroot : ${OPENDAPADDROOT}" >> $STORMDIR_RUN_PROPERTIES
    fi
+   echo "post.qualitycontrol.script : $QUALITYCONTROL" >> $STORMDIR_RUN_PROPERTIES
+   echo "post.qualitycontrol.setting : $QUALITYSETTING" >> $STORMDIR_RUN_PROPERTIES
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR_RUN_PROPERTIES
    echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR_RUN_PROPERTIES
