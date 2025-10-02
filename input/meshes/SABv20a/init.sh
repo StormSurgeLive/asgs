@@ -46,7 +46,7 @@ case $parameterPackage in
 "2025.1"|"default")
     CONTROLTEMPLATE=SABv20a.15.ASGS2024.1.template
     # numerics/physics (fort.15)
-    TIMESTEPSIZE=1.0                      # adcirc time step size (seconds)
+    TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
     advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
     solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit # for explicit, last digit in IM is 2
     time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
