@@ -29,43 +29,7 @@ THIS=$(basename -- $0)
 #####################################################################
 #                B E G I N   F U N C T I O N S
 #####################################################################
-spinner()
-{
-   # $1 is the time limit in seconds to spin in seconds
-   #    (0 to spin forever or until associated process exits)
-   # $2 is the (optional) process ID to wait on
-   #    (if both pid and time limit were provided, and
-   #     time limit is exceeded before the process exits,
-   #     this function returns an error code for the calling
-   #     routine to interpret and deal with)
-   local spin='-\|/'
-   local i=0
-   local j=0
-   while [[ $j -le $1 ]]; do
-      i=$(( (i+1) %4 ))
-      printf "\b${spin:$i:1}" # to the console
-      sleep 1
-      # if there is a process ID, and the associated process
-      # has finished, break out of the loop
-      if [[ ! -z $2 ]]; then
-         if ! kill -0 $2 >> /dev/null 2>&1 ; then
-            return 0  # process we were waiting on has exited
-         fi
-         if [[ $1 -eq 0 ]]; then
-            # wait indefinitely for process to end
-            j=$(( (j-1) ))
-         fi
-      fi
-      j=$(( (j+1) ))
-   done
-   # time limit has been reached; return success unless
-   # process ID was also provided
-   if [[ ! -z $2 ]]; then
-      return 1  # process we are waiting on is still running
-   else
-      return 0  # we successfully waited for the right amount of time
-   fi
-}
+source $SCRIPTDIR/monitoring/spinner.sh
 
 # reads/rereads+rebuilds derived variables
 # Sets default values for many different asgs parameters;
@@ -1084,6 +1048,11 @@ source $SCRIPTDIR/downloadBackgroundMet.sh
 # subsets and downloads grib2 files with curl, and reprojects
 # to latlon grid with wgrib2
 source $SCRIPTDIR/downloadGFS.sh
+#
+# subroutine that polls an external https site for RRFS data,
+# subsets and downloads grib2 files with curl, and reprojects
+# to latlon grid with wgrib2
+source $SCRIPTDIR/downloadRRFS.sh
 #
 # subroutine that downloads river flux data from an external ftp site
 # and constructs a river flux boundary condition file (fort.20) to covert

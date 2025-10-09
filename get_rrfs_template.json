@@ -1,0 +1,30 @@
+{
+   "version" : "0.1",
+   "category" : "forcing",
+   "forcing" : "meteorology",
+   "meteorology" : "rrfs",
+   "template" : "%NULLGETRRFSTEMPLATEFILE%",
+   "filled" : "%NULLGETRRFSTEMPLATEFILLEDFILE%",
+   "status" : "%NULLRRFSSTATUSFILE%",
+   "select" : "%NULLRRFSSELECTFILE%",
+   "get" : "%NULLGETRRFSFILE%",
+   "siteHost" : "%NULLBACKSITE%",
+   "stage" : "%NULLSTAGE%",
+   "scriptDir" :"%NULLSCRIPTDIR%",
+   "localDataDir" : "%LOCALDATADIR%",
+   "configDailyForecastCycles" : [
+      "%NULLFORECASTCYCLES%"
+   ],
+   "cyclelist" : [
+      "%NULLCYCLELIST%"
+   ],
+   "filesDownloaded" : [
+      "%NULLRRFSNOWCASTDOWNLOADED%"
+   ],
+   "filesFromCache" : [
+      "%NULLRRFSNOWCASTFOUND%"
+   ],
+   "lastupdated" : [
+      { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }
+   ]
+}
