@@ -3,7 +3,7 @@
 PERLBREW_ROOT=${1:-"$HOME/perl5"}
 export PERLBREW_ROOT
 ACTION=${2:-"install"}
-PERL_VERSION=${3:-"perl-5.40.1"}
+PERL_VERSION=${3:-"perl-5.42.0"}
 
 if [ "$ACTION" == "clean" ]; then
 
