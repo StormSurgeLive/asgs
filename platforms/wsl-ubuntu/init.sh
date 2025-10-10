@@ -6,6 +6,7 @@ export SCRATCH=${SCRATCH:-$HOME/scratch}
 export DEFAULT_COMPILER=gfortran
 export HPCENV=wsl-ubuntu.local
 export HPCENVSHORT=wsl-ubuntu
+export PPN=4 # this is being set rather low by default
 export QUEUESYS=mpiexec
 export QCHECKCMD="ps -aux | grep mpiexec "
 export SUBMITSTRING="mpirun "
