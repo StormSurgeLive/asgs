@@ -24,6 +24,14 @@
    "filesFromCache" : [
       "%NULLRRFSNOWCASTFOUND%"
    ],
+   "winPreHeader" : "%WINPREHEADER%",
+   "winPreVelocityFile" : "%WINPREVELOCITYFILE%",
+   "winPrePressureFile" : "%WINPREPRESSUREFILE%",
+   "winPreRecordLength" : "%WINPRERECORDLENGTH%",
+   "rrfsForecastValidStart" : "%RRFSFORECASTVALIDSTART%",
+   "winPreWtimincSeconds" : "%WINPREWTIMINCSECONDS%",
+   "winPreNumRecords" : "%WINPRENUMRECORDS%",
+   "winPreDataTimes" : "%WINPREDATATIMES%",
    "lastupdated" : [
       { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }
    ]

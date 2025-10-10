@@ -41,4 +41,12 @@ SYSLOG=$RUNDIR/test.$unitTest.downloadRRFS.log
 #
 unitTest=${unitTest}.owiwinpre
 SYSLOG=$RUNDIR/test.$unitTest.downloadRRFS.log
+#downloadRRFS  # <- uncomment only this invokation to run to this breakpoint
+#
+unitTest=${unitTest}.metadata
+SYSLOG=$RUNDIR/test.$unitTest.downloadRRFS.log
+downloadRRFS  # <- uncomment only this invokation to run to this breakpoint
+#
+unitTest=${unitTest}.scenariodir
+SYSLOG=$RUNDIR/test.$unitTest.downloadRRFS.log
 downloadRRFS  # <- uncomment only this invokation to run to this breakpoint

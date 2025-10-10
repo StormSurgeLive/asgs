@@ -465,23 +465,38 @@ downloadRRFS()
             exit
         fi
         #
+        #          W R I T E   M E T A D A T A   T O   J S O N
+
+        #
         # write metadata to JSON
-        bashJSON.pl \
-            --mapscalar get="$THIS" \
-            --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})" \
-            --mapscalar winPreVelocityFile="$winFileName" \
-            --mapscalar winPrePressureFile="$preFileName" \
-            --mapscalar winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} )) \
-            --mapscalar gfsForecastValidStart="${owiWinPre["startDateTime"]}0000" \
-            --mapscalar winPreWtimincSeconds="$WTIMINC" \
-            --mapscalar winPreNumRecords="${#winPreTimes[*]}" \
-            --maparray winPreDataTimes="$(echo ${winPreTimes[@]})" \
-            --maparray filesDownloaded="$(echo ${downloaded[@]})" \
-            --maparray filesFromCache="$(echo ${have[@]})" \
-            < select_gfs_nowcast.pl.json \
-            > ${THIS}.json
+        winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
+        winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} ))
+        rrfsForecastValidStart="${owiWinPre["startDateTime"]}0000"
+        sed \
+            -e "s?%WINPREHEADER%?$winPreHeader?" \
+            -e "s?%WINPREVELOCITYFILE%?$winFileName?" \
+            -e "s?%WINPREPRESSUREFILE%?$preFileName?" \
+            -e "s?%WINPRERECORDLENGTH%?$winPreRecordLength?" \
+            -e "s?%RRFSFORECASTVALIDSTART%?$rrfsForecastValidStart?" \
+            -e "s?%WINPREWTIMINCSECONDS%?$WTIMINC?" \
+            -e "s?%WINPRENUMRECORDS%?${#winPreTimes[*]}?" \
+            -e "s?%WINPREDATETIMES%?$(echo ${winPreTimes[@]})?" \
+            -e "s?%NULLRRFSNOWCASTDOWNLOADED%?$(echo ${downloaded[@]})?" \  # <---<< populate "downloaded" above
+            -e "s?%NULLRRFSNOWCASTFOUND%?$(echo ${have[@]})?" \             # <---<< populate "have" above
+             < select_rrfs_nowcast.json \
+            > ${THIS}.json \
             2>> $SYSLOG
-        if [[ $BACKGROUNDMET == "GFS" ]]; then # don't need to do this for "gfsBlend"
+        if [[ $? != 0 ]]; then
+            echo "$THIS: Failed to fill in RRFS data request template with sed."
+        fi
+        # nowcast files
+        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata" ]]; then
+            exit
+        fi
+        #
+        #   M O V E   F I L E S   T O   S C E N A R I O   D I R E C T O R Y
+        #
+        if [[ $BACKGROUNDMET == "RRFS" ]]; then # don't need to do this for "rrfsBlend"
             ADVISDIR=$RUNDIR/$thisCycle
             CYCLEDIR=$ADVISDIR
             CYCLELOG=$CYCLEDIR/cycle.log
@@ -491,7 +506,7 @@ downloadRRFS()
             mkdir -p $SCENARIODIR 2>> $SYSLOG
             #
             # record the new advisory number to the statefile
-            debugMessage "$THIS: $ENSTORM: The new GFS cycle is $thisCycle."
+            debugMessage "$THIS: $ENSTORM: The new RRFS cycle is $thisCycle."
             cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
             sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
             debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
@@ -501,13 +516,17 @@ downloadRRFS()
         # put files in scenario directory
         mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
         cp ${THIS}.json "${winFileName%.*}.json" 2>> $SYSLOG
-        cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR 2>> $SYSLOG
+        cp get_rrfs_status.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR 2>> $SYSLOG
 
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
         ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
         ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
         cd $RUNDIR
+        # nowcast files
+        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata.scenariodir" ]]; then
+            exit
+        fi
     else
         #
         # F O R E C A S T
