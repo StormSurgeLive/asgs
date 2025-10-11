@@ -39,6 +39,13 @@ performQualityChecksRRFS()
     "grib2File")
         quality['size']=80000
         quality['lines']=1500
+        # see if wgrib2 can return the inventory successfully
+        wgrib2 $1 -inv /dev/null
+        if [[ $? != 0 ]]; then
+            msg="$THIS: The grib2 file '$1' appears to be corrupted."
+            logMessage "$msg"
+            consoleMessage "$I: $msg"
+            appMessage "$msg" $downloadRrfsLog
         ;;
     *)
         warn "THIS: Quality check attempted on unrecognized file type '$2'."
@@ -69,6 +76,7 @@ performQualityChecksRRFS()
         mv $1 $instanceRrfsDir/${1}.tooshort 2>> $SYSLOG
         return 1
     fi
+
     return 0
 }
 
@@ -95,6 +103,13 @@ downloadRRFS()
     # epoch seconds associated with cold start and hotstart times
     csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
     hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
+    # constant parameters related to RRFS forcing
+    lonSpec="${rrfsLatLonGrid['lon0']}:${rrfsLatLonGrid['nlon']}:${rrfsLatLonGrid['dlon']}"
+    latSpec="${rrfsLatLonGrid['lat0']}:${rrfsLatLonGrid['nlat']}:${rrfsLatLonGrid['dlat']}"
+    declare -A rrfsVar
+    rrfsVar['UGRD']='UGRD:10 m above ground'
+    rrfsVar['VGRD']='VGRD:10 m above ground'
+    rrfsVar['PRES']='PRES:surface'
     # example data path
     # aws s3 ls --no-sign-request s3://noaa-rrfs-pds/rrfs_a/rrfs.20251004/18/
     # -> 2025-10-04 15:12:46     102829 rrfs.t18z.natlev.3km.f000.na.grib2.idx
@@ -293,8 +308,8 @@ downloadRRFS()
                         # place the index file with computed ranges in the local cache
                         if [[ ! -d $instanceRrfsDir/$cycleDate/$hh ]]; then
                             mkdir -p $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
-                            mv $indexFileName $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
                         fi
+                        mv $indexFileName $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
                     fi
                 fi
             done
@@ -316,10 +331,6 @@ downloadRRFS()
         needed=$(( $numHourlyCycles * 3)) # separate downloads for UGRD, VGRD, and PRES
         succeeded=0
         tries=0
-        declare -A rrfsVar
-        rrfsVar['UGRD']='UGRD:10 m above ground'
-        rrfsVar['VGRD']='VGRD:10 m above ground'
-        rrfsVar['PRES']='PRES:surface'
         while [[ $succeeded -lt $needed ]]; do
             if [[ $tries -ne 0 ]]; then
                 msg="$THIS: Failed to download grib2 subsets of meteorological data. Succeeded for '$succeeded' out of '$needed' files. Waiting 60 seconds before trying again."
@@ -411,8 +422,6 @@ downloadRRFS()
                         break 2
                     fi
                     hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                    lonSpec="${rrfsLatLonGrid['lon0']}:${rrfsLatLonGrid['nlon']}:${rrfsLatLonGrid['dlon']}"
-                    latSpec="${rrfsLatLonGrid['lat0']}:${rrfsLatLonGrid['nlat']}:${rrfsLatLonGrid['dlat']}"
                     origFile=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f000.na.grib2
                     latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
                     # if this file has not been regridded, or the regridded file
@@ -594,7 +603,7 @@ downloadRRFS()
         mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
         cp downloadRRFS.json "${winFileName%.*}.json" 2>> $SYSLOG
         cp *.json $SCENARIODIR 2>> $SYSLOG
-        mv *.json $instanceRrfsDir 2>> $SYSLOG
+        cp *.json $instanceRrfsDir 2>> $SYSLOG
         #
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
@@ -608,133 +617,176 @@ downloadRRFS()
         fi
     else
         #
-        # F O R E C A S T
+        #                F O R E C A S T
         #
-        # download forecast data
-        logMessage "$THIS: INFO: Downloading files for scenario '$SCENARIO'."
-        consoleMessage "$I Downloading GFS files for scenario '$SCENARIO'."
         if [[ ! -d $SCENARIODIR ]]; then
             mkdir -p $SCENARIODIR
         fi
         #
         # grab the cycle that should be forecast
-        gfsForecastCycle=$(bashJSON.pl --key cyclelist --last < select_gfs_nowcast.pl.json)
+        rrfsForecastCycle=$(cat downloadRRFS.json | jq '.cyclelist[-1]')
         # write the forecast.properties file
-        echo "forecastValidStart : ${gfsForecastCycle}0000" > forecast.properties
+        echo "forecastValidStart : ${rrfsForecastCycle}0000" > forecast.properties
+        #
+        #       D O W N L O A D   G R I B 2   I N D E X
+        #         F I L E S   F O R   F O R E C A S T
         #
         # form the list of files to download
-        declare -a gfsForecastFiles
+        declare -a rrfsForecastFiles
         unset downloaded have
-        cyc=${gfsForecastCycle:8:2}
-        yyyymmdd=${gfsForecastCycle:0:8}
-        logMessage "$THIS: Subsetting and downloading GFS grib2 forecast files."
-        consoleMessage "$I Subsetting and downloading GFS grib2 forecast files."
-        maxRetries=10
-        for h in $(seq 0 $GFSFORECASTLENGTH) ; do
-            hhh=$(printf "%03d" $h)
-            file="gfs.t${cyc}z.pgrb2.0p25.f$hhh"
-            remotePath="%2Fgfs.${yyyymmdd}%2F${cyc}%2Fatmos"
-            finalURL=$baseURL"?file="$file$levels$vars$domain"&dir="$remotePath
-            # subset and download with curl
-            if [[ ! -e $instanceGfsDir/$yyyymmdd ]]; then
-                mkdir -p $instanceGfsDir/$yyyymmdd 2>> $SYSLOG
+        msg="$THIS: Downloading hourly RRFS nowcast grib2 files through cycle '$thisCycle'."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        numFiles=$(( $RRFSFORECASTLENGTH * 3 ))
+        cycleDate=${rrfsForecastCycle:0:8}
+        hh=$(printf"%02d" ${rrfsForecastCycle:8:2})
+        succeeded=0
+        tries=0
+        while [[ $succeeded -lt $numFiles ]]; do
+            if [[ $tries -ne 0 ]]; then
+                msg="$THIS: Tried '$tries' time(s) and failed to download all meteorological forecast data for cycle '$rrfsForecastCycle'. Waiting 60 seconds before trying again."
+                logMessage "$msg"
+                consoleMessage "$W $msg"
+                spinner 60
+                succeeded=0
             fi
-            # don't download again if the files are already in place
-            # (may want to turn off this conditional for end-to-end testing)
-            localFile=$instanceGfsDir/$yyyymmdd/$file
-            subsetSuccess=0
-            numRetries=0
-            cmd="curl -s '$finalURL' > $localFile 2>> $SYSLOG"
-            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Subsetting GFS with curl using the following command: '$cmd'." >> $downloadGfsLog
-            while [[ $subsetSuccess -eq 0 && $numRetries -lt $maxRetries ]]; do
-                how="download"
-                if [[ ! -s $localFile ]]; then
-                    curl -s "$finalURL" > $localFile 2>> $SYSLOG
-                    if [[ $? != 0 ]]; then
-                        logMessage "Subsetting GFS with curl failed when using the following command: '$cmd'."
-                        if [[ -e $localFile ]]; then
-                            mv $localFile ${localFile}.curlerr
-                        fi
+            for h in $(seq 0 $RRFSFORECASTLENGTH) ; do
+                hhh=$(printf "%03d" $h)
+                indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
+                if [[ ! -s $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
+                    # check to see if the grib2 index file is available
+                    # be a good citizen and just ask for the http header
+                    curlCommand="curl --silent --head ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
+                    indexFileStatus=$($curlCommand | head -n 1 | tr -d '\r')
+                    if [[ ! $indexFileStatus =~ "200" ]]; then
+                        appMessage "Could not find the grib2 index file on the remote web server; the HTTP status was '$indexFileStatus' using the curl command '$curlCommand'." $downloadRrfsLog
+                        break
                     fi
-                else
-                    how="have"
-                fi
-                # perform quality checks
-                if [[ -s $localFile ]]; then
-                    #logMessage "Performing quality check on '$localFile'."
-                    localFileType="$(file $localFile 2>> $SYSLOG)"
-                    localFileSize=$(stat -c "%s" $localFile 2>> $SYSLOG)
-                    localFileLines=$(wgrib2 $localFile -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG | wc -l)
-                    if [[ ! $localFileType =~ "(GRIB) version 2" && ! $localFileType =~ "data" ]]; then
-                        logMessage "Subsetting GFS with curl failed to produce a local grib2 file '$localFile'."
-                        if [[ "$localFileType" =~ "HTML document" ]]; then
-                            logMessage "The file '$localFile' is html instead of grib2."
-                            if [[ $(cat $localFile) =~ "data file is not present" ]]; then
-                                logMessage "The html message is: 'data file is not present'."
-                                mv $localFile not_present.html 2>> $SYSLOG
-                            else
-                                mv $localFile ${localFile}.html 2>> $SYSLOG
-                            fi
-                        else
-                            logMessage "The file type of '$localFile' is unrecognized: '$localFileType'."
-                            mv $localFile ${localFile}.unrecognized 2>> $SYSLOG
-                        fi
-                    # make sure the downloaded file is at least 1MB (these files
-                    # seem to be about 2-3MB)
-                    elif [[ $localFileSize -lt 1000000 ]]; then
-                        logMessage "The file '$localFile' seems to be incomplete because it is only '$localFileSize' bytes."
-                        mv $localFile ${localFile}.toosmall 2>> $SYSLOG
-                    # smoke test
-                    elif [[ $localFileLines -eq 0 ]]; then
-                        logMessage "The file '$localFile' does not seem to have barometric pressure data."
-                        mv $localFile ${localFile}.nodata 2>> $SYSLOG
-                    fi
-                else
-                    logMessage "Subsetting GFS with curl failed to produce a local grib2 file (or a file with zero length) when using the following command: '$cmd'."
-                fi
-                # if the file is still there, it passed its quality checks
-                if [[ -s $localFile ]]; then
-                    subsetSuccess=1
-                    if [[ $how == "download" ]]; then
-                        downloaded+=( $localFile )
+                    curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
+                    logMessage "curlCommand=$curlCommand"
+                    $curlCommand
+                    exitCode=$?
+                    if [[ $exitCode != 0 ]]; then
+                        logMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'."
+                        break
                     else
-                        have+=( $localFile )
+                        performQualityChecksRRFS $indexFileName indexFile
+                        if [[ $? -ne 0 ]]; then
+                            break
+                        fi
+                        # if the index file was downloaded successfully and passed quality checks
+                        # place the index file with computed ranges in the local cache
+                        if [[ ! -d $instanceRrfsDir/$cycleDate/$hh ]]; then
+                            mkdir -p $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
+                        fi
+                        mv $indexFileName $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
+                        downloaded+=( $indexFileName )
                     fi
-                    gfsForecastFiles+=( $localFile )
                 else
-                    numRetries=$(( numRetries + 1 ))
-                    if [[ $how == "download" ]]; then
-                        logMessage "GFS subsetting with curl failed. Sleeping 60 seconds before retry."
-                        sleep 60
-                    fi
+                    have+=( $indexFileName )
                 fi
             done
-            if [[ $numRetries -ge $maxRetries ]]; then
-                logMessage "Exceeded the max number of retries for downloading this file. Continuing with the forecast files that were downloaded successfully."
-                break
-            fi
+            succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
         done
         #
-        # now regrid to lat lon coordinates with wgrib2
-        logMessage "$THIS: Regridding GFS forecast grib2 files to latlon."
-        consoleMessage "$I Regridding GFS forecast grib2 files to latlon."
-        unset gfsFileList
-        declare -a gfsFileList
-        for origFile in ${gfsForecastFiles[@]} ; do
-            latLonFile=${origFile}.latlon
-            if [[ ! -s $latLonFile ]]; then
-                echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] Regridding GFS with wgrib2 using the following command: 'wgrib2 $origFile -inv /dev/null -set_grib_type same -new_grid_winds earth -new_grid latlon $lonSpec $latSpec $latLonFile 2>> $SYSLOG'." >> $downloadGfsLog
-                wgrib2 $origFile          \
-                    -inv /dev/null        \
-                    -set_grib_type same   \
-                    -new_grid_winds earth \
-                    -new_grid latlon $lonSpec $latSpec \
-                    $latLonFile
-                    2>> $SYSLOG
+        #    C O M P U T E   B Y T E   R A N G E S   A N D
+        #     D O W N L O A D   G R I B 2   S U B S E T S
+        #
+        msg="$THIS: Computing byte ranges and downloading forecast subsets by variable."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        needed=$(( $RRFSFORECASTLENGTH * 3)) # separate downloads for UGRD, VGRD, and PRES
+        succeeded=0
+        tries=0
+        while [[ $succeeded -lt $needed ]]; do
+            if [[ $tries -ne 0 ]]; then
+                msg="$THIS: Failed to download grib2 subsets of forecast meteorological data. Succeeded for '$succeeded' out of '$needed' files. Waiting 60 seconds before trying again."
+                logMessage "$msg"
+                consoleMessage "$W $msg"
+                spinner 60
             fi
-            # add to the list of files that will have their contents
-            # extracted for conversion to OceanWeather WIN/PRE ASCII format
-            gfsFileList+=( $latLonFile )
+            unset downloaded
+            unset have
+            for h in $(seq 0 $RRFSFORECASTLENGTH) ; do
+                hhh=$(printf "%03d" $h)
+                indexFileDir=$instanceRrfsDir/$cycleDate/$hh
+                indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
+                if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
+                    awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > ranges 2>> $SYSLOG
+                    paste -d "" $indexFileDir/$indexFileName ranges > $indexFileDir/$indexFileName.range 2>> $SYSLOG
+                fi
+                # attempt to download specific byte ranges via curl
+                for v in UGRD VGRD PRES; do
+                    byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range | grep -Eo '[0-9]*-[0-9]*')
+                    grib2FileName=${indexFileName%.idx}
+                    if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
+                        curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
+                        logMessage "curlCommand=$curlCommand"
+                        $curlCommand
+                        performQualityChecksRRFS $v.$grib2FileName grib2File
+                        if [[ $? -ne 0 ]]; then
+                            rm $v.$grib2FileName 2>> $SYSLOG
+                            break 3
+                        fi
+                        # the subset downloaded successfully and passed quality checks,
+                        # copy it to the local grib2 file cache
+                        mv $v.$grib2FileName $indexFileDir 2>> $SYSLOG
+                        downloaded+=( $v.$grib2FileName )
+                    else
+                        have+=( $v.$grib2FileName )
+                    fi
+                    # concatenate into a single grib2 file so that UGRD and VGRD can be
+                    # regridded and reprojected as vectors
+                    if [[ ! -s $grib2FileName ]]; then
+                        cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName
+                    fi
+                done
+            done
+            succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
+            ((tries++))
+        done
+        #
+        #       R E G R I D   A N D   R E P R O J E C T
+        #                  F O R E C A S T
+        #
+        msg="$THIS: Regridding RRFS grib2 files to latlon."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        tries=0
+        succeeded=0
+        while [[ $succeeded -lt $RRFSFORECASTLENGTH ]]; do
+            if [[ $tries -ne 0 ]]; then
+                msg="$THIS: Tried '$tries' time(s) and Failed to regrid/reproject meteorological forecast data. Waiting 60 seconds before trying again."
+                logMessage "$msg"
+                consoleMessage "$W $msg"
+                spinner 60
+                succeeded=0
+            fi
+            for h in $(seq 0 $RRFSFORECASTLENGTH) ; do
+                hhh=$(printf "%03d" $h)
+                origFile=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2
+                latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
+                # if this file has not been regridded, or the regridded file
+                # is 0 length
+                if [[ ! -s $latLonFile ]]; then
+                    regridCommand="wgrib2 $origFile -inv /dev/null -set_grib_type same -new_grid_winds earth -new_grid latlon $lonSpec $latSpec $latLonFile"
+                    appMessage "Regridding RRFS forecast using '$regridCommand'." $downloadRrfsLog
+                    $regridCommand 2>> $SYSLOG
+                    if [[ $? -ne 0 ]]; then
+                        logMessage "$THIS: The regridding command '$regridCommand' failed with exit code '$?'."
+                        if [[ -e $latLonFile ]]; then
+                            rm $latLonFile 2>> $SYSLOG
+                        fi
+                    else
+                        ((succeeded++))
+                    fi
+                else
+                    appMessage "The regridded file '$latLonFile' was already available in the local RRFS cache." $downloadRrfsLog
+                    ((succeeded++))
+                fi
+                done
+            done
+            ((tries++))
         done
         #
         # grab the start time (YYYYMMDDHH) of the files from the
