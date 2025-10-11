@@ -326,7 +326,7 @@ downloadGFS()
             --maparray filesDownloaded="$(echo ${downloaded[@]})" \
             --maparray filesFromCache="$(echo ${have[@]})" \
             < select_gfs_nowcast.pl.json \
-            > ${THIS}.json
+            > downloadGFS.json
             2>> $SYSLOG
         if [[ $BACKGROUNDMET == "GFS" ]]; then # don't need to do this for "gfsBlend"
             ADVISDIR=$RUNDIR/$thisCycle

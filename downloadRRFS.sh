@@ -53,20 +53,20 @@ performQualityChecksRRFS()
     # index file is plain ascii but error message is XML
     if [[ "$localFileType" =~ "XML" ]]; then
         appMessage "The requested RRFS index file '$1' was not found." $downloadRrfsLog
-        mv $1 ${1}.errxml 2>> $SYSLOG
+        mv $1 $instanceRrfsDir/${1}.errxml 2>> $SYSLOG
         return 1
     fi
     # make sure the downloaded file is at least 80kB (these files
     # seem to be about 100kB)
     if [[ $localFileSize -lt ${quality['size']} ]]; then
         appMessage "The file '$1' seems to be incomplete because it is only '$localFileSize' bytes." $downloadRrfsLog
-        mv $1 ${1}.toosmall 2>> $SYSLOG
+        mv $1 $instanceRrfsDir/${1}.toosmall 2>> $SYSLOG
         return 1
     fi
     # I found 1691 lines in the one that I looked at
     if [[ $localFileLines -lt ${quality['lines']} ]]; then
         appMessage "The file '$1' only has '$localFileLines' line which does not seem to be enough." $downloadRrfsLog
-        mv $1 ${1}.tooshort 2>> $SYSLOG
+        mv $1 $instanceRrfsDir/${1}.tooshort 2>> $SYSLOG
         return 1
     fi
     return 0
@@ -75,9 +75,11 @@ performQualityChecksRRFS()
 
 downloadRRFS()
 {
+
     #
     local THIS="asgs_main.sh>downloadRRFS.sh"
-    logMessage "$SCENARIO: $THIS: Downloading RRFS meteorological data."
+    logMessage "$SCENARIO: $THIS: Polling for new RRFS meteorological nowcast data."
+    consoleMessage "$I $THIS: Polling for new hourly RRFS nowcast data."
     cd $RUNDIR 2>> ${SYSLOG}
     # if there isn't an archive directory for RRFS data in the
     # ASGS WORK directory, make one
@@ -113,18 +115,16 @@ downloadRRFS()
             -e "s?%NULLBACKSITE%?${rrfs['BaseURL']}?" \
             -e "s?%NULLCYCLE%?$lastCycle?" \
             -e "s?%NULLSTAGE%?$stage?"                   \
-            -e "s?\"%NULLRRFSNOWCASTDOWNLOADED%\"?null?" \
-            -e "s?\"%NULLRRFSNOWCASTFOUND%\"?null?" \
-            -e "s?\"%NULLRRFSFORECASTDOWNLOADED%\"?null?" \
-            -e "s?\"%NULLRRFSFORECASTFOUND%\"?null?" \
-            -e "s?\"%NULLRRFSSTATUSFILE%\"?null?" \
-            -e "s?\"%NULLRRFSSELECTFILE%\"?null?" \
-            -e "s?\"%NULLGETRRFSFILE%\"?null?" \
-            -e "s?%NULLLASTUPDATER%?$THIS?" \
-            -e "s?%NULLLASTUPDATETIME%?$DATETIME?" \
-            -e "s?%NULLSCRIPTDIR%?$SCRIPTDIR?" \
-            -e "s?%LOCALDATADIR%?$instanceRrfsDir?" \
+            -e "s?%NULLSCRIPTDIR%?${SCRIPTDIR//$USER/\$USER}?" \
+            -e "s?%LOCALDATADIR%?${instanceRrfsDir//$USER/\$USER}?" \
             -e "s?\"%NULLFORECASTCYCLES%\"?$(echo ${forecastCycleArray%?})?" \
+            -e "s?%NULLDOMAIN%?${rrfsDomain['coverage']}?" \
+            -e "s?\"%NULLLON0%\"?${rrfsLatLonGrid['lon0']}?" \
+            -e "s?\"%NULLNLON%\"?${rrfsLatLonGrid['nlon']}?" \
+            -e "s?\"%NULLDLON%\"?${rrfsLatLonGrid['dlon']}?" \
+            -e "s?\"%NULLLAT0%\"?${rrfsLatLonGrid['lat0']}?" \
+            -e "s?\"%NULLNLAT%\"?${rrfsLatLonGrid['nlat']}?" \
+            -e "s?\"%NULLDLAT%\"?${rrfsLatLonGrid['dlat']}?" \
             < $SCRIPTDIR/${rrfs['TemplateName']} \
             > "${rrfs['FilledTemplateName']}" \
             2>> $SYSLOG
@@ -132,8 +132,8 @@ downloadRRFS()
             echo "$THIS: Failed to fill in RRFS data request template with sed."
         fi
         # stop here if we are only testing the filling of the JSON template
-        if [[ $unitTest == "rrfs.template" ]]; then
-            echo "$THIS: Finished unit test '$unitTest'."
+        if [[ $breakPoint == "rrfs.template" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -143,16 +143,14 @@ downloadRRFS()
         # along with the range of cycles posted since the adcirc hotstart time
         sleepSeconds=$(( ${rrfs['PollingInterval']} * 60 ))
         latestCycle=0
-        TRIES=0
+        tries=0
         printf "." # progress bar
         while [[ $latestCycle -le $lastCycle ]]; do
-            echo latestCycle=$latestCycle #jgfdebug
-            echo lastCycle=$lastCycle #jgfdebug
-            if [[ $TRIES -ne 0 ]]; then
+            if [[ $tries -ne 0 ]]; then
                 spinner $sleepSeconds
                 printf "\b.."
             fi
-            ((TRIES++))
+            ((tries++))
             #
             #   D O W N L O A D   C Y C L E   I N D E X   F I L E S
             #
@@ -161,20 +159,24 @@ downloadRRFS()
             # the existence of a grib2 index file for each cycle
             declare -a cycleList
             for d in $(seq 0 ${rrfs['LookAhead']}); do
-                echo d=$d # jgfdebug
                 cycleDate=$( TZ=UTC date --date="${lastCycle:0:8} +$d day" +"%Y%m%d" )
                 for h in 00 06 12 18; do
-                    echo h=$h          # jgfdebug
                     indexFileName=rrfs.t${h}z.natlev.3km.f000.na.grib2.idx
-                    echo indexFileName=$indexFileName #jgfdebug
                     if [[ -e $instanceRrfsDir/$cycleDate/$h/$indexFileName ]]; then
-                        #jgfdebug appMessage "Found the index file $instanceRrfsDir/$cycleDate/$h/$indexFileName in the local cache; no need to download it again." $downloadRrfsLog
                         cycleList+=( $cycleDate$h )
                     else
-                        # check to see if it is available from NCEP
-                        echo "curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
+                        # check to see if the grib2 index file is available from NCEP
+                        # be a good citizen and just ask for the http header
+                        curlCommand="curl --silent --head ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
+                        indexFileStatus=$($curlCommand | head -n 1 | tr -d '\r')
+                        if [[ ! $indexFileStatus =~ "200" ]]; then
+                            appMessage "Could not find the grib2 index file on the remote web server; the HTTP status was '$indexFileStatus' using the curl command '$curlCommand'." $downloadRrfsLog
+                            break 2
+                        fi
+                        # this index file has been posted, apparently; download it
                         curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
-                        $curlCommand
+                        logMessage "curlCommand=$curlCommand"
+                        $curlCommand 2>> $SYSLOG
                         exitCode=$?
                         if [[ $exitCode != 0 ]]; then
                             logMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'."
@@ -187,14 +189,11 @@ downloadRRFS()
                         fi
                         # if the index file was downloaded successfully and passed quality checks,
                         # place it in the local cache
-                        echo found  #jgfdebug
-                        if [[ $cycleDate$h -ge $lastCycle ]]; then
-                            cycleList+=( $cycleDate$h )
-                            if [[ ! -e $instanceRrfsDir/$cycleDate/$h/$indexFileName ]]; then
-                                if [[ ! -d $instanceRrfsDir/$cycleDate/$h ]]; then
-                                    mkdir -p $instanceRrfsDir/$cycleDate/$h 2>> $SYSLOG
-                                    mv $indexFileName $instanceRrfsDir/$cycleDate/$h 2>> $SYSLOG
-                                fi
+                        cycleList+=( $cycleDate$h )
+                        if [[ ! -e $instanceRrfsDir/$cycleDate/$h/$indexFileName ]]; then
+                            if [[ ! -d $instanceRrfsDir/$cycleDate/$h ]]; then
+                                mkdir -p $instanceRrfsDir/$cycleDate/$h 2>> $SYSLOG
+                                mv $indexFileName $instanceRrfsDir/$cycleDate/$h 2>> $SYSLOG
                             fi
                         fi
                     fi
@@ -210,7 +209,8 @@ downloadRRFS()
             fi
         done
         # stop here if we are only testing through the catalogging of the remote site
-        if [[ $unitTest == "rrfs.template.catalog" ]]; then
+        if [[ $breakPoint == "rrfs.template.catalog" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -220,40 +220,37 @@ downloadRRFS()
         # get the latest cycle that we want to nowcast to, if specific
         # forecast cycles have been specified; remove any forecast
         # cycles after the most recent one that we want to nowcast to
+        msg="$THIS: A new RRFS nowcast cycle has been posted: '$latestCycle'."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
         forecastCycles=( $(echo ${FORECASTCYCLE//,/' '}) )
         if [[ ${#forecastCycles[@]} -gt 0 ]]; then
             forecastFound=0
             extraCycles=0
-            for (( c=${#cycleList[@]}-1; c>=0; c-- )) ; do
-                echo extraCycles=$extraCycles
-                echo c=$c                #jgfdebug
+            for (( c=${#cycleList[@]}-1; c>=2; c-- )) ; do
                 cycleday=${cycleList[$c]:0:8}
-                echo cycleday=$cycleday #jgfdebug
                 cyclehour=${cycleList[$c]:8:2}
-                echo cyclehour=$cyclehour #jgfdebug
                 # loop over the forecast cycles to see if this
                 # cycle has been specified
                 for f in ${forecastCycles[@]}; do
-                    echo f=$f
                     if [[ ${forecastCycles[$f]} == $cyclehour ]]; then
                         forecastFound=1
-                        break
+                        break 2
                     fi
                 done
-                if [[ $forecastFound -eq 0 ]]; then
-                    ((extraCycles++))
-                else
-                    break
-                fi
+                ((extraCycles++))
             done
             # now remove the excess cycles that are beyond the end of the
             # required nowcast period, if any
-            cycleList=( ${cycleList[@]:0:(( ${#cycleList[@]} - $extraCycles ))} )
-            cycleListStr=$( (IFS=","; echo "${cycleList[*]}") )
+            if [[ $forecastFound == 1 ]]; then
+                cycleList=( ${cycleList[@]:0:(( ${#cycleList[@]} - $extraCycles ))} )
+            fi
         fi
-        sed -e "s?%NULLCYCLELIST%?$cycleListStr?" < ${rrfs['FilledTemplateName']} > select_rrfs_nowcast.json 2>> $SYSLOG
+        cycleListStr=$( (IFS=","; echo "${cycleList[*]}") )
+        sed -e "s?\"%NULLCYCLELIST%\"?$cycleListStr?" < ${rrfs['FilledTemplateName']} > select_rrfs_nowcast.json 2>> $SYSLOG
         # stop here if we are only testing through the removal of extra cycles
-        if [[ $unitTest == "rrfs.template.catalog.select" ]]; then
+        if [[ $breakPoint == "rrfs.template.catalog.select" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         thisCycle=${cycleList[-1]}
@@ -261,11 +258,18 @@ downloadRRFS()
         #   G E T    H O U R L Y   N O W C A S T
         #     G R I B 2   I N D E X   F I L E S
         #
-        logMessage "$THIS: Downloading hourly RRFS nowcast grib2 files for cycle '$thisCycle'."
-        consoleMessage "$I Downloading hourly RRFS nowcast grib2 files for cycle '$thisCycle'"
-        for c in ${cycleList[@]} ; do
+        msg="$THIS: Downloading hourly RRFS nowcast grib2 files through cycle '$thisCycle'."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        numHourlyCycles=$(( ((${#cycleList[@]} - 1 ) * 6 ) + 1 ))
+        for c in ${cycleList[@]:0:${#cycleList[@]}-1} ; do
             cycleDate=${c:0:8}
             cycleHour=${c:8:2}
+            # don't need any hourly cycles after the cycle
+            # we are nowcasting to (i.e., after thisCycle)
+            if [[ $c == $thisCycle ]]; then
+                break
+            fi
             # need the index files for the nowcast or "analysis" at each hour
             # between the cycle times
             for h in $(seq 0 5); do
@@ -273,8 +277,8 @@ downloadRRFS()
                 indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
                 if [[ ! -e $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
                     # check to see if it is available from NCEP
-                    echo "curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
                     curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
+                    logMessage "curlCommand=$curlCommand"
                     $curlCommand
                     exitCode=$?
                     if [[ $exitCode != 0 ]]; then
@@ -287,7 +291,6 @@ downloadRRFS()
                         fi
                         # if the index file was downloaded successfully and passed quality checks
                         # place the index file with computed ranges in the local cache
-                        echo found  #jgfdebug
                         if [[ ! -d $instanceRrfsDir/$cycleDate/$hh ]]; then
                             mkdir -p $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
                             mv $indexFileName $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
@@ -298,7 +301,8 @@ downloadRRFS()
         done
         # stop here if we are only testing through the download of hourly
         # nowcast index files
-        if [[ $unitTest == "rrfs.template.catalog.select.hourly" ]]; then
+        if [[ $breakPoint == "rrfs.template.catalog.select.hourly" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -306,75 +310,137 @@ downloadRRFS()
         #   A N D   D O W N L O A D   S U B S E T S
         #         B Y   V A R I A B L E
         #
+        msg="$THIS: Computing byte ranges and downloading subsets by variable."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        needed=$(( $numHourlyCycles * 3)) # separate downloads for UGRD, VGRD, and PRES
+        succeeded=0
+        tries=0
         declare -A rrfsVar
         rrfsVar['UGRD']='UGRD:10 m above ground'
         rrfsVar['VGRD']='VGRD:10 m above ground'
         rrfsVar['PRES']='PRES:surface'
-        for c in ${cycleList[@]} ; do
-            cycleDate=${c:0:8}
-            cycleHour=${c:8:2}
-            # need the index files for the nowcast or "analysis" at each hour
-            # between the cycle times
-            for h in $(seq 0 5); do
-                hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                indexFileDir=$instanceRrfsDir/$cycleDate/$hh
-                indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
-                if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
-                    awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > ranges 2>> $SYSLOG
-                    paste -d "" $indexFileDir/$indexFileName ranges > $indexFileDir/$indexFileName.range 2>> $SYSLOG
-                fi
-                # attempt to download specific byte ranges via curl
-                for v in UGRD VGRD PRES; do
-                    byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range | grep -Eo '[0-9]*-[0-9]*')
-                    grib2FileName=${indexFileName%.idx}
-                    if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
-                        curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName"
-                        echo curlCommand="$curlCommand"
-                        $curlCommand
-                        performQualityChecksRRFS $v.$grib2FileName grib2File
-                        if [[ $? -ne 0 ]]; then
-                            rm $v.$grib2FileName 2>> $SYSLOG
-                            break 3
+        while [[ $succeeded -lt $needed ]]; do
+            if [[ $tries -ne 0 ]]; then
+                msg="$THIS: Failed to download grib2 subsets of meteorological data. Succeeded for '$succeeded' out of '$needed' files. Waiting 60 seconds before trying again."
+                logMessage "$msg"
+                consoleMessage "$W $msg"
+                spinner 60
+            fi
+            unset downloaded
+            unset have
+            for c in ${cycleList[@]} ; do
+                cycleDate=${c:0:8}
+                cycleHour=${c:8:2}
+                # need the index files for the nowcast or "analysis" at each hour
+                # between the cycle times
+                for h in $(seq 0 5); do
+                    # on the last cycle we only need the data for the
+                    # cycle time itself, not the hourly data after that
+                    if [[ $c == ${cycleList[-1]} && $h -gt 0 ]]; then
+                        break
+                    fi
+                    hh=$(printf "%02d" $(( $cycleHour + $h )) )
+                    indexFileDir=$instanceRrfsDir/$cycleDate/$hh
+                    indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
+                    if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
+                        awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > ranges 2>> $SYSLOG
+                        paste -d "" $indexFileDir/$indexFileName ranges > $indexFileDir/$indexFileName.range 2>> $SYSLOG
+                    fi
+                    # attempt to download specific byte ranges via curl
+                    for v in UGRD VGRD PRES; do
+                        byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range | grep -Eo '[0-9]*-[0-9]*')
+                        grib2FileName=${indexFileName%.idx}
+                        if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
+                            curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
+                            logMessage "curlCommand=$curlCommand"
+                            $curlCommand
+                            performQualityChecksRRFS $v.$grib2FileName grib2File
+                            if [[ $? -ne 0 ]]; then
+                                rm $v.$grib2FileName 2>> $SYSLOG
+                                break 3
+                            fi
+                            # the subset downloaded successfully and passed quality checks,
+                            # copy it to the local grib2 file cache
+                            mv $v.$grib2FileName $indexFileDir 2>> $SYSLOG
+                            downloaded+=( $v.$grib2FileName )
+                        else
+                            have+=( $v.$grib2FileName )
                         fi
-                        # the subset downloaded successfully and passed quality checks,
-                        # copy it to the local grib2 file cache
-                        mv $v.$grib2FileName $indexFileDir 2>> $SYSLOG
+                    done
+                    # concatenate into a single grib2 file so that UGRD and VGRD can be
+                    # regridded and reprojected as vectors
+                    if [[ ! -s $grib2FileName ]]; then
+                        cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName
                     fi
                 done
             done
+            succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
+            ((tries++))
         done
         # stop here if we are only testing through the download of hourly
-        # nowcast index files
-        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download" ]]; then
+        # nowcast grib2 subset files
+        if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
         #         R E G R I D   T O   G E O G R A P H I C
         #  P R O J E C T I O N   O N   S P E C I F I E D   D O M A I N
         #
-        logMessage "$THIS: Regridding RRFS grib2 files to latlon."
-        consoleMessage "$I Regridding RRFS grib2 files to latlon."
-        for c in ${cycleList[@]} ; do
-            cycleDate=${c:0:8}
-            cycleHour=${c:8:2}
-            for h in $(seq 0 5); do
-                hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                for v in UGRD VGRD PRES; do
-                    origFile=$instanceRrfsDir/$cycleDate/$hh/$v.rrfs.t${hh}z.natlev.3km.f000.na.grib2
-                    latLonFile=${origFile}.latlon
+        msg="$THIS: Regridding RRFS grib2 files to latlon."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        tries=0
+        succeeded=0
+        while [[ $succeeded -lt $numHourlyCycles ]]; do
+            if [[ $tries -ne 0 ]]; then
+                msg="$THIS: Tried '$tries' time(s) and Failed to regrid/reproject meteorological data. Waiting 60 seconds before trying again."
+                logMessage "$msg"
+                consoleMessage "$W $msg"
+                spinner 60
+                succeeded=0
+            fi
+            for c in ${cycleList[@]} ; do
+                cycleDate=${c:0:8}
+                cycleHour=${c:8:2}
+                for h in $(seq 0 5); do
+                    # on the last cycle we only need the data for the
+                    # cycle time itself, not the hourly data after that
+                    if [[ $c == ${cycleList[-1]} && $h -gt 0 ]]; then
+                        break 2
+                    fi
+                    hh=$(printf "%02d" $(( $cycleHour + $h )) )
                     lonSpec="${rrfsLatLonGrid['lon0']}:${rrfsLatLonGrid['nlon']}:${rrfsLatLonGrid['dlon']}"
                     latSpec="${rrfsLatLonGrid['lat0']}:${rrfsLatLonGrid['nlat']}:${rrfsLatLonGrid['dlat']}"
+                    origFile=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f000.na.grib2
+                    latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
+                    # if this file has not been regridded, or the regridded file
+                    # is 0 length
                     if [[ ! -s $latLonFile ]]; then
-                        regridCommand="wgrib2 $origFile -inv /dev/null -set_grib_type same -new_grid_winds earth -new_grid_vectors none -new_grid latlon $lonSpec $latSpec $latLonFile"
+                        regridCommand="wgrib2 $origFile -inv /dev/null -set_grib_type same -new_grid_winds earth -new_grid latlon $lonSpec $latSpec $latLonFile"
                         appMessage "Regridding RRFS using '$regridCommand'." $downloadRrfsLog
-                        $regridCommand
+                        $regridCommand 2>> $SYSLOG
+                        if [[ $? -ne 0 ]]; then
+                            logMessage "$THIS: The regridding command '$regridCommand' failed with exit code '$?'."
+                            if [[ -e $latLonFile ]]; then
+                                rm $latLonFile 2>> $SYSLOG
+                            fi
+                        else
+                            ((succeeded++))
+                        fi
+                    else
+                        appMessage "The regridded file '$latLonFile' was already available in the local RRFS cache." $downloadRrfsLog
+                        ((succeeded++))
                     fi
                 done
             done
+            ((tries++))
         done
         # stop here if we are only testing through the regridding of hourly
-        # nowcast index files
-        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download.regrid" ]]; then
+        # nowcast grib2 subset files
+        if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -386,9 +452,9 @@ downloadRRFS()
         SWLon=$(printf "%3.4f" ${rrfsLatLonGrid['lon0']})
         # form the file names of the first, second, and last grib2 files
         # to extract timing information
-        firstFile=$instanceRrfsDir/${cycleList[0]:0:8}/${cycleList[0]:8:2}/UGRD.rrfs.t${cycleList[0]:8:2}z.natlev.3km.f000.na.grib2
-        secondFile=$instanceRrfsDir/${cycleList[1]:0:8}/${cycleList[1]:8:2}/UGRD.rrfs.t${cycleList[1]:8:2}z.natlev.3km.f000.na.grib2
-        lastFile=$instanceRrfsDir/${cycleList[-1]:0:8}/${cycleList[-1]:8:2}/UGRD.rrfs.t${cycleList[-1]:8:2}z.natlev.3km.f000.na.grib2
+        firstFile=$instanceRrfsDir/${cycleList[0]:0:8}/${cycleList[0]:8:2}/rrfs.t${cycleList[0]:8:2}z.natlev.3km.f000.na.grib2
+        secondFile=$instanceRrfsDir/${cycleList[1]:0:8}/${cycleList[1]:8:2}/rrfs.t${cycleList[1]:8:2}z.natlev.3km.f000.na.grib2
+        lastFile=$instanceRrfsDir/${cycleList[-1]:0:8}/${cycleList[-1]:8:2}/rrfs.t${cycleList[-1]:8:2}z.natlev.3km.f000.na.grib2
         #
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
@@ -429,15 +495,22 @@ downloadRRFS()
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        logMessage "$THIS: Writing RRFS ASCII WIN/PRE files."
-        consoleMessage "$I Writing RRFS ASCII WIN/PRE files."
+        msg="$THIS: Writing RRFS ASCII WIN/PRE files."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        appMessage "$msg" $downloadRrfsLog
         unset winPreTimes
         for c in ${cycleList[@]} ; do
             cycleDate=${c:0:8}
             cycleHour=${c:8:2}
             for h in $(seq 0 5); do
+                # on the last cycle we only need the data for the
+                # cycle time itself, not the hourly data after that
+                if [[ $c == ${cycleList[-1]} && $h -gt 0 ]]; then
+                    break 2
+                fi
                 hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                f=$instanceRrfsDir/$cycleDate/$hh/PRES.rrfs.t${hh}z.natlev.3km.f000.na.grib2.latlon
+                f=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f000.na.grib2.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
                 d=$(wgrib2 $f -match 'PRES' 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
                 headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${rrfsLatLonGrid['nlat']} ${rrfsLatLonGrid['nlon']} ${rrfsLatLonGrid['dlon']} ${rrfsLatLonGrid['dlat']} $SWLat $SWLon $d)"
                 winPreTimes+=( $d"00" )
@@ -446,14 +519,13 @@ downloadRRFS()
                 # replace missing surface pressure values with 101300 Pa (ADCIRC default)
                 # convert barometric pressure from Pa to millibar in the process
                 wgrib2 $f -match 'PRES' -inv /dev/null -text - 2>>$SYSLOG \
-                    | awk '$1<=9999000000.0 { print $0 } $1>9999000000.0 { print "101300.0" }' \
+                    | sed 's/9.999e+20/101300.0/g' \
                     | awk 'NR!=1 { printf("%10s",(sprintf("%4.4f",$1/100.0))); if ((NR-1)%8 == 0) print ""; }' \
                     >> $preFileName 2>> $SYSLOG
                 for v in UGRD VGRD ; do
-                    f=$instanceRrfsDir/$cycleDate/$hh/$v.rrfs.t${hh}z.natlev.3km.f000.na.grib2.latlon
                     # replace missing velocity values with 0.0 m/s
                     wgrib2 $f -match $v -inv /dev/null -text - 2>> $SYSLOG \
-                        | awk '$1<=9999000000.0 { print $0 } $1>9999000000.0 { print "0.0" }' \
+                        | sed 's/9.999e+20/0.0/g' \
                         | awk 'NR!=1 { printf("%10f",$1); if ((NR-1)%8 == 0) print ""; }' \
                         >> $winFileName 2>> $SYSLOG
                 done
@@ -461,17 +533,20 @@ downloadRRFS()
         done
         # stop here if we are only testing through the writing of owi win/pre
         # nowcast files
-        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre" ]]; then
+        if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
         #          W R I T E   M E T A D A T A   T O   J S O N
-
         #
         # write metadata to JSON
         winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
         winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} ))
         rrfsForecastValidStart="${owiWinPre["startDateTime"]}0000"
+        downloadedFilesArray=$(printf "\"%s\"," ${downloaded[@]})
+        haveFilesArray=$(printf "\"%s\"," ${have[@]})
+        winPreTimesArray=$(printf "\"%s\"," ${winPreTimes[@]})
         sed \
             -e "s?%WINPREHEADER%?$winPreHeader?" \
             -e "s?%WINPREVELOCITYFILE%?$winFileName?" \
@@ -480,17 +555,19 @@ downloadRRFS()
             -e "s?%RRFSFORECASTVALIDSTART%?$rrfsForecastValidStart?" \
             -e "s?%WINPREWTIMINCSECONDS%?$WTIMINC?" \
             -e "s?%WINPRENUMRECORDS%?${#winPreTimes[*]}?" \
-            -e "s?%WINPREDATETIMES%?$(echo ${winPreTimes[@]})?" \
-            -e "s?%NULLRRFSNOWCASTDOWNLOADED%?$(echo ${downloaded[@]})?" \  # <---<< populate "downloaded" above
-            -e "s?%NULLRRFSNOWCASTFOUND%?$(echo ${have[@]})?" \             # <---<< populate "have" above
+            -e "s?\"%WINPREDATATIMES%\"?$(echo ${winPreTimesArray%?})?" \
+            -e "s?\"%NULLRRFSNOWCASTDOWNLOADED%\"?$(echo ${downloadedFilesArray%?})?" \
+            -e "s?\"%NULLRRFSNOWCASTFOUND%\"?$(echo ${haveFilesArray%?})?" \
              < select_rrfs_nowcast.json \
-            > ${THIS}.json \
+            > downloadRRFS.json \
             2>> $SYSLOG
         if [[ $? != 0 ]]; then
             echo "$THIS: Failed to fill in RRFS data request template with sed."
         fi
-        # nowcast files
-        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata" ]]; then
+        # stop here if we are only testing through the writing of metadata for the
+        # owi win/pre nowcast files
+        if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -500,13 +577,13 @@ downloadRRFS()
             ADVISDIR=$RUNDIR/$thisCycle
             CYCLEDIR=$ADVISDIR
             CYCLELOG=$CYCLEDIR/cycle.log
-            NOWCASTDIR=$ADVISDIR/$ENSTORM
+            NOWCASTDIR=$ADVISDIR/$SCENARIO
             SCENARIODIR=$CYCLEDIR/$SCENARIO
             SCENARIOLOG=$SCENARIODIR/scenario.log
             mkdir -p $SCENARIODIR 2>> $SYSLOG
             #
             # record the new advisory number to the statefile
-            debugMessage "$THIS: $ENSTORM: The new RRFS cycle is $thisCycle."
+            debugMessage "$THIS: $SCENARIO: The new RRFS cycle is $thisCycle."
             cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
             sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
             debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
@@ -515,16 +592,18 @@ downloadRRFS()
         #
         # put files in scenario directory
         mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
-        cp ${THIS}.json "${winFileName%.*}.json" 2>> $SYSLOG
-        cp get_rrfs_status.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR 2>> $SYSLOG
-
+        cp downloadRRFS.json "${winFileName%.*}.json" 2>> $SYSLOG
+        cp *.json $SCENARIODIR 2>> $SYSLOG
+        mv *.json $instanceRrfsDir 2>> $SYSLOG
+        #
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
         ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
         ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
         cd $RUNDIR
         # nowcast files
-        if [[ $unitTest == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata.scenariodir" ]]; then
+        if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata.scenariodir" ]]; then
+            echo "$THIS: Stopping at break point '$breakPoint'."
             exit
         fi
     else

@@ -3,11 +3,8 @@
    "category" : "forcing",
    "forcing" : "meteorology",
    "meteorology" : "rrfs",
+   "domain" : "%NULLDOMAIN%",
    "template" : "%NULLGETRRFSTEMPLATEFILE%",
-   "filled" : "%NULLGETRRFSTEMPLATEFILLEDFILE%",
-   "status" : "%NULLRRFSSTATUSFILE%",
-   "select" : "%NULLRRFSSELECTFILE%",
-   "get" : "%NULLGETRRFSFILE%",
    "siteHost" : "%NULLBACKSITE%",
    "stage" : "%NULLSTAGE%",
    "scriptDir" :"%NULLSCRIPTDIR%",
@@ -15,14 +12,16 @@
    "configDailyForecastCycles" : [
       "%NULLFORECASTCYCLES%"
    ],
+   "latLonGrid" : {
+      "lon0" : "%NULLLON0%",
+      "nlon" : "%NULLNLON%",
+      "dlon" : "%NULLDLON%",
+      "lat0" : "%NULLLAT0%",
+      "nlat" : "%NULLNLAT%",
+      "dlat" : "%NULLDLAT%"
+   },
    "cyclelist" : [
       "%NULLCYCLELIST%"
-   ],
-   "filesDownloaded" : [
-      "%NULLRRFSNOWCASTDOWNLOADED%"
-   ],
-   "filesFromCache" : [
-      "%NULLRRFSNOWCASTFOUND%"
    ],
    "winPreHeader" : "%WINPREHEADER%",
    "winPreVelocityFile" : "%WINPREVELOCITYFILE%",
@@ -31,8 +30,13 @@
    "rrfsForecastValidStart" : "%RRFSFORECASTVALIDSTART%",
    "winPreWtimincSeconds" : "%WINPREWTIMINCSECONDS%",
    "winPreNumRecords" : "%WINPRENUMRECORDS%",
-   "winPreDataTimes" : "%WINPREDATATIMES%",
-   "lastupdated" : [
-      { "%NULLLASTUPDATER%" : "%NULLLASTUPDATETIME%" }
+   "winPreDataTimes" : [
+      "%WINPREDATATIMES%"
+   ],
+   "filesDownloaded" : [
+      "%NULLRRFSNOWCASTDOWNLOADED%"
+   ],
+   "filesFromCache" : [
+      "%NULLRRFSNOWCASTFOUND%"
    ]
 }

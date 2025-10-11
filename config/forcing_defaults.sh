@@ -116,19 +116,14 @@ rrfs['ForecastLength']=84  # hours of RRFS forecast to run
 # json file for status checker and RRFS downloader
 rrfs['TemplateName']="get_rrfs_template.json"
 rrfs['FilledTemplateName']="asgs_main.sh_get_rrfs_status.json"
-# RRFS subset
-rrfsDomain['leftlon']='-110'
-rrfsDomain['rightlon']='-45'
-rrfsDomain['toplat']='50'
-rrfsDomain['bottomlat']='0'
 rrfsDomain['coverage']='regional'
 # RRFS regridding
 rrfsLatLonGrid['lon0']='-100'
-rrfsLatLonGrid['nlon']='600'
-rrfsLatLonGrid['dlon']='0.1'
+rrfsLatLonGrid['nlon']='1800'
+rrfsLatLonGrid['dlon']='0.03'
 rrfsLatLonGrid['lat0']='5'
-rrfsLatLonGrid['nlat']='600'
-rrfsLatLonGrid['dlat']='0.1'
+rrfsLatLonGrid['nlat']='1800'
+rrfsLatLonGrid['dlat']='0.03'
 #
 # External data sources : River Flux
 #
