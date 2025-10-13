@@ -7,16 +7,17 @@ source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/config/forcing_defaults.sh
 source $SCRIPTDIR/downloadRRFS.sh
 #
-STATEFILE="test_rrfs.state"
-echo "ADVISORY=0" > $STATEFILE
-echo "script : test_get_rrfs.sh" > run.properties
 BACKGROUNDMET=RRFS
+STATEFILE="test_rrfs.state"
 RUNDIR=$PWD
+echo "script : test_get_rrfs.sh" > run.properties
+echo "ADVISORY=0" > $STATEFILE
 CSDATE=$(date -d yesterday +%Y%m%d00)
 HSTIME=21600.00000
-
+#CSDATE=2025101300
+#HSTIME=0.000
 FORECASTCYCLE="00,18"
-# keep files small (but realistic) for testing
+# keep files smaller (but still realistic) for testing
 rrfsLatLonGrid['lon0']='-100'
 rrfsLatLonGrid['nlon']='600'
 rrfsLatLonGrid['dlon']='0.1'
@@ -25,31 +26,33 @@ rrfsLatLonGrid['nlat']='600'
 rrfsLatLonGrid['dlat']='0.1'
 #
 SYSLOG=$RUNDIR/test.downloadRRFS.log
+breakPoint=test
 #
 #      N O W C A S T
 #
 stage=NOWCAST
 SCENARIO=nowcast
 SCENARIODIR=$RUNDIR/$SCENARIO
-breakPoint=rrfs.template
-breakPoint=${breakPoint}.catalog
-breakPoint=${breakPoint}.select
-breakPoint=${breakPoint}.hourly
-breakPoint=${breakPoint}.download
-breakPoint=${breakPoint}.regrid
-breakPoint=${breakPoint}.owiwinpre
-breakPoint=${breakPoint}.metadata
-breakPoint=${breakPoint}.scenariodir
+#breakPoint=rrfs.template
+#breakPoint=${breakPoint}.catalog
+#breakPoint=${breakPoint}.select
+#breakPoint=${breakPoint}.hourly
+#breakPoint=${breakPoint}.download
+#breakPoint=${breakPoint}.regrid
+#breakPoint=${breakPoint}.owiwinpre
+#breakPoint=${breakPoint}.metadata
+#breakPoint=${breakPoint}.scenariodir
+#downloadRRFS
 #
 #      F O R E C A S T
 #
 stage=FORECAST
 SCENARIO=rrfsforecast
-breakPoint=rrfs.forecast.index
-breakPoint=${breakPoint}.subset
-breakPoint=${breakPoint}.regrid
-breakPoint=${breakPoint}.owiwinpre
-breakPoint=${breakPoint}.metadata
-breakPoint=${breakPoint}.scenariodir
+#breakPoint=rrfs.forecast.index
+#breakPoint=${breakPoint}.subset
+#breakPoint=${breakPoint}.regrid
+#breakPoint=${breakPoint}.owiwinpre
+#breakPoint=${breakPoint}.metadata
+#breakPoint=${breakPoint}.scenariodir
 #
 downloadRRFS

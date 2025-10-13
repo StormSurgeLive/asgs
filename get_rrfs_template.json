@@ -27,7 +27,6 @@
    "winPreVelocityFile" : "%WINPREVELOCITYFILE%",
    "winPrePressureFile" : "%WINPREPRESSUREFILE%",
    "winPreRecordLength" : "%WINPRERECORDLENGTH%",
-   "rrfsForecastValidStart" : "%RRFSFORECASTVALIDSTART%",
    "winPreWtimincSeconds" : "%WINPREWTIMINCSECONDS%",
    "winPreNumRecords" : "%WINPRENUMRECORDS%",
    "winPreDataTimes" : [

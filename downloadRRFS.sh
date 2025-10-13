@@ -84,7 +84,6 @@ performQualityChecksRRFS()
 
 downloadRRFS()
 {
-
     #
     local THIS="asgs_main.sh>downloadRRFS.sh"
     msg="$SCENARIO: $THIS: Polling for new RRFS meteorological data."
@@ -145,7 +144,7 @@ downloadRRFS()
             -e "s?\"%NULLNLAT%\"?${rrfsLatLonGrid['nlat']}?" \
             -e "s?\"%NULLDLAT%\"?${rrfsLatLonGrid['dlat']}?" \
             < $SCRIPTDIR/${rrfs['TemplateName']} \
-            > "${rrfs['FilledTemplateName']}" \
+            > "$instanceRrfsDir/${rrfs['FilledTemplateName']}" \
             2>> $SYSLOG
         if [[ $? != 0 ]]; then
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Failed to fill in RRFS data request template with sed."
@@ -222,7 +221,7 @@ downloadRRFS()
                 latestCycle=${cycleList[-1]}
                 # update the cyclelist in json
                 cycleListStr=$( (IFS=","; echo "${cycleList[*]}") )
-                sed -e "s?%NULLCYCLELIST%?$cycleListStr?" < ${rrfs['FilledTemplateName']} > get_rrfs_status.json 2>> $SYSLOG
+                sed -e "s?%NULLCYCLELIST%?$cycleListStr?" < $instanceRrfsDir/${rrfs['FilledTemplateName']} > $instanceRrfsDir/get_rrfs_status.json 2>> $SYSLOG
             else
                 latestCycle=0
             fi
@@ -266,7 +265,7 @@ downloadRRFS()
             fi
         fi
         cycleListStr=$( (IFS=","; echo "${cycleList[*]}") )
-        sed -e "s?\"%NULLCYCLELIST%\"?$cycleListStr?" < ${rrfs['FilledTemplateName']} > select_rrfs_nowcast.json 2>> $SYSLOG
+        sed -e "s?\"%NULLCYCLELIST%\"?$cycleListStr?" < $instanceRrfsDir/${rrfs['FilledTemplateName']} > $instanceRrfsDir/select_rrfs_nowcast.json 2>> $SYSLOG
         # stop here if we are only testing through the removal of extra cycles
         if [[ $breakPoint == "rrfs.template.catalog.select" ]]; then
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
@@ -356,11 +355,12 @@ downloadRRFS()
                         break
                     fi
                     hh=$(printf "%02d" $(( $cycleHour + $h )) )
+                    r=$instanceRrfsDir/ranges
                     indexFileDir=$instanceRrfsDir/$cycleDate/$hh
                     indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
                     if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
-                        awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > ranges 2>> $SYSLOG
-                        paste -d "" $indexFileDir/$indexFileName ranges > $indexFileDir/$indexFileName.range 2>> $SYSLOG
+                        awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > $r 2>> $SYSLOG
+                        paste -d "" $indexFileDir/$indexFileName $r > $indexFileDir/$indexFileName.range 2>> $SYSLOG
                     fi
                     # attempt to download specific byte ranges via curl
                     for v in UGRD VGRD PRES; do
@@ -569,8 +569,8 @@ downloadRRFS()
             -e "s?\"%WINPREDATATIMES%\"?$(echo ${winPreTimesArray%?})?" \
             -e "s?\"%NULLDOWNLOADED%\"?$(echo ${downloadedFilesArray%?})?" \
             -e "s?\"%NULLFOUND%\"?$(echo ${haveFilesArray%?})?" \
-             < select_rrfs_nowcast.json \
-            > downloadRRFS.json \
+            < $instanceRrfsDir/select_rrfs_nowcast.json \
+            > $instanceRrfsDir/downloadRRFS.json \
             2>> $SYSLOG
         if [[ $? != 0 ]]; then
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Failed to fill in RRFS data request template with sed."
@@ -603,9 +603,7 @@ downloadRRFS()
         #
         # put files in scenario directory
         mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
-        cp downloadRRFS.json "${winFileName%.*}.json" 2>> $SYSLOG
-        cp *.json $SCENARIODIR 2>> $SYSLOG
-        cp *.json $instanceRrfsDir 2>> $SYSLOG
+        mv $instanceRrfsDir/downloadRRFS.json "$SCENARIODIR/${winFileName%.*}.json" 2>> $SYSLOG
         #
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
@@ -625,15 +623,19 @@ downloadRRFS()
         #-------------------------------------------------------
 
         #
-        # grab the cycle that should be forecast
-        rrfsForecastCycle=$(cat downloadRRFS.json | jq '.cyclelist[-1]')
+        # grab the cycle that should be forecast if this is a test
+        if [[ $breakPoint == "production" ]]; then
+            rrfsForecastCycle=$ADVISORY
+        else
+            rrfsForecastCycle=$(cat $instanceRrfsDir/select_rrfs_nowcast.json | jq '.cyclelist[-1]')
+        fi
         CYCLEDIR=$rrfsForecastCycle
         SCENARIODIR=$RUNDIR/$CYCLEDIR/$SCENARIO
         if [[ ! -d $SCENARIODIR ]]; then
             mkdir -p $SCENARIODIR
         fi
         # write the forecast.properties file
-        echo "forecastValidStart : ${rrfsForecastCycle}0000" > forecast.properties
+        echo "forecastValidStart : ${rrfsForecastCycle}0000" > $instanceRrfsDir/forecast.properties
         #
         #       D O W N L O A D   G R I B 2   I N D E X
         #         F I L E S   F O R   F O R E C A S T
@@ -723,8 +725,8 @@ downloadRRFS()
                 indexFileDir=$instanceRrfsDir/$cycleDate/$hh
                 indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
                 if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
-                    awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > ranges 2>> $SYSLOG
-                    paste -d "" $indexFileDir/$indexFileName ranges > $indexFileDir/$indexFileName.range 2>> $SYSLOG
+                    awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > $r 2>> $SYSLOG
+                    paste -d "" $indexFileDir/$indexFileName $r > $indexFileDir/$indexFileName.range 2>> $SYSLOG
                 fi
                 # attempt to download specific byte ranges via curl
                 for v in UGRD VGRD PRES; do
@@ -902,7 +904,6 @@ downloadRRFS()
         logMessage "$msg"
         consoleMessage "$I $msg"
         winPreRecordLength=$(( ${rrfsLatLonGrid['nlon']} * ${rrfsLatLonGrid['nlat']} ))
-        rrfsForecastValidStart="${owiWinPre["startDateTime"]}0000"
         downloadedFilesArray=$(printf "\"%s\"," ${downloaded[@]})
         haveFilesArray=$(printf "\"%s\"," ${have[@]})
         winPreTimesArray=$(printf "\"%s\"," ${winPreTimes[@]})
@@ -912,14 +913,13 @@ downloadRRFS()
             -e "s?%WINPREVELOCITYFILE%?$winFileName?" \
             -e "s?%WINPREPRESSUREFILE%?$preFileName?" \
             -e "s?%WINPRERECORDLENGTH%?$winPreRecordLength?" \
-            -e "s?%RRFSFORECASTVALIDSTART%?$rrfsForecastValidStart?" \
             -e "s?%WINPREWTIMINCSECONDS%?$WTIMINC?" \
             -e "s?%WINPRENUMRECORDS%?${#winPreTimes[*]}?" \
             -e "s?\"%WINPREDATATIMES%\"?$(echo ${winPreTimesArray%?})?" \
             -e "s?\"%NULLDOWNLOADED%\"?$(echo ${downloadedFilesArray%?})?" \
             -e "s?\"%NULLFOUND%\"?$(echo ${haveFilesArray%?})?" \
-            < select_rrfs_nowcast.json \
-            > downloadRRFS.json \
+            < $instanceRrfsDir/select_rrfs_nowcast.json \
+            > $instanceRrfsDir/downloadRRFS.json \
             2>> $SYSLOG
         if [[ $? != 0 ]]; then
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Failed to fill in RRFS data request template with sed."
@@ -935,14 +935,14 @@ downloadRRFS()
         logMessage "$msg"
         consoleMessage "$I $msg"
         mv $winFileName $preFileName fort.22 $SCENARIODIR
-        cp downloadRRFS.json "${winFileName%.*}.json"
-        cp *.json forecast.properties $SCENARIODIR
-        cat forecast.properties >> ${SCENARIODIR}/run.properties
+        mv $instanceRrfsDir/downloadRRFS.json $SCENARIODIR/"${winFileName%.*}.json"
+        cat $instanceRrfsDir/forecast.properties >> ${SCENARIODIR}/run.properties
+        mv $instanceRrfsDir/forecast.properties $SCENARIODIR
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
         ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
         ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
-        cd ..
+        cd $RUNDIR
         if [[ $breakPoint == "rrfs.forecast.index.subset.regrid.owiwinpre.metadata.scenariodir" ]]; then
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
