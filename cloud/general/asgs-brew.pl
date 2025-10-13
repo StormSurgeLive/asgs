@@ -1052,7 +1052,7 @@ sub get_steps {
             },
         },
         {
-            key         => q{jq}},
+            key         => q{jq},
             name        => q{Step for installing jq},
             description => q{Install jq for processing json files},
             pwd         => qq{$scriptdir},
