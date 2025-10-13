@@ -193,5 +193,5 @@ variables_init()
    SCENARIODIR="null"
    OPENDAPADDROOT=""
    # used to activate test code
-   unitTest=production
+   breakPoint=production
 }

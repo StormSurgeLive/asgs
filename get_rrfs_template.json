@@ -34,9 +34,9 @@
       "%WINPREDATATIMES%"
    ],
    "filesDownloaded" : [
-      "%NULLRRFSNOWCASTDOWNLOADED%"
+      "%NULLDOWNLOADED%"
    ],
    "filesFromCache" : [
-      "%NULLRRFSNOWCASTFOUND%"
+      "%NULLFOUND%"
    ]
 }

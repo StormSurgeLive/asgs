@@ -111,7 +111,7 @@ gfsLatLonGrid['dlat']='0.1'
 # set variables to be used in json template
 rrfs['BaseURL']=https://noaa-rrfs-pds.s3.amazonaws.com/rrfs_a
 rrfs['PollingInterval']=5  # minutes
-rrfs['LookAhead']=5        # how far in the future (from currentCycle) to look ahead for new data (days)
+rrfs['LookAhead']=30       # how far in the future (from currentCycle) to look ahead for new data (days)
 rrfs['ForecastLength']=84  # hours of RRFS forecast to run
 # json file for status checker and RRFS downloader
 rrfs['TemplateName']="get_rrfs_template.json"

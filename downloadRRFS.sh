@@ -46,6 +46,7 @@ performQualityChecksRRFS()
             logMessage "$msg"
             consoleMessage "$I: $msg"
             appMessage "$msg" $downloadRrfsLog
+        fi
         ;;
     *)
         warn "THIS: Quality check attempted on unrecognized file type '$2'."
@@ -86,8 +87,9 @@ downloadRRFS()
 
     #
     local THIS="asgs_main.sh>downloadRRFS.sh"
-    logMessage "$SCENARIO: $THIS: Polling for new RRFS meteorological nowcast data."
-    consoleMessage "$I $THIS: Polling for new hourly RRFS nowcast data."
+    msg="$SCENARIO: $THIS: Polling for new RRFS meteorological data."
+    logMessage "$msg"
+    consoleMessage "$I $msg"
     cd $RUNDIR 2>> ${SYSLOG}
     # if there isn't an archive directory for RRFS data in the
     # ASGS WORK directory, make one
@@ -113,9 +115,11 @@ downloadRRFS()
     # example data path
     # aws s3 ls --no-sign-request s3://noaa-rrfs-pds/rrfs_a/rrfs.20251004/18/
     # -> 2025-10-04 15:12:46     102829 rrfs.t18z.natlev.3km.f000.na.grib2.idx
+    #-------------------------------------------------------
     #
-    #   N O W C A S T
+    #                  N O W C A S T
     #
+    #-------------------------------------------------------
     if [[ $stage == "NOWCAST" ]]; then
         # determine the cycle time corresponding to the current state of the simulation
         lastCycle=$(TZ=UTC date -u -d "1970-01-01 UTC $hsEpochSeconds seconds" +"%Y%m%d%H" 2>>$SYSLOG)
@@ -144,11 +148,11 @@ downloadRRFS()
             > "${rrfs['FilledTemplateName']}" \
             2>> $SYSLOG
         if [[ $? != 0 ]]; then
-            echo "$THIS: Failed to fill in RRFS data request template with sed."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Failed to fill in RRFS data request template with sed."
         fi
         # stop here if we are only testing the filling of the JSON template
         if [[ $breakPoint == "rrfs.template" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -225,7 +229,7 @@ downloadRRFS()
         done
         # stop here if we are only testing through the catalogging of the remote site
         if [[ $breakPoint == "rrfs.template.catalog" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -265,7 +269,7 @@ downloadRRFS()
         sed -e "s?\"%NULLCYCLELIST%\"?$cycleListStr?" < ${rrfs['FilledTemplateName']} > select_rrfs_nowcast.json 2>> $SYSLOG
         # stop here if we are only testing through the removal of extra cycles
         if [[ $breakPoint == "rrfs.template.catalog.select" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         thisCycle=${cycleList[-1]}
@@ -317,7 +321,7 @@ downloadRRFS()
         # stop here if we are only testing through the download of hourly
         # nowcast index files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -374,9 +378,9 @@ downloadRRFS()
                             # the subset downloaded successfully and passed quality checks,
                             # copy it to the local grib2 file cache
                             mv $v.$grib2FileName $indexFileDir 2>> $SYSLOG
-                            downloaded+=( $v.$grib2FileName )
+                            downloaded+=( $cycleDate/$hh/$v.$grib2FileName )
                         else
-                            have+=( $v.$grib2FileName )
+                            have+=( $cycleDate/$hh/$v.$grib2FileName )
                         fi
                     done
                     # concatenate into a single grib2 file so that UGRD and VGRD can be
@@ -392,12 +396,12 @@ downloadRRFS()
         # stop here if we are only testing through the download of hourly
         # nowcast grib2 subset files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
-        #         R E G R I D   T O   G E O G R A P H I C
-        #  P R O J E C T I O N   O N   S P E C I F I E D   D O M A I N
+        #            R E G R I D   T O   G E O G R A P H I C
+        #     P R O J E C T I O N   O N   S P E C I F I E D   D O M A I N
         #
         msg="$THIS: Regridding RRFS grib2 files to latlon."
         logMessage "$msg"
@@ -449,12 +453,12 @@ downloadRRFS()
         # stop here if we are only testing through the regridding of hourly
         # nowcast grib2 subset files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
-        #    W R I T E   A S C I I   O W I   W I N / P R E
-        #        F I L E S   A N D   M E T A D A T A
+        #    W R I T E   A S C I I   O W I
+        #     W I N / P R E   F I L E S
         #
         # form win/pre file header line
         SWLat=$(printf "%3.4f" ${rrfsLatLonGrid['lat0']})
@@ -498,9 +502,9 @@ downloadRRFS()
         preFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
         winFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
         headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
-        headerLine="${headerLineTemplate:0:30}#${rrfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#rrfsDomain['coverage']}):${#headerLineTemplate}}"
-        echo "$headerLine" > $preFileName # fort.221
-        echo "$headerLine" > $winFileName # fort.222
+        winPreHeader="${headerLineTemplate:0:30}#${rrfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#rrfsDomain['coverage']}):${#headerLineTemplate}}"
+        echo "$winPreHeader" > $preFileName # fort.221
+        echo "$winPreHeader" > $winFileName # fort.222
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
@@ -543,15 +547,14 @@ downloadRRFS()
         # stop here if we are only testing through the writing of owi win/pre
         # nowcast files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
         #          W R I T E   M E T A D A T A   T O   J S O N
         #
         # write metadata to JSON
-        winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
-        winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} ))
+        winPreRecordLength=$(( ${rrfsLatLonGrid['nlon']} * ${rrfsLatLonGrid['nlat']} ))
         rrfsForecastValidStart="${owiWinPre["startDateTime"]}0000"
         downloadedFilesArray=$(printf "\"%s\"," ${downloaded[@]})
         haveFilesArray=$(printf "\"%s\"," ${have[@]})
@@ -561,22 +564,21 @@ downloadRRFS()
             -e "s?%WINPREVELOCITYFILE%?$winFileName?" \
             -e "s?%WINPREPRESSUREFILE%?$preFileName?" \
             -e "s?%WINPRERECORDLENGTH%?$winPreRecordLength?" \
-            -e "s?%RRFSFORECASTVALIDSTART%?$rrfsForecastValidStart?" \
             -e "s?%WINPREWTIMINCSECONDS%?$WTIMINC?" \
             -e "s?%WINPRENUMRECORDS%?${#winPreTimes[*]}?" \
             -e "s?\"%WINPREDATATIMES%\"?$(echo ${winPreTimesArray%?})?" \
-            -e "s?\"%NULLRRFSNOWCASTDOWNLOADED%\"?$(echo ${downloadedFilesArray%?})?" \
-            -e "s?\"%NULLRRFSNOWCASTFOUND%\"?$(echo ${haveFilesArray%?})?" \
+            -e "s?\"%NULLDOWNLOADED%\"?$(echo ${downloadedFilesArray%?})?" \
+            -e "s?\"%NULLFOUND%\"?$(echo ${haveFilesArray%?})?" \
              < select_rrfs_nowcast.json \
             > downloadRRFS.json \
             2>> $SYSLOG
         if [[ $? != 0 ]]; then
-            echo "$THIS: Failed to fill in RRFS data request template with sed."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Failed to fill in RRFS data request template with sed."
         fi
         # stop here if we are only testing through the writing of metadata for the
         # owi win/pre nowcast files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
         #
@@ -612,19 +614,24 @@ downloadRRFS()
         cd $RUNDIR
         # nowcast files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata.scenariodir" ]]; then
-            echo "$THIS: Stopping at break point '$breakPoint'."
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
             exit
         fi
     else
+        #-------------------------------------------------------
         #
         #                F O R E C A S T
         #
-        if [[ ! -d $SCENARIODIR ]]; then
-            mkdir -p $SCENARIODIR
-        fi
+        #-------------------------------------------------------
+
         #
         # grab the cycle that should be forecast
         rrfsForecastCycle=$(cat downloadRRFS.json | jq '.cyclelist[-1]')
+        CYCLEDIR=$rrfsForecastCycle
+        SCENARIODIR=$RUNDIR/$CYCLEDIR/$SCENARIO
+        if [[ ! -d $SCENARIODIR ]]; then
+            mkdir -p $SCENARIODIR
+        fi
         # write the forecast.properties file
         echo "forecastValidStart : ${rrfsForecastCycle}0000" > forecast.properties
         #
@@ -634,12 +641,12 @@ downloadRRFS()
         # form the list of files to download
         declare -a rrfsForecastFiles
         unset downloaded have
-        msg="$THIS: Downloading hourly RRFS nowcast grib2 files through cycle '$thisCycle'."
+        msg="$THIS: Downloading hourly RRFS forecast grib2 files for cycle '$rrfsForecastCycle'."
         logMessage "$msg"
         consoleMessage "$I $msg"
-        numFiles=$(( $RRFSFORECASTLENGTH * 3 ))
+        numFiles=$(( ${rrfs['ForecastLength']} * 3 ))
         cycleDate=${rrfsForecastCycle:0:8}
-        hh=$(printf"%02d" ${rrfsForecastCycle:8:2})
+        hh=$(printf "%02d" ${rrfsForecastCycle:8:2})
         succeeded=0
         tries=0
         while [[ $succeeded -lt $numFiles ]]; do
@@ -650,7 +657,7 @@ downloadRRFS()
                 spinner 60
                 succeeded=0
             fi
-            for h in $(seq 0 $RRFSFORECASTLENGTH) ; do
+            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
                 hhh=$(printf "%03d" $h)
                 indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
                 if [[ ! -s $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
@@ -680,14 +687,18 @@ downloadRRFS()
                             mkdir -p $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
                         fi
                         mv $indexFileName $instanceRrfsDir/$cycleDate/$hh 2>> $SYSLOG
-                        downloaded+=( $indexFileName )
+                        downloaded+=( $cycleDate/$hh/$indexFileName )
                     fi
                 else
-                    have+=( $indexFileName )
+                    have+=( $cycleDate/$hh/$indexFileName )
                 fi
             done
             succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
         done
+        if [[ $breakPoint == "rrfs.forecast.index" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
+            exit
+        fi
         #
         #    C O M P U T E   B Y T E   R A N G E S   A N D
         #     D O W N L O A D   G R I B 2   S U B S E T S
@@ -695,7 +706,7 @@ downloadRRFS()
         msg="$THIS: Computing byte ranges and downloading forecast subsets by variable."
         logMessage "$msg"
         consoleMessage "$I $msg"
-        needed=$(( $RRFSFORECASTLENGTH * 3)) # separate downloads for UGRD, VGRD, and PRES
+        needed=$(( ${rrfs['ForecastLength']} * 3)) # separate downloads for UGRD, VGRD, and PRES
         succeeded=0
         tries=0
         while [[ $succeeded -lt $needed ]]; do
@@ -707,7 +718,7 @@ downloadRRFS()
             fi
             unset downloaded
             unset have
-            for h in $(seq 0 $RRFSFORECASTLENGTH) ; do
+            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
                 hhh=$(printf "%03d" $h)
                 indexFileDir=$instanceRrfsDir/$cycleDate/$hh
                 indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
@@ -729,32 +740,36 @@ downloadRRFS()
                             break 3
                         fi
                         # the subset downloaded successfully and passed quality checks,
-                        # copy it to the local grib2 file cache
+                        # move it to the local grib2 file cache
                         mv $v.$grib2FileName $indexFileDir 2>> $SYSLOG
                         downloaded+=( $v.$grib2FileName )
                     else
                         have+=( $v.$grib2FileName )
                     fi
-                    # concatenate into a single grib2 file so that UGRD and VGRD can be
-                    # regridded and reprojected as vectors
-                    if [[ ! -s $grib2FileName ]]; then
-                        cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName
-                    fi
                 done
+                # concatenate into a single grib2 file so that UGRD and VGRD can be
+                # regridded and reprojected as vectors
+                if [[ ! -s $indexFileDir/grib2FileName ]]; then
+                    cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName
+                fi
             done
             succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
             ((tries++))
         done
+        if [[ $breakPoint == "rrfs.forecast.index.subset" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
+            exit
+        fi
         #
         #       R E G R I D   A N D   R E P R O J E C T
         #                  F O R E C A S T
         #
-        msg="$THIS: Regridding RRFS grib2 files to latlon."
+        msg="$THIS: Regridding RRFS grib2 forecast files to latlon."
         logMessage "$msg"
         consoleMessage "$I $msg"
         tries=0
         succeeded=0
-        while [[ $succeeded -lt $RRFSFORECASTLENGTH ]]; do
+        while [[ $succeeded -lt ${rrfs['ForecastLength']} ]]; do
             if [[ $tries -ne 0 ]]; then
                 msg="$THIS: Tried '$tries' time(s) and Failed to regrid/reproject meteorological forecast data. Waiting 60 seconds before trying again."
                 logMessage "$msg"
@@ -762,7 +777,7 @@ downloadRRFS()
                 spinner 60
                 succeeded=0
             fi
-            for h in $(seq 0 $RRFSFORECASTLENGTH) ; do
+            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
                 hhh=$(printf "%03d" $h)
                 origFile=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2
                 latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
@@ -784,25 +799,37 @@ downloadRRFS()
                     appMessage "The regridded file '$latLonFile' was already available in the local RRFS cache." $downloadRrfsLog
                     ((succeeded++))
                 fi
-                done
             done
             ((tries++))
         done
+        if [[ $breakPoint == "rrfs.forecast.index.subset.regrid" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
+            exit
+        fi
         #
+        #    W R I T E   A S C I I   O W I
+        #     W I N / P R E   F I L E S
+        #
+        msg="$THIS: Writing ASCII OWI WIN/PRE formatted forecast files."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        # make a list of the files available
+        rrfsFileList=( $(ls $instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f???.na.grib2.latlon_lonSpec.${lonSpec}_latSpec.$latSpec | sort) )
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
-        owiWinPre["startDateTime"]=$(wgrib2 ${gfsFileList[0]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
-        date=${owiWinPre["startDateTime"]}
-        owiStartEpochSeconds=$(TZ=UTC date -u -d "${date:0:4}-${date:4:2}-${date:6:2} ${date:8:2}:00:00" "+%s" 2>>$SYSLOG)
+        owiWinPre["startDateTime"]=$(wgrib2 ${rrfsFileList[0]} -match "PRES" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
+        d=${owiWinPre["startDateTime"]}
+        owiStartEpochSeconds=$(TZ=UTC date -u -d "${d:0:4}-${d:4:2}-${d:6:2} ${d:8:2}:00:00" "+%s" 2>>$SYSLOG)
         #
         # determine the WTIMINC (time increment between datasets in seconds,
         # needed for the ADCIRC fort.15 file)
-        incr=( $(wgrib2 ${gfsFileList[1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
+        incr=( $(wgrib2 ${rrfsFileList[1]} -match "PRES" 2>> $SYSLOG | cut -d : -f 6) )
         WTIMINC=${incr[0]}
         if [[ ${incr[1]} == "hour" ]]; then
             WTIMINC=$(( $WTIMINC * 3600 ))
         else
-            fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
+
+            fatal "$THIS: ERROR: The forecast time increment was specified as '${incr[1]}' which is not recognized."
         fi
         #
         # determine the NWBS (number of blank snaps between the
@@ -811,7 +838,7 @@ downloadRRFS()
         owiWinPre["NWBS"]=$(echo "scale=0; ($owiStartEpochSeconds - $hsEpochSeconds)/$WTIMINC" | bc)
         # write the fort.22 file
         fort22="fort.22"
-        if [[ $BACKGROUNDMET == "gfsBlend" ]]; then
+        if [[ $BACKGROUNDMET == "rrfsBlend" ]]; then
             fort22="owi_fort.22"
         fi
         echo ${owiWinPre["NWSET"]} > $fort22
@@ -819,76 +846,106 @@ downloadRRFS()
         echo ${owiWinPre["DWM"]}  >> $fort22
         #
         # find the end time for use in the main file header
-        incr=( $(wgrib2 ${gfsFileList[-1]} -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
+        incr=( $(wgrib2 ${rrfsFileList[-1]} -match "PRES" 2>> $SYSLOG | cut -d : -f 6) )
         duration=${incr[0]}
         local sdt=${owiWinPre["startDateTime"]}
         if [[ ${incr[1]} == "hour" ]]; then
             owiWinPre["endDateTime"]=$(date -u --date="${sdt:0:4}-${sdt:4:2}-${sdt:6:2} ${sdt:8:10}:00:00 $duration hours" '+%Y%m%d%H' 2>>$SYSLOG)
         else
-            fatal "$THIS: ERROR: The time increment was specified as '${incr[1]}' which is not recognized."
+            fatal "$THIS: ERROR: The forecast time increment was specified as '${incr[1]}' which is not recognized."
         fi
         #
         # write the headers to the win/pre files
-        preFileName=GFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
-        winFileName=GFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
+        preFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
+        winFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
         headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
-        headerLine="${headerLineTemplate:0:30}#${gfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#gfsDomain['coverage']}):${#headerLineTemplate}}"
-        echo "$headerLine" > $preFileName # fort.221
-        echo "$headerLine" > $winFileName # fort.222
+        winPreHeader="${headerLineTemplate:0:30}#${rrfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#rrfsDomain['coverage']}):${#headerLineTemplate}}"
+        echo "$winPreHeader" > $preFileName # fort.221
+        echo "$winPreHeader" > $winFileName # fort.222
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        logMessage "$THIS: Writing ASCII WIN/PRE GFS forecast files."
-        consoleMessage "$I Writing ASCII WIN/PRE GFS forecast files."
+        logMessage "$THIS: Writing ASCII WIN/PRE RRFS forecast files."
+        consoleMessage "$I Writing ASCII WIN/PRE RRFS forecast files."
         unset winPreTimes
-        for file in ${gfsFileList[@]}; do
-            incr=( $(wgrib2 $file -match "PRMSL" 2>> $SYSLOG | cut -d : -f 6) )
+        for file in ${rrfsFileList[@]}; do
+            incr=( $(wgrib2 $file -match "PRES" 2>> $SYSLOG | cut -d : -f 6) )
             duration=${incr[0]}  # assumes this is in hours
             if [[ ${incr[0]} == "anl" ]]; then
                 duration="0"
             fi
             snapDateTime=$(date -u --date="${sdt:0:4}-${sdt:4:2}-${sdt:6:2} ${sdt:8:10}:00:00 $duration hours" '+%Y%m%d%H' )
-            headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${gfsLatLonGrid['nlat']} ${gfsLatLonGrid['nlon']} ${gfsLatLonGrid['dlon']} ${gfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)"
+            headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${rrfsLatLonGrid['nlat']} ${rrfsLatLonGrid['nlon']} ${rrfsLatLonGrid['dlon']} ${rrfsLatLonGrid['dlat']} $SWLat $SWLon $snapDateTime)"
             winPreTimes+=( $snapDateTime )
             echo "$headerLine" >> $preFileName
             echo "$headerLine" >> $winFileName
             # convert barometric pressure from Pa to millibar in the process
-            wgrib2 $file -match 'PRMSL' -inv /dev/null -text - 2>> $SYSLOG \
+            wgrib2 $file -match 'PRES' -inv /dev/null -text - 2>> $SYSLOG \
+                | sed 's/9.999e+20/101300.0/g' \
                 | awk 'NR!=1 { printf("%10s",(sprintf("%4.4f",$1/100.0))); if ((NR-1)%8 == 0) print ""; }' \
                 >> $preFileName 2>> $SYSLOG
-            for var in "UGRD:10" "VGRD:10"; do
+            for var in "UGRD" "VGRD"; do
                 wgrib2 $file -match "$var" -inv /dev/null -text - 2>> $SYSLOG \
+                    | sed 's/9.999e+20/0.0/g' \
                     | awk 'NR!=1 { printf("%10f",$1); if ((NR-1)%8 == 0) print ""; }' \
                     >> $winFileName 2>> $SYSLOG
             done
         done
+        if [[ $breakPoint == "rrfs.forecast.index.subset.regrid.owiwinpre" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
+            exit
+        fi
         #
-        # write metadata to JSON
-        bashJSON.pl \
-            --mapscalar get="$THIS" \
-            --mapscalar winPreHeader="$(printf "%s%38s%15s" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})" \
-            --mapscalar winPreVelocityFile="$winFileName" \
-            --mapscalar winPrePressureFile="$preFileName" \
-            --mapscalar winPreRecordLength=$(( ${gfsLatLonGrid['nlon']} * ${gfsLatLonGrid['nlat']} )) \
-            --mapscalar gfsForecastValidStart="${owiWinPre["startDateTime"]}0000" \
-            --mapscalar winPreWtimincSeconds="$WTIMINC" \
-            --mapscalar winPreNumRecords="${#winPreTimes[*]}" \
-            --maparray winPreDataTimes="$(echo ${winPreTimes[@]})" \
-            --maparray filesDownloaded="$(echo ${downloaded[@]})" \
-            --maparray filesFromCache="$(echo ${have[@]})" \
-            < select_gfs_nowcast.pl.json \
-            > ${THIS}.json
+        #   W R I T E   M E T A D A T A   T O   J S O N
+        #
+        msg="$THIS: Writing RRFS forecast ASCII OWI WIN/PRE metadata."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
+        winPreRecordLength=$(( ${rrfsLatLonGrid['nlon']} * ${rrfsLatLonGrid['nlat']} ))
+        rrfsForecastValidStart="${owiWinPre["startDateTime"]}0000"
+        downloadedFilesArray=$(printf "\"%s\"," ${downloaded[@]})
+        haveFilesArray=$(printf "\"%s\"," ${have[@]})
+        winPreTimesArray=$(printf "\"%s\"," ${winPreTimes[@]})
+        sed \
+            -e "s?NOWCAST?FORECAST?" \
+            -e "s?%WINPREHEADER%?$winPreHeader?" \
+            -e "s?%WINPREVELOCITYFILE%?$winFileName?" \
+            -e "s?%WINPREPRESSUREFILE%?$preFileName?" \
+            -e "s?%WINPRERECORDLENGTH%?$winPreRecordLength?" \
+            -e "s?%RRFSFORECASTVALIDSTART%?$rrfsForecastValidStart?" \
+            -e "s?%WINPREWTIMINCSECONDS%?$WTIMINC?" \
+            -e "s?%WINPRENUMRECORDS%?${#winPreTimes[*]}?" \
+            -e "s?\"%WINPREDATATIMES%\"?$(echo ${winPreTimesArray%?})?" \
+            -e "s?\"%NULLDOWNLOADED%\"?$(echo ${downloadedFilesArray%?})?" \
+            -e "s?\"%NULLFOUND%\"?$(echo ${haveFilesArray%?})?" \
+            < select_rrfs_nowcast.json \
+            > downloadRRFS.json \
             2>> $SYSLOG
+        if [[ $? != 0 ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Failed to fill in RRFS data request template with sed."
+        fi
+        if [[ $breakPoint == "rrfs.forecast.index.subset.regrid.owiwinpre.metadata" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
+            exit
+        fi
         #
-        # put files in scenario directory
+        #   M O V E   F I L E S   T O   S C E N A R I O   D I R E C T O R Y
+        #
+        msg="$THIS: Moving RRFS ASCII OWI WIN/PRE and metadata to forecast scenario directory."
+        logMessage "$msg"
+        consoleMessage "$I $msg"
         mv $winFileName $preFileName fort.22 $SCENARIODIR
-        cp ${THIS}.json "${winFileName%.*}.json"
-        cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" forecast.properties $SCENARIODIR
+        cp downloadRRFS.json "${winFileName%.*}.json"
+        cp *.json forecast.properties $SCENARIODIR
         cat forecast.properties >> ${SCENARIODIR}/run.properties
         cd $SCENARIODIR 2>> $SYSLOG
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
         ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
         ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
         cd ..
+        if [[ $breakPoint == "rrfs.forecast.index.subset.regrid.owiwinpre.metadata.scenariodir" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
+            exit
+        fi
     fi
 }
