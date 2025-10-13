@@ -82,6 +82,7 @@ performQualityChecksRRFS()
 }
 
 
+
 downloadRRFS()
 {
     #
@@ -334,6 +335,7 @@ downloadRRFS()
         needed=$(( $numHourlyCycles * 3)) # separate downloads for UGRD, VGRD, and PRES
         succeeded=0
         tries=0
+        r=$instanceRrfsDir/ranges
         while [[ $succeeded -lt $needed ]]; do
             if [[ $tries -ne 0 ]]; then
                 msg="$THIS: Failed to download grib2 subsets of meteorological data. Succeeded for '$succeeded' out of '$needed' files. Waiting 60 seconds before trying again."
@@ -355,7 +357,6 @@ downloadRRFS()
                         break
                     fi
                     hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                    r=$instanceRrfsDir/ranges
                     indexFileDir=$instanceRrfsDir/$cycleDate/$hh
                     indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
                     if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
@@ -585,24 +586,26 @@ downloadRRFS()
         #   M O V E   F I L E S   T O   S C E N A R I O   D I R E C T O R Y
         #
         if [[ $BACKGROUNDMET == "RRFS" ]]; then # don't need to do this for "rrfsBlend"
-            ADVISDIR=$RUNDIR/$thisCycle
-            CYCLEDIR=$ADVISDIR
-            CYCLELOG=$CYCLEDIR/cycle.log
-            NOWCASTDIR=$ADVISDIR/$SCENARIO
+            CYCLE=$thisCycle
+            ADVISORY=$CYCLE
+            CYCLEDIR=$RUNDIR/$CYCLE
             SCENARIODIR=$CYCLEDIR/$SCENARIO
+            CYCLELOG=$CYCLEDIR/cycle.log
+            NOWCASTDIR=$SCENARIODIR
             SCENARIOLOG=$SCENARIODIR/scenario.log
             mkdir -p $SCENARIODIR 2>> $SYSLOG
+            ADVISDIR=$CYCLEDIR
             #
             # record the new advisory number to the statefile
-            debugMessage "$THIS: $SCENARIO: The new RRFS cycle is $thisCycle."
+            debugMessage "$THIS: $SCENARIO: The new RRFS cycle is '$CYCLE'."
             cp -f $STATEFILE ${STATEFILE}.old 2>> ${SYSLOG} 2>&1
-            sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
-            debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
+            sed 's/ADVISORY=.*/ADVISORY='$CYCLE'/' $STATEFILE > ${STATEFILE}.new
+            debugMessage "Updating statefile $STATEFILE with new cycle number '$CYCLE'."
             cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
         fi
         #
         # put files in scenario directory
-        mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
+        mv $winFileName $preFileName $fort22 $SCENARIODIR 2>> $SYSLOG
         mv $instanceRrfsDir/downloadRRFS.json "$SCENARIODIR/${winFileName%.*}.json" 2>> $SYSLOG
         #
         cd $SCENARIODIR 2>> $SYSLOG
@@ -621,15 +624,9 @@ downloadRRFS()
         #                F O R E C A S T
         #
         #-------------------------------------------------------
-
-        #
-        # grab the cycle that should be forecast if this is a test
-        if [[ $breakPoint == "production" ]]; then
-            rrfsForecastCycle=$ADVISORY
-        else
-            rrfsForecastCycle=$(cat $instanceRrfsDir/select_rrfs_nowcast.json | jq '.cyclelist[-1]')
-        fi
-        CYCLEDIR=$rrfsForecastCycle
+        # epoch seconds associated with cold start and hotstart times
+        CYCLE=$ADVISORY
+        CYCLEDIR=$RUNDIR/$CYCLE
         SCENARIODIR=$RUNDIR/$CYCLEDIR/$SCENARIO
         if [[ ! -d $SCENARIODIR ]]; then
             mkdir -p $SCENARIODIR
@@ -651,6 +648,7 @@ downloadRRFS()
         hh=$(printf "%02d" ${rrfsForecastCycle:8:2})
         succeeded=0
         tries=0
+        r=$instanceRrfsDir/ranges
         while [[ $succeeded -lt $numFiles ]]; do
             if [[ $tries -ne 0 ]]; then
                 msg="$THIS: Tried '$tries' time(s) and failed to download all meteorological forecast data for cycle '$rrfsForecastCycle'. Waiting 60 seconds before trying again."

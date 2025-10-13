@@ -10,7 +10,6 @@ source $SCRIPTDIR/downloadRRFS.sh
 BACKGROUNDMET=RRFS
 STATEFILE="test_rrfs.state"
 RUNDIR=$PWD
-echo "script : test_get_rrfs.sh" > run.properties
 echo "ADVISORY=0" > $STATEFILE
 CSDATE=$(date -d yesterday +%Y%m%d00)
 HSTIME=21600.00000
@@ -46,6 +45,8 @@ SCENARIODIR=$RUNDIR/$SCENARIO
 #
 #      F O R E C A S T
 #
+#rrfsForecastCycle=$(cat $instanceRrfsDir/select_rrfs_nowcast.json | jq '.cyclelist[-1]')
+ADVISORY=$( cat $SCENARIODIR/RRFS_NOWCAST_??????????_??????????.json | jq '.cyclelist[-1]' )
 stage=FORECAST
 SCENARIO=rrfsforecast
 #breakPoint=rrfs.forecast.index
