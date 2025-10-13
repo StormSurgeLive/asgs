@@ -18,9 +18,6 @@ build() {
     adcirc)
       init-adcirc.sh ${BUILD_OPTS}
       ;;
-    jq)
-      init-jq.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
-      ;;
     pdl)
       init-perl-data-language.sh ${ASGS_INSTALL_PATH} ${BUILD_OPTS}
       ;;
