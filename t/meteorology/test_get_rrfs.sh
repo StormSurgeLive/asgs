@@ -41,11 +41,10 @@ SCENARIODIR=$RUNDIR/$SCENARIO
 #breakPoint=${breakPoint}.owiwinpre
 #breakPoint=${breakPoint}.metadata
 #breakPoint=${breakPoint}.scenariodir
-#downloadRRFS
+downloadRRFS
 #
 #      F O R E C A S T
 #
-#rrfsForecastCycle=$(cat $instanceRrfsDir/select_rrfs_nowcast.json | jq '.cyclelist[-1]')
 ADVISORY=$( cat $SCENARIODIR/RRFS_NOWCAST_??????????_??????????.json | jq '.cyclelist[-1]' )
 stage=FORECAST
 SCENARIO=rrfsforecast

@@ -627,12 +627,12 @@ downloadRRFS()
         # epoch seconds associated with cold start and hotstart times
         CYCLE=$ADVISORY
         CYCLEDIR=$RUNDIR/$CYCLE
-        SCENARIODIR=$RUNDIR/$CYCLEDIR/$SCENARIO
+        SCENARIODIR=$RUNDIR/$CYCLE/$SCENARIO
         if [[ ! -d $SCENARIODIR ]]; then
             mkdir -p $SCENARIODIR
         fi
         # write the forecast.properties file
-        echo "forecastValidStart : ${rrfsForecastCycle}0000" > $instanceRrfsDir/forecast.properties
+        echo "forecastValidStart : ${CYCLE}0000" > $instanceRrfsDir/forecast.properties
         #
         #       D O W N L O A D   G R I B 2   I N D E X
         #         F I L E S   F O R   F O R E C A S T
@@ -640,18 +640,18 @@ downloadRRFS()
         # form the list of files to download
         declare -a rrfsForecastFiles
         unset downloaded have
-        msg="$THIS: Downloading hourly RRFS forecast grib2 files for cycle '$rrfsForecastCycle'."
+        msg="$THIS: Downloading hourly RRFS forecast grib2 files for cycle '$CYCLE'."
         logMessage "$msg"
         consoleMessage "$I $msg"
         numFiles=$(( ${rrfs['ForecastLength']} * 3 ))
-        cycleDate=${rrfsForecastCycle:0:8}
-        hh=$(printf "%02d" ${rrfsForecastCycle:8:2})
+        cycleDate=${CYCLE:0:8}
+        hh=$(printf "%02d" ${CYCLE:8:2})
         succeeded=0
         tries=0
         r=$instanceRrfsDir/ranges
         while [[ $succeeded -lt $numFiles ]]; do
             if [[ $tries -ne 0 ]]; then
-                msg="$THIS: Tried '$tries' time(s) and failed to download all meteorological forecast data for cycle '$rrfsForecastCycle'. Waiting 60 seconds before trying again."
+                msg="$THIS: Tried '$tries' time(s) and failed to download all meteorological forecast data for cycle '$CYCLE'. Waiting 60 seconds before trying again."
                 logMessage "$msg"
                 consoleMessage "$W $msg"
                 spinner 60
@@ -929,7 +929,7 @@ downloadRRFS()
         #
         #   M O V E   F I L E S   T O   S C E N A R I O   D I R E C T O R Y
         #
-        msg="$THIS: Moving RRFS ASCII OWI WIN/PRE and metadata to forecast scenario directory."
+        msg="$THIS: Moving RRFS ASCII OWI WIN/PRE and metadata to forecast scenario directory '$SCENARIODIR'."
         logMessage "$msg"
         consoleMessage "$I $msg"
         mv $winFileName $preFileName fort.22 $SCENARIODIR
