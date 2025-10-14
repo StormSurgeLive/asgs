@@ -288,6 +288,26 @@ writeGFSProperties()
    echo "WindModel : GFS" >> $STORMDIR_RUN_PROPERTIES
 }
 #
+# write properties to the run.properties file for RRFS
+writeRRFSProperties()
+{
+   STORMDIR=$1
+   local THIS="asgs_main->writeRRFSProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
+   logMessage "$THIS: Writing properties for meterorological forcing with the RRFS model to $1/run.properties."
+   echo "forcing.metclass : synoptic" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nwp.model : RRFS" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.rrfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.rrfs.forecast.download : $forecastDownload" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.rrfs.baseurl : ${rrfs['BaseURL']}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.rrfs.domain.coverage : ${rrfsDomain['coverage']}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.rrfs.config.forecastlength : ${rrfs['ForecastLength']}" >> $STORMDIR_RUN_PROPERTIES
+   # legacy from 2014stable, depcrecated
+   echo "WindModel : RRFS" >> $STORMDIR_RUN_PROPERTIES
+}
+#
 # write properties to the run.properties file that are associated with
 # tropical cyclone forcing configuration.
 writeTropicalCycloneProperties()

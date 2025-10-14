@@ -2363,7 +2363,7 @@ while [ true ]; do
    fi
    # BACKGROUND METEOROLOGY
    case $BACKGROUNDMET in
-      "on"|"NAM"|"OWI"|"GFS")
+      "on"|"NAM"|"OWI"|"GFS"|"RRFS")
          if [[ $WAVES == "on" ]]; then
             NWS=-312
          else
@@ -2379,7 +2379,7 @@ while [ true ]; do
          # don't need to set NWS
          ;;
       *)
-         fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to $BACKGROUNDMET but the only allowable values are 'on', 'NAM', 'OWI', 'namBlend', and 'off'."
+         fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to '$BACKGROUNDMET' but this setting is unrecognized."
          ;;
    esac
 
@@ -2820,6 +2820,7 @@ while [ true ]; do
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
+   CYCLE=$ADVISORY
    #
    executeHookScripts "FINISH_NOWCAST_STAGE"
    #
