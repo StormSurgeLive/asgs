@@ -2217,6 +2217,9 @@ while [ true ]; do
          "GFS")
             writeGFSProperties $RUNDIR
             ;;
+         "RRFS")
+            writeRRFSProperties $RUNDIR
+            ;;
          *) # other values are allowed but don't have properties that need to be written in advance
             ;;
       esac
@@ -2245,9 +2248,9 @@ while [ true ]; do
       if [[ $WAVES == on ]]; then
          NWS=$(($BASENWS + 300))
       fi
-      # need to set NWS properly for NAM or GFS blending
+      # need to set NWS properly for NAM, GFS, or RRFS blending
       case $BACKGROUNDMET in
-         "namBlend"|"gfsBlend")
+         "namBlend"|"gfsBlend"|"rrfsBlend")
             if [[ $BASENWS -gt 8 ]]; then
                NWS=$(($BASENWS + 10))  # e.g., 20 becomes 30
                if [[ $WAVES == on ]]; then
@@ -2328,7 +2331,7 @@ while [ true ]; do
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
                case $BACKGROUNDMET in
-                  "namBlend"|"gfsBlend")
+                  "namBlend"|"gfsBlend"|"rrfsBlend")
                      # ADCIRC needs to read a file named fort.22 that represents
                      # the gridded NAM wind field
                      CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/NWS_${BASENWS}_fort.22"
@@ -2367,7 +2370,7 @@ while [ true ]; do
             NWS=-12
          fi
          ;;
-      "namBlend"|"gfsBlend")
+      "namBlend"|"gfsBlend"|"rrfsBlend")
          if [[ $TROPICALCYCLONE == "off" ]]; then
             fatal "$ENSTORM: $THIS: BACKGROUNDMET was set to '$BACKGROUNDMET' but this setting is only meaningful when TROPICALCYCLONE is set to 'on'."
          fi
@@ -2528,6 +2531,14 @@ while [ true ]; do
          downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          cd $SCENARIODIR 2>> $SYSLOG
          ;;
+      "rrfsBlend")
+         logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading RRFS meteorological data for blending."
+         #
+         # Detect latest RRFS data, subset, download, reproject, reformat
+         # to Oceanweather WIN/PRE format, and make symbolic links
+         downloadRRFS
+         cd $SCENARIODIR 2>> $SYSLOG
+         ;;
       "GFS")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
          #
@@ -2555,6 +2566,35 @@ while [ true ]; do
          #
          STORMDIR=$NOWCASTDIR
          CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
+         ;;
+      "RRFS")
+         logMessage "$SCENARIO: $THIS: NWS is $NWS. Downloading background meteorology."
+         #
+         executeHookScripts "NOWCAST_POLLING"
+         #
+         # Detect latest RRFS data, subset, download, reproject, reformat
+         # to Oceanweather WIN/PRE format, and make symbolic links
+         downloadRRFS
+         THIS="asgs_main.sh"
+         #
+         LASTADVISORYNUM=$ADVISORY
+         logMessage "$SCENARIO: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
+         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         CYCLE=$ADVISORY
+         echo "forcing.nwp.year : ${CYCLE:0:4}" >> $RUNDIR/run.properties
+         #
+         executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
+         consoleMessage "$I RRFS cycle '$CYCLE'"
+
+         writeScenarioProperties $SCENARIODIR
+         cd $SCENARIODIR 2>> $SYSLOG
+
+         logMessage "$SCENARIO: $THIS: '$START' '$SCENARIO' cycle '$CYCLE'."
+         #
+         executeHookScripts "BUILD_NOWCAST_SCENARIO"
+         #
+         STORMDIR=$NOWCASTDIR
+         CONTROLOPTIONS="--advisorynum $CYCLE --name $SCENARIO --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
 
       "OWI")
@@ -2840,6 +2880,10 @@ while [ true ]; do
                writeGFSProperties $RUNDIR
                echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
                ;;
+            "RRFS")
+               writeRRFSProperties $RUNDIR
+               echo "forcing.nwp.year : ${CYCLE:0:4}" >> $RUNDIR/run.properties
+               ;;
             *) # other values are allowed but don't have properties that need to be written in advance
                ;;
          esac
@@ -3044,13 +3088,18 @@ while [ true ]; do
          fi
          # download and convert met files to OWI format
          logMessage "$ENSTORM: $THIS: Downloading background meteorology."
-         if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" ]]; then
+         case $BACKGROUNDMET in
+         "on"|"NAM")
             logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
             downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
-         else
-            # GFS
+            ;;
+         "GFS")
             downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
-         fi
+            ;;
+         "RRFS")
+            downloadRRFS
+            ;;
+         esac
          THIS="asgs_main.sh"
          cd $SCENARIODIR 2>> ${SYSLOG}
          if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" ]]; then
