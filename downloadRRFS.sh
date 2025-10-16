@@ -60,7 +60,7 @@ performQualityChecksRRFS()
     localFileLines=$(cat $1 2>> $SYSLOG | wc -l)
     # index file is plain ascii but error message is XML
     if [[ "$localFileType" =~ "XML" ]]; then
-        appMessage "The requested RRFS index file '$1' was not found." $downloadRrfsLog
+        appMessage "The requested RRFS file '$1' was not found." $downloadRrfsLog
         mv $1 $instanceRrfsDir/${1}.errxml 2>> $SYSLOG
         return 1
     fi
