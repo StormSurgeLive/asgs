@@ -176,6 +176,7 @@ downloadRRFS()
             # getting rrfs status : start with a list of dates beginning on the hotstart
             # date and progressing for a number of days equal to rrfsLookAhead, check for
             # the existence of a grib2 index file for each cycle
+            unset cycleList
             declare -a cycleList
             for d in $(seq 0 ${rrfs['LookAhead']}); do
                 cycleDate=$( TZ=UTC date --date="${lastCycle:0:8} +$d day" +"%Y%m%d" )
@@ -246,13 +247,13 @@ downloadRRFS()
         if [[ ${#forecastCycles[@]} -gt 0 ]]; then
             forecastFound=0
             extraCycles=0
-            for (( c=${#cycleList[@]}-1; c>=2; c-- )) ; do
+            for (( c=${#cycleList[@]}-1; c>=1; c-- )) ; do
                 cycleday=${cycleList[$c]:0:8}
                 cyclehour=${cycleList[$c]:8:2}
                 # loop over the forecast cycles to see if this
                 # cycle has been specified
                 for f in ${forecastCycles[@]}; do
-                    if [[ ${forecastCycles[$f]} == $cyclehour ]]; then
+                    if [[ $f == $cyclehour ]]; then
                         forecastFound=1
                         break 2
                     fi
@@ -639,17 +640,15 @@ downloadRRFS()
         #
         # form the list of files to download
         declare -a rrfsForecastFiles
-        unset downloaded have
         msg="$THIS: Downloading hourly RRFS forecast grib2 files for cycle '$CYCLE'."
         logMessage "$msg"
         consoleMessage "$I $msg"
-        numFiles=$(( ${rrfs['ForecastLength']} * 3 ))
         cycleDate=${CYCLE:0:8}
         hh=$(printf "%02d" ${CYCLE:8:2})
         succeeded=0
         tries=0
         r=$instanceRrfsDir/ranges
-        while [[ $succeeded -lt $numFiles ]]; do
+        while [[ $succeeded -lt  ${rrfs['ForecastLength']} ]]; do
             if [[ $tries -ne 0 ]]; then
                 msg="$THIS: Tried '$tries' time(s) and failed to download all meteorological forecast data for cycle '$CYCLE'. Waiting 60 seconds before trying again."
                 logMessage "$msg"
@@ -657,6 +656,7 @@ downloadRRFS()
                 spinner 60
                 succeeded=0
             fi
+            unset downloaded have
             for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
                 hhh=$(printf "%03d" $h)
                 indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
@@ -694,6 +694,7 @@ downloadRRFS()
                 fi
             done
             succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
+            ((tries++))
         done
         if [[ $breakPoint == "rrfs.forecast.index" ]]; then
             echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Stopping at break point '$breakPoint'."
@@ -728,7 +729,7 @@ downloadRRFS()
                 fi
                 # attempt to download specific byte ranges via curl
                 for v in UGRD VGRD PRES; do
-                    byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range | grep -Eo '[0-9]*-[0-9]*')
+                    byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range 2>>$SYSLOG | grep -Eo '[0-9]*-[0-9]*')
                     grib2FileName=${indexFileName%.idx}
                     if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
                         curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
@@ -737,20 +738,20 @@ downloadRRFS()
                         performQualityChecksRRFS $v.$grib2FileName grib2File
                         if [[ $? -ne 0 ]]; then
                             rm $v.$grib2FileName 2>> $SYSLOG
-                            break 3
+                            break 2
                         fi
                         # the subset downloaded successfully and passed quality checks,
                         # move it to the local grib2 file cache
                         mv $v.$grib2FileName $indexFileDir 2>> $SYSLOG
-                        downloaded+=( $v.$grib2FileName )
+                        downloaded+=( $cycleDate/$hh/$v.$grib2FileName )
                     else
-                        have+=( $v.$grib2FileName )
+                        have+=( $cycleDate/$hh/$v.$grib2FileName )
                     fi
                 done
                 # concatenate into a single grib2 file so that UGRD and VGRD can be
                 # regridded and reprojected as vectors
                 if [[ ! -s $indexFileDir/grib2FileName ]]; then
-                    cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName
+                    cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName 2>>$SYSLOG
                 fi
             done
             succeeded=$(( ${#downloaded[@]} + ${#have[@]} ))
@@ -865,8 +866,6 @@ downloadRRFS()
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
-        logMessage "$THIS: Writing ASCII WIN/PRE RRFS forecast files."
-        consoleMessage "$I Writing ASCII WIN/PRE RRFS forecast files."
         unset winPreTimes
         for file in ${rrfsFileList[@]}; do
             incr=( $(wgrib2 $file -match "PRES" 2>> $SYSLOG | cut -d : -f 6) )

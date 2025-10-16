@@ -3060,7 +3060,7 @@ while [ true ]; do
          fi
       fi
       # BACKGROUND METEOROLOGY ONLY
-      if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" || $BACKGROUNDMET == "GFS" ]]; then
+      if [[ $BACKGROUNDMET == "on" || $BACKGROUNDMET == "NAM" || $BACKGROUNDMET == "GFS" || $BACKGROUNDMET == "RRFS" ]]; then
          NWS=-12
          if [[ $WAVES == "on" ]]; then
             NWS=-312
