@@ -181,6 +181,10 @@ downloadRRFS()
             for d in $(seq 0 ${rrfs['LookAhead']}); do
                 cycleDate=$( TZ=UTC date --date="${lastCycle:0:8} +$d day" +"%Y%m%d" )
                 for h in 00 06 12 18; do
+                    # don't need it if it is before the current hotstart time
+                    if [[ $cycleDate$h -lt $lastCycle ]]; then
+                        continue
+                    fi
                     indexFileName=rrfs.t${h}z.natlev.3km.f000.na.grib2.idx
                     if [[ -e $instanceRrfsDir/$cycleDate/$h/$indexFileName ]]; then
                         cycleList+=( $cycleDate$h )
@@ -248,6 +252,9 @@ downloadRRFS()
             forecastFound=0
             extraCycles=0
             for (( c=${#cycleList[@]}-1; c>=1; c-- )) ; do
+                if [[ ${cycleList[$c]} -le $lastCycle ]]; then
+                    break
+                fi
                 cycleday=${cycleList[$c]:0:8}
                 cyclehour=${cycleList[$c]:8:2}
                 # loop over the forecast cycles to see if this
