@@ -195,11 +195,11 @@ downloadRRFS()
                         fi
                         # this index file has been posted, apparently; download it
                         curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
-                        logMessage "curlCommand=$curlCommand"
+                        appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                         $curlCommand 2>> $SYSLOG
                         exitCode=$?
                         if [[ $exitCode != 0 ]]; then
-                            logMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'."
+                            appMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'." $downloadRrfsLog
                             break 2
                         else
                             performQualityChecksRRFS $indexFileName indexFile
@@ -298,7 +298,7 @@ downloadRRFS()
                 if [[ ! -e $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
                     # check to see if it is available from NCEP
                     curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
-                    logMessage "curlCommand=$curlCommand"
+                    appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                     $curlCommand
                     exitCode=$?
                     if [[ $exitCode != 0 ]]; then
@@ -370,7 +370,7 @@ downloadRRFS()
                         grib2FileName=${indexFileName%.idx}
                         if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
                             curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
-                            logMessage "curlCommand=$curlCommand"
+                            appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                             $curlCommand
                             performQualityChecksRRFS $v.$grib2FileName grib2File
                             if [[ $? -ne 0 ]]; then
@@ -670,11 +670,11 @@ downloadRRFS()
                         break
                     fi
                     curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
-                    logMessage "curlCommand=$curlCommand"
+                    appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                     $curlCommand
                     exitCode=$?
                     if [[ $exitCode != 0 ]]; then
-                        logMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'."
+                        appMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'." $downloadRrfsLog
                         break
                     else
                         performQualityChecksRRFS $indexFileName indexFile
@@ -733,7 +733,7 @@ downloadRRFS()
                     grib2FileName=${indexFileName%.idx}
                     if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
                         curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
-                        logMessage "curlCommand=$curlCommand"
+                        appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                         $curlCommand
                         performQualityChecksRRFS $v.$grib2FileName grib2File
                         if [[ $? -ne 0 ]]; then
