@@ -89,7 +89,12 @@ generateDynamicInput()
                 layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATENOROUGH}"
             fi
             outputInventory="metonly"
-            layerOptions+=" --nws $BASENWS --dt 300.0"      # 15 minute time steps
+            metonlyNWS=$BASENWS
+            if [[ $BACKGROUNDMET == *"Blend" ]]; then
+                metonlyNWS=$(($BASENWS + 10))  # e.g., 20 becomes 30
+            fi
+            layerOptions+=" --nws $metonlyNWS"
+            layerOptions+=" --dt 300.0"      # 5 minute time steps
             layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
             layerOptions+=" --fort7172freq 300.0 --fort7172netcdf"
             layerOptions+=" --fort7374freq 3600.0 --fort7374netcdf"

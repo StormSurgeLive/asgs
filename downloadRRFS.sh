@@ -112,7 +112,7 @@ downloadRRFS()
     rrfsVar['UGRD']='UGRD:10 m above ground'
     rrfsVar['VGRD']='VGRD:10 m above ground'
     rrfsVar['PRES']='PRES:surface'
-    delare -a winPreExt
+    declare -a winPreExt
     case ${rrfsDomain['coverage']} in
     "basin")
         winPreExt=( 221 222 )
