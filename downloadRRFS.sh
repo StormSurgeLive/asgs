@@ -112,6 +112,22 @@ downloadRRFS()
     rrfsVar['UGRD']='UGRD:10 m above ground'
     rrfsVar['VGRD']='VGRD:10 m above ground'
     rrfsVar['PRES']='PRES:surface'
+    delare -a winPreExt
+    case ${rrfsDomain['coverage']} in
+    "basin")
+        winPreExt=( 221 222 )
+        ;;
+    "region")
+        winPreExt=( 223 224 )
+        ;;
+    "landfall")
+        winPreExt=( 217 218 )
+        ;;
+    *)
+        # should be unreachable
+        fatal "$THIS: Invalid RRFS domain coverage: '${rrfs[coverage]}'; must be basin, region, or landfall."
+        ;;
+    esac
     # example data path
     # aws s3 ls --no-sign-request s3://noaa-rrfs-pds/rrfs_a/rrfs.20251004/18/
     # -> 2025-10-04 15:12:46     102829 rrfs.t18z.natlev.3km.f000.na.grib2.idx
@@ -508,12 +524,12 @@ downloadRRFS()
         owiWinPre["endDateTime"]=$(wgrib2 $lastFile -match "UGRD" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         #
         # write the headers to the win/pre files
-        preFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
-        winFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
+        preFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.${winPreExt[0]}
+        winFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.${winPreExt[1]}
         headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
         winPreHeader="${headerLineTemplate:0:30}#${rrfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#rrfsDomain['coverage']}):${#headerLineTemplate}}"
-        echo "$winPreHeader" > $preFileName # fort.221
-        echo "$winPreHeader" > $winFileName # fort.222
+        echo "$winPreHeader" > $preFileName
+        echo "$winPreHeader" > $winFileName
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file
@@ -620,6 +636,9 @@ downloadRRFS()
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
         ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
         ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
+        if [[ $BACKGROUNDMET == "rrfsBlend" ]]; then
+            ln -s $fort22 fort.22 2>> $SYSLOG
+        fi
         cd $RUNDIR
         # nowcast files
         if [[ $breakPoint == "rrfs.template.catalog.select.hourly.download.regrid.owiwinpre.metadata.scenariodir" ]]; then
@@ -836,7 +855,6 @@ downloadRRFS()
         if [[ ${incr[1]} == "hour" ]]; then
             WTIMINC=$(( $WTIMINC * 3600 ))
         else
-
             fatal "$THIS: ERROR: The forecast time increment was specified as '${incr[1]}' which is not recognized."
         fi
         #
@@ -864,12 +882,12 @@ downloadRRFS()
         fi
         #
         # write the headers to the win/pre files
-        preFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.221
-        winFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.222
+        preFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.${winPreExt[0]}
+        winFileName=RRFS_${stage^^}_${owiWinPre["startDateTime"]}_${owiWinPre["endDateTime"]}.${winPreExt[1]}
         headerLineTemplate="$(printf "%s%38s%15s\n" "Oceanweather WIN/PRE Format" ${owiWinPre["startDateTime"]} ${owiWinPre["endDateTime"]})"
         winPreHeader="${headerLineTemplate:0:30}#${rrfsDomain['coverage']}${headerLineTemplate:$(expr 31 + ${#rrfsDomain['coverage']}):${#headerLineTemplate}}"
-        echo "$winPreHeader" > $preFileName # fort.221
-        echo "$winPreHeader" > $winFileName # fort.222
+        echo "$winPreHeader" > $preFileName
+        echo "$winPreHeader" > $winFileName
         #
         # extract the data from the grib2 files as ascii, reformat
         # into eight columns, and append the dataset to the corresponding file

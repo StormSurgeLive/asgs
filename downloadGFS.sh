@@ -354,6 +354,9 @@ downloadGFS()
         # create links to the OWI WIN/PRE files with names that  ADCIRC expects
         ln -s $(basename $preFileName) fort.221 2>> $SYSLOG
         ln -s $(basename $winFileName) fort.222 2>> $SYSLOG
+        if [[ $BACKGROUNDMET == "gfsBlend" ]]; then
+            ln -s $fort22 fort.22 2>> $SYSLOG
+        fi
         cd $RUNDIR
     else
         #

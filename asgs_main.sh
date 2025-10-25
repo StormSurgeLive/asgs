@@ -2330,22 +2330,6 @@ while [ true ]; do
             $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
-               case $BACKGROUNDMET in
-                  "namBlend"|"gfsBlend"|"rrfsBlend")
-                     # ADCIRC needs to read a file named fort.22 that represents
-                     # the gridded NAM wind field
-                     CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/NWS_${BASENWS}_fort.22"
-                     ;;
-                  "off")
-                     # this is the only met file ADCIRC will need to read so
-                     # rename it fort.22
-                     cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
-                     CONTROLOPTIONS=" $CONTROLOPTIONS --metfile $NOWCASTDIR/fort.22"
-                     ;;
-                  *)
-                     # should be unreachable based on param checks above
-                     ;;
-               esac
             else
                fatal "$ENSTORM: $THIS: '$ADCIRCDIR/aswip -n $BASENWS' failed to produce 'NWS_${BASENWS}_fort.22'."
             fi
@@ -2439,6 +2423,7 @@ while [ true ]; do
          echo "${owiWinPre["NWSET"]} ! NWSET" > $fort22
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
+         ln -s $fort22 fort.22 2>> ${SYSLOG}  # owiwind.F expects this name
          ;;
       "on"|"NAM")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -3029,7 +3014,7 @@ while [ true ]; do
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          writeTropicalCycloneForecastProperties $STORMDIR
-         CONTROLOPTIONS="--cst $CSDATE --advisorynum $ADVISORY --hst $HSTIME --metfile ${STORMDIR}/fort.22 --name $ENSTORM --hsformat $HOTSTARTFORMAT"
+         CONTROLOPTIONS="--cst $CSDATE --advisorynum $ADVISORY --hst $HSTIME --name $ENSTORM --hsformat $HOTSTARTFORMAT"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
          tcEnd=$(grep "forcing.tropicalcyclone.fcst.time.end" run.properties | sed 's/forcing.tropicalcyclone.fcst.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
@@ -3051,7 +3036,7 @@ while [ true ]; do
                echo "variation constant rMax : ${PERCENT}" >> run.properties 2>> ${SYSLOG}
                echo "modified : y" >> run.properties 2>> ${SYSLOG}
             fi
-            logMessage "$ENSTORM: $THIS: Running aswip fort.22 preprocessor for $ENSTORM with the following options: $ASWIPOPTIONS."
+            logMessage "$ENSTORM: $THIS: Running aswip fort.22 preprocessor for $ENSTORM with the following options: '$ASWIPOPTIONS'."
             $ADCIRCDIR/aswip -n $BASENWS $ASWIPOPTIONS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig 2>> ${SYSLOG}

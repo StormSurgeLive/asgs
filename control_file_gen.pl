@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2025 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -101,7 +101,6 @@ my $elevstations="null"; # file containing list of adcirc elevation stations
 my $velstations="null";  # file with list of adcirc velocity stations
 my $metstations="null";  # file with list of adcirc meteorological stations
 my $swantemplate;
-my $metfile;
 my $gridname="nc6b";
 our $csdate;
 our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
@@ -157,7 +156,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "elevstations=s" => \$elevstations,
            "velstations=s" => \$velstations,
            "metstations=s" => \$metstations,
-           "metfile=s" => \$metfile,
            "name=s" => \$enstorm,
            "gridname=s" => \$gridname,
            "cst=s" => \$csdate,

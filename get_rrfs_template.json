@@ -3,7 +3,7 @@
    "category" : "forcing",
    "forcing" : "meteorology",
    "meteorology" : "rrfs",
-   "domain" : "%NULLDOMAIN%",
+   "coverage" : "%NULLDOMAIN%",
    "template" : "%NULLGETRRFSTEMPLATEFILE%",
    "siteHost" : "%NULLBACKSITE%",
    "stage" : "%NULLSTAGE%",

@@ -88,7 +88,7 @@ gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
 gfsDomain['bottomlat']='0'
-gfsDomain['coverage']='regional'
+gfsDomain['coverage']='basin'
 GFSFORECASTLENGTH=${GFSFORECASTLENGTH:-120} # hours of GFS forecast to run
 #
 # Subsetting downloaded grib2 data using wgrib2
@@ -116,7 +116,7 @@ rrfs['ForecastLength']=84  # hours of RRFS forecast to run
 # json file for status checker and RRFS downloader
 rrfs['TemplateName']="get_rrfs_template.json"
 rrfs['FilledTemplateName']="asgs_main.sh_get_rrfs_status.json"
-rrfsDomain['coverage']='regional'
+rrfsDomain['coverage']='basin'
 # RRFS regridding
 rrfsLatLonGrid['lon0']='-100'
 rrfsLatLonGrid['nlon']='1800'
