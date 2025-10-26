@@ -247,6 +247,14 @@ downloadRRFS()
             else
                 latestCycle=0
             fi
+            # for blended meteorology, the gridded meteorological data have to last
+            # to the end of the nowcast time
+            if [[ $BACKGROUNDMET == *"Blend" ]]; then
+                if [[ $latestCycle -le $tcEnd ]]; then
+                    appMessage "The latest cycle is '$latestCycle' but the end of the nowcast is '$tcEnd'; waiting for later cycle(s) to be released to cover the full nowcast time period." $downloadRrfsLog
+                    latestCycle=0
+                fi
+            fi
         done
         # stop here if we are only testing through the catalogging of the remote site
         if [[ $breakPoint == "rrfs.template.catalog" ]]; then

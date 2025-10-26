@@ -217,17 +217,7 @@ writeScenarioProperties()
    echo "scenario.number : $si" >> $STORMDIR_RUN_PROPERTIES
    echo "monitoring.logging.file.cyclelog : $CYCLELOG" >> $STORMDIR_RUN_PROPERTIES
    echo "monitoring.logging.file.scenariolog : $SCENARIOLOG" >> $STORMDIR_RUN_PROPERTIES
-   if [[ $BACKGROUNDMET != "off" ]]; then
-      # this is used in forming the path where the results will be
-      # posted to a remote server
-      echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR_RUN_PROPERTIES
-      echo "forcing.meteorology.owi.winpre.nwset : ${owiWinPre["NWSET"]}" >> $STORMDIR_RUN_PROPERTIES
-      echo "forcing.meteorology.owi.winpre.nwbs : ${owiWinPre["NWBS"]}" >> $STORMDIR_RUN_PROPERTIES
-      echo "forcing.meteorology.owi.winpre.dwm : ${owiWinPre["DWM"]}" >> $STORMDIR_RUN_PROPERTIES
-      echo "forcing.meteorology.owi.winpre.start : ${owiWinPre["startDateTime"]}" >> $STORMDIR_RUN_PROPERTIES
-      echo "forcing.meteorology.owi.winpre.end : ${owiWinPre["endDateTime"]}" >> $STORMDIR_RUN_PROPERTIES
-      echo "forcing.meteorology.owi.winpre.wtiminc : $WTIMINC" >> $STORMDIR_RUN_PROPERTIES
-   fi
+
    # FIXME: the following are legacy properties from 2014stable
    # and should not be carried forward
    echo "asgs.path.advisdir : $ADVISDIR" >> $STORMDIR_RUN_PROPERTIES
@@ -306,6 +296,24 @@ writeRRFSProperties()
    echo "forcing.rrfs.config.forecastlength : ${rrfs['ForecastLength']}" >> $STORMDIR_RUN_PROPERTIES
    # legacy from 2014stable, depcrecated
    echo "WindModel : RRFS" >> $STORMDIR_RUN_PROPERTIES
+}
+#
+# write properties related to gridded meteorological fields
+# in OWI WIN/PRE format
+writeOWIWinPreProperties()
+{
+   STORMDIR=$1
+   local THIS="asgs_main->writeRRFSProperties()"
+   local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
+   logMessage "$THIS: Writing properties for meterorological forcing with the RRFS model to $1/run.properties."
+   echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.meteorology.owi.winpre.nwset : ${owiWinPre["NWSET"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.meteorology.owi.winpre.nwbs : ${owiWinPre["NWBS"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.meteorology.owi.winpre.dwm : ${owiWinPre["DWM"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.meteorology.owi.winpre.start : ${owiWinPre["startDateTime"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.meteorology.owi.winpre.end : ${owiWinPre["endDateTime"]}" >> $STORMDIR_RUN_PROPERTIES
+   echo "forcing.meteorology.owi.winpre.wtiminc : $WTIMINC" >> $STORMDIR_RUN_PROPERTIES
+
 }
 #
 # write properties to the run.properties file that are associated with

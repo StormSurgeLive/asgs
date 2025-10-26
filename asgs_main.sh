@@ -2680,6 +2680,9 @@ while [ true ]; do
    controlExitStatus=0
    controlMsg=""
    generateDynamicInput
+   if [[ $BACKGROUNDMET != "off" ]]; then
+      writeOWIWinPreProperties $SCENARIODIR
+   fi
    THIS="asgs_main.sh"
    if [[ $controlExitStatus -ne 0 ]]; then
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
