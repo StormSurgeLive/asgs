@@ -250,7 +250,7 @@ downloadRRFS()
             # for blended meteorology, the gridded meteorological data have to last
             # to the end of the nowcast time
             if [[ $BACKGROUNDMET == *"Blend" ]]; then
-                if [[ $latestCycle -le $tcEnd ]]; then
+                if [[ $latestCycle -lt $tcEnd ]]; then
                     appMessage "The latest cycle is '$latestCycle' but the end of the nowcast is '$tcEnd'; waiting for later cycle(s) to be released to cover the full nowcast time period." $downloadRrfsLog
                     latestCycle=0
                 fi
