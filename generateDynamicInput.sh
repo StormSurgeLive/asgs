@@ -90,7 +90,7 @@ generateDynamicInput()
             fi
             outputInventory="metonly"
             metonlyNWS=$BASENWS
-            if [[ $BACKGROUNDMET == *"Blend" ]]; then
+            if [[ $BACKGROUNDMET == *"Blend" && $stage == "NOWCAST" ]]; then
                 metonlyNWS=-$(($BASENWS + 10))  # e.g., 20 becomes -30
             fi
             layerOptions+=" --nws $metonlyNWS"
