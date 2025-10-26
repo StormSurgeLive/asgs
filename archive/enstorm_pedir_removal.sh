@@ -123,9 +123,6 @@ fi
 # delete subdomain directories
 wait
 #
-# archive the subdomain fort.16 log files
-tar cjf fort.16.tar.bz2 ./PE*/fort.16 1> tar.log 2> errmsg && cat tar.log | tee -a $LOGFILE >> $SCENARIOLOG || warn "cycle $CYCLE: $SCENARIO: $THIS: Could not create a tar archive of subdomain fort.16 files: `cat errmsg`." $LOGFILE
-#
 # archive grib2 files if any
 if ls *grib* >&/dev/null ; then
    scenarioMessage "$THIS: Archiving grib files." $LOGFILE

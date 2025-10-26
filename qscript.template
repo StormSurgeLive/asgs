@@ -145,6 +145,12 @@ for layer in ${layers[@]}; do
       RUNSUFFIX="error"
    fi
    #
+   # archive the subdomain fort.16 log files and adcirc.log file
+   if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+      tar czf ${layer}.fort.16.tar.gz ./PE*/fort.16 1> tar.log 2>> $SCENARIOLOG
+      cp adcirc.log ${layer}.adcirc.log 2>> $SCENARIOLOG
+   fi
+   #
    echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    #
    #     R E P O R T   J O B   S T A T U S

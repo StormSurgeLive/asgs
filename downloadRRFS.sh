@@ -498,8 +498,10 @@ downloadRRFS()
         SWLon=$(printf "%3.4f" ${rrfsLatLonGrid['lon0']})
         # form the file names of the first, second, and last grib2 files
         # to extract timing information
+        firstCycleHour=${cycleList[0]:8:2}
         firstFile=$instanceRrfsDir/${cycleList[0]:0:8}/${cycleList[0]:8:2}/rrfs.t${cycleList[0]:8:2}z.natlev.3km.f000.na.grib2
-        secondFile=$instanceRrfsDir/${cycleList[1]:0:8}/${cycleList[1]:8:2}/rrfs.t${cycleList[1]:8:2}z.natlev.3km.f000.na.grib2
+        secondCycleHour=$(printf "%02d" $(( ${firstCycleHour} + 1 )) )
+        secondFile=$instanceRrfsDir/${cycleList[0]:0:8}/${secondCycleHour}/rrfs.t${secondCycleHour}z.natlev.3km.f000.na.grib2
         lastFile=$instanceRrfsDir/${cycleList[-1]:0:8}/${cycleList[-1]:8:2}/rrfs.t${cycleList[-1]:8:2}z.natlev.3km.f000.na.grib2
         #
         # grab the start time (YYYYMMDDHH) of the files from the
