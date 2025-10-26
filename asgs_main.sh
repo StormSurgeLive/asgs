@@ -363,7 +363,7 @@ prep()
     fi
     # symbolically link control file (fort.15)
     if [ ! -e $ADVISDIR/$ENSTORM/${ENSTORM}.fort.15 ]; then
-        ln -s $ADVISDIR/$ENSTORN/${ENSTORM}.fort.15 $ADVISDIR/$ENSTORM/fort.15 2>> ${SYSLOG}
+        ln -s $ADVISDIR/$ENSTORM/${ENSTORM}.fort.15 $ADVISDIR/$ENSTORM/fort.15 2>> ${SYSLOG}
     fi
     # symbolically link self attraction / earth load tide file if needed
     if [[ ! -e $ADVISDIR/$ENSTORM/fort.24 && $selfAttractionEarthLoadTide != "notprovided" ]]; then
