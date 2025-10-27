@@ -231,18 +231,22 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    vortexModelParameters($nws);
    # for getting the OWI wind time increment for blended winds
    # and appending it to the wtiminc line
-   if ( abs($nws) == 30 || abs($nws) == 330 ) {
+   if ( abs($nws) == 30 ) {
       $wtiminc_line .= " $p->{meteorology}->{wtiminc} $pureVortex $pureBackground";
-   }
-} elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
-   owiParameters();
-   $wtiminc_line = "$p->{meteorology}->{wtiminc}";
-} elsif ( defined $specifiedRunLength ) {
-   ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
-   customParameters();
-} elsif ( $enstorm eq "hindcast" ) {
-   ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
-   initializationParameters();
+   } elsif ( abs($nws) == 330 ) {
+      $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{meteorology}->{rstiminc} $pureVortex $pureBackground";
+   } elsif ( abs($nws) == 12 ) {
+      owiParameters();
+      $wtiminc_line = "$p->{meteorology}->{wtiminc}";
+   } elsif ( abs($nws) == 312 ) {
+      owiParameters();
+      $wtiminc_line = "$p->{meteorology}->{wtiminc} $p->{meteorology}->{rstiminc}";
+   } elsif ( defined $specifiedRunLength ) {
+      ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
+      customParameters();
+   } elsif ( $enstorm eq "hindcast" ) {
+      ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
+      initializationParameters();
 }
 #
 # we want a hotstart file if this is a nowcast or model initialization
@@ -315,10 +319,7 @@ if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
 }
-# add swan time step to WTIMINC line if wave coupling was specified
-if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on"  ) {
-   $wtiminc_line .= " $p->{wave_coupling}->{rstiminc}";
-}
+
 #
 # tides
 if ( $p->{tides}->{tidal_forcing} eq "on" ) {
