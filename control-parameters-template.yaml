@@ -22,6 +22,9 @@
      dwm: %DWM%
      startdatetime: %startdatetime%
      enddatetime: %enddatetime%
+   blending:
+     pureVortex: %pureVortex%
+     pureBackground: %pureBackground%
  tides:
    tidal_forcing: "%tidal_forcing%"
    tidefac_file: "%tidefac_file%"

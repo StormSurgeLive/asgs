@@ -137,6 +137,14 @@ downloadGFS()
                 continue
             fi
             latestCycle=$(<"latestCycle")
+            # for blended meteorology, the gridded meteorological data have to last
+            # to the end of the nowcast time
+            if [[ $BACKGROUNDMET == *"Blend" ]]; then
+                if [[ $latestCycle -lt $tcEnd ]]; then
+                    appMessage "The latest cycle is '$latestCycle' but the end of the nowcast is '$tcEnd'; waiting for later cycle(s) to be released to cover the full nowcast time period." $downloadGfsLog
+                    latestCycle=0
+                fi
+            fi
         done
         # refine the list of GFS cycles to end the nowcast on the correct cycle
         select_nam_nowcast.pl < get_gfs_status.pl.json > select_gfs_nowcast.pl.json 2>> $SYSLOG

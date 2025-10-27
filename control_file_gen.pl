@@ -142,9 +142,6 @@ my $staticoffset = "null";
 my $unitoffsetfile = "null";
 our $addHours; # duration of the run (hours)
 our $nds;      # number of datasets expected to be placed in a file
-# multiples of Rmax for wind blending
-my $pureVortex = "3.0";
-my $pureBackground = "5.0";
 # ASCII ADCIRC OWI file
 our $nwset = 1;  # number of wind datasets (basin, region, local)
 our $nwbs = 0;   # number of blank snaps
@@ -188,8 +185,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan,
-           "pureVortex=s" => \$pureVortex,
-           "pureBackground=s" => \$pureBackground
            );
 #
 # load YAML document containing model control parameters from stdin
@@ -229,29 +224,33 @@ unless (open(TEMPLATE,"<$controltemplate")) {
 if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
    ASGSUtil::stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    vortexModelParameters($nws);
-   # for getting the OWI wind time increment for blended winds
-   # and appending it to the wtiminc line
-   if ( abs($nws) == 30 ) {
-      $wtiminc_line .= " $p->{meteorology}->{wtiminc} $pureVortex $pureBackground";
-   } elsif ( abs($nws) == 330 ) {
-      $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc} $pureVortex $pureBackground";
-   } elsif ( abs($nws) == 12 ) {
-      owiParameters();
-      $wtiminc_line = "$p->{meteorology}->{wtiminc}";
-   } elsif ( abs($nws) == 312 ) {
-      owiParameters();
-      $wtiminc_line = "$p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc}";
-   } elsif ( defined $specifiedRunLength ) {
-      ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
-      customParameters();
-   } elsif ( $enstorm eq "hindcast" ) {
-      ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
-      initializationParameters();
-   }
-} else {
-   if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on"  ) {
+}
+# for getting the OWI wind time increment for blended winds
+# and appending it to the wtiminc line
+if ( abs($nws) == 308 || abs($nws) == 319 || abs($nws) == 320 ) {
       $wtiminc_line .= " $p->{wave_coupling}->{rstiminc}";
-   }
+} elsif ( abs($nws) == 30 ) {
+   $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{meteorology}->{blending}->{pureVortex} $p->{meteorology}->{blending}->{pureBackground}";
+} elsif ( abs($nws) == 330 ) {
+   $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc} $p->{meteorology}->{blending}->{pureVortex} $p->{meteorology}->{blending}->{pureBackground}";
+}
+#
+# for straight OWI WIN/PRE ASCII files
+if ( abs($nws) == 12 ) {
+   owiParameters();
+   $wtiminc_line = "$p->{meteorology}->{wtiminc}";
+} elsif ( abs($nws) == 312 ) {
+   owiParameters();
+   $wtiminc_line = "$p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc}";
+}
+#
+# tidal initialization or "other"
+if ( defined $specifiedRunLength ) {
+   ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
+   customParameters();
+} elsif ( $enstorm eq "hindcast" ) {
+   ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
+   initializationParameters();
 }
 #
 # we want a hotstart file if this is a nowcast or model initialization
@@ -827,8 +826,8 @@ if ( $nws ne "0" ) {
    if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
       printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $bladj\n";
       if ( abs($nws) == 30 || abs($nws) == 330 ) {
-         printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $pureVortex\n";
-         printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $pureBackground\n";
+         printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $p->{meteorology}->{blending}->{pureVortex}\n";
+         printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $p->{meteorology}->{blending}->{pureBackground}\n";
       }
    }
 }

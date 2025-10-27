@@ -125,6 +125,11 @@ rrfsLatLonGrid['lat0']='5'
 rrfsLatLonGrid['nlat']='1800'
 rrfsLatLonGrid['dlat']='0.03'
 #
+# Meteorological Blending
+pureVortex=3.0
+pureBackground=5.0
+#
+#
 # External data sources : River Flux
 #
 RIVERSITE="ftp.nssl.noaa.gov"
