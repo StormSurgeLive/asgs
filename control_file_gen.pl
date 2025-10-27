@@ -234,7 +234,7 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    if ( abs($nws) == 30 ) {
       $wtiminc_line .= " $p->{meteorology}->{wtiminc} $pureVortex $pureBackground";
    } elsif ( abs($nws) == 330 ) {
-      $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{meteorology}->{rstiminc} $pureVortex $pureBackground";
+      $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc} $pureVortex $pureBackground";
    } elsif ( abs($nws) == 12 ) {
       owiParameters();
       $wtiminc_line = "$p->{meteorology}->{wtiminc}";
