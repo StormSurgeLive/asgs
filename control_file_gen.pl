@@ -247,6 +247,11 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
    } elsif ( $enstorm eq "hindcast" ) {
       ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
       initializationParameters();
+   }
+} else {
+   if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on"  ) {
+      $wtiminc_line .= " $p->{wave_coupling}->{rstiminc}";
+   }
 }
 #
 # we want a hotstart file if this is a nowcast or model initialization
