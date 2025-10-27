@@ -240,7 +240,7 @@ if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 
       $wtiminc_line = "$p->{meteorology}->{wtiminc}";
    } elsif ( abs($nws) == 312 ) {
       owiParameters();
-      $wtiminc_line = "$p->{meteorology}->{wtiminc} $p->{meteorology}->{rstiminc}";
+      $wtiminc_line = "$p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc}";
    } elsif ( defined $specifiedRunLength ) {
       ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
       customParameters();
