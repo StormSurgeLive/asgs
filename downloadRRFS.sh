@@ -214,7 +214,7 @@ downloadRRFS()
                             break 2
                         fi
                         # this index file has been posted, apparently; download it
-                        curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
+                        curlCommand="curl --connect-timeout 30 --max-time 60 --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
                         appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                         $curlCommand 2>> $SYSLOG
                         exitCode=$?
@@ -328,7 +328,7 @@ downloadRRFS()
                 indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
                 if [[ ! -e $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
                     # check to see if it is available from NCEP
-                    curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
+                    curlCommand="curl --connect-timeout 30 --max-time 60 --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
                     appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                     $curlCommand
                     exitCode=$?
@@ -374,6 +374,7 @@ downloadRRFS()
                 logMessage "$msg"
                 consoleMessage "$W $msg"
                 spinner 60
+                succeeded=0
             fi
             unset downloaded
             unset have
@@ -400,7 +401,7 @@ downloadRRFS()
                         byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range | grep -Eo '[0-9]*-[0-9]*')
                         grib2FileName=${indexFileName%.idx}
                         if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
-                            curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
+                            curlCommand="curl --range $byteRange --connect-timeout 30 --max-time 60 --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
                             appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                             $curlCommand
                             performQualityChecksRRFS $v.$grib2FileName grib2File
@@ -705,7 +706,7 @@ downloadRRFS()
                         appMessage "Could not find the grib2 index file on the remote web server; the HTTP status was '$indexFileStatus' using the curl command '$curlCommand'." $downloadRrfsLog
                         break
                     fi
-                    curlCommand="curl --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
+                    curlCommand="curl --connect-timeout 30 --max-time 60 --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
                     appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                     $curlCommand
                     exitCode=$?
@@ -752,6 +753,7 @@ downloadRRFS()
                 logMessage "$msg"
                 consoleMessage "$W $msg"
                 spinner 60
+                succeeded=0
             fi
             unset downloaded
             unset have
@@ -768,7 +770,7 @@ downloadRRFS()
                     byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range 2>>$SYSLOG | grep -Eo '[0-9]*-[0-9]*')
                     grib2FileName=${indexFileName%.idx}
                     if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
-                        curlCommand="curl --range $byteRange --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
+                        curlCommand="curl --range $byteRange --connect-timeout 30 --max-time 60 --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
                         appMessage "curlCommand=$curlCommand" $downloadRrfsLog
                         $curlCommand
                         performQualityChecksRRFS $v.$grib2FileName grib2File
