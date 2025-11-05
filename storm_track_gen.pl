@@ -146,6 +146,7 @@ unless ( open(HCST,"<$hindcastATCF") ) {
    stderrMessage("ERROR","Failed to open hindcast ATCF file $hindcastATCF for ensemble member '$name': $!.");
    die;
 }
+# find the date/time that the BEST track file starts
 while(<HCST>) {
    my @fields = split(',',$_);
    $firstBESTDate = $fields[2];
@@ -153,6 +154,29 @@ while(<HCST>) {
    last;
 }
 close(HCST);
+# find the date/time that the forecast is valid
+# open ATCF OFCL file, if it is present
+my $firstOFCLDate = "1970010100";
+my $forecastATCF = "$dir/al$storm$year.fst";
+if ( -e $forecastATCF ) {
+   unless (open(FCST, "<", $forecastATCF)) {
+      stderrMessage("ERROR","Failed to open forecast ATCF file '$forecastATCF' for scenario '$name': $!.");
+      die;
+   }
+} else {
+   stderrMessage("INFO","The forecast ATCF file '$forecastATCF' for scenario '$name' was not found and will not be processed.");
+   close(MEMBER);
+   exit;
+}
+while(<FCST>) {
+   my @fields = split(',',$_);
+   my $line = $_;
+   # grab the datetime at which the forecast is valid
+   $firstOFCLDate = $fields[2];
+   last;
+}
+close(FCST);
+#
 unless ( $coldstartdate ) {
    $coldstartdate = $firstBESTDate;
    stderrMessage("INFO","The cold start date was not specified using the --coldstartdate argument. The date/time of the most recent hindcast is '$coldstartdate'. This will be used as the coldstart date/time.");
@@ -171,7 +195,7 @@ if ( $name =~ /veer/ ) {
    $match++;
 }
 if ( $match > 1 ) {
-   stderrMessage("ERROR","The ensemble member name '$name' contains more than one match to  perturbed member names (maxWindSpeed, overlandSpeed, and veer).");
+   stderrMessage("ERROR","The scenario name '$name' contains more than one match to perturbed scenario names (maxWindSpeed, overlandSpeed, and veer).");
    die;
 }
 #
@@ -288,6 +312,11 @@ my $tsflag="0";  # set to 1 when the storm reaches tropical storm force
 #---------------------------------------------------------------------
 while(<HCST>) {
     my @fields = split / *, */, $_;
+    # ignore BEST track lines that are after the time that the forecast
+    # is valid
+    if ( $fields[2] >= $firstOFCLDate ) {
+      last;
+    }
     my $line = $_;
     # check to see if this is a complete line (meaning that all the fields
     # up to and including the storm name are there)

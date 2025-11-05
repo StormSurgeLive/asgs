@@ -41,7 +41,7 @@
 #   [--dt timestep] [--nowcast] [--controltemplate templatefile] < storm1_fort.22
 #
 #--------------------------------------------------------------------------
-# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2025 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -101,7 +101,6 @@ my $elevstations="null"; # file containing list of adcirc elevation stations
 my $velstations="null";  # file with list of adcirc velocity stations
 my $metstations="null";  # file with list of adcirc meteorological stations
 my $swantemplate;
-my $metfile;
 my $gridname="nc6b";
 our $csdate;
 our ($cy, $cm, $cd, $ch, $cmin, $cs); # ADCIRC cold start time
@@ -143,9 +142,6 @@ my $staticoffset = "null";
 my $unitoffsetfile = "null";
 our $addHours; # duration of the run (hours)
 our $nds;      # number of datasets expected to be placed in a file
-# multiples of Rmax for wind blending
-my $pureVortex = "3.0";
-my $pureBackground = "5.0";
 # ASCII ADCIRC OWI file
 our $nwset = 1;  # number of wind datasets (basin, region, local)
 our $nwbs = 0;   # number of blank snaps
@@ -157,7 +153,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "elevstations=s" => \$elevstations,
            "velstations=s" => \$velstations,
            "metstations=s" => \$metstations,
-           "metfile=s" => \$metfile,
            "name=s" => \$enstorm,
            "gridname=s" => \$gridname,
            "cst=s" => \$csdate,
@@ -190,8 +185,6 @@ GetOptions("controltemplate=s" => \$controltemplate,
            "sparse-output" => \$sparseoutput,
            "hsformat=s" => \$hsformat,
            "hotswan=s" => \$hotswan,
-           "pureVortex=s" => \$pureVortex,
-           "pureBackground=s" => \$pureBackground
            );
 #
 # load YAML document containing model control parameters from stdin
@@ -231,15 +224,28 @@ unless (open(TEMPLATE,"<$controltemplate")) {
 if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
    ASGSUtil::stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
    vortexModelParameters($nws);
-   # for getting the OWI wind time increment for blended winds
-   # and appending it to the wtiminc line
-   if ( abs($nws) == 30 || abs($nws) == 330 ) {
-      $wtiminc_line .= " $p->{meteorology}->{wtiminc} $pureVortex $pureBackground";
-   }
-} elsif ( abs($nws) == 12 || abs($nws) == 312 ) {
+}
+# for getting the OWI wind time increment for blended winds
+# and appending it to the wtiminc line
+if ( abs($nws) == 308 || abs($nws) == 319 || abs($nws) == 320 ) {
+      $wtiminc_line .= " $p->{wave_coupling}->{rstiminc}";
+} elsif ( abs($nws) == 30 ) {
+   $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{meteorology}->{blending}->{pureVortex} $p->{meteorology}->{blending}->{pureBackground}";
+} elsif ( abs($nws) == 330 ) {
+   $wtiminc_line .= " $p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc} $p->{meteorology}->{blending}->{pureVortex} $p->{meteorology}->{blending}->{pureBackground}";
+}
+#
+# for straight OWI WIN/PRE ASCII files
+if ( abs($nws) == 12 ) {
    owiParameters();
    $wtiminc_line = "$p->{meteorology}->{wtiminc}";
-} elsif ( defined $specifiedRunLength ) {
+} elsif ( abs($nws) == 312 ) {
+   owiParameters();
+   $wtiminc_line = "$p->{meteorology}->{wtiminc} $p->{wave_coupling}->{rstiminc}";
+}
+#
+# tidal initialization or "other"
+if ( defined $specifiedRunLength ) {
    ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
    customParameters();
 } elsif ( $enstorm eq "hindcast" ) {
@@ -317,10 +323,7 @@ if ( $nws eq "0" ) {
    $fort7172 = "NO LINE HERE";
    $fort7374 = "NO LINE HERE";
 }
-# add swan time step to WTIMINC line if wave coupling was specified
-if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on"  ) {
-   $wtiminc_line .= " $p->{wave_coupling}->{rstiminc}";
-}
+
 #
 # tides
 if ( $p->{tides}->{tidal_forcing} eq "on" ) {
@@ -823,8 +826,8 @@ if ( $nws ne "0" ) {
    if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
       printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $bladj\n";
       if ( abs($nws) == 30 || abs($nws) == 330 ) {
-         printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $pureVortex\n";
-         printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $pureBackground\n";
+         printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $p->{meteorology}->{blending}->{pureVortex}\n";
+         printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $p->{meteorology}->{blending}->{pureBackground}\n";
       }
    }
 }

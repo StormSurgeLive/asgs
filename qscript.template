@@ -90,6 +90,7 @@ for layer in ${layers[@]}; do
       rm fort.15 2>> $SCENARIOLOG
    fi
    ln -s ${layer}.fort.15 fort.15 2>> $SCENARIOLOG
+   echo "Symbolically linking target '${layer}.fort.15' to name 'fort.15'."
    # if this is not a prep job, untar the corresponding fort.15 files
    # and link to the proper meteorological output files
    if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
@@ -101,6 +102,7 @@ for layer in ${layers[@]}; do
             rm ${layerFile#$layer.} 2>> $SCENARIOLOG
          fi
          ln -s $layerFile ${layerFile#$layer.} 2>> $SCENARIOLOG
+         echo "Symbolically linking target '$layerFile' to name '${layerFile#$layer.}'."
       done
    fi
    #
@@ -143,6 +145,12 @@ for layer in ${layers[@]}; do
       RUNSUFFIX="error"
    fi
    #
+   # archive the subdomain fort.16 log files and adcirc.log file
+   if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+      tar czf ${layer}.fort.16.tar.gz ./PE*/fort.16 1> tar.log 2>> $SCENARIOLOG
+      cp adcirc.log ${layer}.adcirc.log 2>> $SCENARIOLOG
+   fi
+   #
    echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
    #
    #     R E P O R T   J O B   S T A T U S
@@ -177,6 +185,7 @@ if [[ -e "fort.15" ]]; then
    rm fort.15 2>> $SCENARIOLOG
 fi
 ln -s $SCENARIO.fort.15 fort.15 2>> $SCENARIOLOG
+echo "Symbolically linking target '$SCENARIO.fort.15' to name 'fort.15'."
 #
 for file in $(ls fort.7* maxwvel* minpr*); do
    if [[ -e $file ]]; then
@@ -185,4 +194,5 @@ for file in $(ls fort.7* maxwvel* minpr*); do
 done
 for file in $(ls ${SCENARIO}.fort.7* ${SCENARIO}.maxwvel* ${SCENARIO}.minpr*); do
    ln -s $file ${file#$SCENARIO.} 2>> $SCENARIOLOG
+   echo "Symbolically linking target '$file' to name '${file#$SCENARIO.}'."
 done

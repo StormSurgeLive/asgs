@@ -49,12 +49,18 @@ variables_init()
    RIVERDIR=${RIVERDIR:-"/projects/ciflow/adcirc_info"}
    RIVERUSER=${RIVERUSER:-null}
    RIVERDATAPROTOCOL=${RIVERDATAPROTOCOL:-null}
+   # OWI
+   declare -g -A owiWinPre
    # GFS
    declare -g -A gfsDomain
    declare -g -A gfsLatLonGrid
    GFSBACKSITE=null  # domain name of the site to download data from
    GFSBACKDIR=null   # path to data on remote server
-   #
+   # RRFS
+   declare -g -A rrfs
+   declare -g -A rrfsDomain
+   declare -g -A rrfsLatLonGrid
+   # meshes
    ELEVSTATIONS=null
    VELSTATIONS=null
    METSTATIONS=null
@@ -186,4 +192,6 @@ variables_init()
    SCENARIO="null"
    SCENARIODIR="null"
    OPENDAPADDROOT=""
+   # used to activate test code
+   breakPoint=production
 }

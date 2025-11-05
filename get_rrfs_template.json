@@ -1,0 +1,41 @@
+{
+   "version" : "0.1",
+   "category" : "forcing",
+   "forcing" : "meteorology",
+   "meteorology" : "rrfs",
+   "coverage" : "%NULLDOMAIN%",
+   "template" : "%NULLGETRRFSTEMPLATEFILE%",
+   "siteHost" : "%NULLBACKSITE%",
+   "stage" : "%NULLSTAGE%",
+   "scriptDir" :"%NULLSCRIPTDIR%",
+   "localDataDir" : "%LOCALDATADIR%",
+   "configDailyForecastCycles" : [
+      "%NULLFORECASTCYCLES%"
+   ],
+   "latLonGrid" : {
+      "lon0" : "%NULLLON0%",
+      "nlon" : "%NULLNLON%",
+      "dlon" : "%NULLDLON%",
+      "lat0" : "%NULLLAT0%",
+      "nlat" : "%NULLNLAT%",
+      "dlat" : "%NULLDLAT%"
+   },
+   "cyclelist" : [
+      "%NULLCYCLELIST%"
+   ],
+   "winPreHeader" : "%WINPREHEADER%",
+   "winPreVelocityFile" : "%WINPREVELOCITYFILE%",
+   "winPrePressureFile" : "%WINPREPRESSUREFILE%",
+   "winPreRecordLength" : "%WINPRERECORDLENGTH%",
+   "winPreWtimincSeconds" : "%WINPREWTIMINCSECONDS%",
+   "winPreNumRecords" : "%WINPRENUMRECORDS%",
+   "winPreDataTimes" : [
+      "%WINPREDATATIMES%"
+   ],
+   "filesDownloaded" : [
+      "%NULLDOWNLOADED%"
+   ],
+   "filesFromCache" : [
+      "%NULLFOUND%"
+   ]
+}
