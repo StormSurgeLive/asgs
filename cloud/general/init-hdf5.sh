@@ -3,7 +3,7 @@
 OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=${2:-intel}
 JOBS=${3:-1}
-HDF5_VERSION=${4:-1_12_3}
+HDF5_VERSION=${4:-1.14.4.3}
 
 # may need to make this available in asgs generally
 HDF5_USE_FILE_LOCKING=FALSE
@@ -52,7 +52,9 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e hdf5-${HDF5_VERSION}.tar.gz ]; then
-  wget --no-check-certificate https://codeload.github.com/HDFGroup/hdf5/tar.gz/refs/tags/hdf5-${HDF5_VERSION} -O hdf5-${HDF5_VERSION}.tar.gz
+  #wget --no-check-certificate https://codeload.github.com/HDFGroup/hdf5/tar.gz/refs/tags/hdf5-${HDF5_VERSION} -O hdf5-${HDF5_VERSION}.tar.gz
+  echo  https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.4.3/hdf5.tar.gz
+  wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null
@@ -61,8 +63,8 @@ mkdir -p $OPT/lib 2> /dev/null
 mkdir -p $OPT/include 2> /dev/null # avoid warnings for missing include directories [-Wmissing-include-dirs]
 
 if [ ! -e $OPT/lib/libhdf5_fortran.so ]; then
-  tar zxvf hdf5-${HDF5_VERSION}.tar.gz
-  cd hdf5-hdf5-${HDF5_VERSION}
+  tar zxvf hdf5_${HDF5_VERSION}.tar.gz
+  cd hdf5-hdf5_${HDF5_VERSION}
   make clean
   ./configure --prefix $OPT --enable-fortran
   make -j $JOBS install
