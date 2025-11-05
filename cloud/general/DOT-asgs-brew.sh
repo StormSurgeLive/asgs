@@ -74,6 +74,7 @@ help() {
   echo "           statefile       - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   dump    <param>         - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog"
   echo "   edit    <thing>         - adcirc <NAME>, asgs-global, asgsh-profile, config, jobs, mail-log, meshes, platforms, profile, statefile, syslog"
+  echo "   export-adcirc           - dumps out \$PATH, \$LD_LIBRARY_PATH, and \$LD_INCLUDE_PATH needed to run the built ADCIRC outside of the ASGS Shell"
   echo "   fetch   <thing>         - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
   echo "   goto|g  <param>         - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
   echo "   guess   platform        - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
@@ -296,6 +297,33 @@ load() {
       echo "${W} 'load' requires 2 parameters: 'adcirc' or 'profile' as the first; the second parameter defines what to load."
       return
   esac
+}
+
+# dump envars needed to establish the environment to use the specified
+# version of ADCIRC
+export-adcirc() {
+  trap 'echo && exit 1' SIGINT
+  local adcirc_profile_name=${1:-$ADCIRC_PROFILE_NAME}
+  if [[ -n "$adcirc_profile_name" && -e "$ADCIRC_META_DIR/$adcirc_profile_name" ]]; then
+    source $ADCIRC_META_DIR/$adcirc_profile_name
+    cat <<EOENV
+
+#-- BEGIN ADCIRC Live (c) 2024-present exported environment
+## For commercial support options, email help@support.adcirc.live
+## or visit https://adcirc.live for more information
+# Copyright(C) 2024-present Brett Estrade <brett.estrade@adcirc.live>
+# Copyright(C) 2024-present Jason Fleming <jason.fleming@adcirc.live>
+
+export PATH=$ADCIRCDIR:$SCRIPTDIR:\$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:\$LD_LIBRARY_PATH
+export LD_INCLUDE_PATH=$LD_INCLUDE_PATH:\$LD_INCLUDE_PATH
+
+#-- END ADCIRC Live (c) 2024-present exported environment
+
+EOENV
+  else
+    echo "It appears as if ADCIRC is not loaded or built. You may email help@support.adcirc.live for assistance."
+  fi
 }
 
 # alias for load, so one may more naturally "switch" profiles
