@@ -1561,6 +1561,9 @@ handleFailedJob()
          sed 's/ADVISORY=.*/ADVISORY='$LASTADVISORYNUM'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG}
          mv -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1
       fi
+      if [[ $EXITONERROR == "yes" ]]; then
+         fatal "The parameter EXITONERROR is set to '$EXITONERROR' so the ASGS is stopping execution due to job failure."
+      fi
    fi
 }
 #
