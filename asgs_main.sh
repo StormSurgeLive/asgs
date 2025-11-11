@@ -132,13 +132,13 @@ readConfig()
       esac
       if [[ $TROPICALCYCLONE != "off" ]]; then
          s=$(printf "%02d" $STORM)
-         if [[ ! -z $forcing ]];
+         if [[ ! -z $forcing ]]; then
             forcing="al$s${YEAR}-$forcing"
          else
             forcing="al$s${YEAR}"
          fi
       fi
-      INSTANCENAME=${STDMESHNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
+      INSTANCENAME=${GRIDNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
    fi
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz

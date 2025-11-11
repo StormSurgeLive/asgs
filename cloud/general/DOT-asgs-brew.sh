@@ -87,7 +87,7 @@ help() {
   echo "   purge   <param>         - deletes specified file or directory"
   echo "           rundir          - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
   echo "   rebuild profile         - wizard for recreating an ASGS profile using an existing configuration file"
-  echo "   restore <FILE.tgz>      - fetchs and restores files contained in 'FILE.tgz'" 
+  echo "   restore <FILE.tgz>      - fetchs and restores files contained in 'FILE.tgz'"
   echo "           <HOST:FILE.tgz> - ... fetches backup TGZ from a remote host via ssh; 'backup' command creates and sends TGZ to specified location"
   echo "   rl                      - reload current profile, equivalent to 'load profile <current-profile-name>'"
   echo "   run                     - runs asgs using config file, requires that \$ASGS_CONFIG is set; most handy after 'load'ing a profile"
@@ -331,7 +331,47 @@ _parse_config() {
     return
   fi
   # pull out var info the old fashion way...
-  export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  GRIDNAME=$(egrep '^ *GRIDNAME=' "${1}" | sed 's/^ *GRIDNAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  TROPICALCYCLONE=$(egrep '^ *TROPICALCYCLONE=' "${1}" | sed 's/^ *TROPICALCYCLONE=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  BACKGROUNDMET=$(egrep '^ *BACKGROUNDMET=' "${1}" | sed 's/^ *BACKGROUNDMET=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  STORM=$(egrep '^ *STORM=' "${1}" | sed 's/^ *STORM=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  YEAR=$(egrep '^ *YEAR=' "${1}" | sed 's/^ *YEAR=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  # check to see if INSTANCENAME was not defined in the
+  # configuration file; if so, construct the instance name
+  # from the other characteristics of the configuration; this
+  # must follow the automated setting of the instance name in
+  # asgs_main.sh -> readConfig() function
+  if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
+      local forcing=""
+      case $BACKGROUNDMET in
+      "on"|"NAM"|"nam")  # replace "on" with "nam"
+         forcing="nam"
+         ;;
+      "GFS"|"gfs")
+         forcing="gfs"
+         ;;
+      "RRFS"|"rrfs")
+         forcing="rrfs"
+         ;;
+      "off")
+         forcing=""
+         ;;
+      *)
+         forcing=$BACKGROUNDMET # could be gfsBlend, rrfsBlend, namBlend, etc
+         ;;
+      esac
+      if [[ $TROPICALCYCLONE != "off" ]]; then
+         s=$(printf "%02d" $STORM)
+         if [[ ! -z $forcing ]]; then
+            forcing="al$s${YEAR}-$forcing"
+         else
+            forcing="al$s${YEAR}"
+         fi
+      fi
+      INSTANCENAME=${GRIDNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
+  fi
+  export INSTANCENAME
   echo "${I} config file found, instance name is '$INSTANCENAME'"
   echo
   export STATEFILE="$SCRATCH/${INSTANCENAME}.state"
@@ -532,7 +572,7 @@ init_config() {
       MESHES+=($m)
     done
   fi
-  printf "% 2d. %s\n" $LISTNUM "custom (edit configuration file after)" 
+  printf "% 2d. %s\n" $LISTNUM "custom (edit configuration file after)"
   OTHERNUM=$(($LISTNUM))
   MESHES+=(custom)
   local select=
@@ -591,7 +631,7 @@ read -p "Please choose (1-3) [1]? " FORCING
   local _COLDSTARTDATE=$(get-coldstart-date)
   read -p "Set COLDSTARTDATE [$_COLDSTARTDATE]? " COLDSTARTDATE
   if [[ -z "$COLDSTARTDATE" ]]; then
-    COLDSTARTDATE=$_COLDSTARTDATE 
+    COLDSTARTDATE=$_COLDSTARTDATE
   fi
   echo
 
@@ -768,7 +808,7 @@ init() {
   case "${1}" in
     config)
       shift
-      init_config $@ 
+      init_config $@
       ;;
     keys)
       shift
@@ -1226,7 +1266,7 @@ alias vp="verify perl"
 alias vr="verify regressions"
 alias vs="verify ssh_config"
 
-# aliases for common git repos used during operations 
+# aliases for common git repos used during operations
 alias aconfigs="goto $SCRIPTDIR/git/asgs-configs/$(date +%Y)"              # cd in this year's directory in git/asgs-configs
 alias amond="goto $SCRIPTDIR/git/asgs-mon"                                 # cd into asgs-mon's directory
 alias amonv="asgs-mon -v"                                                  # run 'asgs-mon -v' (it's in PATH)
