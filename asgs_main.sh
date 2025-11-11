@@ -1293,6 +1293,12 @@ monitorJobs()
          logMessage "$ENSTORM_TEMP: $THIS: Quality control checks have been deactivated by setting QUALITYCONTROL=off."
       fi
    fi
+   # record memory high water mark to the run.properties file; this
+   # can be used for resource monitoring and in troubleshooting out 
+   # of memory issues
+   if [[ $QUEUESYS == "SLURM" ]]; then
+      echo "hpc.job.${JOBTYPE}.$(<jobID).sacct.maxrss.bytes : $(sacct -j $(<jobID).batch --format=MaxRSS --noconvert --noheader)" >> run.properties 
+   fi
    #
    # final messages
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
