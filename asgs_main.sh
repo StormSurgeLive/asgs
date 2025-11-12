@@ -112,33 +112,7 @@ readConfig()
    #
    # set the instancename if it was not set in the Operator's config file
    if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
-      local forcing=""
-      case $BACKGROUNDMET in
-      "on"|"NAM"|"nam")  # replace "on" with "nam"
-         forcing="nam"
-         ;;
-      "GFS"|"gfs")
-         forcing="gfs"
-         ;;
-      "RRFS"|"rrfs")
-         forcing="rrfs"
-         ;;
-      "off")
-         forcing=""
-         ;;
-      *)
-         forcing=$BACKGROUNDMET # could be gfsBlend, rrfsBlend, namBlend, etc
-         ;;
-      esac
-      if [[ $TROPICALCYCLONE != "off" ]]; then
-         s=$(printf "%02d" $STORM)
-         if [[ ! -z $forcing ]]; then
-            forcing="al$s${YEAR}-$forcing"
-         else
-            forcing="al$s${YEAR}"
-         fi
-      fi
-      INSTANCENAME=${GRIDNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
+      INSTANCENAME=$(get-instancename $GRIDNAME $TROPICALCYCLONE $BACKGROUNDMET $STORM $YEAR)
    fi
    PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
    HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz

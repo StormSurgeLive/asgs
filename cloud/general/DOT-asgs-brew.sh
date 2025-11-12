@@ -331,7 +331,7 @@ _parse_config() {
     return
   fi
   # pull out var info the old fashion way...
-  INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
+  export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
   GRIDNAME=$(egrep '^ *GRIDNAME=' "${1}" | sed 's/^ *GRIDNAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
   TROPICALCYCLONE=$(egrep '^ *TROPICALCYCLONE=' "${1}" | sed 's/^ *TROPICALCYCLONE=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
   BACKGROUNDMET=$(egrep '^ *BACKGROUNDMET=' "${1}" | sed 's/^ *BACKGROUNDMET=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
@@ -343,35 +343,8 @@ _parse_config() {
   # must follow the automated setting of the instance name in
   # asgs_main.sh -> readConfig() function
   if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
-      local forcing=""
-      case $BACKGROUNDMET in
-      "on"|"NAM"|"nam")  # replace "on" with "nam"
-         forcing="nam"
-         ;;
-      "GFS"|"gfs")
-         forcing="gfs"
-         ;;
-      "RRFS"|"rrfs")
-         forcing="rrfs"
-         ;;
-      "off")
-         forcing=""
-         ;;
-      *)
-         forcing=$BACKGROUNDMET # could be gfsBlend, rrfsBlend, namBlend, etc
-         ;;
-      esac
-      if [[ $TROPICALCYCLONE != "off" ]]; then
-         s=$(printf "%02d" $STORM)
-         if [[ ! -z $forcing ]]; then
-            forcing="al$s${YEAR}-$forcing"
-         else
-            forcing="al$s${YEAR}"
-         fi
-      fi
-      INSTANCENAME=${GRIDNAME}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}
+    export INSTANCENAME=$(get-instancename $GRIDNAME $TROPICALCYCLONE $BACKGROUNDMET $STORM $YEAR)
   fi
-  export INSTANCENAME
   echo "${I} config file found, instance name is '$INSTANCENAME'"
   echo
   export STATEFILE="$SCRATCH/${INSTANCENAME}.state"

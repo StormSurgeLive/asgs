@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+# gets INSTANCENAME based on configuration (only if INSTANCENAME=auto
+# or if INSTANCENAME is not present in the Operator's ASGS configuration file)
+_getInstanceName() {
+  if [[ $# -lt 5 ]]; then
+    echo "${W} The bin/get-instancename script must be called with 5 arguments: GRIDNAME, TROPICALCYCLONE, BACKGROUNDMET, STORM, and YEAR."
+    exit 1
+  fi
+  local gridName=$1
+  local tropicalCyclone=$2
+  local backgroundMet=$3
+  local storm=$4
+  local year=$5
+  #
+  local forcing=""
+  case $backgroundMet in
+  "on"|"NAM"|"nam")  # replace "on" with "nam"
+      forcing="nam"
+      ;;
+  "GFS"|"gfs")
+      forcing="gfs"
+      ;;
+  "RRFS"|"rrfs")
+      forcing="rrfs"
+      ;;
+  "off")
+      forcing=""
+      ;;
+  *)
+      forcing=$backgroundMet # could be gfsBlend, rrfsBlend, namBlend, etc
+      ;;
+  esac
+  if [[ $tropicalCyclone != "off" ]]; then
+    s=$(printf "%02d" $storm)
+    if [[ ! -z $forcing ]]; then
+      forcing="al$s${year}-$forcing"
+    else
+      forcing="al$s${year}"
+    fi
+  fi
+  echo "${gridName}_${forcing}_${HPCENVSHORT}_${ASGSADMIN_ID}"
+}
+_getInstanceName $@
