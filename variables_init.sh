@@ -23,6 +23,8 @@
 variables_init()
 {
 # Initialize variables accessed from config.sh to reasonable values
+   INSTANCENAME=${INSTANCENAME:-auto}
+   STDMESHNAME=${STDMESHNAME:-null}
    HPCENVSHORT=${HPCENVSHORT:-null}
    HPCENV=${HPCENV:-null}
    BACKGROUNDMET=on

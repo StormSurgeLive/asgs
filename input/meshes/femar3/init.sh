@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=FEMAR3
 nodes=1875689
 elements=3731099
 GRIDFILE=FEMA_R3_20110303_MSL.grd

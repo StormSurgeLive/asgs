@@ -19,9 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-#
-#
-#
+STDMESHNAME=$GRIDNAME
 nodes=1577268
 elements=3072131
 GRIDFILE=cpra_2023_hurricane_v05b_chk.grd     # mesh (fort.14) file
@@ -46,7 +44,7 @@ case $parameterPackage in
     NAFILE=cpra_2023_hurricane_v05b.13
     SWANTEMPLATE=CPRA23v01c_fort.26.template
     if [[ $GRIDNAME == "CPRA23v05c" ]]; then
-    NAFILE=cpra_2023_hurricane_v05c.13
+        NAFILE=cpra_2023_hurricane_v05c.13
     fi
     ;;
 "2025.1"|"default")

@@ -73,6 +73,13 @@ readConfig()
    fi
    #
    RUNARCHIVEBASE=$SCRATCHDIR
+   #
+   # set the instancename if it was not set in the Operator's config file
+   if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
+      INSTANCENAME=$(get-instancename $GRIDNAME $TROPICALCYCLONE $BACKGROUNDMET $STORM $YEAR)
+   fi
+   PREPPEDARCHIVE=prepped_${GRIDNAME}_${INSTANCENAME}_${NCPU}.tar.gz
+   HINDCASTARCHIVE=prepped_${GRIDNAME}_hc_${INSTANCENAME}_${NCPU}.tar.gz
 }
 #
 # helper subroutine to check for the existence of required files that have

@@ -19,9 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-#
-#
-#
+STDMESHNAME=$GRIDNAME
 nodes=1578740    # latest
 elements=3072948 # latest
 GRIDFILE=cpra_2024_hurricane_v04c_chk.14      # latest

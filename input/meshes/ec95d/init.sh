@@ -19,9 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
-#
-#
-#
+STDMESHNAME=EC95d
 nodes=31435
 elements=58369
 GRIDFILE=ec_95d.grd   # mesh (fort.14) file

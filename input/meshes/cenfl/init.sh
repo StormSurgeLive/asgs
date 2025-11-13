@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-#
-#
+STDMESHNAME=CenFlv7
 nodes=1406658
 elements=2793617
 GRIDFILE=eccl_v7_geo_z.grd

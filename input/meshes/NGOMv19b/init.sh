@@ -20,8 +20,7 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
-# NGOMv19b
-#
+STDMESHNAME=NGOMv19b
 nodes=2051450
 elements=4065608
 GRIDFILE=NGOM_RT_v19b_chk.grd
