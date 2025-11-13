@@ -34,6 +34,8 @@ HINDCASTWALLTIME="24:00:00" # hindcast wall clock time
 ADCPREPWALLTIME="10:00:00"  # adcprep wall clock time,including partmesh
 NOWCASTWALLTIME="10:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="14:00:00" # forecast wall clock time
+# relax quality control
+QUALITYSETTING="allow-nonfatal-instability"
 case $parameterPackage in
 "hardcoded")
     CONTROLTEMPLATE=TXLA22a_fort.15.template  # fort.15 template
@@ -55,6 +57,7 @@ case $parameterPackage in
     h0=0.1                                # min depth (m) to be considered wet
     velmin=0.01
     TIMESTEPSIZE=2.0                      # adcirc time step size (seconds)
+    metControl["WindDragLimit"]="0.002"   # max wind drag coefficient, unitless
     nodal_attribute_activate=( sea_surface_height_above_geoid )
     nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
     nodal_attribute_activate+=( mannings_n_at_sea_floor )
@@ -65,7 +68,7 @@ case $parameterPackage in
     # nodal attributes file
     NAFILE=TXLA22a.13.template
     nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.022"
-    nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2347"
+    nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.2763"
     nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
     nodal_attribute_default_values["internal_tide_friction"]="0.0 0.0 0.0"
     nodal_attribute_default_values["subgrid_barrier"]="99999.0"

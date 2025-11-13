@@ -354,7 +354,7 @@ sub _install_asgs_shell {
         ██████  █████   ███████ ██   ██   ████   ██ 
         ██   ██ ██      ██   ██ ██   ██    ██       
         ██   ██ ███████ ██   ██ ██████     ██    ██ 
-                                
+                             
     :.....::.....::.....::.....:::..::.....::.....:.....:
         ::::::::::::The ASGS Shell Environment:::::::::::::::
 	    :::::::..::::::::::::::::::::::::::::::::::::::::::::
@@ -366,7 +366,7 @@ Quick Start:
    ./asgsh
 
 Next, build ADCIRC using the command,
-  
+
    build adcirc
 
 To report bugs or request enhancements, please file them at
@@ -413,10 +413,11 @@ sub _get_asgsh {
 #     ./asgs-brew.pl --compiler-$asgs_compiler --machinename=$asgs_machine_name --install-path=$asgs_install_path $platform_init_example --update-shell
 
 export _asgsh_splash=1
+export _asgsh_do_startup_checks=0
 export profile=$asgs_default_profile
 
 # process options passed directly to `asgsh`
-options=\$(getopt -o "A:dhl:p:rvx" -- "\$@")
+options=\$(getopt -o "A:cdhl:p:rsvx" -- "\$@")
 eval set -- "\$options"
 while true
   do
@@ -427,9 +428,12 @@ while true
         export _asgsh_flag_do=run_any
         unset  _asgsh_splash
         ;;
+      -c)
+          export _asgsh_do_startup_checks=1
+        ;;
       -d) set -x
           export _asgs_debug_mode=1
-          ;;
+        ;;
       -h)
         echo "\nInteractive ASGS Shell Environment\n\nUsage:\n\tasgsh [-h] | [-d] [-l adcirc|profiles] [-p PROFILE-NAME] [-r] [-v] [-x]\n"
         exit 1
@@ -450,15 +454,16 @@ while true
       -s)
         export _asgsh_flag_do=run_tailf_syslog
         ;;
-      -x)
-        export skip_platform_profiles=1
-        ;;
       -v)
         export _asgsh_flag_do=run_verify_and_quit
         ;;
+      -x)
+        export skip_platform_profiles=1
+        ;;
       --)
         shift
-        break;;
+        break
+        ;;
     esac
     shift
 done
@@ -475,7 +480,6 @@ echo
 echo ' :.....::.....::.....::.....:::..::.....::.....:.....:'
 echo '   ::::::::::::The ASGS Shell Environment:::::::::::::::'
 echo '      :::::::..::::::::::::::::::::::::::::::::::::::::::::'
-echo               
 echo
   if [ -n "\$_ASGSH_PID" ]; then
     echo
@@ -491,7 +495,7 @@ export HDF5_USE_FILE_LOCKING=FALSE
 
 # denotes which environmental variables are saved with a profile - includes variables that
 # are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
-export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT ASGS_MPI_HOSTFILE"
+export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -734,7 +738,7 @@ sub get_steps {
         },
         {
             key         => q{openmpi},
-            name        => q{Step for OpenMPI 1.8.1 for gfortran},
+            name        => q{Step for OpenMPI for gfortran},
             description => q{Downloads and builds OpenMPI on all platforms for ASGS. Note: gfortran is required, so any compiler option causes this step to be skipped.},
             pwd         => qq{$scriptdir/cloud/general},
             command     => qq{bash init-openmpi.sh $asgs_install_path $asgs_compiler $makejobs},
@@ -869,9 +873,20 @@ sub get_steps {
             postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./makeMax.x}; },
         },
         {
+            key                 => q{util-output},
+            name                => q{Step for util-output/},
+            description         => q{Runs the makefile and builds all associated utilities in the util/output directory.},
+            pwd                 => qq{$scriptdir/util/output},
+	    command             => qq{bash init-util-output.sh $asgs_install_path $asgs_compiler},
+	    clean               => qq{bash init-util-output.sh $asgs_install_path clean},
+            skip_if             => sub { my ( $op, $opts_ref ) = @_; return -e qq{./smokeTest.x}; },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub { my ( $op, $opts_ref ) = @_; return -e qq{./smokeTest.x}; },
+        },
+        {
             key                 => q{input-mesh},
             name                => q{Step for util/input/mesh},
-            description         => q{Runs the makefile and builds all associated util/input/mesh in the input-mesh/ directory.},
+            description         => q{Runs the makefile and builds all associated utilities in the util/input/mesh directory.},
             pwd                 => qq{$scriptdir/util/input/mesh},
 	    command             => qq{bash init-input-mesh.sh $asgs_install_path $asgs_compiler},
 	    clean               => qq{bash init-input-mesh.sh $asgs_install_path clean},
@@ -899,16 +914,16 @@ sub get_steps {
             clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
 
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
-            # using perl-5.40.1
+            # using perl-5.42.0
             export_ENV => {
-                PERLBREW_PERL    => { value => q{perl-5.40.1},                                                                  how => q{replace} },
-                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.40.1/bin}, how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.42.0},                                                                  how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.42.0/bin}, how => q{prepend} },
                 PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
                 PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
-                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.40.1/bin}, how => q{prepend} },
-                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.40.1/man},                     how => q{prepend} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.42.0/bin}, how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.42.0/man},                     how => q{prepend} },
                 PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.40.1/lib/site_perl/5.40.1/},            how => q{prepend} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.42.0/lib/site_perl/5.42.0/},            how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -926,7 +941,7 @@ sub get_steps {
             pwd                 => qq{$scriptdir},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5 clean},
-            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.40.1/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.42.0/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
@@ -1030,6 +1045,31 @@ sub get_steps {
             postcondition_check => sub {
                 local $?;
                 system(qq{$asgs_install_path/bin/pigz --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{jq},
+            name        => q{Step for installing jq},
+            description => q{Install jq for processing json files},
+            pwd         => qq{$scriptdir},
+            command     => qq{bash ./cloud/general/init-jq.sh $asgs_install_path},
+            clean       => qq{bash ./cloud/general/init-jq.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/jq --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/jq --version > /dev/null 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );

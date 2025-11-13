@@ -71,6 +71,9 @@ case $GRIDNAME in
    "CPRA24v04a"|"CPRA24v04b"|"CPRA24v04b2"|"CPRA24v04c")
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA24
       ;;
+   "CPRA25v02a")
+      INPUTDIR=$SCRIPTDIR/input/meshes/CPRA25
+      ;;
    "AGT")
       # adcirc-global-test mesh, from ADCIRC test suite repository
       # https://github.com/adcirc/adcirc-testsuite
@@ -150,7 +153,7 @@ case $GRIDNAME in
    "Shinnecock")
       INPUTDIR=$SCRIPTDIR/input/meshes/shinnecock
       ;;
-   "ec2001_v2e"|"EC2001v2e")
+   "ec2001_v2e"|"EC2001v2e"|"EC2001")
       INPUTDIR=$SCRIPTDIR/input/meshes/EC2001
       ;;
    "OPENWATERv1e")

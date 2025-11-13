@@ -89,7 +89,12 @@ generateDynamicInput()
                 layerOptions="--controltemplate ${INPUTDIR}/${CONTROLTEMPLATENOROUGH}"
             fi
             outputInventory="metonly"
-            layerOptions+=" --nws $BASENWS --dt 300.0"      # 15 minute time steps
+            metonlyNWS=$BASENWS
+            if [[ $BACKGROUNDMET == *"Blend" && $stage == "NOWCAST" ]]; then
+                metonlyNWS=-$(($BASENWS + 10))  # e.g., 20 becomes -30
+            fi
+            layerOptions+=" --nws $metonlyNWS"
+            layerOptions+=" --dt 300.0"      # 5 minute time steps
             layerOptions+=" --fort61freq 0 --fort62freq 0 --fort63freq 0 --fort64freq 0"
             layerOptions+=" --fort7172freq 300.0 --fort7172netcdf"
             layerOptions+=" --fort7374freq 3600.0 --fort7374netcdf"
@@ -128,8 +133,8 @@ generateDynamicInput()
         -e "s/%FFACTOR%/$bottom_friction_limit/" \
         -e "s/%advection%/$advection/" \
         -e "s/%WTIMINC%/$WTIMINC/" \
-        -e "s/%metresults%/$WTIMINC/" \
-        -e "s/%storm_name%/$storm_name/" \
+        -e "s/%pureVortex%/$pureVortex/" \
+        -e "s/%pureBackground%/$pureBackground/" \
         -e "s/%periodicity%/$periodicity/" \
         -e "s?%periodic_flux_file%?$PERIODICFLUX?" \
         -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \

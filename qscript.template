@@ -57,10 +57,18 @@ echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 #               W R I T E   J O B   P R O P E R T I E S
 #----------------------------------------------------------------------------
 #
+# add a serial number to the properties file for use in disambiguation,
+# indexing, and searching results
+jobtype="%jobtype%"
+if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+   echo "asgs.serialnumber : $(od -An -N2 -tx1 /dev/urandom | tr -d ' \n')-$RANDOM-$(date +%s%N)" >> run.properties
+fi
+# associate/record adcirc build information
 if [[ -e "%adcircdir%/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
    cp "%adcircdir%/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
    echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
 fi
+# properties specific to the hpc
 echo "time.hpc.job.%jobtype%.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> $SCENARIO.run.properties
 echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> $SCENARIO.run.properties
 echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> $SCENARIO.run.properties                #QUEUEONLY
@@ -74,7 +82,6 @@ echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> $SCENAR
 #              L A Y E R   S P E C I F I C A T I O N
 #----------------------------------------------------------------------------
 #
-jobtype="%jobtype%"
 createWind10mLayer="%wind10mlayer%"
 declare -a layers=( $SCENARIO )
 if [[ $createWind10mLayer == "yes" && $jobtype != "partmesh" && $jobtype != "prep20" && $jobtype != "prep13" ]]; then
@@ -85,12 +92,12 @@ fi
 #                 L O O P   O V E R   L A Y E R S
 #----------------------------------------------------------------------------
 #
-
 for layer in ${layers[@]}; do
    if [[ -e "fort.15" ]]; then
       rm fort.15 2>> $SCENARIOLOG
    fi
    ln -s ${layer}.fort.15 fort.15 2>> $SCENARIOLOG
+   echo "Symbolically linking target '${layer}.fort.15' to name 'fort.15'."
    # if this is not a prep job, untar the corresponding fort.15 files
    # and link to the proper meteorological output files
    if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
@@ -102,6 +109,7 @@ for layer in ${layers[@]}; do
             rm ${layerFile#$layer.} 2>> $SCENARIOLOG
          fi
          ln -s $layerFile ${layerFile#$layer.} 2>> $SCENARIOLOG
+         echo "Symbolically linking target '$layerFile' to name '${layerFile#$layer.}'."
       done
    fi
    #
@@ -138,16 +146,16 @@ for layer in ${layers[@]}; do
                fi
             fi
          done
-         # check quality of results
-         $SCRIPTDIR/util/output/quality.sh $jobtype $layer ${%JOBID%} $CYCLE $SCENARIO $SCRIPTDIR >> $SCENARIOLOG # padcirc nowcast 555 2024072406 nowcast $SCRIPTDIR
-         qualityCheck=$?
-         if [[ $qualityCheck -ne 0 ]]; then
-            ERROMSG+=$(<jobFailed)
-         fi
       fi
    else
       ERROMSG="$ERROMSG The $jobtype.$layer job ended with an exit status that indicates an error occurred. "
       RUNSUFFIX="error"
+   fi
+   #
+   # archive the subdomain fort.16 log files and adcirc.log file
+   if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+      tar czf ${layer}.fort.16.tar.gz ./PE*/fort.16 1> tar.log 2>> $SCENARIOLOG
+      cp adcirc.log ${layer}.adcirc.log 2>> $SCENARIOLOG
    fi
    #
    echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
@@ -184,6 +192,7 @@ if [[ -e "fort.15" ]]; then
    rm fort.15 2>> $SCENARIOLOG
 fi
 ln -s $SCENARIO.fort.15 fort.15 2>> $SCENARIOLOG
+echo "Symbolically linking target '$SCENARIO.fort.15' to name 'fort.15'."
 #
 for file in $(ls fort.7* maxwvel* minpr*); do
    if [[ -e $file ]]; then
@@ -192,4 +201,5 @@ for file in $(ls fort.7* maxwvel* minpr*); do
 done
 for file in $(ls ${SCENARIO}.fort.7* ${SCENARIO}.maxwvel* ${SCENARIO}.minpr*); do
    ln -s $file ${file#$SCENARIO.} 2>> $SCENARIOLOG
+   echo "Symbolically linking target '$file' to name '${file#$SCENARIO.}'."
 done

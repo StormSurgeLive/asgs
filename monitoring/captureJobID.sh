@@ -4,7 +4,7 @@
 # capture the job ID from stdout from a successful batch
 # job submission.
 #----------------------------------------------------------------
-# Copyright(C) 2021--2024 Jason Fleming
+# Copyright(C) 2021--2025 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,37 +28,17 @@ HPCENVSHORT=$1
 # the queue script was submitted, and the file "jobID" has
 # been used to capture stdout.
 case $HPCENVSHORT in
-"stampede3"|"frontera"|"ls6")
+"stampede3"|"frontera"|"ls6"|"queenbeeC"|"debian+slurm"|"mike"|"qbd"|"supermic")
    # lots of info here that we don't need, but has
    # been appended to the scenario.log file
+   # e.g. on qbc:
+   # > sbatch partmesh.slurm
+   # sbatch: 488040.79 SUs available in loni_ceraloni24  # to stderr
+   # sbatch: 2.00 SUs estimated for this job.            # to stderr
+   # sbatch: lua: Submitted job 568119                   # to stderr
+   # Submitted batch job 568119                          # to stdout
    mv jobID jobID.tmp
    grep 'batch job' jobID.tmp | grep -Eo [0-9]+ > jobID
-   rm jobID.tmp
-   ;;
-"queenbeeC")
-   # SLURM returns information similar to the following when a
-   # job is submitted:
-   #
-   # asgs (LAv20a_nam_jgf_10kcms)> sbatch prep15.slurm
-   # Submitted batch job 127652 estimates 2 SUs from allocation xxxx_xxxx_xxxx. Estimated remaining SUs: 2306129
-   # JOBID      NAME                PARTITION  TIME_LIMIT  ST  NODES  REASON
-   # 127652     prep15.nowcast      single     2:00:00     PD  1      None
-   mv jobID jobID.tmp
-   cat jobID.tmp | awk '$1~/[0-9]+/ { print $1 }' > jobID
-   rm jobID.tmp
-   ;;
-"mike"|"qbd"|"supermic")
-   # SLURM returns information similar to the following when a
-   # job is submitted:
-   # <asgsh> sbatch prep13.slurm 2>stderr >stdout
-   # <asgsh> cat stderr
-   #  sbatch: Email specified differs from email associated with account. Using xxx@xxxx.com
-   #  sbatch: Job estimates 2.00 SUs for -p single --nodes=1 --ntasks=1 --cpus-per-task=1
-   #  sbatch: lua: Submitted job 274100
-   # <asgsh> cat stdout
-   #  Submitted batch job 274100
-   mv jobID jobID.tmp
-   cat jobID.tmp | tr -dc '0-9' > jobID
    rm jobID.tmp
    ;;
 *)

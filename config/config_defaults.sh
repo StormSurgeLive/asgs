@@ -48,6 +48,7 @@ PPN=1
 HOTSWAN=off
 ENSTORM=hindcast
 CYCLETIMELIMIT="05:00:00"
+EXITONERROR="no" # or "yes" to simply exit if the nowcast fails
 # Operators should set the value of this parameter
 # to their email address in their ~/.asgsh_profile files
 # on each platform
@@ -56,3 +57,13 @@ ASGSADMIN_ID=null
 
 # post
 INITPOST=( null_post.sh )
+#
+#  H O O K S
+#
+# set the list of scripts for each hook to the empty string ;
+# this will prevent the same script from being re-added to a hook
+# whenever the ASGS config file containing the "addScriptTo_*" functions
+# is re-read
+for k in ${allHooks[@]} ; do
+    hooksScripts[$k]=""
+done
