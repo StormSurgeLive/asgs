@@ -57,10 +57,18 @@ echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
 #               W R I T E   J O B   P R O P E R T I E S
 #----------------------------------------------------------------------------
 #
+# add a serial number to the properties file for use in disambiguation,
+# indexing, and searching results
+jobtype="%jobtype%"
+if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+   echo "asgs.serialnumber : $(od -An -N2 -tx1 /dev/urandom | tr -d ' \n')-$RANDOM-$(date +%s%N)" >> run.properties
+fi
+# associate/record adcirc build information
 if [[ -e "%adcircdir%/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
    cp "%adcircdir%/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
    echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
 fi
+# properties specific to the hpc
 echo "time.hpc.job.%jobtype%.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> $SCENARIO.run.properties
 echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> $SCENARIO.run.properties
 echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> $SCENARIO.run.properties                #QUEUEONLY
@@ -74,7 +82,6 @@ echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> $SCENAR
 #              L A Y E R   S P E C I F I C A T I O N
 #----------------------------------------------------------------------------
 #
-jobtype="%jobtype%"
 createWind10mLayer="%wind10mlayer%"
 declare -a layers=( $SCENARIO )
 if [[ $createWind10mLayer == "yes" && $jobtype != "partmesh" && $jobtype != "prep20" && $jobtype != "prep13" ]]; then
