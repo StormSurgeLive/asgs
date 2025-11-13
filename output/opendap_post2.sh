@@ -65,6 +65,7 @@ else
    # this does not actually seem to be used in this script
    HSTIME=${properties['InitialHotStartTime']}
 fi
+basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
 HPCENV=${properties['hpc.hpcenv']}
 SCENARIO=${properties['scenario']}
 SYSLOG=${properties['monitoring.logging.file.syslog']}
@@ -267,7 +268,6 @@ for server in ${SERVERS[*]}; do
       STORMNAME=${properties["forcing.tropicalcyclone.stormname"]}
       STORMNUMBER=${properties["forcing.tropicalcyclone.stormnumber"]}
       STORMNAMELC=`echo $STORMNAME | tr '[:upper:]' '[:lower:]'`
-      basin="al" # FIXME: write/read a property instead of hardcoding the atlantic basin
       if [ -n "${OPENDAPADDROOT}" ]; then
         STORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$basin$STORMNUMBER
         ALTSTORMNAMEPATH=$OPENDAPADDROOT/$YEAR/$STORMNAMELC  # symbolic link with name
@@ -385,8 +385,13 @@ for server in ${SERVERS[*]}; do
    #  "$subject" as it's determined above
    if [[ $TROPICALCYCLONE == "on" ]]; then
       subject="${subject} (TC)"
+      # replaces BACKGROUNDMET model used (NAM, GFS, etc) for subject line
+      NWPMODEL="${basin}${$STORMNUMBER}${YEAR}" # alNNYYYY
    fi
-   subject="${subject} $SCENARIONUMBER $HPCENV.$INSTANCENAME $_ASGSADMIN_ID"
+   # <MESH>_<FORCING>_<MACHINE>_<OPERATORID>
+   statusof="${GRIDNAME}_${NWPMODEL}_${HPCENVSHORT}_${_ASGSADMIN_ID} ${ASGSADMIN}"
+
+   subject="${subject} ${statusof}"
    echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
    if [ "$OPENDAPINDEX" == "catalog.html" ]; then
      POSTED_LINK=$CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
@@ -395,11 +400,11 @@ for server in ${SERVERS[*]}; do
    fi
    if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
-      subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
+      subject="ADCIRC POSTED status of $statusof"
       echo "post.opendap.${server}.subject : $subject" >> $RUNPROPERTIES 2>> $SYSLOG
-cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
+      cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 
-The status of $HPCENV.$INSTANCENAME has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
+The status of $statusof has been posted to $CATALOGPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
 
 The instance status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/asgs.instance.status.json
 The hook status file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/hook.status.json

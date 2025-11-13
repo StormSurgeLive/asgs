@@ -1,7 +1,7 @@
 ASGS uses ssh for sending files to remote hosts and
 for executing commands on remote hosts (e.g., mkdir when
 sending output files to THREDDS servers in the file,
-output/opendap_post.sh.
+output/opendap_post2.sh.
 
 Note: All servers in the default ssh_config referenced below
 must also be registered in ./platforms.sh. Pay particular
