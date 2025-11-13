@@ -48,6 +48,7 @@ PPN=1
 HOTSWAN=off
 ENSTORM=hindcast
 CYCLETIMELIMIT="05:00:00"
+EXITONERROR="no" # or "yes" to simply exit if the nowcast fails
 # Operators should set the value of this parameter
 # to their email address in their ~/.asgsh_profile files
 # on each platform
