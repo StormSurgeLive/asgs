@@ -16,7 +16,7 @@ export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
 export QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
 export QUEUENAME=workq
 export SERQUEUE=single
-export DEFAULT_COMPILER=intel
+export DEFAULT_COMPILER=gfortran
 
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH

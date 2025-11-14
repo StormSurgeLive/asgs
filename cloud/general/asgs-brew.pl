@@ -750,13 +750,32 @@ sub get_steps {
             },
 
             # don't build if mpif90, etc are already available in the build environment
-            skip_if             => sub { return not system(qw/which mpiexec/) },
+            skip_if             => sub {
+                my ( $op, $opts_ref ) = @_;
+                my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};
+                my $ok           = 1;
+                my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
+		if ($asgs_compiler =~ m/intel\-oneapi/) {
+                  @mpi_binaries = (qw/mpiifx mpiicx mpiexec mpirun/);
+		}
+		elsif ($asgs_compiler =~ m/intel$/) {
+                  @mpi_binaries = (qw/mpiifort mpiicc mpiexec mpirun/);
+		}
+                map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
+                return $ok;
+	    },
             precondition_check  => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
                 my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};
                 my $ok           = 1;
-                my @mpi_binaries = (qw/mpiexec mpirun/);
+                my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
+		if ($asgs_compiler =~ m/intel\-oneapi/) {
+                  @mpi_binaries = (qw/mpiifx mpiicx mpiexec mpirun/);
+		}
+		elsif ($asgs_compiler =~ m/intel$/) {
+                  @mpi_binaries = (qw/mpiifort mpiicc mpiexec mpirun/);
+		}
                 map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
                 return $ok;
             },
