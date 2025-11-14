@@ -1,0 +1,1 @@
+Redhat Enterprise derived forks (basically anything that uses yum as the package manager)
