@@ -127,7 +127,7 @@ _guess_platform()
     default_platform=oracle
   elif [ -e /etc/debian_version ]; then
     default_platform=debian
-    sbatch=$(which sbatch)
+    local sbatch=$(which sbatch)
     if [ -x "$sbatch" ]; then
       default_platform=debian+slurm
     fi
@@ -136,6 +136,10 @@ _guess_platform()
       default_platform=centos7
     else
       default_platform=rhel
+      local qsub=$(which qsub)
+      if [ -x "$qsub" ]; then
+        default_platform=rhel+pbs
+      fi
     fi
   fi
 
