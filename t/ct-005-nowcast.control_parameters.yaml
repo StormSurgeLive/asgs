@@ -9,10 +9,10 @@
   endtime: 2024010300
   timestepsize: 6.0
   coordinate_system:
-    projection: "%projection%"
-    reprojection: "%reprojection%""
-    earth_curvature: "%earthCurvature%""
-    rotation: "%rotation%"
+    projection: "geographic"
+    reprojection: "CPP"
+    earthCurvature: "no"
+    rotation: "northpole"
   solver_time_integration: "explicit"
   initialization_length: 20.0
   time_weighting_coefficients: "0.0 1.0 0.0"
@@ -20,9 +20,9 @@
     formulation: "smagorinsky"
     eddy_viscosity_coefficient: 20.0
     smagorinsky_coefficient: 0.05
-    smag_comp_flag: "%smag_comp_flag%"
-    smag_lower_lim: "%smag_lower_lim%"
-    smag_upper_lim: "%smag_upper_lim%"
+    smag_comp_flag: "off"
+    smag_lower_lim: "1.0e-8"
+    smag_upper_lim: "100.0"
   h0: 0.1
   velmin: 0.01
   bottom_friction_limit: 0.001
@@ -86,6 +86,9 @@
     waves: "on"
     wave_model: "SWAN"
     rstiminc: 1200
+    WaveWindMultiplier: 1.0
+    Limit_WaveStressGrad: "no"
+    WaveStressGrad_Cap: 1000.0
   swan:
     template: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/common/swan/adcirc_swan_v53_fort.26.template"
     hot: "on"
@@ -144,6 +147,9 @@
         incr_seconds: 0.0
         format: "netcdf"
         append: "yes"
+      wetdry:
+        StatPartWetFix: "off"
+        How2FixStatPartWet: 0
       fort7172:
         metstations_file: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
         incr_seconds: 300.0
