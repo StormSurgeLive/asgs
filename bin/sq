@@ -10,7 +10,22 @@ _sq() {
   OLDIFS=$IFS
   IFS=$'\n'
   if [[ "$QUEUESYS" == "PBS" ]]; then
-    SQ=$(showq | grep $USER)
+    local $checker
+    local qstat=$(which qstat 2> /dev/null)
+    if [[ -x "$qstat" ]]; then
+      checker=qstat
+    else
+      local showq=$(which showq 2> /dev/null)
+      if [[ -x "$showq" ]]; then
+        checker=showq
+      fi
+    fi
+    if [ -z "$checker" ]; then
+       echo "No known way to check for running jobs found for this system with PBS. Unable to find 'qstat' or 'showq'!"
+       exit 1
+    fi
+    SQ=$($checker | grep "$USER")
+    echo $SQ
   elif [[ "$QUEUESYS" == "SLURM" ]]; then
     SQ=$(squeue -u $USER --noheader -o " %.18i %.30j %T %.10M" 2>&1)
     for status in $SQ; do
