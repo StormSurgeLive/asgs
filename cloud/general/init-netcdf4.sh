@@ -3,8 +3,10 @@
 OPT=${1:-$ASGS_INSTALL_PATH}
 COMPILER=${2:-intel}
 JOBS=${3:-1}
-NETCDF4_C_VERSION=${4:-"c-4.8.1"}
-NETCDF4_F_VERSION=${5:-"4.5.4"};
+NETCDF4_C_VERSION=${4:-"4.9.2"}
+NETCDF4_F_VERSION=${5:-"4.6.2"};
+
+mkdir -p $OPT 2> /dev/null
 
 HDF5_USE_FILE_LOCKING=FALSE
 
@@ -50,18 +52,20 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e netcdf-${NETCDF4_C_VERSION}.tar.gz ]; then
-  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-${NETCDF4_C_VERSION}.tar.gz
+  echo wget --no-check-certificate https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
+  wget --no-check-certificate https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
 fi
 
 if [ ! -e netcdf-fortran-${NETCDF4_F_VERSION}.tar.gz ]; then
-  wget --verbose https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/netcdf-fortran-${NETCDF4_F_VERSION}.tar.gz
+  echo wget --verbose https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NETCDF4_F_VERSION}.tar.gz
+  wget --verbose https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NETCDF4_F_VERSION}.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null
 
 if [ ! -e $OPT/bin/nc-config ]; then
-  tar zxvf netcdf-${NETCDF4_C_VERSION}.tar.gz
-  cd netcdf-${NETCDF4_C_VERSION}
+  tar zxvf v${NETCDF4_C_VERSION}.tar.gz
+  cd netcdf-c-${NETCDF4_C_VERSION}
   make clean
   ./configure --prefix $OPT
   make -j $JOBS install
@@ -76,7 +80,7 @@ else
 fi
 
 if [[ ! -L $OPT/lib/libnetcdff.so || ! -e $(readlink -f  $OPT/lib/libnetcdff.so) ]]; then
-  tar zxvf netcdf-fortran-${NETCDF4_F_VERSION}.tar.gz
+  tar zxvf v${NETCDF4_F_VERSION}.tar.gz
   cd netcdf-fortran-${NETCDF4_F_VERSION}
   make clean
   ./configure --prefix $OPT
