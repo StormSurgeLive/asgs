@@ -10,7 +10,7 @@ _sq() {
   OLDIFS=$IFS
   IFS=$'\n'
   if [[ "$QUEUESYS" == "PBS" ]]; then
-    local $checker
+    local checker
     local qstat=$(which qstat 2> /dev/null)
     if [[ -x "$qstat" ]]; then
       checker=qstat
