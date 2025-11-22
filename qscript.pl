@@ -58,6 +58,7 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 #-----------------------------------------------------------------
 # get jobtype, e.g., prep15, padcirc, padcswan, etc
 my $jobtype = $jshash_ref->{'jobtype'}; # partmesh, prep15, padcirc etc
+my $container_cmd = $ENV{CONTAINER_CMD}; # support things like Singularlity, Docker
 # get number of processors per node (if it is defined)
 # the number of processors per node
 my $ppn = getQueueScriptParameter($jshash_ref, "ppn");
@@ -70,7 +71,7 @@ if ( $jshash_ref->{"parallelism"} eq "serial" ) {
     if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
         # get number of compute cpus
         $myNCPU = $jshash_ref->{"forncpu"}; # for adcprep
-        $cmd="$jshash_ref->{'adcircdir'}/adcprep --np $myNCPU --$jobtype --strict-boundaries";
+        $cmd = "$container_cmd adcprep --np $myNCPU --$jobtype --strict-boundaries";
     } else {
         $cmd = $jshash_ref->{"cmd"};
     }
@@ -116,7 +117,7 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
     $joblauncher =~ s/%ncpu%/$myNCPU/g;
     $joblauncher =~ s/%totalcpu%/$totalcpu/g;
     $joblauncher =~ s/%nnodes%/$nnodes/g;
-    $cmd="$joblauncher $jshash_ref->{'adcircdir'}/$jobtype $cloptions";
+    $cmd = "$joblauncher $container_cmd $jobtype $cloptions";
 }
 #
 # compute wall clock time HH:MM:SS in minutes

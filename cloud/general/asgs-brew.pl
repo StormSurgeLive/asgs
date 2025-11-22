@@ -724,6 +724,7 @@ sub get_steps {
                 ADCIRCDIR           => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how  => q{replace} },
                 SWANDIR             => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how  => q{replace} },
                 ADCIRC_PROFILE_NAME => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how  => q{replace} },
+                CONTAINER_CMD       => { value  => "",                                                                                   how  => q{replace} },
                 ASGS_META_DIR       => { value  => qq{$asgs_home/profiles},                    how  => q{replace} },          # where to track ASGS profiles (always)
                 ASGS_BREW_FLAGS     => { value  => qq{$brewflags},                             how  => q{replace} },          # make brew flags available for later use
                 ASGS_HOME           => { value  => qq{$asgs_home},                             how  => q{replace} },          # used in preference of $HOME in most cases
