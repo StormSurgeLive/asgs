@@ -208,6 +208,41 @@ goto() {
   esac
 }
 
+unload() {
+  CHOICES=();
+  case "${1}" in
+    adcirc)
+      # Save original PATH
+      local orig_path=$PATH
+
+      # Grab the first directory (up to first :)
+      local first=${orig_path%%:*}
+
+      # Everything after the first :
+      local tmp=${orig_path#*:}
+
+      # Grab the second directory (up to next :)
+      local second=${tmp%%:*}
+
+      # Everything after the second :
+      local rest=${tmp#*:}
+
+      if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
+        PATH=${rest}
+        echo "ADCIRC paths removed from PATH."
+        export PATH
+        save profile ${_ASGSH_CURRENT_PROFILE}
+      else                                   # adcirc was not yet included in PATH
+        PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+        echo "ADCIRC paths not found. PATH was not modified."
+      fi
+      ;;
+    *)
+      echo "${W} 'unload' supports 1 parameter at this time: 'adcirc'."
+      return
+  esac
+}
+
 # load environment related things like an ADCIRC environment or saved ASGS environment
 load() {
   CHOICES=();
