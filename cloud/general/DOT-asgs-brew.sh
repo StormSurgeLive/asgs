@@ -246,7 +246,28 @@ load() {
           echo "${I} prepending ADCIRCDIR and SWANDIR to PATH"
           echo "${I}   + $ADCIRCDIR"
           echo "${I}   + $SWANDIR"
-          PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+
+          # Save original PATH
+          local orig_path=$PATH
+
+          # Grab the first directory (up to first :)
+          local first=${orig_path%%:*}
+
+          # Everything after the first :
+          local tmp=${orig_path#*:}
+
+          # Grab the second directory (up to next :)
+          local second=${tmp%%:*}
+
+          # Everything after the second :
+          local rest=${tmp#*:}
+
+          if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
+            PATH=${SWANDIR}:${ADCIRCDIR}:${rest}
+          else                                   # adcirc was not yet included in PATH
+            PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+          fi
+
           export PATH
           save profile ${_ASGSH_CURRENT_PROFILE}
       else
