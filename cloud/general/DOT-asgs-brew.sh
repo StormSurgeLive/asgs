@@ -228,9 +228,9 @@ unload() {
       local rest=${tmp#*:}
 
       if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
-        PATH=${rest}
+        export PATH=${rest}
+        export ADCIRC_SINGULARITY_SIF=         # important because qscript.pl uses it to decide to do singularity stuff
         echo "ADCIRC paths removed from PATH."
-        export PATH
         save profile ${_ASGSH_CURRENT_PROFILE}
       else                                   # adcirc was not yet included in PATH
         PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
@@ -276,8 +276,9 @@ load() {
       fi
       echo "${I} loading ADCIRC build, '$__ADCIRC_BUILD'."
       if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
+          export ADCIRC_SINGULARITY_SIF=         # important because qscript.pl uses it to decide to do singularity stuff
           # source it
-          . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
+          source ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
           echo "${I} prepending ADCIRCDIR and SWANDIR to PATH"
           echo "${I}   + $ADCIRCDIR"
           echo "${I}   + $SWANDIR"
