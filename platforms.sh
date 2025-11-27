@@ -122,6 +122,7 @@ init_queenbeeC()
   export PPN=48
   export JOBLAUNCHER='srun '
   export SUBMITSTRING=sbatch
+  export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
   export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
