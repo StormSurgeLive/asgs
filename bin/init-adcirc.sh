@@ -597,7 +597,9 @@ $patchJSON
     "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
     "adcirc.build.modules.loaded"         : "$MODULE_LIST",
     "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
-    "adcirc.build.debug"                  : "$DEBUG"
+    "adcirc.build.debug"                  : "$DEBUG",
+    "adcirc.singularity.sif"              : "$ADCIRC_SINGULARITY_SIF",
+    "asgs.container.cmd"                  : "$ASGS_SINGULARITY_CMD"
   }
 JSON
 }
