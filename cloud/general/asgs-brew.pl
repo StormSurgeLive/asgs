@@ -761,7 +761,13 @@ sub get_steps {
 		elsif ($asgs_compiler =~ m/intel$/) {
                   @mpi_binaries = (qw/mpiifort mpiicc mpiexec mpirun/);
 		}
-                map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
+# TODO - need to confirm this is
+# what we want  ...
+                # check via PATH
+                for my $cmd ( @mpi_binaries ) {
+                  # system() returns 0 on success; non-zero if not found
+                  $ok &&= ( system("which $cmd >/dev/null 2>&1") == 0 );
+                }
                 return $ok;
 	    },
             precondition_check  => sub { 1 },
