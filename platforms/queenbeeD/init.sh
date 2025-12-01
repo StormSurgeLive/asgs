@@ -13,7 +13,7 @@ export JOBLAUNCHER='srun '
 # ASGS_SINGULARITY_CMD works with ADCIRC_SINGULARITY_SIF, which is
 # defined by ADCIRC_SINGULARITY_SIF defined in a registered
 # ADCIRC's metadata file of the version that's been loaded
-export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/project '
+export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/scratch,/project '
 export SUBMITSTRING=sbatch
 export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
 export QSCRIPTGEN=qscript.pl
