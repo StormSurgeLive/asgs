@@ -44,11 +44,12 @@ writeProperties()
    # basic asgs configuration
    echo "config.file : $CONFIG" > $STORMDIR_RUN_PROPERTIES  # <--<< OVERWRITE
 
-   echo "asgs.version : $ASGS_VERSION"       >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.version : $ASGS_VERSION" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.git.commit : $ASGS_GIT_COMMIT" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.git.remote : $ASGS_GIT_REMOTE" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.git.branch : $ASGS_GIT_BRANCH" >> $STORMDIR_RUN_PROPERTIES
-   echo "asgs.git.tags : $ASGS_GIT_TAGS"     >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.git.tags : $ASGS_GIT_TAGS" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.container.cmd : $ASGS_SINGULARITY_CMD" >> $STORMDIR_RUN_PROPERTIES
 
    echo "instancename : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "operator : $operator" >> $STORMDIR_RUN_PROPERTIES
@@ -83,6 +84,7 @@ writeProperties()
    # static input files, templates, and property files
    ADCIRCVERSION=$(${ADCIRCDIR}/adcirc -v)
    echo "adcirc.version : $ADCIRCVERSION" >> $STORMDIR_RUN_PROPERTIES
+   echo "adcirc.singularity.sif : $ADCIRC_SINGULARITY_SIF" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.input.gridfile : $GRIDFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.file.input.unitoffsetfile : $UNITOFFSETFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.gridname : $GRIDNAME" >> $STORMDIR_RUN_PROPERTIES

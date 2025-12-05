@@ -20,6 +20,7 @@ export SERQUEUE=single
 export ACCOUNT=null
 export SUBMITSTRING=sbatch
 export JOBLAUNCHER='srun -N %nnodes%'
+export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH
 export ARCHIVEDIR=$SCRATCH

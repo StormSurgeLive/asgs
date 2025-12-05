@@ -84,6 +84,7 @@ help() {
   echo "   list    <param>         - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <NAME>  - loads a saved profile by name; use 'list profiles' to see what's available"
   echo "           adcirc  <NAME>  - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "   unload  adcirc          - removes PATH updates made by 'load adcirc'"
   echo "   move    statefile       - moves statefile out of the way, safer and more future friendly than delete"
   echo "   purge   <param>         - deletes specified file or directory"
   echo "           rundir          - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
@@ -208,6 +209,41 @@ goto() {
   esac
 }
 
+unload() {
+  CHOICES=();
+  case "${1}" in
+    adcirc)
+      # Save original PATH
+      local orig_path=$PATH
+
+      # Grab the first directory (up to first :)
+      local first=${orig_path%%:*}
+
+      # Everything after the first :
+      local tmp=${orig_path#*:}
+
+      # Grab the second directory (up to next :)
+      local second=${tmp%%:*}
+
+      # Everything after the second :
+      local rest=${tmp#*:}
+
+      if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
+        export PATH=${rest}
+        export ADCIRC_SINGULARITY_SIF=         # important because qscript.pl uses it to decide to do singularity stuff
+        echo "ADCIRC paths removed from PATH."
+        save profile ${_ASGSH_CURRENT_PROFILE}
+      else                                   # adcirc was not yet included in PATH
+        PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+        echo "ADCIRC paths not found. PATH was not modified."
+      fi
+      ;;
+    *)
+      echo "${W} 'unload' supports 1 parameter at this time: 'adcirc'."
+      return
+  esac
+}
+
 # load environment related things like an ADCIRC environment or saved ASGS environment
 load() {
   CHOICES=();
@@ -241,12 +277,34 @@ load() {
       fi
       echo "${I} loading ADCIRC build, '$__ADCIRC_BUILD'."
       if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
+          export ADCIRC_SINGULARITY_SIF=         # important because qscript.pl uses it to decide to do singularity stuff
           # source it
-          . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
+          source ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
           echo "${I} prepending ADCIRCDIR and SWANDIR to PATH"
           echo "${I}   + $ADCIRCDIR"
           echo "${I}   + $SWANDIR"
-          PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+
+          # Save original PATH
+          local orig_path=$PATH
+
+          # Grab the first directory (up to first :)
+          local first=${orig_path%%:*}
+
+          # Everything after the first :
+          local tmp=${orig_path#*:}
+
+          # Grab the second directory (up to next :)
+          local second=${tmp%%:*}
+
+          # Everything after the second :
+          local rest=${tmp#*:}
+
+          if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
+            PATH=${SWANDIR}:${ADCIRCDIR}:${rest}
+          else                                   # adcirc was not yet included in PATH
+            PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+          fi
+
           export PATH
           save profile ${_ASGSH_CURRENT_PROFILE}
       else
