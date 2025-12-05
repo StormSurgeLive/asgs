@@ -84,6 +84,7 @@ help() {
   echo "   list    <param>         - lists different things, please see the following options; type 'list options' to see currently supported options"
   echo "   load    profile <NAME>  - loads a saved profile by name; use 'list profiles' to see what's available"
   echo "           adcirc  <NAME>  - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
+  echo "   unload  adcirc          - removes PATH updates made by 'load adcirc'"
   echo "   move    statefile       - moves statefile out of the way, safer and more future friendly than delete"
   echo "   purge   <param>         - deletes specified file or directory"
   echo "           rundir          - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
