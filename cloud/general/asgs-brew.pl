@@ -754,14 +754,35 @@ sub get_steps {
                 my ( $op, $opts_ref ) = @_;
                 my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};
                 my $ok           = 1;
-                my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
 		if ($asgs_compiler =~ m/intel\-oneapi/) {
-                  @mpi_binaries = (qw/mpiifx mpiicx mpiexec mpirun/);
+                  # finds MPI via Intel oneAPI (HPC bundle)
+                  my @mpi_binaries = (qw/mpiifx mpiicx mpiexec mpirun/);
+		  for my $exe ( @mpi_binaries ) {
+                      my $found = system("which $exe >/dev/null 2>&1") == 0;
+                      $ok &&= $found;
+                  }
 		}
 		elsif ($asgs_compiler =~ m/intel$/) {
-                  @mpi_binaries = (qw/mpiifort mpiicc mpiexec mpirun/);
+                  # finds MPI via Intel "classic"
+                  my @mpi_binaries = (qw/mpiifort mpiicc mpiexec mpirun/);
+		  for my $exe ( @mpi_binaries ) {
+                      my $found = system("which $exe >/dev/null 2>&1") == 0;
+                      $ok &&= $found;
+                  }
 		}
-                map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
+		elsif ($asgs_compiler =~ m/^gfortran$/) {
+                  # finds OpenMPI available in the environment already
+                  my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
+		  for my $exe ( @mpi_binaries ) {
+                      my $found = system("which $exe >/dev/null 2>&1") == 0;
+                      $ok &&= $found;
+                  }
+		}
+		else {
+                  # finds OpenMPI locally after already build
+                  my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
+                  map { $ok = -x qq[$bin/$_] && $ok } @mpi_binaries;
+		}
                 return $ok;
 	    },
             precondition_check  => sub { 1 },
