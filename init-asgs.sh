@@ -447,7 +447,7 @@ if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
   echo "adcirclive verify adcirc"                                                >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "cat<<EOF"                                                                >> adcirclive/etc/initial-bashrc
-  echo "ADCIRC v55.02 and the ADCIRC Live (c) cli is now installed and ready:"   >> adcirclive/etc/initial-bashrc
+  echo "ADCIRC v56.0.2 and the ADCIRC Live (c) cli is now installed and ready:"  >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "If you have any questions, please email us at help@support.adcirc.live"  >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
