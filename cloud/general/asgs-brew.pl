@@ -772,11 +772,13 @@ sub get_steps {
 		}
 		elsif ($asgs_compiler =~ m/^gfortran$/) {
                   # finds OpenMPI available in the environment already
-                  my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
-		  for my $exe ( @mpi_binaries ) {
-                      my $found = system("which $exe >/dev/null 2>&1") == 0;
-                      $ok &&= $found;
-                  }
+                  my $exe = qw/mpif90/;
+                  my $found = `which $exe 2>/dev/null`;
+		  chomp $found;
+		  # eliminates the false positive when Intel's "mpif90" is provided
+		  if ($found and $found =~ m/intel/ ) {
+                    $ok = 0;
+		  }
 		}
 		else {
                   # finds OpenMPI locally after already build
