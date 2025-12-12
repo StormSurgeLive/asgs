@@ -48,10 +48,14 @@ if [ -n "$_ASGSH_PID" ]; then
   exit 1
 fi
 
-while getopts "AbL:mp:x:" optname; do
+DEFAULT_COMPILER=intel
+while getopts "Abc:L:mp:x:" optname; do
    case $optname in
       b) BATCH=1
          ;;
+      c) # update DEFAULT_COMPILER for use with -b, really
+	 FORCE_DEFAULT_COMPILER=${OPTARG}
+	 ;;
       L|p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
       x) # add extra arbitrary options to asgs-brew.pl command
@@ -163,7 +167,6 @@ export SUBMITSTRING
 
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 # catch WORK and SCRATCH as early as possible
-DEFAULT_COMPILER=intel
 case "$platform" in
   queenbee|queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
@@ -197,6 +200,11 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
 fi
 
 _compiler=$DEFAULT_COMPILER
+
+# force default from -c COMPILER
+if [ -n "$FORCE_DEFAULT_COMPILER" ]; then
+  _compiler=$FORCE_DEFAULT_COMPILER
+fi
 PLATFORM_INIT_OPT=
 if [ -n "$PLATFORM_INIT" ]; then
   PLATFORM_INIT_OPT="--platform-init $PLATFORM_INIT"
