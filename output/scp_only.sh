@@ -1,6 +1,6 @@
 #!/bin/bash
 #------------------------------------------------------------------------
-# opendap_post.sh : Makes results available to thredds data server.
+# opendap_post2.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
 # Copyright(C) 2015--2019 Jason Fleming
 #
