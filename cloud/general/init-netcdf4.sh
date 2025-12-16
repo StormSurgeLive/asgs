@@ -67,7 +67,7 @@ if [ ! -e $OPT/bin/nc-config ]; then
   tar zxvf v${NETCDF4_C_VERSION}.tar.gz
   cd netcdf-c-${NETCDF4_C_VERSION}
   make clean
-  ./configure --enable-netcdf-4 --disable-dap --disable-byterange --disable-remote-tests --prefix $OPT
+  ./configure --enable-netcdf-4 --disable-dap --disable-byterange --disable-remote-tests --disable-libxml2 --prefix $OPT
   make -j $JOBS install
   cd ..
 fi
@@ -83,7 +83,7 @@ if [[ ! -L $OPT/lib/libnetcdff.so || ! -e $(readlink -f  $OPT/lib/libnetcdff.so)
   tar zxvf v${NETCDF4_F_VERSION}.tar.gz
   cd netcdf-fortran-${NETCDF4_F_VERSION}
   make clean
-  ./configure --enable-netcdf-4 --disable-dap --disable-byterange --disable-remote-tests --prefix $OPT
+  ./configure --enable-netcdf-4 --disable-dap --disable-byterange --disable-remote-tests --disable-libxml2 --prefix $OPT
   make -j $JOBS install
   cd ..
 fi
