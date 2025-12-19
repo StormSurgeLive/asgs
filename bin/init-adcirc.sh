@@ -306,6 +306,21 @@ if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
   BUILD_PARALLEL_ADCIRC=no
   __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}-serial-only
 fi
+echo
+
+#
+# S I N G U L A R I T Y  S U P P O R T
+#
+
+__ADCIRC_SINGULARITY_SIF=
+if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
+  read -p "Enter full path to the .sif (<enter> if you don't know)? " _ADCIRC_SINGULARITY_SIF
+fi
+
+if [ -n "${_ADCIRC_SINGULARITY_SIF}" ]; then
+  ADCIRC_SINGULARITY_SIF=$_ADCIRC_SINGULARITY_SIF
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-singularity
+fi
 
 #
 # C H O O S E  A D C I R C  P R O F I L E  N A M E
@@ -582,7 +597,9 @@ $patchJSON
     "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
     "adcirc.build.modules.loaded"         : "$MODULE_LIST",
     "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
-    "adcirc.build.debug"                  : "$DEBUG"
+    "adcirc.build.debug"                  : "$DEBUG",
+    "adcirc.singularity.sif"              : "$ADCIRC_SINGULARITY_SIF",
+    "asgs.container.cmd"                  : "$ASGS_SINGULARITY_CMD"
   }
 JSON
 }
@@ -611,6 +628,13 @@ export ADCIRC_BINS='$ADCIRC_BINS'
 export ADCSWAN_BINS='$ADCSWAN_BINS'
 export SWAN_UTIL_BINS='$SWAN_UTIL_BINS'
 EOMETA
+  # Singularity support requires there be a SIF file
+  # defined in the ADCIRC metadata file in $SCRIPTDIR/.adcirc-meta
+  if [ -n "${ADCIRC_SINGULARITY_SIF}" ]; then
+    cat <<EOMETA >> $ADCIRC_META_FILE
+export ADCIRC_SINGULARITY_SIF='$ADCIRC_SINGULARITY_SIF'
+EOMETA
+  fi
 }
 
 #

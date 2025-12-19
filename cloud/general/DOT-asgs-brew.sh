@@ -208,6 +208,41 @@ goto() {
   esac
 }
 
+unload() {
+  CHOICES=();
+  case "${1}" in
+    adcirc)
+      # Save original PATH
+      local orig_path=$PATH
+
+      # Grab the first directory (up to first :)
+      local first=${orig_path%%:*}
+
+      # Everything after the first :
+      local tmp=${orig_path#*:}
+
+      # Grab the second directory (up to next :)
+      local second=${tmp%%:*}
+
+      # Everything after the second :
+      local rest=${tmp#*:}
+
+      if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
+        export PATH=${rest}
+        export ADCIRC_SINGULARITY_SIF=         # important because qscript.pl uses it to decide to do singularity stuff
+        echo "ADCIRC paths removed from PATH."
+        save profile ${_ASGSH_CURRENT_PROFILE}
+      else                                   # adcirc was not yet included in PATH
+        PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+        echo "ADCIRC paths not found. PATH was not modified."
+      fi
+      ;;
+    *)
+      echo "${W} 'unload' supports 1 parameter at this time: 'adcirc'."
+      return
+  esac
+}
+
 # load environment related things like an ADCIRC environment or saved ASGS environment
 load() {
   CHOICES=();
@@ -241,12 +276,34 @@ load() {
       fi
       echo "${I} loading ADCIRC build, '$__ADCIRC_BUILD'."
       if [ -e "${ADCIRC_META_DIR}/${__ADCIRC_BUILD}" ]; then
+          export ADCIRC_SINGULARITY_SIF=         # important because qscript.pl uses it to decide to do singularity stuff
           # source it
-          . ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
+          source ${ADCIRC_META_DIR}/${__ADCIRC_BUILD}
           echo "${I} prepending ADCIRCDIR and SWANDIR to PATH"
           echo "${I}   + $ADCIRCDIR"
           echo "${I}   + $SWANDIR"
-          PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+
+          # Save original PATH
+          local orig_path=$PATH
+
+          # Grab the first directory (up to first :)
+          local first=${orig_path%%:*}
+
+          # Everything after the first :
+          local tmp=${orig_path#*:}
+
+          # Grab the second directory (up to next :)
+          local second=${tmp%%:*}
+
+          # Everything after the second :
+          local rest=${tmp#*:}
+
+          if [ -x "$second/adcirc" ]; then       # adcirc was already in PATH
+            PATH=${SWANDIR}:${ADCIRCDIR}:${rest}
+          else                                   # adcirc was not yet included in PATH
+            PATH=${SWANDIR}:${ADCIRCDIR}:${PATH}
+          fi
+
           export PATH
           save profile ${_ASGSH_CURRENT_PROFILE}
       else
