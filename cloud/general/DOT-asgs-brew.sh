@@ -1395,6 +1395,10 @@ fi
 
 # construct to handle "autorun" options
 case "$_asgsh_flag_do" in
+  run_any)
+    eval "${_asgsh_flag_do_cmd}"
+    exit
+  ;;
   run_list)
     list ${_asgsh_flag_do_args}
     exit
