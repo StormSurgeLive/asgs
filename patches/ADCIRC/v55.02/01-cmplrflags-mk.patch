@@ -85,7 +85,7 @@ index 50d4603..7fbe7a8 100644
    FC            :=  ifort
 -  PFC           :=  mpif90
 -  FFLAGS1       :=  $(INCDIRS) -O2 -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
-+  PFC           :=  mpifort
++  PFC           :=  mpiifort
 +  ifneq (,$(filter intel-oneapi,$(compiler)))
 +    CC          :=  icx
 +    PPFC        :=  ifx

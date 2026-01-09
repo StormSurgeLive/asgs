@@ -141,7 +141,7 @@ index 9f89de78..64c560f5 100644
    FC            :=  ifort
 -  PFC           ?=  mpif90
 -  FFLAGS1       := $(INCDIRS) -O2 -g -traceback -FI -assume byterecl -132 -xSSE4.2 -assume buffered_io
-+  PFC           :=  mpifort
++  PFC           :=  mpiifort
 +  ifneq (,$(filter intel-oneapi,$(compiler)))
 +    CC          :=  icx
 +    PPFC        :=  ifx
