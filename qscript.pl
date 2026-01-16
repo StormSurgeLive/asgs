@@ -57,10 +57,10 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 #
 #-----------------------------------------------------------------
 # get jobtype, e.g., prep15, padcirc, padcswan, etc
-my $jobtype = $jshash_ref->{'jobtype'}; # partmesh, prep15, padcirc etc
-my $asgs_container_cmd = $ENV{ASGS_SINGULARITY_CMD};
-my $adcirc_sif         = $ENV{ADCIRC_SINGULARITY_SIF};
-my $container_cmd      = sprintf "%s %s", $asgs_container_cmd, $adcirc_sif;
+my $jobtype            = $jshash_ref->{'jobtype'}; # partmesh, prep15, padcirc etc
+my $asgs_container_cmd = $ENV{ASGS_SINGULARITY_CMD}   // undef;
+my $adcirc_sif         = $ENV{ADCIRC_SINGULARITY_SIF} // undef;
+my $container_cmd      = ($asgs_container_cmd && $adcirc_sif) ? sprintf("%s %s", $asgs_container_cmd, $adcirc_sif) : "";
 # get number of processors per node (if it is defined)
 # the number of processors per node
 my $ppn = getQueueScriptParameter($jshash_ref, "ppn");
