@@ -50,6 +50,7 @@ writeProperties()
    echo "asgs.git.branch : $ASGS_GIT_BRANCH" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.git.tags : $ASGS_GIT_TAGS" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.container.cmd : $ASGS_SINGULARITY_CMD" >> $STORMDIR_RUN_PROPERTIES
+   echo "asgs.run.hostname : $(hostname)" >> $STORMDIR_RUN_PROPERTIES
 
    echo "instancename : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "operator : $operator" >> $STORMDIR_RUN_PROPERTIES
