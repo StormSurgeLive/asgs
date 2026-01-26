@@ -3,7 +3,7 @@
 # writeProperties.sh: Writes configuration and specification
 # info to run.properties metadata file.
 #----------------------------------------------------------------
-# Copyright(C) 2021--2023 Jason Fleming
+# Copyright(C) 2021--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -228,6 +228,35 @@ writeScenarioProperties()
    echo "asgs.path.stormdir : $STORMDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.advisdir : $ADVISDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.stormdir : $STORMDIR" >> $STORMDIR_RUN_PROPERTIES
+   if [[ $stage == "SPINUP" ]]; then
+      echo "forcing.metclass : none" >> $STORMDIR_RUN_PROPERTIES
+      echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
+      echo "WindModel : none" >> $STORMDIR_RUN_PROPERTIES
+   else
+      case $BACKGROUNDMET in
+         "on"|"NAM"|"GFS"|"RRFS")
+            echo "forcing.metclass : synoptic" >> $STORMDIR_RUN_PROPERTIES
+            echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
+            # legacy from 2014stable, depcrecated
+            case $BACKGROUNDMET in
+               "on"|"NAM")
+                  echo "WindModel : WNAMAW12-NCP" >> $STORMDIR_RUN_PROPERTIES
+                  ;;
+               "GFS")
+                  echo "WindModel : GFS" >> $STORMDIR_RUN_PROPERTIES
+                  ;;
+               "RRFS")
+                  echo "WindModel : RRFS" >> $STORMDIR_RUN_PROPERTIES
+                  ;;
+            esac
+            ;;
+         "namBlend"|"gfsBlend"|"rrfsBlend")
+            echo "forcing.metclass : synoptic+tropical" >> $STORMDIR_RUN_PROPERTIES
+            ;;
+         *) # other values are allowed but don't have properties that need to be written in advance
+            ;;
+      esac
+   fi
 }
 #
 # write properties to the run.properties file that are associated with
@@ -238,10 +267,7 @@ writeNAMProperties()
    local THIS="asgs_main->writeNAMProperties()"
    local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties associated with meterorological forcing with the NAM model to $1/run.properties."
-   echo "forcing.metclass : synoptic" >> $STORMDIR_RUN_PROPERTIES
-   echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.nwp.model : nam" >> $STORMDIR_RUN_PROPERTIES
-
    echo "forcing.nam.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.nam.forecast.download : $forecastDownload" >> $STORMDIR_RUN_PROPERTIES
@@ -257,7 +283,6 @@ writeNAMProperties()
    echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR_RUN_PROPERTIES
-   echo "WindModel : WNAMAW12-NCP" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file for GFS
@@ -267,10 +292,7 @@ writeGFSProperties()
    local THIS="asgs_main->writeGFSProperties()"
    local STORMDIR_RUN_PROPERTIES="$STORMDIR/run.properties"
    logMessage "$THIS: Writing properties for meterorological forcing with the GFS model to $1/run.properties."
-   echo "forcing.metclass : synoptic" >> $STORMDIR_RUN_PROPERTIES
-   echo "forcing.stormname : NA" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.nwp.model : GFS" >> $STORMDIR_RUN_PROPERTIES
-
    echo "forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.nwp.schedule.forecast.forecastselection : $forecastSelection" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.gfs.forecast.download : $forecastDownload" >> $STORMDIR_RUN_PROPERTIES
@@ -279,7 +301,6 @@ writeGFSProperties()
    echo "forcing.gfs.forecastlength : $GFSFORECASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    # legacy from 2014stable, depcrecated
    echo "config.forcing.gfs.schedule.forecast.forecastcycle : \"${FORECASTCYCLE}\"" >> $STORMDIR_RUN_PROPERTIES
-   echo "WindModel : GFS" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file for RRFS
@@ -298,8 +319,6 @@ writeRRFSProperties()
    echo "forcing.rrfs.baseurl : ${rrfs['BaseURL']}" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.rrfs.domain.coverage : ${rrfsDomain['coverage']}" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.rrfs.config.forecastlength : ${rrfs['ForecastLength']}" >> $STORMDIR_RUN_PROPERTIES
-   # legacy from 2014stable, depcrecated
-   echo "WindModel : RRFS" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties related to gridded meteorological fields
@@ -350,7 +369,7 @@ writeTropicalCycloneProperties()
    echo "storm : $STORM" >> $STORMDIR_RUN_PROPERTIES
    echo "stormnumber : $STORM" >> $STORMDIR_RUN_PROPERTIES
    local windModel="vortex-nws$NWS"
-   if [[ $BACKGROUNDMET == "gfsBlend" || $BACKGROUNDMET == "namBlend" ]]; then
+   if [[ $BACKGROUNDMET == "rrfsBlend" || $BACKGROUNDMET == "gfsBlend" || $BACKGROUNDMET == "namBlend" ]]; then
       windModel=${windModel}-${BACKGROUNDMET,,}
    fi
    echo "WindModel : $windModel" >> $STORMDIR_RUN_PROPERTIES
