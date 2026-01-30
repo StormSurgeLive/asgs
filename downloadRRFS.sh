@@ -637,6 +637,7 @@ downloadRRFS()
             sed 's/ADVISORY=.*/ADVISORY='$CYCLE'/' $STATEFILE > ${STATEFILE}.new
             debugMessage "Updating statefile $STATEFILE with new cycle number '$CYCLE'."
             cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+            mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
         fi
         #
         # put files in scenario directory

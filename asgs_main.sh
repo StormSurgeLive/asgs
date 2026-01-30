@@ -1301,10 +1301,10 @@ monitorJobs()
       fi
    fi
    # record memory high water mark to the run.properties file; this
-   # can be used for resource monitoring and in troubleshooting out 
+   # can be used for resource monitoring and in troubleshooting out
    # of memory issues
    if [[ $QUEUESYS == "SLURM" ]]; then
-      echo "hpc.job.${JOBTYPE}.$(<jobID).sacct.maxrss.bytes : $(sacct -j $(<jobID).batch --format=MaxRSS --noconvert --noheader)" >> run.properties 
+      echo "hpc.job.${JOBTYPE}.$(<jobID).sacct.maxrss.bytes : $(sacct -j $(<jobID).batch --format=MaxRSS --noconvert --noheader)" >> run.properties
    fi
    #
    # final messages
@@ -2369,6 +2369,7 @@ while [ true ]; do
          else
             NWS=-12
          fi
+
          ;;
       "namBlend"|"gfsBlend"|"rrfsBlend")
          if [[ $TROPICALCYCLONE == "off" ]]; then
@@ -2386,6 +2387,7 @@ while [ true ]; do
    case $BACKGROUNDMET in
       "namBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading NAM far field winds."
+         writeNAMProperties $SCENARIODIR
          downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          cp $RUNDIR/get_nam_data.pl.json $SCENARIODIR 2>> $SYSLOG
          cd $SCENARIODIR 2>> ${SYSLOG}
@@ -2526,6 +2528,7 @@ while [ true ]; do
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
+         writeGFSProperties $SCENARIODIR
          #
          # Detect latest GFS data, subset, download, reproject, reformat
          # to Oceanweather WIN/PRE format, and make symbolic links
@@ -2534,6 +2537,7 @@ while [ true ]; do
          ;;
       "rrfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading RRFS meteorological data for blending."
+         writeRRFSProperties $SCENARIODIR
          #
          # Detect latest RRFS data, subset, download, reproject, reformat
          # to Oceanweather WIN/PRE format, and make symbolic links

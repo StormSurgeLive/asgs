@@ -351,10 +351,11 @@ downloadGFS()
             sed 's/ADVISORY=.*/ADVISORY='$thisCycle'/' $STATEFILE > ${STATEFILE}.new
             debugMessage "Updating statefile $STATEFILE with new cycle number ${thisCycle}."
             cp -f ${STATEFILE}.new $STATEFILE 2>> ${SYSLOG} 2>&1
+            mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
         fi
         #
         # put files in scenario directory
-        mv $winFileName $preFileName $fort22 run.properties $SCENARIODIR 2>> $SYSLOG
+        mv $winFileName $preFileName $fort22 $SCENARIODIR 2>> $SYSLOG
         cp ${THIS}.json "${winFileName%.*}.json" 2>> $SYSLOG
         cp get_gfs_status.pl.* ${THIS}.json "${winFileName%.*}.json" $SCENARIODIR 2>> $SYSLOG
 
