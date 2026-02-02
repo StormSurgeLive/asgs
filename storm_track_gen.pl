@@ -38,7 +38,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2026 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -110,19 +110,23 @@ GetOptions(
 #
 # create a dictionary of properties from run.properties
 my %runProp;
-# open properties file
-unless (open(RUNPROP,"<run.properties")) {
-   stderrMessage("ERROR","Failed to open run.properties: $!.");
-    die;
+my $haveRunProp = 0; # true if it is present (most common case)
+if ( -e "run.properties" ) {
+   $haveRunProp = 1;
+   # open properties file
+   unless (open(RUNPROP,"<run.properties")) {
+      stderrMessage("ERROR","Failed to open run.properties: $!.");
+      die;
+   }
+   while (<RUNPROP>) {
+      my @fields = split ':',$_, 2 ;
+      # strip leading and trailing spaces and tabs
+      $fields[0] =~ s/^\s|\s+$//g ;
+      $fields[1] =~ s/^\s|\s+$//g ;
+      $runProp{$fields[0]} = $fields[1];
+   }
+   close(RUNPROP);
 }
-while (<RUNPROP>) {
-   my @fields = split ':',$_, 2 ;
-   # strip leading and trailing spaces and tabs
-   $fields[0] =~ s/^\s|\s+$//g ;
-   $fields[1] =~ s/^\s|\s+$//g ;
-   $runProp{$fields[0]} = $fields[1];
-}
-close(RUNPROP);
 #
 # check to see that all the mandatory command line arguments were specified
 unless ( $dir ) {
