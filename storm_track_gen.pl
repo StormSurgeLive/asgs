@@ -459,19 +459,19 @@ if ( $zdFound == 0 ) {
    stderrMessage("INFO","The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.");
 }
 #
-# write the last current storm class and name to run.properties file;
-printf PROPS "storm class : $stormClass\n";
-# only write the stornmame if there is vortex forcing and it is not
-# already in the properties file
-# FIXME: if the stormname property exists but is null or empty, it should be
+# write properties unless they are already in the run.properties file
+# FIXME: if the a property exists but is null or empty, it should be
 # removed from the run.properties file
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 330 || abs($nws) == 30 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) {
-   if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
-      printf PROPS "stormname : $nhcName\n";
+if ( $stormClass != " " ) {
+   if ( ! exists $runProp{'storm class'} || $runProp{'storm class'} eq "" || $runProp{'storm class'} eq "null" ) {
+      printf PROPS "storm class : $stormClass\n";
    }
-   if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) {
-      printf PROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
-   }
+}
+if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
+   printf PROPS "stormname : $nhcName\n";
+}
+if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) {
+   printf PROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
 }
 #
 # write the names of the unmodified, ATCF-formatted track data
