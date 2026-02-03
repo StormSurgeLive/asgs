@@ -1,5 +1,15 @@
 #!/bin/bash
 #
+# Test Descriptons:
+# Related to github issue #1031
+# 1. only covers that case where files are loaded
+#    from the local filesystem (not via http or ftp)
+# 2. tests (non)existence of BEST and OFCL directories
+#    and files
+# 3. compares both stdout and stderr
+# 4. could be extended to include mock ftp and https
+#    endpoints
+#
 rm *actual* 2> /dev/null # remove old test results
 pass=0
 fail=0
