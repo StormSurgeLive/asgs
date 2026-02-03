@@ -4,25 +4,35 @@ rm *actual* 2> /dev/null # remove old test results
 pass=0
 fail=0
 i=1
-files=( $(ls test???.input.*) )
-while [[ $i -le ${#files[@]} ]] ; do
-   testNumber=$(printf "%03d" $i)
-   perl $SCRIPTDIR/nhc_advisory_bot.pl --input ${files[$i-1]} --output test${testNumber}.actual.ofcl.fst --metadata test${testNumber}.actual.run.properties 2> test${testNumber}.actual.stderr
-   ((i++))
-done
-# now compare results
-i=1
-o=( ofcl.fst run.properties stderr )
-while [[ $i -le ${#files[@]} ]] ; do
-   testNumber=$(printf "%03d" $i)
-   for output in ${o[*]}; do
-      diff test${testNumber}.expected.${output} test${testNumber}.actual.${output} > /dev/null 2>&1
-      if [[ $? -eq 0 ]]; then
-         ((pass++))
-      else
-         ((fail++))
-      fi
+storm=18
+year=2012
+testPath=t/meteorology/vortex/get_atcf.pl
+# either it exists or it doesn't
+fdirs=( nofdir yesfdir )
+hdirs=( nohdir yeshdir )
+ofcls=( noofcl index-at.xml )
+bests=( nobest bal182012 )
+types=( stdout stderr )
+for f in ${fdirs[@]} ; do
+   for h in ${hdirs[@]} ; do
+      for o in ${ofcls[@]} ; do
+         for b in ${bests[@]}; do
+            testNumber=$(printf "%03d" $i)
+            perl $SCRIPTDIR/get_atcf.pl --ftpsite filesystem --rsssite filesystem --fdir $SCRIPTDIR/$testPath/$f --hdir $SCRIPTDIR/$testPath/$h --trigger rssembedded --storm $storm --year $year \
+               > test${testNumber}.actual.stdout 2> test${testNumber}.actual.stderr
+            for t in ${types[@]} ; do
+               diff test${testNumber}.expected.$t test${testNumber}.actual.$t > /dev/null 2>&1
+               if [[ $? -eq 0 ]]; then
+                  ((pass++))
+                  echo $t pass
+               else
+                  ((fail++))
+                  echo $t fail
+               fi
+               ((i++))
+            done
+         done
+      done
    done
-   ((i++))
 done
 echo "Results: $pass tests passed. $fail tests failed."

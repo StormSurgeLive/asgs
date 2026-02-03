@@ -1,0 +1,2 @@
+INFO: get_atcf.pl: Advisory '01' for storm 'EIGHTEEN' was found in the index-at.xml file.
+2026-Feb-3-T09:36:09-0500 DEBUG: get_atcf.pl: The previous advisory number was not provided; the new advisory number is 01.

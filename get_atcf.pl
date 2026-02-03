@@ -99,12 +99,12 @@ while (!$dl) {
    # Verify existence of hindcast directory and BEST track file
    if ( $ftpsite eq "filesystem" ) {
       # we are getting the hindcast from the local filesystem
-      if ( -e $hdir && -d $hdir && -e $hdir/$hindcastfile ) {
+      if ( -e "$hdir" && -d "$hdir" && -e "$hdir/$hindcastfile" ) {
          $hcDl = 1;
       } else {
          ASGSUtil::stderrMessage("ERROR","Get '$hdir/$hindcastfile' failed: "
-            . " either the '$hindcast' file was not found, or the local directory '$hdir' does not exist, or '$hdir' is not a directory.");
-         next;
+            . " either the '$hindcastfile' file was not found, or the local directory '$hdir' does not exist or is not a directory.");
+         last;
       }
    } else {
       # we are getting the hindcast from an ftp server
@@ -148,7 +148,7 @@ while (!$dl) {
          }
          close(HINDCAST);
       } else {
-         ASGSUtil::stderrMessage("ERROR","Could not get NHC Name from BEST track file '$hindcasfile' " .
+         ASGSUtil::stderrMessage("ERROR","Could not get NHC Name from BEST track file '$hindcastfile' " .
             "because the download of the hindcast file '$hindcastfile' " .
             "was not successful; " .
             "the NHC Name for the storm was also not provided " .
@@ -194,9 +194,11 @@ while (!$dl) {
          } else {
             if ( ! -d "$fdir" ) {
                ASGSUtil::stderrMessage("ERROR","Cannot find the directory '$fdir'.");
+               last;
+            } else {
+               ASGSUtil::stderrMessage("ERROR","Cannot find the file '$fdir/index-at.xml'.");
+               last;
             }
-            ASGSUtil::stderrMessage("ERROR","Cannot find the file '$fdir/index-at.xml'.");
-            next;
          }
       } else {
          # pick up the RSS feed from the web
@@ -269,15 +271,19 @@ while (!$dl) {
                $lines[$i-1] =~ /([A-Z]+) FORECAST.ADVISORY NUMBER\s+(\d{1,2})/;
                $nhcName = $1;
                $advNum = sprintf("%02d",$2);
-               printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
+               printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm '$nhcName' was found in the index-at.xml file.\n";
                # compare the advisory number in the index file with the current
                # advisory number on the command line, if any
                if ( defined $adv ) {
-                  unless ( $advNum eq $adv ) {
+                  unless ( $advNum le $adv ) {
                      $newAdvisory = 1;
                      ASGSUtil::stderrMessage("DEBUG","The new advisory number is $advNum.");
                      printf STDOUT "$advNum";
                   }
+               } else {
+                  $newAdvisory = 1;
+                  ASGSUtil::stderrMessage("DEBUG","The previous advisory number was not provided; the new advisory number is $advNum.");
+                  printf STDOUT "$advNum";
                }
                #
                # reset the line number to the beginning of the NHC
