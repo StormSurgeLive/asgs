@@ -18,16 +18,14 @@ for f in ${fdirs[@]} ; do
       for o in ${ofcls[@]} ; do
          for b in ${bests[@]}; do
             testNumber=$(printf "%03d" $i)
-            perl $SCRIPTDIR/get_atcf.pl --ftpsite filesystem --rsssite filesystem --fdir $SCRIPTDIR/$testPath/$f --hdir $SCRIPTDIR/$testPath/$h --trigger rssembedded --storm $storm --year $year \
+            perl $SCRIPTDIR/get_atcf.pl --test --ftpsite filesystem --rsssite filesystem --fdir $SCRIPTDIR/$testPath/$f --hdir $SCRIPTDIR/$testPath/$h --trigger rssembedded --storm $storm --year $year \
                > test${testNumber}.actual.stdout 2> test${testNumber}.actual.stderr
             for t in ${types[@]} ; do
                diff test${testNumber}.expected.$t test${testNumber}.actual.$t > /dev/null 2>&1
                if [[ $? -eq 0 ]]; then
                   ((pass++))
-                  echo $t pass
                else
                   ((fail++))
-                  echo $t fail
                fi
                ((i++))
             done

@@ -159,8 +159,10 @@ sub readProperties {
 #
 # write a log message to stderr
 sub stderrMessage {
-   my ( $level, $message ) = @_;
-   my $theTime = _getTimeStamp();
+   my ( $level, $message, $test ) = @_;
+   # suppress time stamp in unit tests to keep tests
+   # from failing due to differences in time stamps
+   my $theTime = ($test) ? q{timestamp} : _getTimeStamp();
    my ($package, $filename, $line) = caller;
    my $calling_script = File::Basename::basename($filename);
    print STDERR "$theTime $level: $calling_script: $message\n";
