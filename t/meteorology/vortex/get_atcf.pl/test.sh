@@ -1,10 +1,5 @@
 #!/bin/bash
 #
-# Test Descriptions:
-# 1: Generic baseline
-# 2: Github issue #1022
-#    Fix calculation of forecast end property in nhc_advisory_bot.pl when forecast crosses month boundaries
-#
 rm *actual* 2> /dev/null # remove old test results
 pass=0
 fail=0
