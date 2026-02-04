@@ -118,7 +118,9 @@ _guess_platform()
     return
   fi
 
-  # ultimate fallback is to general OS/linux distro support
+  # ultimate fallback is to general OS/linux distro support with
+  # tailored batch submission system detection - add as needed, this
+  # is not meant to be general support for all OS/batch system combos
   if [ -e /etc/oracle-release ]; then
     default_platform=oracle
   elif [ -e /etc/debian_version ]; then
@@ -126,6 +128,12 @@ _guess_platform()
     local sbatch=$(which sbatch)
     if [ -x "$sbatch" ]; then
       default_platform=debian+slurm
+    fi
+  elif [ -e /etc/SUSE-brand ]; then
+    default_platform=suse
+    local qsub=$(which qsub)
+    if [ -x "$qsub" ]; then
+      default_platform=suse+qsub
     fi
   elif [ -e /etc/redhat-release ]; then
     if [[ $(cat /etc/redhat-release | grep -ic CentOS) == 1 ]]; then 
