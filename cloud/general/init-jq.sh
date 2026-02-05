@@ -45,7 +45,7 @@ JQ_TGZ=${JQ_DIR}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${JQ_TGZ} ]; then
-  wget --no-check-certificate https://github.com/stedolan/jq/releases/download/${JQ_DIR}/${JQ_TGZ}
+  wget https://github.com/stedolan/jq/releases/download/${JQ_DIR}/${JQ_TGZ}
 fi
 
 rm -rf ./$JQ_DIR 2> /dev/null
