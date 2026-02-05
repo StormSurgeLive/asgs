@@ -113,6 +113,20 @@ _guess_platform()
             break
         fi
       done
+      if [[ -e ${ASGS_LOCAL_DIR}/platforms/platforms-lookup.txt ]]; then
+        # look up via the text, find common name that is associated with
+        # the matching regular expression that is based on the expected hostname
+        IFS=$'\n'
+        for line in $(cat ${ASGS_LOCAL_DIR}/platforms/platforms-lookup.txt | grep -v '#'); do
+          local common_name=$(echo $line | awk '{print $1}')
+          local hostname_regex=$(echo $line | awk '{print $2}')
+          if [[ $(echo $HOSTNAME | egrep -c "$hostname_regex") -eq 1 && -e ${ASGS_LOCAL_DIR}/platforms/${common_name}/init.sh ]]; then
+            default_platform=$common_name
+            break
+          fi
+        done
+        IFS=$OLDIFS
+      fi
     fi
   fi
 
