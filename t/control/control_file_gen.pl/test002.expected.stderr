@@ -1,0 +1,13 @@
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Parsing tidal node factors and equilibrium arguments.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: There are 655 elevation stations in the file '../../../input/meshes/TXLA22a/tx2008r35h_stations_20170618.txt'.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: There are 655 velocity stations in the file '../../../input/meshes/TXLA22a/tx2008r35h_stations_20170618.txt'.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: There are 655 meteorology stations in the file '../../../input/meshes/TXLA22a/tx2008r35h_stations_20170618.txt'.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Filling in ADCIRC control template (fort.15).
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Reading nodal attributes (fort.13) template '../../../input/meshes/TXLA22a/fake.TXLA22a.13.template' and writing fort.13 file.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: There are '5' nodal attributes in the fort.13 file.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Wrote '25' lines to the fort.13 file.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: The 'fort.26' file will be written.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Filling in swan control template (fort.26).
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Opening run-control.properties file for writing.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Writing file names and formats to run-control.properties file.
+2026-Feb-6-T10:01:05-0500 INFO: control_file_gen.pl: Wrote run-control.properties file 'run-control.properties'.

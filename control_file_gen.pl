@@ -227,9 +227,13 @@ if ( $p->{hotstart}->{time} != 0.0 ) {
    if ( $p->{hotstart}->{input_format} eq "binary" ) {
       $ihot = 68;
    }
+} else {
+   $ihot = 0;
 }
-#
 # [de]activate output files with time step increment and with(out) appending.
+# Set the end time for output to 1 day after the model run should end; this
+# ensures that the output will not stop before the run completes
+$output_end = $RNDAY + 1.0;
 my $fort61 = getOutputParameters($p->{output}->{stations}->{fort61},$p->{output}->{inventory},$dt,"elev");
 my $fort62 = getOutputParameters($p->{output}->{stations}->{fort62},$p->{output}->{inventory},$dt,"vel");
 my $fort7172 = getOutputParameters($p->{output}->{stations}->{fort7172},$p->{output}->{inventory},$dt,"met");

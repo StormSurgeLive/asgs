@@ -1,0 +1,22 @@
+      --advisorynum 2026012906
+      --name nowcast
+      --cst 2025121500
+      --hstime 3823200.0
+      --hsformat netcdf
+      --swantemplate ../../..//input/meshes/common/swan/adcirc_swan_v53_fort.26.template
+      --hotswan off
+      --elevstations ../../../input/meshes/TXLA22a/tx2008r35h_stations_20170618.txt
+      --velstations ../../../input/meshes/TXLA22a/tx2008r35h_stations_20170618.txt
+      --metstations ../../../input/meshes/TXLA22a/tx2008r35h_stations_20170618.txt
+      --gridname TXLA22a
+      --nscreen -1000
+      --controltemplate ../../../input/meshes/TXLA22a/TXLA22a.15.ASGS2024.1.template
+      --nws -12
+      --dt 1.0
+      --fort61freq 300.0
+      --fort62freq 0
+      --fort63freq 3600.0
+      --fort64freq 3600.0
+      --fort7172freq 300.0
+      --fort7374freq 3600.0
+      --sparse-output

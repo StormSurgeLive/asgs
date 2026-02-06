@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # Test Descriptions:
+# 1: Fixed integer overflow with small timesteps #981
+# 2: Validate sparse ascii output #1630
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
 rm *actual* 2> /dev/null # remove old test results
 pass=0
