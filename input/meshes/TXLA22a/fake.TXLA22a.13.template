@@ -1,0 +1,25 @@
+OceanMesh2D
+1947485
+5
+ sea_surface_height_above_geoid
+ m
+ 1
+ %sea_surface_height_above_geoid_default%
+ primitive_weighting_in_continuity_equation
+ unitless
+ 1
+ %primitive_weighting_in_continuity_equation_default%
+ mannings_n_at_sea_floor
+ unitless
+ 1
+ %mannings_n_at_sea_floor_default%
+ internal_tide_friction
+ local_dir, C_it =0.21884,Nb, D250
+ 3
+ %internal_tide_friction_default%
+ subgrid_barrier
+ unitless
+ 1
+ %subgrid_barrier_default%
+sea_surface_height_above_geoid
+ 0
