@@ -423,6 +423,14 @@ The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.p
 or wget the file with the following command
 
 wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
+
+or download over scp with the following command
+
+scp $OPENDAPHOST:$OPENDAPDIR/run.properties .
+
+or list contents
+
+ssh $OPENDAPHOST "ls $OPENDAPDIR"
 END
 
    fi
