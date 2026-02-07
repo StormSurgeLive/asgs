@@ -401,6 +401,30 @@ HPC_PPN_Hint()
    esac
 }
 
+# encapsulated potentially hairy logic for adjusting PPN for
+# certain platforms and based on more than one variable
+HPC_NCPU_Hint()
+{
+   local QUEUEKIND=$1
+   local QUEUENAME=$2
+   local HPCENV=$3
+   local QOS=$4
+   local DEFAULT_NCPU=$5 # default, returned if conditions not met
+   local CPUREQUEST=$6
+   case "$HPCENV" in
+   "carpenter.erdc.hpc.mil")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo 1
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
+   *)
+     echo $DEFAULT_NCPU
+   ;;
+   esac
+}
+
 
 # This bash function uses:
 # * local variables

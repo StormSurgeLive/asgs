@@ -5,7 +5,7 @@
 [% IF runinfo.queuesys == "PBS" -%]
 #PBS -N %jobtype%.%scenario%
 #PBS -l walltime=%walltime%
-#PBS -l nodes=%nnodes%:ppn=%ppn%
+#PBS -l select=%nnodes%:ncpus=%ncpu%:mpiprocs=%ppn%
 #PBS -q %queuename%
 #PBS -A %account%
 #PBS -o %advisdir%/%scenario%/%jobtype%.out
