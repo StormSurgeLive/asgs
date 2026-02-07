@@ -73,13 +73,15 @@ if ( $jshash_ref->{"parallelism"} eq "serial" ) {
     $nnodes = 1;   # these are serial jobs
     if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
         # get number of compute cpus
-        $myNCPU = $jshash_ref->{"forncpu"}; # for adcprep
+        $myNCPU = $jshash_ref->{"forncpu"}; # for adcprep command ("real" NCPU)
         $cmd = "$container_cmd adcprep --np $myNCPU --$jobtype --strict-boundaries";
     } else {
         $cmd = $jshash_ref->{"cmd"};
     }
     my $serqueue = $jshash_ref->{'serqueue'};
 }
+$myNCPU = $jshash_ref->{"ncpu"}; # for queue script (effective NCPU for current job)
+
 #
 # construct command line for running padcirc, padcswan, or other parallel job
 if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
