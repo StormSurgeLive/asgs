@@ -284,6 +284,9 @@ if ( defined $hstime ) {
    $ihot = 0;
 }
 # [de]activate output files with time step increment and with(out) appending.
+# Set the end time for output to 1 day after the model run should end; this
+# ensures that the output will not stop before the run completes
+$output_end = $RNDAY + 1.0;
 my $fort61specifier = getSpecifier($fort61freq,$fort61append,$fort61netcdf);
 my $incr = getIncrement($fort61freq,$dt);
 $fort61 = "$fort61specifier $output_start $output_end $incr";
