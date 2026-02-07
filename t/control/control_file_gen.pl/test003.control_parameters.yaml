@@ -1,0 +1,101 @@
+---
+ adcirc_version: "v55.00-20-g5bc04d6"
+ solver_time_integration: "explicit"
+ initialization_length: 20.0
+ time_weighting_coefficients: "0.0 1.0 0.0"
+ lateral_turbulence: "smagorinsky"
+ eddy_viscosity_coefficient: 50.0
+ smagorinsky_coefficient: 0.05
+ nfover: "1 20.0 1 20 100.0"
+ log_level: "INFO"
+ h0: 0.1
+ velmin: 0.01
+ bottom_friction_limit: 0.0005
+ advection: "on"
+ meteorology:
+   wtiminc: 21600
+   tropical_cyclone:
+     storm_name: "%storm_name%"
+   owi_win_pre:
+     nwset: 1
+     nwbs: 0
+     dwm: 1.0
+     startdatetime: 2026012806
+     enddatetime: 2026012906
+   blending:
+     pureVortex: 3.0
+     pureBackground: 5.0
+ tides:
+   tidal_forcing: "on"
+   tidefac_file: "/scratch/jgflemin/asgs951982/2026012906/nowcast/tide_fac.out"
+   tidal_potential_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 44.25 --year 2025 --month 12 --day 15 --hour 00 -n 8 q1 o1 p1 k1 n2 m2 s2 k2 --outputformat simple --outputdir /scratch/jgflemin/asgs951982/2026012906/nowcast 2>> /work/jgflemin/log/TXLA22a_gfs_qbc_jgf.asgs-2026-Jan-29-T12:58:40-0600.951982.log'."
+   tidal_boundary_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 44.25 --year 2025 --month 12 --day 15 --hour 00 -n 8 q1 o1 p1 k1 n2 m2 s2 k2 --outputformat simple --outputdir /scratch/jgflemin/asgs951982/2026012906/nowcast 2>> /work/jgflemin/log/TXLA22a_gfs_qbc_jgf.asgs-2026-Jan-29-T12:58:40-0600.951982.log'."
+ flux:
+   periodicity: "null"
+   file: "null"
+ metControl:
+   DragLawString: "garratt"
+   WindDragLimit: 0.002
+   outputWindDrag: "no"
+   invertedBarometerOnElevationBoundary: "no"
+ wetDryControl:
+   outputNodeCode: "no"
+   outputNOFF: "no"
+   noffActive: "on"
+   slim: 0.0004
+   windlim: "off"
+   directvelWD: "off"
+   useHF: "off"
+ inundationOutputControl:
+   inundationOutput: "yes"
+   inunThresh: 0.6
+ netcdf_metadata:
+   ncproj: "ASGS"
+   ncinst: "Seahorse Consulting"
+   ncsour: "ADCIRC"
+   nchist: "ASGS Workflow"
+   ncref:  "https://doi.org/10.1061/40990(324)48"
+   nccom:  "Trusted since 2006."
+   nchost: "www.seahorsecoastal.com"
+   ncconv: "CF"
+   nccont: "jason.fleming@adcirc.live"
+   ncdate: "2010-05-01 00:00:00 UTC"
+ wave_coupling:
+   waves: "off"
+   wave_model: "SWAN"
+   rstiminc: 1200
+ swan:
+   mxitns: 20
+   npnts: 95
+ SWANOutputControl:
+   SWAN_OutputTPS: "yes"
+   SWAN_OutputTM01: "yes"
+   SWAN_OutputHS: "yes"
+   SWAN_OutputDIR: "yes"
+   SWAN_OutputTMM10: "yes"
+   SWAN_OutputTM02: "yes"
+ nodal_attributes:
+   template: "/ddnB/work/jgflemin/staging/singularity-test/input/meshes/TXLA22a/TXLA22a.13.template"
+   activate: 
+      - "sea_surface_height_above_geoid"
+      - "primitive_weighting_in_continuity_equation"
+      - "mannings_n_at_sea_floor"
+      - "internal_tide_friction"
+      - "subgrid_barrier"
+   default_values: 
+      sea_surface_height_above_geoid: "0.2763"
+      elemental_slope_limiter: "0.05"
+      overland_reduction_factor: "0.0333"
+      internal_tide_friction: "0.0 0.0 0.0"
+      initial_river_elevation: "0.0"
+      average_horizontal_eddy_viscosity_in_sea_water_wrt_depth: "10.0"
+      primitive_weighting_in_continuity_equation: "0.03"
+      surface_canopy_coefficient: "1"
+      advection_state: "-100.0"
+      surface_directional_effective_roughness_length: "0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+      surface_submergence_state: "1"
+      mannings_n_at_sea_floor: "0.022"
+      subgrid_barrier: "99999.0"
+
+ output:
+   inventory: "metonly"
