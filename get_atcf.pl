@@ -1,14 +1,11 @@
 #!/usr/bin/env perl
 #--------------------------------------------------------------
 # get_atcf.pl:
-#   This script downloads the latest raw hindcast and forecast from
-#   the NHC.
-#
-#   It can also load the hindcast and forecast files from the local
-#   file system.
-#
+# This script downloads the latest raw BEST and OFCL track
+# files from the NHC. Alternatively, it can load these
+# files from the local file system.
 #--------------------------------------------------------------
-# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2026 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -25,7 +22,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
-#
+#--------------------------------------------------------------
+# Removed the option to download the OFCL files via ftp due to
+# deprecated support.
 $^W++;
 use strict;
 use Net::FTP;
@@ -34,10 +33,8 @@ use HTTP::Tiny;
 use IO::Socket::SSL;
 use Net::SSLeay;
 use Getopt::Long;
+use ASGSUtil;
 #
-my $statefile="null"; # shell script with variables and values that
-                      # record the current state of the ASGS
-our %state;  # represents current state of ASGS
 my $ftpsite; # hostname for hindcast, nowcast, and/or forecast data
              # $ftpsite can also be set to "filesystem" to pick up these
              # data from the local filesystem
@@ -58,8 +55,8 @@ my $insecure;# if set, use "http" instead of "https"
 my $body;    # text of the forecast/advisory
 my $advNum;  # advisory number detected from the BEST/OFCL data feeds
 my $newAdvisory = 0;
+my $test;    # true if this is being executed as a unit test
 GetOptions(
-           "statefile=s" => \$statefile,
            "rsssite=s" => \$rsssite,
            "ftpsite=s" => \$ftpsite,
            "fdir=s" => \$fdir,
@@ -70,8 +67,9 @@ GetOptions(
            "trigger=s" => \$trigger,
            "nhcName=s" => \$nhcName,
            "insecure" => \$insecure,
+           "test" => \$test
            );
-
+#
 # zero-pad storm if single digit
 $storm = sprintf qq{%02d}, $storm;
 my $hindcastfile="bal".$storm.$year.".dat";
@@ -90,37 +88,37 @@ while (!$dl) {
    if ( $ftpsite ne "filesystem" ) {
       $ftp = Net::FTP->new($ftpsite, Debug => 1, Passive => 1);
       unless ( defined $ftp ) {
-         stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@");
+         ASGSUtil::stderrMessage("ERROR","ftp: Cannot connect to $ftpsite: $@",$test);
          next;
       }
       my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
       unless ( $ftpLoginSuccess ) {
-         stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message);
+         ASGSUtil::stderrMessage("ERROR","ftp: Cannot login: " . $ftp->message, $test);
          next;
       }
    }
    #
-   # Verify existence of hindcast directory
+   # Verify existence of hindcast directory and BEST track file
    if ( $ftpsite eq "filesystem" ) {
       # we are getting the hindcast from the local filesystem
-      if ( -e $hdir && -d $hdir ) {
+      if ( -e "$hdir" && -d "$hdir" && -e "$hdir/$hindcastfile" ) {
          $hcDl = 1;
       } else {
-         stderrMessage("ERROR","Get '$hindcastfile' failed: "
-            . " the local directory $hdir does not exist, or is not a directory.");
-         next;
+         ASGSUtil::stderrMessage("ERROR","Get '$hdir/$hindcastfile' failed: "
+            . " either the '$hindcastfile' file was not found, or the local directory '$hdir' does not exist or is not a directory.",$test);
+         last;
       }
    } else {
       # we are getting the hindcast from an ftp server
       my $hcDirSuccess = $ftp->cwd($hdir);
       unless ( $hcDirSuccess ) {
-         stderrMessage("ERROR",
-             "ftp: Cannot change working directory to '$hdir': " . $ftp->message);
+         ASGSUtil::stderrMessage("ERROR",
+             "ftp: Cannot change working directory to '$hdir': " . $ftp->message, $test);
          next;
       }
       $hcDl = $ftp->get($hindcastfile);
       unless ( $hcDl ) {
-        stderrMessage("ERROR","ftp: Get '$hindcastfile' failed: " . $ftp->message);
+        ASGSUtil::stderrMessage("ERROR","ftp: Get '$hindcastfile' failed: " . $ftp->message, $test);
         next;
       }
 
@@ -137,7 +135,7 @@ while (!$dl) {
             $hcOpenSuccess = open(HINDCAST,"<$hindcastfile");
          }
          unless ($hcOpenSuccess) {
-            stderrMessage("ERROR","Could not open hindcast file '$hindcastfile'.");
+            ASGSUtil::stderrMessage("ERROR","Could not open hindcast file '$hindcastfile'.", $test);
             next;
          }
          # grab the last defined name in the hindcast
@@ -152,11 +150,11 @@ while (!$dl) {
          }
          close(HINDCAST);
       } else {
-         stderrMessage("ERROR","Could not get NHC Name from hindcast " .
+         ASGSUtil::stderrMessage("ERROR","Could not get NHC Name from BEST track file '$hindcastfile' " .
             "because the download of the hindcast file '$hindcastfile' " .
             "was not successful; " .
             "the NHC Name for the storm was also not provided " .
-            "in the command line parameters.");
+            "in the command line parameters.", $test);
          next;
       }
    }
@@ -167,39 +165,12 @@ while (!$dl) {
       $advNum = "00";
       $fcDl = 1;
       $newAdvisory = 1;
-      stderrMessage("DEBUG","The new advisory number is $advNum.");
+      ASGSUtil::stderrMessage("DEBUG","The new advisory number is $advNum.", $test);
       printf STDOUT "$advNum";
    }
    if ( $trigger eq "ftp" ) {
-      my $fcDirSuccess = $ftp->cwd($fdir);
-      unless ( $fcDirSuccess ) {
-         stderrMessage("ERROR",
-            "ftp: Cannot change working directory to '$fdir': "
-               . $ftp->message);
-         next;
-      }
-      $fcDl = $ftp->get($forecastfile);
-      unless ($fcDl) {
-         stderrMessage("ERROR","ftp: Get '$forecastfile' failed: "
-            . $ftp->message);
-        next;
-      }
-      # save the advisory number by parsing the name of the file that the
-      # file points to (a hack for our ftp test rig)
-      if ( $ftpsite =~ /ftp.unc.edu/ ) {
-         my @advisoryDir = $ftp->dir($fdir);
-         unless ( @advisoryDir ) {
-            stderrMessage("ERROR","ftp: Get listing for forecast advisory directory '$fdir' failed: ". $ftp->message);
-            next;
-         }
-         foreach my $line (@advisoryDir) {
-            if ( $line =~ /$forecastfile.*advisory_(\d{2}).fst/ ) {
-               %state = readFileAsHash($statefile,"=");
-               $state{"ADVISORY"}=$1;
-               writeHashToFile($statefile,"=");
-            }
-         }
-      }
+      ASGSUtil::stderrMessage("ERROR","Cannot download OFCL track files via ftp.", $test);
+      die;
    }
    if ( $ftpsite ne "filesystem" ) {
       $ftp->quit;
@@ -211,7 +182,7 @@ while (!$dl) {
       if ( $rsssite eq "filesystem" ) {
          if ( -e "$fdir/index-at.xml" ) {
             unless (open(FORECAST,"<$fdir/index-at.xml")) {
-               stderrMessage("ERROR","Cannot open the file $fdir/index-at.xml: $!");
+               ASGSUtil::stderrMessage("ERROR","Cannot open the file $fdir/index-at.xml: $!", $test);
                next;
             }
             # stuff the lines of the forecast into a string variable;
@@ -223,15 +194,20 @@ while (!$dl) {
             }
             close(FORECAST);
          } else {
-            stderrMessage("ERROR","Cannot find the file $fdir/index-at.xml.");
-            next;
+            if ( ! -d "$fdir" ) {
+               ASGSUtil::stderrMessage("ERROR","Cannot find the directory '$fdir'.", $test);
+               last;
+            } else {
+               ASGSUtil::stderrMessage("ERROR","Cannot find the file '$fdir/index-at.xml'.", $test);
+               last;
+            }
          }
       } else {
          # pick up the RSS feed from the web
          #(my $ok, my $why) = HTTP::Tiny->can_ssl;
          #(my $ok, my $why) = $http->can_ssl();
-         #stderrMessage("DEBUG","ok is $ok");
-         #stderrMessage("DEBUG","why is $why");
+         #ASGSUtil::stderrMessage("DEBUG","ok is $ok");
+         #ASGSUtil::stderrMessage("DEBUG","why is $why");
          my %attributes = ();
 
          # comment here just to remind us that we're not verifying SSL even
@@ -248,7 +224,7 @@ while (!$dl) {
          my $response = $http->get($url);
 
          if ( $response->{status} == 599 ) {
-            stderrMessage("ERROR","Failed to download forecast/advisory.");
+            ASGSUtil::stderrMessage("ERROR","Failed to download forecast/advisory.", $test);
             printf STDERR "content: ";
             print STDERR $response->{content};
             printf STDERR "status: ";
@@ -261,7 +237,7 @@ while (!$dl) {
          $body = $response->{content};
          my $indexOpenSuccess = open(INDEX,">index-at.xml");
          unless ($indexOpenSuccess) {
-            stderrMessage("ERROR","Could not open index-at.xml for writing.");
+            ASGSUtil::stderrMessage("ERROR","Could not open index-at.xml for writing.", $test);
             next;
          }
          print INDEX $body;
@@ -297,15 +273,19 @@ while (!$dl) {
                $lines[$i-1] =~ /([A-Z]+) FORECAST.ADVISORY NUMBER\s+(\d{1,2})/;
                $nhcName = $1;
                $advNum = sprintf("%02d",$2);
-               printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm $nhcName was found in the index-at.xml file.\n";
+               printf STDERR "INFO: get_atcf.pl: Advisory '$advNum' for storm '$nhcName' was found in the index-at.xml file.\n";
                # compare the advisory number in the index file with the current
                # advisory number on the command line, if any
                if ( defined $adv ) {
-                  unless ( $advNum eq $adv ) {
+                  unless ( $advNum le $adv ) {
                      $newAdvisory = 1;
-                     stderrMessage("DEBUG","The new advisory number is $advNum.");
+                     ASGSUtil::stderrMessage("DEBUG","The new advisory number is $advNum.", $test);
                      printf STDOUT "$advNum";
                   }
+               } else {
+                  $newAdvisory = 1;
+                  ASGSUtil::stderrMessage("DEBUG","The previous advisory number was not provided; the new advisory number is $advNum.", $test);
+                  printf STDOUT "$advNum";
                }
                #
                # reset the line number to the beginning of the NHC
@@ -342,8 +322,8 @@ while (!$dl) {
                            last;
                         }
                         if ( $lines[$i] =~ /item/ ) {
-                           stderrMessage("ERROR",
-                           "http: The link to the text advisory was not found in index-at.xml.");
+                           ASGSUtil::stderrMessage("ERROR",
+                           "http: The link to the text advisory was not found in index-at.xml.", $test);
                            last;
                         }
                      }
@@ -355,18 +335,18 @@ while (!$dl) {
          $i++;
       }
       unless ( $stormFound ) {
-         stderrMessage("ERROR","http: The storm number $storm (named '$nhcName') of $year was not found in the RSS feed.");
-         #stderrMessage("DEBUG","The body of the index-at.xml file was $body.");
+         ASGSUtil::stderrMessage("ERROR","http: The storm number $storm (named '$nhcName') of $year was not found in the RSS feed.", $test);
+         #ASGSUtil::stderrMessage("DEBUG","The body of the index-at.xml file was $body.");
          next;
       }
       # if we are supposed to get the text of the forecast file from
       # link in the RSS feed, and we find no such link, we are toast
       if ( $trigger eq "rss" && !$linkFound ) {
-         stderrMessage("ERROR","http: The link to the Forecast/Advisory for the storm named '$nhcName' was not found in the index file of the RSS feed.");
+         ASGSUtil::stderrMessage("ERROR","http: The link to the Forecast/Advisory for the storm named '$nhcName' was not found in the index file of the RSS feed.", $test);
          next;
       }
       unless ( $newAdvisory ) {
-         #nld wait a bit here to slow down repeated checks to http site stderrMessage("INFO","Napping.");
+         #nld wait a bit here to slow down repeated checks to http site ASGSUtil::stderrMessage("INFO","Napping.");
          sleep 60;
          next;
       }
@@ -376,15 +356,15 @@ while (!$dl) {
       if ( defined $textAdvisoryHost and defined $textAdvisoryPath ) {
          my $advConnect = Net::HTTP->new(Host => $textAdvisoryHost);
          unless ($advConnect) {
-            stderrMessage("ERROR","http: Cannot connect to $textAdvisoryHost: $@");
+            ASGSUtil::stderrMessage("ERROR","http: Cannot connect to $textAdvisoryHost: $@"), $test;
             next;
          }
          my $advReqSuccess = $advConnect->write_request(
             GET          => "/$textAdvisoryPath",
             'User-Agent' => "Mozilla/5.0");
          unless ($advReqSuccess) {
-            stderrMessage("ERROR",
-               "http: Request for /$textAdvisoryPath failed.");
+            ASGSUtil::stderrMessage("ERROR",
+               "http: Request for /$textAdvisoryPath failed.", $test);
             next;
          }
          my ($code, $mess, %h) = $advConnect->read_response_headers();
@@ -393,7 +373,7 @@ while (!$dl) {
             my $buf;
             my $n = $advConnect->read_entity_body($buf,1024);
             unless ( defined $n ) {
-               stderrMessage("ERROR","http: buffer read failed: $!");
+               ASGSUtil::stderrMessage("ERROR","http: buffer read failed: $!", $test);
                last;
             }
             last unless $n;
@@ -407,11 +387,11 @@ while (!$dl) {
       # if we had downloaded it via http
       if ( $rsssite eq "filesystem" and defined $textAdvisoryPath and not defined $textAdvisoryHost ) {
 	     unless ( -e $textAdvisoryPath ) {
-            stderrMessage("ERROR","The file containing the full text of the forecast advisory ('$textAdvisoryPath', pulled from the link in the RSS feed) does not exist.");
+            ASGSUtil::stderrMessage("ERROR","The file containing the full text of the forecast advisory ('$textAdvisoryPath', pulled from the link in the RSS feed) does not exist.", $test);
 			next;
 		 }
          unless ( open(ADVTEXT,"<$textAdvisoryPath") ) {
-         	stderrMessage("ERROR","Could not open '$textAdvisoryPath' to read: $!");
+         	ASGSUtil::stderrMessage("ERROR","Could not open '$textAdvisoryPath' to read: $!", $test);
             next;
          }
 		 while (<ADVTEXT>) {
@@ -425,7 +405,7 @@ while (!$dl) {
       my $textAdvFile = $forecastfile . ".html";
       my $openTxtForecastSuccess = open(TEXTFORECAST,">$textAdvFile");
       unless ($openTxtForecastSuccess) {
-         stderrMessage("ERROR","Could not open $textAdvFile for writing.");
+         ASGSUtil::stderrMessage("ERROR","Could not open $textAdvFile for writing.", $test);
          next;
       }
       print TEXTFORECAST $body;
@@ -440,76 +420,6 @@ while (!$dl) {
    }
 }
 1;
-
-
-#
-# ReadFileAsHash reads the contents of a file into
-# a perl hash.  It assumes that there are 2 fields per
-# line in the file, separated by a character (like :).
-# The line is split on this char, and the left and right
-# fields are put into the key and value for the hash entry.
-# BOB: 28 July 2006
-# %H=&ReadFileAsHash($_[0]=<filename>,$_[1]=<separator>);
-sub readFileAsHash ()
-{
-   my ($k,$v,%H);
-   # read file as a hash, split on $_[1];
-   my $fname = $_[0];
-   unless ( open(FIL,"<$fname") ) {
-      stderrMessage("ERROR","Could not open the file $fname for reading: $!.");
-      die;
-   }
-   while (<FIL>){
-      ($k,$v)=split /$_[1]/;
-      chomp($k);
-      chomp($v);
-      #$k =~ s/\s+//g;
-      # remove leading and trailing whitespaces from the key
-      $k =~ s/^\s+//g;
-      $k =~ s/\s+$//g;
-      # remove whitespace from the value
-      $v =~ s/\s+//g;
-      $H{$k}=$v;
-   }
-   close(FIL);
-   return %H;
-}
-
-sub writeHashToFile ()
-{
-   my $fname = shift;
-   my $separator = shift;
-   unless ( open(FIL,">$fname") ) {
-      stderrMessage("ERROR","Could not open the file $fname for writing: $!.");
-      die;
-   }
-   foreach my $key (keys(%state)) {
-      printf FIL "$key $separator $state{$key}\n";
-   }
-   close(FIL)
-}
-
-sub printHash ()
-{
-   my %h=@_;
-   my ($k,$v);
-   while(($k,$v)=each %h){
-      print sprintf("%20s => %-s\n",$k,$v);
-   }
-}
-
-sub stderrMessage () {
-   my $level = shift;
-   my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hour:$minute:$second]";
-   printf STDERR "$theTime $level: get_atcf.pl: $message\n";
-   if ($level eq "ERROR") {
-      sleep 60
-   }
-}
 
 
 

@@ -38,7 +38,7 @@
 #
 #---------------------------------------------------------------------
 #
-# Copyright(C) 2006--2024 Jason Fleming
+# Copyright(C) 2006--2026 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -110,19 +110,23 @@ GetOptions(
 #
 # create a dictionary of properties from run.properties
 my %runProp;
-# open properties file
-unless (open(RUNPROP,"<run.properties")) {
-   stderrMessage("ERROR","Failed to open run.properties: $!.");
-    die;
+my $haveRunProp = 0; # true if it is present (most common case)
+if ( -e "run.properties" ) {
+   $haveRunProp = 1;
+   # open properties file
+   unless (open(RUNPROP,"<run.properties")) {
+      stderrMessage("ERROR","Failed to open run.properties: $!.");
+      die;
+   }
+   while (<RUNPROP>) {
+      my @fields = split ':',$_, 2 ;
+      # strip leading and trailing spaces and tabs
+      $fields[0] =~ s/^\s|\s+$//g ;
+      $fields[1] =~ s/^\s|\s+$//g ;
+      $runProp{$fields[0]} = $fields[1];
+   }
+   close(RUNPROP);
 }
-while (<RUNPROP>) {
-   my @fields = split ':',$_, 2 ;
-   # strip leading and trailing spaces and tabs
-   $fields[0] =~ s/^\s|\s+$//g ;
-   $fields[1] =~ s/^\s|\s+$//g ;
-   $runProp{$fields[0]} = $fields[1];
-}
-close(RUNPROP);
 #
 # check to see that all the mandatory command line arguments were specified
 unless ( $dir ) {
@@ -455,19 +459,19 @@ if ( $zdFound == 0 ) {
    stderrMessage("INFO","The zero date '$zeroDate' was not found in the hindcast file $hindcastATCF.");
 }
 #
-# write the last current storm class and name to run.properties file;
-printf PROPS "storm class : $stormClass\n";
-# only write the stornmame if there is vortex forcing and it is not
-# already in the properties file
-# FIXME: if the stormname property exists but is null or empty, it should be
+# write properties unless they are already in the run.properties file
+# FIXME: if the a property exists but is null or empty, it should be
 # removed from the run.properties file
-if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 330 || abs($nws) == 30 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 309 ) {
-   if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
-      printf PROPS "stormname : $nhcName\n";
+if ( $stormClass != " " ) {
+   if ( ! exists $runProp{'storm class'} || $runProp{'storm class'} eq "" || $runProp{'storm class'} eq "null" ) {
+      printf PROPS "storm class : $stormClass\n";
    }
-   if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) {
-      printf PROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
-   }
+}
+if ( ! exists $runProp{'stormname'} || $runProp{'stormname'} eq "" || $runProp{'stormname'} eq "null" ) {
+   printf PROPS "stormname : $nhcName\n";
+}
+if ( ! exists $runProp{'forcing.tropicalcyclone.stormname'} || $runProp{'forcing.tropicalcyclone.stormname'} eq "" || $runProp{'forcing.tropicalcyclone.stormname'} eq "null" ) {
+   printf PROPS "forcing.tropicalcyclone.stormname : $nhcName\n";
 }
 #
 # write the names of the unmodified, ATCF-formatted track data

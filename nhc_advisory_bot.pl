@@ -295,7 +295,7 @@ while ($i < $#{$body_ref} ) {
    if ( @{$body_ref}[$i] =~ /^(FORECAST|OUTLOOK) VALID/) {
       my $atcf_line = $template;
       # jgf20160105: fill in the storm number
-      substr($atcf_line,4,2) = $storm_number_str;      
+      substr($atcf_line,4,2) = $storm_number_str;
       # fill in the nowcast time
       substr($atcf_line,8,10) = sprintf("%10d",$nowcast_date_time);
       # fill in the storm name
@@ -338,6 +338,8 @@ while ($i < $#{$body_ref} ) {
          if ( $forecast_month > 12 ) {
             $forecast_month = 1;
          }
+         # recreate this string so that metadata will be correct
+         $forecast_date_time = sprintf("%04d%02d%02d%02d", $forecast_year, $forecast_month, $forecast_day, $forecast_hour);
       }
       # Determine the time in hours (forecast period) between the current
       # forecast and the nowcast time
