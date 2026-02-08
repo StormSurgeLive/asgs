@@ -52,8 +52,8 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e netcdf-${NETCDF4_C_VERSION}.tar.gz ]; then
-  echo wget --no-check-certificate https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
-  wget --no-check-certificate https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
+  echo wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
+  wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
 fi
 
 if [ ! -e netcdf-fortran-${NETCDF4_F_VERSION}.tar.gz ]; then

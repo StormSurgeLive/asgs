@@ -113,6 +113,20 @@ _guess_platform()
             break
         fi
       done
+      if [[ -e ${ASGS_LOCAL_DIR}/platforms/platforms-lookup.txt ]]; then
+        # look up via the text, find common name that is associated with
+        # the matching regular expression that is based on the expected hostname
+        IFS=$'\n'
+        for line in $(cat ${ASGS_LOCAL_DIR}/platforms/platforms-lookup.txt | grep -v '#'); do
+          local common_name=$(echo $line | awk '{print $1}')
+          local hostname_regex=$(echo $line | awk '{print $2}')
+          if [[ $(echo $HOSTNAME | egrep -c "$hostname_regex") -eq 1 && -e ${ASGS_LOCAL_DIR}/platforms/${common_name}/init.sh ]]; then
+            default_platform=$common_name
+            break
+          fi
+        done
+        IFS=$OLDIFS
+      fi
     fi
   fi
 
@@ -122,7 +136,9 @@ _guess_platform()
     return
   fi
 
-  # ultimate fallback is to general OS/linux distro support
+  # ultimate fallback is to general OS/linux distro support with
+  # tailored batch submission system detection - add as needed, this
+  # is not meant to be general support for all OS/batch system combos
   if [ -e /etc/oracle-release ]; then
     default_platform=oracle
   elif [ -e /etc/debian_version ]; then
@@ -130,6 +146,12 @@ _guess_platform()
     local sbatch=$(which sbatch)
     if [ -x "$sbatch" ]; then
       default_platform=debian+slurm
+    fi
+  elif [ -e /etc/SUSE-brand ]; then
+    default_platform=suse
+    local qsub=$(which qsub)
+    if [ -x "$qsub" ]; then
+      default_platform=suse+qsub
     fi
   elif [ -e /etc/redhat-release ]; then
     if [[ $(cat /etc/redhat-release | grep -ic CentOS) == 1 ]]; then 
