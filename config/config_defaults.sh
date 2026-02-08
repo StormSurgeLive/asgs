@@ -67,3 +67,6 @@ INITPOST=( null_post.sh )
 for k in ${allHooks[@]} ; do
     hooksScripts[$k]=""
 done
+
+# (de)activate test mode
+TEST=production

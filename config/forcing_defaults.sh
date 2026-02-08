@@ -31,14 +31,20 @@ tidefac_file="tide_fac.out" # need full path
 tidal_potential_comment="tidal_potential_comment:notset"
 tidal_boundary_comment="tidal_boundary_comment:notset"
 #
-# Meteorology: General
+# Meteorological Forcing: General
 #
 WTIMINC="notset"
 BACKGROUNDMET="on"
 TROPICALCYCLONE="off"
+# if windExposure is set to "surface" then all nodal attributes
+# will be used; if it is set to "10m", then the nodal attributes
+# "surface_canopy_coefficient" and "directional_effective_roughness_length"
+# will be deactivated
+windExposure="surface"
 #
 # Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
 #
+declare -g -A owiWinPre
 owiWinPre["NWSET"]=1      # number of win/pre ascii datasets (i.e., domains)
 owiWinPre["NWBS"]=0       # number of blank snaps (i.e., datasets)
 owiWinPre["DWM"]=1.0      # wind multiplier (unitless)
@@ -64,6 +70,7 @@ RMAX="default"
 PERCENT="default"
 VORTEXMODEL="GAHM"
 PSEUDOSTORM="no"
+BLADJ=0.9
 #
 #  Meteorological Forcing : North American Mesoscale (NAM) Model
 #
@@ -84,6 +91,7 @@ forecastDownload="only-to-run"        # "only-to-run" or "all"
 GFSBACKSITE="ftp.ncep.noaa.gov"             # forecast data from NCEP
 GFSBACKDIR="/pub/data/nccf/com/gfs/v16.3"   # contains the GFS files
 # GFS subset
+declare -g -A gfsDomain
 gfsDomain['leftlon']='-110'
 gfsDomain['rightlon']='-45'
 gfsDomain['toplat']='50'
@@ -99,6 +107,7 @@ GFSFORECASTLENGTH=${GFSFORECASTLENGTH:-120} # hours of GFS forecast to run
 # nlat = number of latitudes
 # dlon = grid cell size in degrees of longitude
 # dlat = grid cell size in degrees of latitude
+declare -g -A gfsLatLonGrid
 gfsLatLonGrid['lon0']='-100'
 gfsLatLonGrid['nlon']='600'
 gfsLatLonGrid['dlon']='0.1'
@@ -109,6 +118,7 @@ gfsLatLonGrid['dlat']='0.1'
 #  Meteorological Forcing : Rapid Refresh Forecast System (RRFS) Model
 #
 # set variables to be used in json template
+declare -g -A rrfs
 rrfs['BaseURL']=https://noaa-rrfs-pds.s3.amazonaws.com/rrfs_a
 rrfs['PollingInterval']=5  # minutes
 rrfs['LookAhead']=30       # how far in the future (from currentCycle) to look ahead for new data (days)
@@ -116,8 +126,10 @@ rrfs['ForecastLength']=84  # hours of RRFS forecast to run
 # json file for status checker and RRFS downloader
 rrfs['TemplateName']="get_rrfs_template.json"
 rrfs['FilledTemplateName']="asgs_main.sh_get_rrfs_status.json"
+declare -g -A rrfsDomain
 rrfsDomain['coverage']='basin'
 # RRFS regridding
+declare -g -A rrfsLatLonGrid
 rrfsLatLonGrid['lon0']='-100'
 rrfsLatLonGrid['nlon']='1800'
 rrfsLatLonGrid['dlon']='0.03'

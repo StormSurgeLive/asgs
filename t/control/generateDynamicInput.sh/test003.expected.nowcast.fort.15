@@ -1,69 +1,75 @@
-ASGS TEMPLATE15:2024.1 %StormName% ADCIRCVersion:%ADCIRCVER%
- %ScenarioID%
- %NFOVER%    ! %NFOVER-Line%
- %NABOUT%    ! %NABOUT-Line%
- %NSCREEN%   ! %NSCREEN-Line%
- %IHOT%      ! %IHOT-Line%
+ ASGS TEMPLATE15:2024.1 cs:20240101000000 cy:TESTVORTEX1 ADCIRCVersion:v56.0.2
+ 24 hour nowcast run
+ 1    ! %NFOVER-Line%
+ 1    ! %NABOUT-Line%
+ -1000   ! %NSCREEN-Line%
+ 568      ! %IHOT-Line%
  2           ! %ICS-Line%
- %IM%        ! %IM-Line%
+ 111112        ! %IM-Line%
  1           ! %NOLIBF-Line%
  2           ! %NOLIFA-Line%
- %NOLICA%    ! %NOLICA-Line%
- %NOLICAT%   ! %NOLICAT-Line%
- %NWP%       ! %NWP-Line%
- %NALIST%    ! %NALIST-Line%
+ 1    ! %NOLICA-Line%
+ 1   ! %NOLICAT-Line%
+ 7       ! %NWP-Line%
+sea_surface_height_above_geoid
+advection_state
+mannings_n_at_sea_floor
+primitive_weighting_in_continuity_equation
+surface_canopy_coefficient
+surface_directional_effective_roughness_length
+elemental_slope_limiter
  1           ! %NCOR-Line%
  1           ! %NTIP-Line%
- %NWS%       ! %NWS-Line%
+ 20       ! %NWS-Line%
  1           ! %NRAMP-Line%
  9.81        ! %G-Line%
  -3          ! %TAU0-Line%
- %DT%        ! %DTDP-Line%
+ 1.0        ! %DTDP-Line%
  0.00        ! %STATIM-Line%
  0.00        ! %REFTIM-Line%
- %WTIMINC%   ! %WTIMINC-Line%
- %RNDAY%     ! %RNDAY-Line%
- 5.0                         ! %DRAMP-Line%
- %A00B00C00%                 ! %A00B00C00-Line%
- %H0% 12 12 %VELMIN%         ! %H0-Line%
- -71.0 27.0                  ! %SLAM0-Line%
- %FFACTOR% 1.0  10.  0.33333 ! %FFACTOR-Line%
- %ESLM%                      ! %ESLM-Line%
+ 2024 01 01 00 1 0.9 1   ! %WTIMINC-Line%
+ 3     ! %RNDAY-Line%
+ 7.0         ! %DRAMP-Line%
+ 0.00 1.0 0.00 ! %A00B00C00-Line%
+ 0.1 12 12 0.01  ! %H0-Line%
+ -81.29 28.38           ! %SLAM0-Line%
+ 0.001 1.0  10.  0.33333 ! %FFACTOR-Line%
+ -0.2                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
-8  ! %NTIFCOMMENT% %NTIF-Line%
-K1
-  0.141565  0.000072921158358  0.736  %K1NF%  %K1EQARG%
-O1
-  0.100514  0.000067597744151  0.695  %O1NF%  %O1EQARG%
-P1
-  0.046843  0.000072522945975  0.706  %P1NF%  %P1EQARG%
-Q1
-  0.019256  0.000064958541129  0.695  %Q1NF%  %Q1EQARG%
-N2
-  0.046398  0.000137879699487  0.693  %N2NF%  %N2EQARG%
-M2
-  0.242334  0.000140518902509  0.693  %M2NF%  %M2EQARG%
-S2
-  0.112841  0.000145444104333  0.693  %S2NF%  %S2EQARG%
-K2
-  0.030704  0.000145842317201  0.693  %K2NF%  %K2EQARG%
-8  ! NBFR: bnd forcing
-K1
-  0.000072921158358  %K1NF%  %K1EQARG%
-O1
-  0.000067597744151  %O1NF%  %O1EQARG%
-P1
-  0.000072522945975  %P1NF%  %P1EQARG%
-Q1
-  0.000064958541129  %Q1NF%  %Q1EQARG%
-N2
-  0.000137879699487  %N2NF%  %N2EQARG%
-M2
-  0.000140518902509  %M2NF%  %M2EQARG%
-S2
-  0.000145444104333  %S2NF%  %S2EQARG%
-K2
-  0.000145842317201  %K2NF%  %K2EQARG%
+ 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test003.actual.syslog.log'. %NTIF-Line%
+ K1
+ 0.141565  0.000072921158358   0.695  1.10726 7.41
+ O1
+ 0.100514  0.000067597744151   0.695  1.17401 241.17
+ P1
+ 0.046843  0.000072522945975   0.706  1.00000 349.84
+ Q1
+ 0.019256  0.000064958541129   0.736  1.17401 65.00
+ N2
+ 0.046398  0.000137879699487   0.693  0.96555 71.31
+ M2
+ 0.242334  0.000140518902509   0.693  0.96555 247.47
+ S2
+ 0.112841  0.000145444104333   0.693  1.00000 0.00
+ K2
+ 0.030704  0.000145842317201   0.693  1.29722 194.49
+ 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test003.actual.syslog.log'. %NBFR-Line%
+ K1
+ 0.000072921158358  1.10726 7.41
+ O1
+ 0.000067597744151  1.17401 241.17
+ P1
+ 0.000072522945975  1.00000 349.84
+ Q1
+ 0.000064958541129  1.17401 65.00
+ N2
+ 0.000137879699487  0.96555 71.31
+ M2
+ 0.000140518902509  0.96555 247.47
+ S2
+ 0.000145444104333  1.00000 0.00
+ K2
+ 0.000145842317201  1.29722 194.49
 K1
    0.105459    248.476303
    0.103411    248.079956
@@ -1560,35 +1566,161 @@ K2
    0.038799     27.767227
    0.038810     27.797266
    0.038813     27.811527
-110.0                ! ANGINN : INNER ANGLE THRESHOLD
-%NFFR%               ! %NFFR-Line%
-%PERIODICFLUX%       ! %PERIODICFLUX-Lines%
-%FORT61%             ! %NOUTE-Line%
-%NUMELEVSTATIONS%    ! %NSTAE-Line%
-%FORT62%             ! %NOUTV-Line%
-%NUMVELSTATIONS%     ! %NSTAV-Line%
-%FORT7172%           ! %NOUTM-Line%
-%NUMMETSTATIONS%     ! %NSTAM-Line%
-%FORT63%             ! %NOUTGE-Line%
-%FORT64%             ! %NOUTGV-Line%
-%FORT7374%           ! %NOUTGW-Line%
+ 110.0 ! ANGINN : INNER ANGLE THRESHOLD
+5 0.0 999.0 300             ! %NOUTE-Line%
+39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAE
+-80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
+-80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
+-80.1618000000 25.7314000000 ! 8723214 ! NOAA NOS ! Virginia Key
+-81.1050000000 24.7117000000 ! 8723970 ! NOAA NOS ! Vaca Key
+-81.8079000000 24.5557000000 ! 8724580 ! NOAA NOS ! Key West
+-81.8075000000 26.1317000000 ! 8725110 ! NOAA NOS ! Naples
+-81.8712000000 26.6477000000 ! 8725520 ! NOAA NOS ! Fort Myers
+-82.5621000000 27.6387000000 ! 8726384 ! NOAA NOS ! Port Manatee
+-82.6269000000 27.7606000000 ! 8726520 ! NOAA NOS ! St. Petersburg Tampa Bay
+-82.5527000000 27.8578000000 ! 8726607 ! NOAA NOS ! Old Port Tampa
+-82.4250000000 27.9133000000 ! 8726667 ! NOAA NOS ! Mckay Bay Entrance
+-82.8317000000 27.9783000000 ! 8726724 ! NOAA NOS ! Clearwater Beach
+-83.0317000000 29.1350000000 ! 8727520 ! NOAA NOS ! Cedar Key
+-84.9817000000 29.7267000000 ! 8728690 ! NOAA NOS ! Apalachicola
+-85.6669000000 30.1523000000 ! 8729108 ! NOAA NOS ! Panama City
+-85.8783330000 30.2133330000 ! 8729210 ! NOAA NOS ! Panama City Beach
+-87.2111000000 30.4044000000 ! 8729840 ! NOAA NOS ! Pensacola
+-87.8250000000 30.4166670000 ! 8732828 ! NOAA NOS ! Weeks Bay Mobile Bay
+-88.0750000000 30.2500000000 ! 8735180 ! NOAA NOS ! Dauphin Island
+-88.0880000000 30.5652000000 ! 8735391 ! NOAA NOS ! Dog River Bridge
+-88.1139000000 30.4437000000 ! 8735523 ! NOAA NOS ! East Fowl River Bridge
+-88.0583000000 30.6483000000 ! 8736897 ! NOAA NOS ! Coast Guard Sector Mobile
+-88.0433000000 30.7083000000 ! 8737048 ! NOAA NOS ! Mobile State Docks
+-88.0736000000 30.7819000000 ! 8737138 ! NOAA NOS ! Chickasaw Creek
+-88.1586000000 30.3766000000 ! 8738043 ! NOAA NOS ! West Fowl River Bridge
+-88.2477000000 30.4057000000 ! 8739803 ! NOAA NOS ! Bayou La Batre Bridge
+-88.4027000000 30.4133000000 ! 8740166 ! NOAA NOS ! Grand Bay NERR Mississippi Sound
+-88.5054000000 30.3477000000 ! 8741041 ! NOAA NOS ! Dock E Port of Pascagoula
+-88.5633330000 30.3683330000 ! 8741533 ! NOAA NOS ! Pascagoula NOAA Lab
+-89.3258000000 30.3264000000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club
+-84.945 19.820 ! 42056 ! NOAA NDBC ! wind
+-93.941 22.124 ! 42055 ! NOAA NDBC ! wind waves
+-93.646 26.055 ! 42002 ! NOAA NDBC ! wind waves
+-96.693 26.968 ! 42020 ! NOAA NDBC ! wind waves
+-95.345 27.910 ! 42019 ! NOAA NDBC ! wind waves
+-87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
+-88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
+-86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves    ! %NSTAE-Line%
+0 0.0 999.0 99999             ! %NOUTV-Line%
+39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAV
+-80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
+-80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
+-80.1618000000 25.7314000000 ! 8723214 ! NOAA NOS ! Virginia Key
+-81.1050000000 24.7117000000 ! 8723970 ! NOAA NOS ! Vaca Key
+-81.8079000000 24.5557000000 ! 8724580 ! NOAA NOS ! Key West
+-81.8075000000 26.1317000000 ! 8725110 ! NOAA NOS ! Naples
+-81.8712000000 26.6477000000 ! 8725520 ! NOAA NOS ! Fort Myers
+-82.5621000000 27.6387000000 ! 8726384 ! NOAA NOS ! Port Manatee
+-82.6269000000 27.7606000000 ! 8726520 ! NOAA NOS ! St. Petersburg Tampa Bay
+-82.5527000000 27.8578000000 ! 8726607 ! NOAA NOS ! Old Port Tampa
+-82.4250000000 27.9133000000 ! 8726667 ! NOAA NOS ! Mckay Bay Entrance
+-82.8317000000 27.9783000000 ! 8726724 ! NOAA NOS ! Clearwater Beach
+-83.0317000000 29.1350000000 ! 8727520 ! NOAA NOS ! Cedar Key
+-84.9817000000 29.7267000000 ! 8728690 ! NOAA NOS ! Apalachicola
+-85.6669000000 30.1523000000 ! 8729108 ! NOAA NOS ! Panama City
+-85.8783330000 30.2133330000 ! 8729210 ! NOAA NOS ! Panama City Beach
+-87.2111000000 30.4044000000 ! 8729840 ! NOAA NOS ! Pensacola
+-87.8250000000 30.4166670000 ! 8732828 ! NOAA NOS ! Weeks Bay Mobile Bay
+-88.0750000000 30.2500000000 ! 8735180 ! NOAA NOS ! Dauphin Island
+-88.0880000000 30.5652000000 ! 8735391 ! NOAA NOS ! Dog River Bridge
+-88.1139000000 30.4437000000 ! 8735523 ! NOAA NOS ! East Fowl River Bridge
+-88.0583000000 30.6483000000 ! 8736897 ! NOAA NOS ! Coast Guard Sector Mobile
+-88.0433000000 30.7083000000 ! 8737048 ! NOAA NOS ! Mobile State Docks
+-88.0736000000 30.7819000000 ! 8737138 ! NOAA NOS ! Chickasaw Creek
+-88.1586000000 30.3766000000 ! 8738043 ! NOAA NOS ! West Fowl River Bridge
+-88.2477000000 30.4057000000 ! 8739803 ! NOAA NOS ! Bayou La Batre Bridge
+-88.4027000000 30.4133000000 ! 8740166 ! NOAA NOS ! Grand Bay NERR Mississippi Sound
+-88.5054000000 30.3477000000 ! 8741041 ! NOAA NOS ! Dock E Port of Pascagoula
+-88.5633330000 30.3683330000 ! 8741533 ! NOAA NOS ! Pascagoula NOAA Lab
+-89.3258000000 30.3264000000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club
+-84.945 19.820 ! 42056 ! NOAA NDBC ! wind
+-93.941 22.124 ! 42055 ! NOAA NDBC ! wind waves
+-93.646 26.055 ! 42002 ! NOAA NDBC ! wind waves
+-96.693 26.968 ! 42020 ! NOAA NDBC ! wind waves
+-95.345 27.910 ! 42019 ! NOAA NDBC ! wind waves
+-87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
+-88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
+-86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves     ! %NSTAV-Line%
+5 0.0 999.0 300           ! %NOUTM-Line%
+39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAM
+-80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
+-80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
+-80.1618000000 25.7314000000 ! 8723214 ! NOAA NOS ! Virginia Key
+-81.1050000000 24.7117000000 ! 8723970 ! NOAA NOS ! Vaca Key
+-81.8079000000 24.5557000000 ! 8724580 ! NOAA NOS ! Key West
+-81.8075000000 26.1317000000 ! 8725110 ! NOAA NOS ! Naples
+-81.8712000000 26.6477000000 ! 8725520 ! NOAA NOS ! Fort Myers
+-82.5621000000 27.6387000000 ! 8726384 ! NOAA NOS ! Port Manatee
+-82.6269000000 27.7606000000 ! 8726520 ! NOAA NOS ! St. Petersburg Tampa Bay
+-82.5527000000 27.8578000000 ! 8726607 ! NOAA NOS ! Old Port Tampa
+-82.4250000000 27.9133000000 ! 8726667 ! NOAA NOS ! Mckay Bay Entrance
+-82.8317000000 27.9783000000 ! 8726724 ! NOAA NOS ! Clearwater Beach
+-83.0317000000 29.1350000000 ! 8727520 ! NOAA NOS ! Cedar Key
+-84.9817000000 29.7267000000 ! 8728690 ! NOAA NOS ! Apalachicola
+-85.6669000000 30.1523000000 ! 8729108 ! NOAA NOS ! Panama City
+-85.8783330000 30.2133330000 ! 8729210 ! NOAA NOS ! Panama City Beach
+-87.2111000000 30.4044000000 ! 8729840 ! NOAA NOS ! Pensacola
+-87.8250000000 30.4166670000 ! 8732828 ! NOAA NOS ! Weeks Bay Mobile Bay
+-88.0750000000 30.2500000000 ! 8735180 ! NOAA NOS ! Dauphin Island
+-88.0880000000 30.5652000000 ! 8735391 ! NOAA NOS ! Dog River Bridge
+-88.1139000000 30.4437000000 ! 8735523 ! NOAA NOS ! East Fowl River Bridge
+-88.0583000000 30.6483000000 ! 8736897 ! NOAA NOS ! Coast Guard Sector Mobile
+-88.0433000000 30.7083000000 ! 8737048 ! NOAA NOS ! Mobile State Docks
+-88.0736000000 30.7819000000 ! 8737138 ! NOAA NOS ! Chickasaw Creek
+-88.1586000000 30.3766000000 ! 8738043 ! NOAA NOS ! West Fowl River Bridge
+-88.2477000000 30.4057000000 ! 8739803 ! NOAA NOS ! Bayou La Batre Bridge
+-88.4027000000 30.4133000000 ! 8740166 ! NOAA NOS ! Grand Bay NERR Mississippi Sound
+-88.5054000000 30.3477000000 ! 8741041 ! NOAA NOS ! Dock E Port of Pascagoula
+-88.5633330000 30.3683330000 ! 8741533 ! NOAA NOS ! Pascagoula NOAA Lab
+-89.3258000000 30.3264000000 ! 8747437 ! NOAA NOS ! Bay Waveland Yacht Club
+-84.945 19.820 ! 42056 ! NOAA NDBC ! wind
+-93.941 22.124 ! 42055 ! NOAA NDBC ! wind waves
+-93.646 26.055 ! 42002 ! NOAA NDBC ! wind waves
+-96.693 26.968 ! 42020 ! NOAA NDBC ! wind waves
+-95.345 27.910 ! 42019 ! NOAA NDBC ! wind waves
+-87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
+-88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
+-86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves     ! %NSTAM-Line%
+5 0.0 999.0 3600             ! %NOUTGE-Line%
+5 0.0 999.0 3600             ! %NOUTGV-Line%
+5 0.0 999.0 3600           ! %NOUTGW-Line%
 0                    ! %NHARF-Line%
 0.0 0.0 0 0.0        ! %THAS-Line%
 0 0 0 0              ! %NHASE-Line%
-%NHSTAR%  %NHSINC%   ! %NHSTAR-Line%
-%ITITER% 0 1.0E-7 25 ! %ITITER-Line%
-%NCPROJ%%NCPROJ-Line%
-%NCINST%%NCINST-Line%
-%NCSOUR%%NCSOUR-Line%
-%NCHIST%%NCHIST-Line%
-%NCREF%%NCREF-Line%
-%NCCOM%%NCCOM-Line%
-%NCHOST%%NCHOST-Line%
-%NCCONV%%NCCONV-Line%
-%NCCONT%%NCCONT-Line%
-%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00%NCDATE-Line%
+5  99999   ! %NHSTAR-Line%
+-1 0 1.0E-7 25 ! %ITITER-Line%
+ASGS
+Seahorse Consulting
+ADCIRC
+ASGS Workflow
+https://doi.org/10.1061/40990(324)48
+Trusted since 2006.
+www.seahorsecoastal.com
+CF
+jason.fleming@adcirc.live
+2024-01-01 00:00:00
 !
 ! namelists:
-%met_control_namelist%
-%wetdry_control_namelist%
-%inundation_output_control_namelist%
+&metControl 
+            WindDragLimit=0.0025, 
+            invertedBarometerOnElevationBoundary=T,
+            /
+
+&wetDryControl 
+outputNodeCode=F,
+outputNOFF=F,
+noffActive=T,
+StatPartWetFix=F
+How2FixStatPartWet=0
+/
+
+&inundationOutputControl inundationOutput=T, inunThresh=0.6 /
