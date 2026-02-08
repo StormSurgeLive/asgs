@@ -194,29 +194,29 @@ while(<$TEMPLATE>) {
     # fill in the name of the queueing system
     s/%queuesys%/$jshash_ref->{"queuesys"}/g;
     # fill in the number of compute cores (i.e., not including writers)
-    s/%ncpu%/$myNCPU/;
+    s/%ncpu%/$myNCPU/g;
     # number of cores per compute node
-    s/%ppn%/$ppn/;
+    s/%ppn%/$ppn/g;
     # fill in the total number of cores
-    s/%totalcpu%/$totalcpu/;
+    s/%totalcpu%/$totalcpu/g;
     # the estimated amount of wall clock time
     if ( $jshash_ref->{"walltimeformat"} eq "minutes" ) {
-       s/%walltime%/$wallminutes/;
+       s/%walltime%/$wallminutes/g;
     } else {
-       s/%walltime%/$walltime/;
+       s/%walltime%/$walltime/g;
     }
     # name of the account to take the hours from
     # the value "null" is used to represent the default
     # account for the Operator; we can omit this line
     # from the queue script
     my $account = getQueueScriptParameter($jshash_ref,"account");
-    s/%account%/$account/;
+    s/%account%/$account/g;
     # directory where adcirc executables are located
-    s/%adcircdir%/$jshash_ref->{"adcircdir"}/;
+    s/%adcircdir%/$jshash_ref->{"adcircdir"}/g;
     # directory where asgs executables are located
-    s/%scriptdir%/$jshash_ref->{"scriptdir"}/;
+    s/%scriptdir%/$jshash_ref->{"scriptdir"}/g;
     # directory for this particular advisory
-    s/%advisdir%/$jshash_ref->{"advisdir"}/;
+    s/%advisdir%/$jshash_ref->{"advisdir"}/g;
     # name of this member of the ensemble (nowcast, storm3, etc)
     s/%scenario%/$jshash_ref->{"scenario"}/g;
     # name of overall asgs log file
@@ -224,33 +224,33 @@ while(<$TEMPLATE>) {
     # whether to generate a Wind10m layer
     s/%wind10mlayer%/$jshash_ref->{"wind10mlayer"}/g;
     # fill in command line options
-    s/%cloptions%/$cloptions/;
+    s/%cloptions%/$cloptions/g;
     # fill in command to be executed
-    s/%cmd%/$cmd/;
+    s/%cmd%/$cmd/g;
     # the type of job that is being submitted (partmesh, prep15, padcirc, etc)
     s/%jobtype%/$jobtype/g;
     # the email address of the ASGS Operator
     my $notifyuser = getQueueScriptParameter($jshash_ref,"asgsadmin");
-    s/%notifyuser%/$notifyuser/;
+    s/%notifyuser%/$notifyuser/g;
     # reservation, constraint, and qos are only for SLURM
     # partition is not here b/c it is synonym for queuename
     my $reservation = getQueueScriptParameter($jshash_ref,"reservation");
-    s/%reservation%/$reservation/;
+    s/%reservation%/$reservation/g;
     my $constraint = getQueueScriptParameter($jshash_ref,"constraint");
-    s/%constraint%/$constraint/;
+    s/%constraint%/$constraint/g;
     my $qos = getQueueScriptParameter($jshash_ref,"qos");
-    s/%qos%/$qos/;
+    s/%qos%/$qos/g;
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
     # fill in serial queue
     if ( $jshash_ref->{"parallelism"} eq "serial" ) {
         # name of the queue on which to run
-        s/%queuename%/$jshash_ref->{"serqueue"}/;
+        s/%queuename%/$jshash_ref->{"serqueue"}/g;
     }
     # fill in parallel queue
     if ( $jshash_ref->{"parallelism"} eq "parallel" ) {
         # name of the queue on which to run
-        s/%queuename%/$jshash_ref->{"queuename"}/;
+        s/%queuename%/$jshash_ref->{"queuename"}/g;
     }
     # copy non-noLineHere lines to the queue script
     unless ( $_ =~ /noLineHere/ ) {
