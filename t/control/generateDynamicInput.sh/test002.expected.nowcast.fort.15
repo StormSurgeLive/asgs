@@ -1,75 +1,75 @@
- ASGS TEMPLATE15:2024.1 cs:20240101000000 cy:KATRINA20 ADCIRCVersion:v55.00-20-g5bc04d6
+ ASGS cs:20240101000000 cy:TESTVORTEX1
  24 hour nowcast run
- 1    ! %NFOVER-Line%
- 1    ! %NABOUT-Line%
- -1000   ! %NSCREEN-Line%
- 568      ! %IHOT-Line%
- 2           ! %ICS-Line%
- 111112        ! %IM-Line%
- 1           ! %NOLIBF-Line%
- 2           ! %NOLIFA-Line%
- 1    ! %NOLICA-Line%
- 1   ! %NOLICAT-Line%
- 6       ! %NWP-Line%
+ 1, 25.0, 1, 10, 100.0      ! NFOVER NONFATA OVERRIDE,WARNING ELEV, FORT.69, KILL RUN ELEV
+ 1                          ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
+-1000   ! output frequency (in time steps) to STDOUT or adcirc.log
+ 568                     ! IHOT - HOT START OPTION PARAMETER
+ 2                          ! ICS - COORDINATE SYSTEM OPTION PARAMETER
+ 511112  ! 5=CGWCE_LS_2PartSV to support Smagorinsky ! IM 
+ 1                          ! NOLIBF - NONLINEAR BOTTOM FRICTION OPTION
+ 2                          ! NOLIFA - OPTION TO INCLUDE FINITE AMPLITUDE TERMS
+ 1                          ! NOLICA - OPTION TO INCLUDE CONVECTIVE ACCELERATION TERMS
+ 1                          ! NOLICAT - OPTION TO CONSIDER TIME DERIVATIVE OF CONV ACC TERMS
+ 6                          ! NWP - Number of nodal attributes.
 sea_surface_height_above_geoid
 advection_state
 mannings_n_at_sea_floor
 primitive_weighting_in_continuity_equation
 surface_canopy_coefficient
 surface_directional_effective_roughness_length
- 1           ! %NCOR-Line%
- 1           ! %NTIP-Line%
- 20       ! %NWS-Line%
- 1           ! %NRAMP-Line%
- 9.81        ! %G-Line%
- -3          ! %TAU0-Line%
- 6.0        ! %DTDP-Line%
- 0.00        ! %STATIM-Line%
- 0.00        ! %REFTIM-Line%
- 2024 01 01 00 1 0.9 1   ! %WTIMINC-Line%
- 2     ! %RNDAY-Line%
- 7.0         ! %DRAMP-Line%
- 0.00 1.0 0.00 ! %A00B00C00-Line%
- 0.1 12 12 0.01  ! %H0-Line%
- 265.5 29.0           ! %SLAM0-Line%
- 0.001 1.0  10.  0.33333 ! %FFACTOR-Line%
- -0.05                      ! %ESLM-Line%
- 0.00010                     ! %CORI-Line%
- 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 1.00 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t 2>> test_control_file_gen.sh-syslog.log'. %NTIF-Line%
- K1
- 0.141565  0.000072921158358   0.695  1.10723 7.40
- O1
- 0.100514  0.000067597744151   0.695  1.17396 241.17
- P1
+ 1                          ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
+ 1                          ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
+20                       ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
+ 1                          ! NRAMP - RAMP FUNCTION OPTION
+ 9.81                       ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
+ -3.0                       ! TAU0 - WEIGHTING FACTOR IN GWCE
+ 1.0                       ! DT - TIME STEP (IN SECONDS)
+ 0.00                       ! STATIM - STARTING SIMULATION TIME IN DAYS
+ 0.00                       ! REFTIME - REFERENCE TIME (IN DAYS) FOR NODAL FACTORS AND EQUILIBRIUM ARGS
+ 2024 01 01 00 1 0.9 1                  ! WTIMINC - TIME INCREMENT BETWEEN METEOROLOGICAL FORCING DATA SETS (IN SECONDS)
+ 3                    ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
+ 7.0                        ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
+ 0 1 0                      ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
+ 0.10 0 0 0.01              ! H0,NODEDRYMIN,NODEWETMIN,VELMIN
+ 265.5 29.0                 ! SLAM0,SFEA0 - CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)
+ 0.001 2.00 10.0 1.33333    ! FFACTOR,HBREAK,FTHETA,FGAMMA
+ -0.05                      ! ESLM - SPATIALLY CONSTANT HORIZONTAL EDDY VISCOSITY FOR THE MOMENTUM EQUATIONS
+ 0.0                        ! CORI - CONSTANT CORIOLIS COEFFICIENT
+ 8                       ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS                                                                   
+ K1                      ! ALPHANUMERIC DESCRIPTION OF TIDAL POTENTIAL FORCING DATA                                                              
+ 0.019256  0.000072921158358   0.695  1.10726 7.41
+ O1  
+ 0.100514  0.000067597744151   0.695  1.17401 241.17
+ P1  
  0.046843  0.000072522945975   0.706  1.00000 349.84
- Q1
- 0.019256  0.000064958541129   0.736  1.17396 65.01
- N2
- 0.046398  0.000137879699487   0.693  0.96557 71.31
- M2
- 0.242334  0.000140518902509   0.693  0.96557 247.47
- S2
+ Q1  
+ 0.141565  0.000064958541129   0.736  1.17401 65.00 
+ N2  
+ 0.046398  0.000137879699487   0.693  0.96555 71.31
+ M2  
+ 0.242334  0.000140518902509   0.693  0.96555 247.47
+ S2  
  0.112841  0.000145444104333   0.693  1.00000 0.00
- K2
- 0.030704  0.000145842317201   0.693  1.29711 194.48
- 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 1.00 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t 2>> test_control_file_gen.sh-syslog.log'. %NBFR-Line%
- K1
- 0.000072921158358  1.10723 7.40
- O1
- 0.000067597744151  1.17396 241.17
- P1
+ K2  
+ 0.030704  0.000145842317201   0.693  1.29722 194.49
+ 8                       ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARY                                                           
+ K1                      ! ALPHANUMERIC DESCRIPTION OF OPEN BOUNDARY FORCING DATA                                                                
+ 0.000072921158358  1.10726 7.41
+ O1  
+ 0.000067597744151  1.17401 241.17
+ P1  
  0.000072522945975  1.00000 349.84
- Q1
- 0.000064958541129  1.17396 65.01
- N2
- 0.000137879699487  0.96557 71.31
- M2
- 0.000140518902509  0.96557 247.47
- S2
+ Q1  
+ 0.000064958541129  1.17401 65.00
+ N2  
+ 0.000137879699487  0.96555 71.31
+ M2  
+ 0.000140518902509  0.96555 247.47
+ S2  
  0.000145444104333  1.00000 0.00
- K2
- 0.000145842317201  1.29711 194.48
-K1
+ K2  
+ 0.000145842317201  1.29722 194.49
+K1  
    0.105459    248.476303
    0.103411    248.079956
    0.101158    247.405807
@@ -256,7 +256,7 @@ K1
    0.079157    112.557938
    0.079304    113.005653
    0.079395    113.426773
-O1
+O1  
    0.090580    237.579651
    0.088630    236.521683
    0.086452    235.446136
@@ -443,7 +443,7 @@ O1
    0.033992     89.691956
    0.034125     90.430130
    0.034217     91.153740
-P1
+P1  
    0.032523    251.189087
    0.032419    249.799057
    0.032131    248.266296
@@ -630,7 +630,7 @@ P1
    0.020926    122.917992
    0.021000    123.382729
    0.021058    123.820435
-Q1
+Q1  
    0.017294    216.300415
    0.017067    215.136963
    0.016765    213.998322
@@ -817,7 +817,7 @@ Q1
    0.005130    160.758041
    0.005184    160.642563
    0.005237    160.533020
-N2
+N2  
    0.174776    204.288101
    0.160150    204.398270
    0.142299    204.382584
@@ -1004,7 +1004,7 @@ N2
    0.130751    332.285400
    0.130867    332.344727
    0.130959    332.389099
-M2
+M2  
    0.810408    224.642914
    0.746309    223.856659
    0.664735    223.208755
@@ -1191,7 +1191,7 @@ M2
    0.596690    346.788788
    0.597720    346.854248
    0.598541    346.912781
-S2
+S2  
    0.271669    247.767227
    0.249763    247.528381
    0.222548    247.321198
@@ -1378,7 +1378,7 @@ S2
    0.141194     22.166740
    0.141475     22.269184
    0.141686     22.352655
-K2
+K2  
    0.082290    242.487610
    0.073702    243.334076
    0.063779    244.144012
@@ -1565,8 +1565,8 @@ K2
    0.038799     27.767227
    0.038810     27.797266
    0.038813     27.811527
- 110.0 ! ANGINN : INNER ANGLE THRESHOLD
-1 0.0 999.0 50             ! %NOUTE-Line%
+ 110                        ! ANGINN - MINIMUM ANGLE FOR TANGENTIAL FLOW
+5 0.0 999.0 300                    ! NOUTE,TOUTSE,TOUTFE,NSPOOLE (UNIT  61)
 39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAE
 -80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
 -80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
@@ -1606,8 +1606,8 @@ K2
 -87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
 -88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
 -86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
--84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves    ! %NSTAE-Line%
-0 0.0 999.0 99999             ! %NOUTV-Line%
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves           ! NSTAE - NUMBER OF ELEVATION RECORDING STATIONS
+0 0.0 999.0 99999
 39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAV
 -80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
 -80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
@@ -1647,8 +1647,8 @@ K2
 -87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
 -88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
 -86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
--84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves     ! %NSTAV-Line%
-1 0.0 999.0 50           ! %NOUTM-Line%
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves            ! NSTAV - NUMBER OF ELEVATION RECORDING STATIONS
+5 0.0 999.0 300
 39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAM
 -80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
 -80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
@@ -1688,87 +1688,26 @@ K2
 -87.548 30.060 ! 42035 ! NOAA NDBC ! wind waves
 -88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
 -86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
--84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves     ! %NSTAM-Line%
-1 0.0 999.0 600             ! %NOUTGE-Line%
-1 0.0 999.0 600             ! %NOUTGV-Line%
-1 0.0 999.0 600           ! %NOUTGW-Line%
-0                    ! %NHARF-Line%
-0.0 0.0 0 0.0        ! %THAS-Line%
-0 0 0 0              ! %NHASE-Line%
-5  99999   ! %NHSTAR-Line%
--1 0 1.0E-7 25 ! %ITITER-Line%
-ASGS
-Seahorse Consulting
+-84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves            ! NSTAM - NUMBER OF MET RECORDING STATIONS
+5 0.0 999.0 3600                    ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE (UNIT  63)
+5 0.0 999.0 3600                    ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV (UNIT  64)
+5 0.0 999.0 3600                  ! NOUTGM,TOUTSGM,TOUTFGM,NSPOOLGM (UNIT  73,74)
+ 0                          ! NHARFR - NUMBER OF CONSTITUENTS TO BE INCLUDED IN THE
+ 45.0 105.0  600  0.0       ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS
+ 0 0 0 0                    ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AN
+5 99999           ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS
+ 1  0  1.E-09  25  0.0      ! ITITER, ISLDIA, CONVCR, ITMAX, ILUMP - ALGEBRAIC SOLUT
+EGOM-RT_v20a
+Louisiana State University
 ADCIRC
-ASGS Workflow
-https://doi.org/10.1061/40990(324)48
-Trusted since 2006.
-www.seahorsecoastal.com
-jason.fleming@adcirc.live
+QB2
+ASGS Nowcast/Forecast
+www.lsu.edu/ccr
+Model time is relative to UTC.
+qb.loni.org
+mbilsk3@lsu.edu
 2024-01-01 00:00:00
-!
-! namelists:
-&metControl 
-            WindDragLimit=0.003, 
-            /
-
-&wetDryControl 
-outputNodeCode=F,
-outputNOFF=F,
-noffActive=T,
-StatPartWetFix=F
-How2FixStatPartWet=0
-/
-
-&inundationOutputControl inundationOutput=T, inunThresh=0.6 /
-fort.61
-1
-0.000133333333333333
-fort.62
-0
-6.66673333400001e-08
-fort.63
-1
-1.11111111111111e-05
-fort.64
-1
-1.11111111111111e-05
-fort.71
-1
-0.000133333333333333
-fort.72
-1
-0.000133333333333333
-fort.73
-1
-1.11111111111111e-05
-fort.74
-1
-1.11111111111111e-05
-maxele.63
-1
-1
-maxvel.63
-1
-1
-maxwvel.63
-1
-1
-minpr.63
-1
-1
-initiallydry.63
-1
-1
-inundationtime.63
-1
-1
-maxinundepth.63
-1
-1
-everdried.63
-1
-1
-endrisinginun.63
-1
-1
+&inundationOutputControl inundationOutput=.true. /
+&metControl WindDragLimit=0.0030 DragLawString='GARRATT' /
+&SWANOutputControl SWAN_OutputTPS=T SWAN_OutputTMM10=T SWAN_OutputTM01=T SWAN_OutputHS=T SWAN_OutputTM02=T SWAN_OutputDIR=T /
+%offsetline%

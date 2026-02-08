@@ -48,8 +48,8 @@
       startdatetime: %startdatetime%
       enddatetime: %enddatetime%
     blending:
-      pure_vortex_radius: %PUREVORTEX%
-      pure_background_radius: %PUREBACKGROUND%
+      pure_vortex_radius: %pureVortex%
+      pure_background_radius: %pureBackground%
     wind_drag:
       DragLawString: "%DragLawString%"
       WindDragLimit: %WindDragLimit%

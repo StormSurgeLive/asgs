@@ -3,7 +3,7 @@
 # generateDynamicInput.sh: subroutine that generates dynamic
 # input files like tide_fac.out, fort.13, fort.15, and fort.26.
 #----------------------------------------------------------------
-# Copyright(C) 2024--2025 Jason Fleming
+# Copyright(C) 2024--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -250,10 +250,16 @@ generateDynamicInput()
             logMessage "$THIS: $SCENARIO: Failed to fill in control parameters template with sed."
         fi
         #
-        controlFile="$SCENARIODIR/${layer}.fort.15"
-        swanFile="$SCENARIODIR/fort.26"
-        logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File (${layer}.fort.15) for $SCENARIO with parameters from the file '${layer}.control_parameters.yaml'."
-        perl $SCRIPTDIR/control_file_gen.pl < $SCENARIODIR/${layer}.control_parameters.yaml > $controlFile 2>> ${SYSLOG}
+        controlPath=$SCENARIODIR
+        controlFile=${layer}.fort.15
+        swanFile=fort.26
+        controlOpts=""
+        if [[ $TEST == "unit" ]]; then
+            controlPath=$PWD
+            controlOpts="--test"
+        fi
+        logMessage "$SCENARIO: $THIS: Generating ADCIRC Control File ($controlFile) for $SCENARIO with parameters from the file '${layer}.control_parameters.yaml'."
+        perl $SCRIPTDIR/control_file_gen.pl $controlOpts < $SCENARIODIR/${layer}.control_parameters.yaml > $controlPath/$controlFile 2>> ${SYSLOG}
         controlExitStatus=$?
         controlMsg=""
         if [[ $controlExitStatus != 0 ]]; then

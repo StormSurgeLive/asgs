@@ -3,7 +3,7 @@
 # control_file_gen.pl : generate fort.15 file and write to stdout based on
 # a specification provided via a yaml file on stdin
 #--------------------------------------------------------------------------
-# Copyright(C) 2006--2025 Jason Fleming
+# Copyright(C) 2006--2026 Jason Fleming
 # Copyright(C) 2006, 2007 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -32,6 +32,7 @@
 #--------------------------------------------------------------------------
 use strict;
 use warnings;
+use Getopt::Long;
 use YAML::Tiny qw(Load);
 use Date::Calc;
 use ASGSUtil;
@@ -66,6 +67,13 @@ my $nffr = "NO LINE HERE";      # for flux boundaries; -1: top of fort.20 corres
 #
 our $addHours; # duration of the run (hours)
 my $parameters;  # YAML document that defines model control options
+my $test;    # true if this is being executed as a unit test
+#
+GetOptions(
+           "test" => \$test
+);
+#
+#   L O A D   Y A M L
 #
 # load YAML document containing model control parameters from stdin
 $parameters = do { local $/; <> };
@@ -94,7 +102,7 @@ $ns = $cs;
 #
 # open template file for fort.15
 unless (open(TEMPLATE,"<$p->{controltemplate}")) {
-   ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file '$p->{controltemplate}' for reading: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open the fort.15 template file '$p->{controltemplate}' for reading: $!.",$test);
    die;
 }
 # ICS
@@ -117,7 +125,7 @@ if ( $p->{coordinate_system}->{projection} eq "cartesian" ) {
    } elsif ( $p->{coordinate_system}->{reprojection} eq "gall-stereographic" ) {
       $ics = 24;
    } else {
-      ASGSUtil::stderrMessage("ERROR","Coordinate reprojection '$p->{coordinate_system}->{reprojection}' was not recognized.");
+      ASGSUtil::stderrMessage("ERROR","Coordinate reprojection '$p->{coordinate_system}->{reprojection}' was not recognized.",$test);
    }
 }
 my $zNorth = "northpole";
@@ -129,14 +137,14 @@ if ( $ics >=20 && $ics <=24 && $p->{coordinate_system}->{rotation} ne "northpole
    } elsif ( $p->{coordinate_system}->{rotation} eq "borneo-brazil" ) {
       $zNorth = "114.16991  0.77432 ! Borneo-Brazil";
    } else {
-      ASGSUtil::stderrMessage("ERROR","Coordinate rotation '$p->{coordinate_system}->{rotation}' was not recognized.");
+      ASGSUtil::stderrMessage("ERROR","Coordinate rotation '$p->{coordinate_system}->{rotation}' was not recognized.",$test);
    }
 }
 if ( $zNorth ne "northpole" ) {
    $ics *= -1;
    my $rotm; # rotation file
    unless (open($rotm,">fort.rotm")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the coordinate rotation file fort.rotm for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open the coordinate rotation file fort.rotm for writing: $!.",$test);
       die;
    }
    print $rotm "$zNorth";
@@ -160,7 +168,7 @@ if ( $p->{output}->{inventory} eq "metonly" ) {
 # call subroutine that knows how to fill in the fort.15 for each particular
 # type of forcing
 if ( abs($basenws) == 19 || abs($basenws) == 20 || abs($basenws) == 8 || abs($basenws) == 30 ) {
-   ASGSUtil::stderrMessage("DEBUG","Setting parameters appropriately for vortex model.");
+   ASGSUtil::stderrMessage("DEBUG","Setting parameters appropriately for vortex model.",$test);
    vortexModelParameters($nws);
 }
 # for getting the OWI wind time increment for blended winds
@@ -184,10 +192,10 @@ if ( abs($nws) == 12 ) {
 #
 # tidal initialization or "other"
 if ( defined $specifiedRunLength ) {
-   ASGSUtil::stderrMessage("DEBUG","The duration of this $enstorm run is specially defined.");
+   ASGSUtil::stderrMessage("DEBUG","The duration of this $p->{scenario} run is specially defined.",$test);
    customParameters();
 } elsif ( $p->{scenario} eq "hindcast" ) {
-   ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.");
+   ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.",$test);
    initializationParameters();
 }
 #
@@ -244,12 +252,12 @@ if ( $nws eq "0" ) {
 if ( $p->{tides}->{tidal_forcing} eq "on" ) {
    # open data file
    unless (open(TIDEFAC,"<$p->{tides}->{tidefac_file}")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the file '$p->{tides}->{tidefac_file}' for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open the file '$p->{tides}->{tidefac_file}' for reading: $!.",$test);
       die;
    }
    # parse out nodal factors and equilibrium arguments from the
    # various constituents
-   ASGSUtil::stderrMessage("INFO","Parsing tidal node factors and equilibrium arguments.");
+   ASGSUtil::stderrMessage("INFO","Parsing tidal node factors and equilibrium arguments.",$test);
    while(<TIDEFAC>) {
       my @constituent = split;
       if ( $constituent[0] eq "M2" ) {
@@ -277,7 +285,7 @@ if ( $p->{tides}->{tidal_forcing} eq "on" ) {
          $q1nf = $constituent[1];
          $q1eqarg = $constituent[2];
       } else {
-         ASGSUtil::stderrMessage("WARNING","Tidal constituent named '$constituent[0]' was unrecognized.");
+         ASGSUtil::stderrMessage("WARNING","Tidal constituent named '$constituent[0]' was unrecognized.",$test);
       }
    }
    close(TIDEFAC);
@@ -287,7 +295,7 @@ if ( $p->{tides}->{tidal_forcing} eq "on" ) {
 $numelevstations = getStations($p->{output}->{stations}->{fort61}->{elevstations_file},"elevation");
 $numvelstations = getStations($p->{output}->{stations}->{fort62}->{velstations_file},"velocity");
 if ( $nws eq "0" ) {
-   ASGSUtil::stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.");
+   ASGSUtil::stderrMessage("INFO","NWS is zero; meteorological stations will not be written to the fort.15 file.",$test);
    $nummetstations = "NO LINE HERE";
 } else {
    $nummetstations = getStations($p->{output}->{stations}->{fort7172}->{metstations_file},"meteorology");
@@ -490,14 +498,14 @@ if ( $p->{solver_time_integration} eq "explicit" ) {
    $a00b00c00 = "0.00 1.0 0.00"; # overwrite the values specified if necessary
    # check to see if the original was not 0 1 0 and issue warning if so
    if ($tw[0] != 0.0 || $tw[1] != 1.0 || $tw[2] != 0.0 ) {
-      ASGSUtil::stderrMessage("WARNING","The time weighting coefficients A00 B00 C00 were reset to 0.0 1.0 0.0 for explicit time integration, replacing the specified time weighting coefficients of $p->{time_weighting_coefficients}");
+      ASGSUtil::stderrMessage("WARNING","The time weighting coefficients A00 B00 C00 were reset to 0.0 1.0 0.0 for explicit time integration, replacing the specified time weighting coefficients of $p->{time_weighting_coefficients}",$test);
    }
 }
 if ( $p->{solver_time_integration} eq "full-gravity-wave-implicit" ) {
    $IMDig6 = "3";
    if ( $tw[2] != 0.0 ) {
       $a00b00c00 = "0.50 0.5 0.00"; # overwrite the values specified with something reasonable
-      ASGSUtil::stderrMessage("WARNING","The time weighting coefficients A00 B00 C00 were reset to 0.5 0.5 0.0 for full gravity wave implicit time integration, replacing the specified time weighting coefficients of $p->{time_weighting_coefficients}");
+      ASGSUtil::stderrMessage("WARNING","The time weighting coefficients A00 B00 C00 were reset to 0.5 0.5 0.0 for full gravity wave implicit time integration, replacing the specified time weighting coefficients of $p->{time_weighting_coefficients}",$test);
    }
 }
 my $im="$IMDig1"."1111"."$IMDig6";
@@ -549,7 +557,7 @@ if ( defined $p->{nodal_attributes}->{activate} ) {
    }
 }
 #
-ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).");
+ASGSUtil::stderrMessage("INFO","Filling in ADCIRC control template (fort.15).",$test);
 while(<TEMPLATE>) {
     # name of the mesh
     s/%MeshName%/$p->{mesh}/;
@@ -719,17 +727,17 @@ close(TEMPLATE);
 #  A D C I R C   N O D A L   A T T R I B U T E S   F I L E
 #
 if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->{template} =~ /.*notset$/ ) {
-   ASGSUtil::stderrMessage("INFO","There is no nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}'; the nodal attributes file '$nafile' will not be written.");
+   ASGSUtil::stderrMessage("INFO","There is no nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}'; the nodal attributes file '$nafile' will not be written.",$test);
 } else {
-   ASGSUtil::stderrMessage("INFO","Reading nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}' and writing nodal attributes file '$nafile'.");
+   ASGSUtil::stderrMessage("INFO","Reading nodal attributes (fort.13) template '$p->{nodal_attributes}->{template}' and writing nodal attributes file '$nafile'.",$test);
    my $nafi;
    if (not open($nafi,"<","$p->{nodal_attributes}->{template}") ) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$p->{nodal_attributes}->{template}': $!.",$test);
       die;
    }
    my $nafo;
    if (not open($nafo,">",$nafile) ) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open '$nafile' for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$nafile' for writing: $!.",$test);
       die;
    }
    my $numLines = 0;
@@ -742,7 +750,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
       if ( $line == 3 ) {
          $headerLine =~ /^\s*(\d)*/;
          $numNodalAttr = $1;
-         ASGSUtil::stderrMessage("INFO","There are '$numNodalAttr' nodal attributes in the fort.13 file.");
+         ASGSUtil::stderrMessage("INFO","There are '$numNodalAttr' nodal attributes in the fort.13 file.",$test);
       }
    }
    # accumulate the nodal attributes file header into a single string
@@ -767,7 +775,7 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
    #
    close($nafi); # nodal attributes file template
    close($nafo); # nodal attributes file (filled template)
-   ASGSUtil::stderrMessage("INFO","Wrote '$numLines' lines to the nodal attributes file '$nafile'.");
+   ASGSUtil::stderrMessage("INFO","Wrote '$numLines' lines to the nodal attributes file '$nafile'.",$test);
 }
 #
 #
@@ -776,16 +784,16 @@ if ( $p->{nodal_attributes}->{template} =~ /.*null$/ || $p->{nodal_attributes}->
 if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    # open swan template file for fort.26
    unless (open(TEMPLATE,"<$p->{swan}->{template}")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the swan template file '$p->{swan}->{template}' for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open the swan template file '$p->{swan}->{template}' for reading: $!.",$test);
       die;
    }
    #
    # open output fort.26 file
    unless (open(FORT26,">fort.26")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the swan parameters file 'fort.26': $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open the swan parameters file 'fort.26': $!.",$test);
       die;
    }
-   ASGSUtil::stderrMessage("INFO","The 'fort.26' file will be written.");
+   ASGSUtil::stderrMessage("INFO","The 'fort.26' file will be written.",$test);
    #
    $startdatetime = sprintf("%4d%02d%02d.%02d0000",$ny,$nm,$nd,$nh);
    $enddatetime = sprintf("%4d%02d%02d.%02d0000",$ey,$em,$ed,$eh);
@@ -794,7 +802,7 @@ if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}-
       $swanhs = "\$ swan will coldstart";
    }
    #
-   ASGSUtil::stderrMessage("INFO","Filling in swan control template (fort.26).");
+   ASGSUtil::stderrMessage("INFO","Filling in swan control template (fort.26).",$test);
    while(<TEMPLATE>) {
        # use the year as the run number
        my $ny72 = substr($ny,0,4);                  # 'nr' in SWAN documentation, max 4 characters
@@ -856,9 +864,9 @@ if ( $p->{scenario} eq "nowcast" ) {
 } elsif ( $p->{scenario} eq "hindcast" ) {
    $run_type = "Hindcast"; # for the run-control.properties file
 }
-ASGSUtil::stderrMessage("INFO","Opening run-control.properties file for writing.");
+ASGSUtil::stderrMessage("INFO","Opening run-control.properties file for writing.",$test);
 unless (open(RUNPROPS,">run-control.properties")) {
-   ASGSUtil::stderrMessage("ERROR","Failed to open the run-control.properties file for appending: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open the run-control.properties file for appending: $!.",$test);
    die;
 }
 # If we aren't using a vortex met model, we don't have a track
@@ -909,7 +917,7 @@ if ( $nws ne "0" ) {
    my @noutm = split(" ",$nummetstations);
    printf RUNPROPS "adcirc.control.physics.output.noutm : $noutm[0]\n";
    if ( abs($nws) == 19 || abs($nws) == 319 || abs($nws) == 20 || abs($nws) == 320 || abs($nws) == 8 || abs($nws) == 308 || abs($nws) == 30 || abs($nws) == 330 ) {
-      printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $p->{meteorology}->{boundary_layer_adjustment}\n";
+      printf RUNPROPS "adcirc.control.physics.meteorology.bladj : $p->{meteorology}->{tropical_cyclone}->{boundary_layer_adjustment}\n";
       if ( abs($nws) == 30 || abs($nws) == 330 ) {
          printf RUNPROPS "adcirc.control.numerics.meteorology.purevortex : $p->{meteorology}->{blending}->{pureVortex}\n";
          printf RUNPROPS "adcirc.control.numerics.meteorology.purebackground : $p->{meteorology}->{blending}->{pureBackground}\n";
@@ -917,28 +925,28 @@ if ( $nws ne "0" ) {
    }
 }
 # write the names of the output files to the run-control.properties file
-ASGSUtil::stderrMessage("INFO","Writing file names and formats to run-control.properties file.");
-writeFileName("fort.61",(split(' ',$fort61))[0],$addHours/(split(' ',$fort61))[3]/3600.0);
-writeFileName("fort.62",(split(' ',$fort62))[0],$addHours/(split(' ',$fort62))[3]/3600.0);
-writeFileName("fort.63",(split(' ',$fort63))[0],$addHours/(split(' ',$fort63))[3]/3600.0);
-writeFileName("fort.64",(split(' ',$fort64))[0],$addHours/(split(' ',$fort64))[3]/3600.0);
-writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(split(' ',$fort7172))[3]/3600.0);
-writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(split(' ',$fort7172))[3]/3600.0);
-writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
-writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+ASGSUtil::stderrMessage("INFO","Writing file names and formats to run-control.properties file.",$test);
+writeFileName("fort.61",(split(' ',$fort61))[0],$addHours/(((split(' ',$fort61))[3]*$dt)/3600.0));
+writeFileName("fort.62",(split(' ',$fort62))[0],$addHours/(((split(' ',$fort62))[3]*$dt)/3600.0));
+writeFileName("fort.63",(split(' ',$fort63))[0],$addHours/(((split(' ',$fort63))[3]*$dt)/3600.0));
+writeFileName("fort.64",(split(' ',$fort64))[0],$addHours/(((split(' ',$fort64))[3]*$dt)/3600.0));
+writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
 writeFileName("maxele.63",(split(' ',$fort63))[0],1);
 writeFileName("maxvel.63",(split(' ',$fort64))[0],1);
 writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
 writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
 if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    writeFileName("maxrs.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
    writeFileName("swan_DIR_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
    writeFileName("swan_HS_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
    writeFileName("swan_TMM10_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$addHours/(split(' ',$fort7374))[3]/3600.0);
+   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
    writeFileName("swan_TPS_max.63",(split(' ',$fort7374))[0],1);
 }
 if ( $p->{output}->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
@@ -949,7 +957,7 @@ if ( $p->{output}->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
    writeFileName("endrisinginun.63",(split(' ',$fort63))[0],1);
 }
 close(RUNPROPS);
-ASGSUtil::stderrMessage("INFO","Wrote run-control.properties file 'run-control.properties'.");
+ASGSUtil::stderrMessage("INFO","Wrote run-control.properties file 'run-control.properties'.",$test);
 exit;
 #
 #
@@ -1026,7 +1034,7 @@ sub getOutputParameters {
    my $specifier; # output format
    my $increment; # time step increment between outputs
 
-   if ( $f->{incr_seconds} == 0 || ( $p->{output}->{inventory} eq "metonly" && $data_type ne "met" ) ) {
+   if ( $f->{incr_seconds} == 0 || $f->{format} eq "off" || ( $p->{output}->{inventory} eq "metonly" && $data_type ne "met" ) ) {
       $specifier = "0";
       $increment = "99999";
    } else {
@@ -1065,11 +1073,11 @@ sub getStations {
    }
    if ( $station_file =~ /null/) {
       $numstations = "0   ! $station_var" ;
-      ASGSUtil::stderrMessage("INFO","There are no $station_type stations.");
+      ASGSUtil::stderrMessage("INFO","There are no $station_type stations.",$test);
       return $numstations; # early return
    }
    unless (open(STATIONS,"<$station_file")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open the $station_type stations file $station_file for reading: $!.",$test);
       die;
    }
    my $number=0;
@@ -1081,7 +1089,7 @@ sub getStations {
       $number++;
    }
    close(STATIONS);
-   ASGSUtil::stderrMessage("INFO","There are $number $station_type stations in the file '$station_file'.");
+   ASGSUtil::stderrMessage("INFO","There are $number $station_type stations in the file '$station_file'.",$test);
    chomp($numstations);
    # need to add this as a sort of comment in the fort.15 for the post
    # processing script station_transpose.pl to find
@@ -1103,11 +1111,11 @@ sub getStations {
 sub getPeriodicFlux {
    my $flux_file=shift;
    if ($flux_file =~ /null/){
-      ASGSUtil::stderrMessage("INFO","No periodic inflow boundary data file was specified.");
+      ASGSUtil::stderrMessage("INFO","No periodic inflow boundary data file was specified.",$test);
       return
    }
    unless (open(FLUXFILE,"<$flux_file")) {
-      ASGSUtil::stderrMessage("ERROR","Failed to open '$flux_file' for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$flux_file' for reading: $!.",$test);
       die;
    }
    my $fluxdata='';
@@ -1115,7 +1123,7 @@ sub getPeriodicFlux {
        $fluxdata.=$_;
    }
    close(FLUXFILE);
-   ASGSUtil::stderrMessage("INFO","Inserting periodic inflow boundary data from '$flux_file'.");
+   ASGSUtil::stderrMessage("INFO","Inserting periodic inflow boundary data from '$flux_file'.",$test);
    chomp $fluxdata;
    return $fluxdata;
 }
@@ -1137,7 +1145,7 @@ sub initializationParameters {
    $nws = 0;
    $scenarioid = "$RNDAY day initialization run";
    $wtiminc_line = "NO LINE HERE";
-   ASGSUtil::stderrMessage("DEBUG","Finished setting model initialization parameters.");
+   ASGSUtil::stderrMessage("DEBUG","Finished setting model initialization parameters.",$test);
 }
 #
 #--------------------------------------------------------------------------
@@ -1176,7 +1184,7 @@ sub customParameters {
    ($ey,$em,$ed,$eh,$emin,$es) =
       Date::Calc::Add_Delta_DHMS($ny,$nm,$nd,$nh,0,0,$specifiedRunLength,0,0,0);
    $wtiminc_line = "NO LINE HERE";
-   ASGSUtil::stderrMessage("DEBUG","Finished setting specified run length.");
+   ASGSUtil::stderrMessage("DEBUG","Finished setting specified run length.",$test);
 }
 
 #
@@ -1258,7 +1266,7 @@ sub vortexModelParameters {
    }
    # get end time
    my $end = $p->{endtime}; # yyyymmddhh
-   ASGSUtil::stderrMessage("INFO","New $p->{scenario} time is $end.");
+   ASGSUtil::stderrMessage("INFO","New $p->{scenario} time is $end.",$test);
    if ( $p->{hotstart}->{time} != 0 ) {
       # now add the hotstart seconds
       ($ny,$nm,$nd,$nh,$nmin,$ns) =
@@ -1316,7 +1324,7 @@ sub vortexModelParameters {
       if ( $p->{scenario} eq "nowcast" ) {
          $goodRunlength = 0;
       }
-      ASGSUtil::stderrMessage("INFO","Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.");
+      ASGSUtil::stderrMessage("INFO","Runlength was calculated as $runlength_seconds seconds, which is less than the minimum runlength of $min_runlength seconds. The RNDAY will be adjusted so that it ADCIRC runs for the minimum length of simulation time.",$test);
       # recalculate the RNDAY as the hotstart time plus the minimal runlength
       if ( $p->{hotstart}->{time} != 0 ) {
          $RNDAY=$hstime_days + ($min_runlength/86400.0);
@@ -1367,5 +1375,3 @@ sub vortexModelParameters {
       $wtiminc_line .= " $geofactor";
    }
 }
-
-

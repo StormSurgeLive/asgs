@@ -44,6 +44,7 @@ windExposure="surface"
 #
 # Meteorological Forcing : OWI Win/Pre ASCII Format (NWS=12)
 #
+declare -g -A owiWinPre
 owiWinPre["NWSET"]=1      # number of win/pre ascii datasets (i.e., domains)
 owiWinPre["NWBS"]=0       # number of blank snaps (i.e., datasets)
 owiWinPre["DWM"]=1.0      # wind multiplier (unitless)
@@ -117,6 +118,7 @@ gfsLatLonGrid['dlat']='0.1'
 #  Meteorological Forcing : Rapid Refresh Forecast System (RRFS) Model
 #
 # set variables to be used in json template
+declare -g -A rrfs
 rrfs['BaseURL']=https://noaa-rrfs-pds.s3.amazonaws.com/rrfs_a
 rrfs['PollingInterval']=5  # minutes
 rrfs['LookAhead']=30       # how far in the future (from currentCycle) to look ahead for new data (days)
@@ -124,8 +126,10 @@ rrfs['ForecastLength']=84  # hours of RRFS forecast to run
 # json file for status checker and RRFS downloader
 rrfs['TemplateName']="get_rrfs_template.json"
 rrfs['FilledTemplateName']="asgs_main.sh_get_rrfs_status.json"
+declare -g -A rrfsDomain
 rrfsDomain['coverage']='basin'
 # RRFS regridding
+declare -g -A rrfsLatLonGrid
 rrfsLatLonGrid['lon0']='-100'
 rrfsLatLonGrid['nlon']='1800'
 rrfsLatLonGrid['dlon']='0.03'
