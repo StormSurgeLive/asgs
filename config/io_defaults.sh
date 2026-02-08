@@ -47,29 +47,28 @@ OUTPUTOPTIONS=null
 declare -g -A fort61
 declare -g -A fort62
 declare -g -A fort7172
-fort61["format"]="netcdf"
+fort61["format"]="netcdf4"
 fort61["incr_seconds"]=300.0
 fort61["append"]="yes"
-fort62["format"]="netcdf"
+fort62["format"]="netcdf4"
 fort62["incr_seconds"]=0.0
 fort62["append"]="yes"
-fort7172["format"]="netcdf"
+fort7172["format"]="netcdf4"
 fort7172["incr_seconds"]=300.0
 fort7172["append"]="yes"
 # fulldomain
 declare -g -A fort63
 declare -g -A fort64
 declare -g -A fort7374
-fort63["format"]="netcdf"
+fort63["format"]="netcdf4"
 fort63["incr_seconds"]=3600.0
 fort63["append"]="yes"
-fort64["format"]="netcdf"
+fort64["format"]="netcdf4"
 fort64["incr_seconds"]=3600.0
 fort64["append"]="yes"
-fort7374["format"]="netcdf"
+fort7374["format"]="netcdf4"
 fort7374["incr_seconds"]=3600.0
 fort7374["append"]="yes"
-netCDF34="netcdf4" # for output files (not hotstart files)
 # hotstart files
 HOTSTARTCOMP=${HOTSTARTCOMP:-"fulldomain"} # fulldomain or subdomain
 HOTSTARTFORMAT=${HOTSTARTFORMAT:-"netcdf"} # netcdf3 or netcdf (meaning netcdf4) or binary
