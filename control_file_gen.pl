@@ -1049,6 +1049,9 @@ sub getOutputParameters {
       if ($f->{format} eq "netcdf3" ) {
          $specifier *= 3;
       }
+      if ( $f->{format} eq "sparse-ascii" ) {
+         $specifier *= 4;
+      }
       $increment = int($f->{incr_seconds}/$timestep_seconds);
    }
    return "$specifier 0.0 999.0 $increment";
