@@ -110,7 +110,6 @@ if ( $startcycle eq "null" && $jshash_ref ) {
 #
 ASGSUtil::appMessage( "INFO", "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
-
 # now go to the ftp site and
 # get the list of gfs dates where data is available
 # and report latest data available on the site
@@ -160,7 +159,6 @@ else {
    # first date and time that data are available
    $sortedGfsDirs[0] =~ /gfs.(\d{8})/;
    $startdate = $1;
-
    local $@;
    my @earliestGfsCycles = eval { http_dir("$backdir/$sortedGfsDirs[0]") };
    if ($@) {
@@ -205,7 +203,7 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
    if ($@) {
      my $msg = ($@) ? $@ : "";
      ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list latest GFS cycles in '$backdir/$targetDir': } . $msg);
-     exit 1;
+     #exit 1;
    }
    # now sort the GFS cycles from lowest to highest (it appears that ls() does
    # not automatically do this for us)
