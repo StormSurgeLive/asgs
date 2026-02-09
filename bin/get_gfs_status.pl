@@ -203,7 +203,7 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
    if ($@) {
      my $msg = ($@) ? $@ : "";
      ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list latest GFS cycles in '$backdir/$targetDir': } . $msg);
-     #exit 1;
+     exit 1;
    }
    # now sort the GFS cycles from lowest to highest (it appears that ls() does
    # not automatically do this for us)
