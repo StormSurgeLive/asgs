@@ -115,20 +115,20 @@ our $dl = 0;   # true if latest status was determined successfully
 # open ftp connection
 our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1, Timeout => 5);
 unless ( defined $ftp ) { ASGSUtil::stderrMessage("ERROR", "ftp: Cannot connect to $backsite: $@");
-   exit 1;
+   #exit 1;
 }
-my $ftpLoginSuccess = eval{ $ftp->login("anonymous",'-anonymous@') };
+my $ftpLoginSuccess = ""; #eval{ $ftp->login("anonymous",'-anonymous@') };
 unless ( $ftpLoginSuccess ) {
-   ASGSUtil::stderrMessage("ERROR", "ftp: Cannot login: " . $ftp->message);
-   exit 1;
+   #ASGSUtil::stderrMessage("ERROR", "ftp: Cannot login: " . $ftp->message);
+   #exit 1;
 }
 # switch to binary mode
-$ftp->binary();
+#$ftp->binary();
 # cd to the directory containing the GFS files
-my $hcDirSuccess = eval { $ftp->cwd($backdir) };
+my $hcDirSuccess = ""; #eval { $ftp->cwd($backdir) };
 unless ( $hcDirSuccess ) {
-   ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir': " .  $ftp->message);
-   exit 1;
+   #ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir': " .  $ftp->message);
+   #exit 1;
 }
 #
 # now go to the ftp site and
@@ -137,11 +137,11 @@ unless ( $hcDirSuccess ) {
 # directory entries are named e.g., gfs.20220111
 
 local $@;
-my @ncepDirs = eval { http_dir($ftp->pwd) }; # gets all the current data dirs, incl. gfs dirs
+my @ncepDirs = eval { http_dir($backdir) }; # gets all the current data dirs, incl. gfs dirs
 if ($@) {
    my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
    ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list NCEP directories: } . $msg);
-   exit 1;
+   #exit 1;
 }
 # e.g. /pub/data/nccf/com/gfs/v16.2/gfs.20220527/00/atmos
 my @gfsDirs;
@@ -183,14 +183,14 @@ if ( $startcycle ne "null" ) {
    $hcDirSuccess = eval { $ftp->cwd("$backdir/$sortedGfsDirs[0]") };
    unless ( $hcDirSuccess ) {
       ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$sortedGfsDirs[0]': " .  $ftp->message);
-      exit 1;
+      #exit 1;
    }
    local $@;
-   my @earliestGfsCycles = eval { http_dir($ftp->pwd) };
+   my @earliestGfsCycles = eval { http_dir("$backdir/$sortedGfsDirs[0]") };
    if ($@) {
      my $msg = ($@) ? q{[HTTP::Tiny] } : $@;
      ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" GFS cycle subdirectories: } . $msg);
-     exit 1;
+     #exit 1;
    }
 
    # now sort the GFS cycle subdirectories from lowest to highest (it appears that ls() does
@@ -202,7 +202,7 @@ if ( $startcycle ne "null" ) {
 my $numSortedGfsDirs = @sortedGfsDirs;
 if ( $numSortedGfsDirs == 0 ) {
    ASGSUtil::stderrMessage( "WARNING", "Failed to find any GFS data directories.");
-   exit 1;
+   #exit 1;
 }
 # determine the latest GFS directory that has data in it
 # (a new directory may exist and be empty for some period
@@ -223,18 +223,18 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
    $cycledate = $1;
    #ASGSUtil::appMessage("DEBUG", "The cycledate is '$cycledate'.");
    # change to that directory and see if there are cycles in there
-   $hcDirSuccess = eval { $ftp->cwd("$backdir/$targetDir") };
+   $hcDirSuccess = ""; #eval { $ftp->cwd("$backdir/$targetDir") };
    unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
-      exit 1;
+      #ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
+      #exit 1;
    }
 
    local $@;
-   my @latestCycles = eval { http_dir($ftp->pwd) };
+   my @latestCycles = eval { http_dir("$backdir/$targetDir") };
    if ($@) {
      my $msg = ($@) ? $@ : "";
      ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list latest GFS cycles in '$backdir/$targetDir': } . $msg);
-     exit 1;
+     #exit 1;
    }
    # now sort the GFS cycles from lowest to highest (it appears that ls() does
    # not automatically do this for us)
@@ -246,15 +246,15 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
       $targetCycle = $sortedLatestCycles[-1];
       #ASGSUtil::stderrMessage("DEBUG", "LATESTCYCLEDIR: targetCycle is $targetCycle");
       # change to that cycle directory and see if there are files in there
-      $hcDirSuccess = eval { $ftp->cwd("$backdir/$targetDir/$targetCycle/atmos") };
+      $hcDirSuccess = ""; #eval { $ftp->cwd("$backdir/$targetDir/$targetCycle/atmos") };
       unless ( $hcDirSuccess ) {
-         ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir/$targetDir/$targetCycle/atmos': " . $ftp->message);
-         exit 1;
+         #ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir/$targetDir/$targetCycle/atmos': " . $ftp->message);
+         #exit 1;
       }
 
       # looking for files like gfs.t00z.pgrb2.0p25.f000
       local $@;
-      my @allFiles = eval { grep /gfs.t\d{2}z.pgrb2b.0p25.f\d{3}$/, http_ls($ftp->pwd) };
+      my @allFiles = eval { grep /gfs.t\d{2}z.pgrb2b.0p25.f\d{3}$/, http_ls("$backdir/$targetDir/$targetCycle/atmos") };
       if ($@) {
          my $msg = ($@) ? qq{[HTTP::Tiny] $@} : "";
          ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list "all" files: } . $msg);
@@ -299,18 +299,17 @@ my @cyclesInRange; # between startcycle and the latest
 DIRECTORIES : foreach my $dir (@sortedGfsDirs) {
    # cd to the directory containing the GFS directories
    #ASGSUtil::stderrMessage("DEBUG", "DIRECTORIES: dir is $dir");
-   my $hcDirSuccess = eval { $ftp->cwd("$backdir/$dir") };
+   my $hcDirSuccess = ""; #eval { $ftp->cwd("$backdir/$dir") };
    unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$dir': " .
-         $ftp->message);
-      exit 1;
+      #ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$dir': " .  $ftp->message);
+      #exit 1;
    }
    $dir =~ /gfs.(\d+)/;
    my $thisdate = $1;
 
    # see what cycle directories are available for this date
    local $@;
-   my @cycles = eval { http_dir($ftp->pwd) };
+   my @cycles = eval { http_dir("$backdir/$dir") };
    if ($@) {
      my $msg = ($@) ? $@ : "";
      ASGSUtil::stderrMessage("ERROR", q{HTTP::Tiny: Cannot list the GFS cycles in '$backdir/$targetDir': } . $msg);
@@ -321,11 +320,10 @@ DIRECTORIES : foreach my $dir (@sortedGfsDirs) {
    CYCLES: foreach my $cycle (@sortedCycles) {
       #ASGSUtil::stderrMessage("DEBUG", "CYCLES: cycle is $cycle");
       # cd to the directory containing the GFS files
-      my $hcDirSuccess = eval { $ftp->cwd("$backdir/$dir/$cycle/atmos") };
+      my $hcDirSuccess = ""; #eval { $ftp->cwd("$backdir/$dir/$cycle/atmos") };
       unless ( $hcDirSuccess ) {
-         ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$dir/$cycle/atmos': " .
-            $ftp->message);
-         exit 1;
+         #ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$dir/$cycle/atmos': " .  $ftp->message);
+         #exit 1;
       }
       my $thishour = $cycle;
       my $thiscycle = $thisdate . $thishour;
