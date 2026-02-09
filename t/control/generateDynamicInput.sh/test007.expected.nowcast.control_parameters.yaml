@@ -32,8 +32,8 @@
     output_format: "netcdf"
     time: 172800.0
   meteorology:
-    nws: 20
-    basenws: 20
+    nws: 8
+    basenws: 8
     wtiminc: "notset"
     windExposure: "surface"
     invertedBarometerOnElevationBoundary: "yes"
@@ -58,8 +58,8 @@
   tides:
     tidal_forcing: "on"
     tidefac_file: "$SCRIPTDIR/t/control/generateDynamicInput.sh/tide_fac.out"
-    tidal_potential_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test003.actual.syslog.log'."
-    tidal_boundary_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test003.actual.syslog.log'."
+    tidal_potential_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'."
+    tidal_boundary_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'."
   flux:
     periodicity: "null"
     file: "null"
@@ -159,15 +159,15 @@
     fulldomain:
       fort63:
         incr_seconds: 3600.0
-        format: "netcdf4"
+        format: "sparse-ascii"
         append: "yes"
       fort64:
         incr_seconds: 3600.0
-        format: "netcdf4"
+        format: "sparse-ascii"
         append: "yes"
       fort7374:
         incr_seconds: 3600.0
-        format: "netcdf4"
+        format: "sparse-ascii"
         append: "yes"
     inundationOutputControl:
       inundationOutput: "yes"
