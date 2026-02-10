@@ -329,39 +329,17 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 #
 my $writeMetControlLine = 0;  # only write this namelist if any specified value is not the default value
 my $outputWindDrag = $p->{meteorology}->{wind_drag}->{outputWindDrag} eq "yes" ? "T" : "F";
-my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
+my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F"
 my $met_control_line ="&metControl \n";
-if ( $p->{meteorology}->{wind_drag}->{WindDragLimit} != "0.0035" ) {
-   $met_control_line   .="            WindDragLimit=$p->{meteorology}->{wind_drag}->{WindDragLimit}, \n";
-   $writeMetControlLine = 1;
-}
-if ( $p->{meteorology}->{wind_drag}->{DragLawString} ne "garratt" ) {
-   $met_control_line   .="            DragLawString=\"$p->{meteorology}->{wind_drag}->{DragLawString}\",\n";
-   $writeMetControlLine = 1;
-}
-if ( $outputWindDrag eq "T" ) {
-   $met_control_line   .="            outputWindDrag=$outputWindDrag,\n";
-   $writeMetControlLine = 1;
-}
-if ( $p->{meteorology}->{rhoAir} != 1.293 ) {
-   $met_control_line   .="            rhoAir=$p->{meteorology}->{rhoAir},\n";
-   $writeMetControlLine = 1;
-}
-if ( $invertedBarometerOnElevationBoundary eq "T" ) {
-   $met_control_line   .="            invertedBarometerOnElevationBoundary=$invertedBarometerOnElevationBoundary,\n";
-   $writeMetControlLine = 1;
-}
-# nPowellSearch domains requires ADCIRC version v55relase or later
-if ( $p->{adcirc_version} ne "v53.05-modified" ) {
-   if ( $p->{meteorology}->{wind_drag}->{nPowellSearchDomains} != -1 ) {
-      $met_control_line.="            nPowellSearchDomains=$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},\n";
-      $writeMetControlLine = 1;
-   }
-}
-$met_control_line   .="            /\n";
-if ( $writeMetControlLine == 0 ) {
-   $met_control_line = "NO LINE HERE";
-}
+# use write settings for individual namelist parameters
+# to construct namelist
+$met_control_line .= getNamelistParameter("WindDragLimit",$p->{meteorology}->{wind_drag}->{WindDragLimit},"0.0035",$p->{meteorology}->{wind_drag}->{write_WindDragLimit});
+$met_control_line .= getNamelistParameter("DragLawString",$p->{meteorology}->{wind_drag}->{DragLawString},"garratt",$p->{meteorology}->{wind_drag}->{write_DragLawString});
+$met_control_line .= getNamelistParameter("outputWindDrag",$outputWindDrag,"F",$p->{meteorology}->{wind_drag}->{write_outputWindDrag});
+$met_control_line .= getNamelistParameter("rhoAir",$p->{meteorology}->{rhoAir},"1.293",$p->{meteorology}->{write_rhoAir});
+$met_control_line .= getNamelistParameter("invertedBarometerOnElevationBoundary",$invertedBarometerOnElevationBoundary,"F",$p->{meteorology}->{write_invertedBarometerOnElevationBoundary});
+$met_control_line .= getNamelistParameter("nPowellSearchDomains",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},"-1",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains});
+$met_control_line .="/\n";
 #
 # construct &wetDryControl namelist %wetdry_control_namelist%
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
@@ -695,7 +673,7 @@ while(<TEMPLATE>) {
     s/%swan_output_control_namelist%/$swan_output_control_line/;
     s/%smag_control_namelist%/$smag_control_line/;
     s/%warnelevcontrol_namelist%/$warnelevcontrol_line/;
-    s/%wavecoupling_namelist%/$wavecoupling_line/;
+    s/%wave_coupling_namelist%/$wavecoupling_line/;
     # individual namelist parameters
     s/%WindDragLimit%/$p->{metControl}->{WindDragLimit}/;          # &metControl
     s/%DragLawString%/\"$p->{metControl}->{DragLawString}\"/;
@@ -959,6 +937,27 @@ if ( $p->{output}->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
 close(RUNPROPS);
 ASGSUtil::stderrMessage("INFO","Wrote run-control.properties file 'run-control.properties'.",$test);
 exit;
+#
+#
+#--------------------------------------------------------------------------
+#      S U B   G E T   N A M E L I S T   P A R A M E T E R
+#
+# Determines whether to write a namelist parameter, and if so, returns
+# the namelist parameter
+#--------------------------------------------------------------------------
+sub getNamelistParameter {
+   # $n paramater name, $v value of the parameter, $d default value,
+   # and $w write specification
+   my ($n, $v, $d, $w ) = @_;
+   # check if the output of this namelist parameter has been turned off
+   if ( $w ne "no" ) {
+      # check to see if the value is equal to the default or if this
+      # parameter should always be written
+      if ( $v ne $d || $w eq "yes" ) {
+         return "   $n=$v,\n"
+      }
+   }
+}
 #
 #
 #--------------------------------------------------------------------------

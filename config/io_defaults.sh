@@ -30,6 +30,11 @@ nfover["WarnElev"]=20.0
 nfover["iWarnElevDump"]=1
 nfover["WarnElevDumpLimit"]=20
 nfover["ErrorElev"]=100.0
+# control writing in the warnElevControl namelist
+nfover["write_WarnElev"]="nondefault"
+nfover["write_iWarnElevDump"]="nondefault"
+nfover["write_WarnElevDumpLimit"]="nondefault"
+nfover["write_ErrorElev"]="nondefault"
 # log level
 log_level=${log_level:-"INFO"}              # NABOUT (DEBUG=-1, ECHO=0, INFO=1, WARNING=2, ERROR=3)
 outputInventory=${outputInventory:-"full"}  # full|metonly

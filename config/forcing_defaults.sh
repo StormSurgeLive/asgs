@@ -72,6 +72,21 @@ VORTEXMODEL="GAHM"
 PSEUDOSTORM="no"
 BLADJ=0.9
 #
+#  N W S  0 8  C O N T R O L   N A M E L I S T
+#
+# symmetric vortex model control namelist
+declare -g -A nws08Control
+nws08Control["vortexModel"]="Holland" # Holland or CLE15
+nws08Control["backgroundWindModel"]="radialVelocityWeighted" # ! radialVelocityWeighted or LC12"
+nws08Control["BCalc"]="limited" # ! limited or exact""
+nws08Control["thetaLatDep"]=".false." # ! theta used in calculation of radius dependent upon latitude
+nws08Control["useInflow"]=".false." # ! whether to use inflow angle in translation speed calc
+nws08Control["windspeed_averaging_minute"]="1" # ! 1 or 10""
+nws08Control["w_cool"]="2.0" # ! magnitude of the radiative-subsidence rate in the free troposphere (Chavas and Lin, 2016)""
+nws08Control["CkCd_calc"]=".false."    # use constant (false) or best fit (true) for CkCd""
+nws08Control["CkCd"]="1.0"           # ratio of exchange coefficients of enthalpy (Ck) and momentum""
+nws08Control["WindMultiplier"]="1.0" # wind multiplier applied to wind speed (default = 1.0, Holland model only)""
+#
 #  Meteorological Forcing : North American Mesoscale (NAM) Model
 #
 FORECASTCYCLE="06"
