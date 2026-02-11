@@ -329,8 +329,8 @@ if ( $p->{flux}->{periodicity} eq "aperiodic") {
 #
 my $writeMetControlLine = 0;  # only write this namelist if any specified value is not the default value
 my $outputWindDrag = $p->{meteorology}->{wind_drag}->{outputWindDrag} eq "yes" ? "T" : "F";
-my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F"
-my $met_control_line ="&metControl \n";
+my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometerOnElevationBoundary} eq "yes" ? "T" : "F";
+my $met_control_line = "&metControl \n";
 # use write settings for individual namelist parameters
 # to construct namelist
 $met_control_line .= getNamelistParameter("WindDragLimit",$p->{meteorology}->{wind_drag}->{WindDragLimit},"0.0035",$p->{meteorology}->{wind_drag}->{write_WindDragLimit});
@@ -340,6 +340,12 @@ $met_control_line .= getNamelistParameter("rhoAir",$p->{meteorology}->{rhoAir},"
 $met_control_line .= getNamelistParameter("invertedBarometerOnElevationBoundary",$invertedBarometerOnElevationBoundary,"F",$p->{meteorology}->{write_invertedBarometerOnElevationBoundary});
 $met_control_line .= getNamelistParameter("nPowellSearchDomains",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},"-1",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains});
 $met_control_line .="/\n";
+#
+# construct nws08Control namelist line %nws08_control_namelist% (first available in ADCIRC v56.1.0)
+# &nws08Control vortexModel='stringValue' backgroundWindModel='stringValue'
+#    BCalc='stringValue' thetaLatDep=logicalValue useInflow=logicalValue
+#    windspeed_averaging_minute=integerValue w_cool=realValue CkCd_calc=logicalValue
+#    CkCd=realValue WindMultiplier=realValue
 #
 # construct &wetDryControl namelist %wetdry_control_namelist%
 # &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue
@@ -1263,6 +1269,7 @@ sub vortexModelParameters {
    my $geofactor = 1; # turns on Coriolis for GAHM; this is the default
    #
    # convert hotstart time (in days since coldstart) if necessary
+   $hstime_days = 0.0;
    if ( $p->{hotstart}->{time} != 0 ) {
       $hstime_days = $p->{hotstart}->{time}/86400.0;
    }

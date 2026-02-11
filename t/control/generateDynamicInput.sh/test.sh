@@ -34,6 +34,7 @@ SCENARIODIR=$PWD
 rm *actual* run.properties fort.13 fort.26 jobFailed 2> /dev/null # remove old test results
 pass=0
 fail=0
+declare -a actualFails
 numTests=8 # number of tests
 output=( fort.15 run-control.properties control_parameters.yaml fort.13 fort.26 tide_fac.out )
 for t in $(seq 1 $numTests) ; do
@@ -66,6 +67,7 @@ for f in $(ls *actual*) ; do
    if [[ $? -eq 0 ]]; then
       ((pass++))
    else
+      actualFails+=( $f )
       ((fail++))
    fi
 done
@@ -75,6 +77,12 @@ for g in $(ls *expected*) ; do
    f=${g//expected/actual}
    if [[ ! -e $f ]]; then
       ((fail++))
+      actualFails+=( $g )
    fi
 done
 echo "Results: $pass tests passed. $fail tests failed."
+if [[ $fail -gt 0 ]]; then
+   for t in ${actualFails[@]}; do
+      echo $t
+   done
+fi
