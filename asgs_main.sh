@@ -2020,7 +2020,7 @@ stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 CYCLE="initialize"
 executeHookScripts "START_SPINUP_STAGE"
 #
-if [[ $START = coldstart ]]; then
+if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    ENSTORM=hindcast
    SCENARIO=$ENSTORM
    executeHookScripts "BUILD_SPINUP"
@@ -2125,28 +2125,32 @@ if [[ $START = coldstart ]]; then
    echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
-
-else
+fi
+if [[ $START == "hotstart" && $meshInitialization == "on" ]]; then
    # start from   H O T S T A R T   file
    #
    executeHookScripts "HOT_SPINUP"
    #
-   if [[ $hotstartURL = null ]]; then
-      if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
+   if [[ $hotstartURL == "null" ]]; then
+      if [[ `basename $LASTSUBDIR` == "nowcast" || `basename $LASTSUBDIR` == "hindcast" ]]; then
       logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it."
       LASTSUBDIR=`dirname $LASTSUBDIR`
       fi
    fi
-   if [[ $LASTSUBDIR = null ]]; then
+   if [[ $LASTSUBDIR == "null" ]]; then
       fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
    fi
-   if [[ $hotstartURL = null ]]; then
+   if [[ $hotstartURL == "null" ]]; then
       OLDADVISDIR=$LASTSUBDIR
    else
       OLDADVISDIR=$RUNDIR
    fi
-
 fi
+if [[ $meshInitialization == "off" ]]; then
+   OLDADVISDIR=cold
+   HSTIME=0
+fi
+
 CYCLELOG=null
 SCENARIOLOG=null
 #
@@ -2178,7 +2182,7 @@ while [ true ]; do
    readConfig
    THIS=asgs_main.sh
    FROMDIR=null
-   if [[ $hotstartURL = null ]]; then
+   if [[ $hotstartURL == "null" ]]; then
       for dir in nowcast hindcast; do
          logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/${dir}."
          if [[ -d $OLDADVISDIR/$dir ]]; then
@@ -2187,6 +2191,10 @@ while [ true ]; do
       done
    else
       # already downloaded the hotstart file
+      FROMDIR=$RUNDIR
+   fi
+   # if we are performing a nowcast from cold start
+   if [[ $OLDADVISDIR == "cold" ]]; then
       FROMDIR=$RUNDIR
    fi
    # turn SWAN hotstarting on or off as appropriate
@@ -2206,9 +2214,9 @@ while [ true ]; do
          done
       done
    fi
-
-   checkHotstart $FROMDIR $HOTSTARTFORMAT  67
-
+   if [[ $OLDADVISDIR != "cold" ]]; then
+      checkHotstart $FROMDIR $HOTSTARTFORMAT  67
+   fi
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T

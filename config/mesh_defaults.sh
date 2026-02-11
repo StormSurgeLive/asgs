@@ -49,6 +49,11 @@ CONTROLTEMPLATENOROUGH="null"
 #
 INPUTDIR="null"
 #
+# Initialization (tidal and/or river inflow) will be required
+# for any mesh with elevation (tidal) or flux (river) boundary
+# conditions
+meshInitialization="on"
+#
 case $GRIDNAME in
    "CPRA23v05b"|"CPRA23v05c")
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA23

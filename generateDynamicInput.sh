@@ -114,6 +114,9 @@ generateDynamicInput()
         for v in ${adcircVersions[*]}; do
         avs+=" \'$v\', "
         done
+
+
+
         avs="${avs%, }" # remove trailing comma
         # fill in the template
         sed \
@@ -244,6 +247,39 @@ generateDynamicInput()
         -e "s/%fort7374incr%/${fort7374['incr_seconds']}/" \
         -e "s/%fort7374format%/${fort7374['format']}/" \
         -e "s/%fort7374append%/${fort7374['append']}/" \
+        -e "s/%write_SWAN_OutputTPS%/${SWANOutputControl['write_SWAN_OutputTPS']}/" \
+        -e "s/%write_SWAN_OutputTM01%/${SWANOutputControl['write_SWAN_OutputTM01']}/" \
+        -e "s/%write_SWAN_OutputHS%/${SWANOutputControl['write_SWAN_OutputHS']}/" \
+        -e "s/%write_SWAN_OutputDIR%/${SWANOutputControl['write_SWAN_OutputDIR']}/" \
+        -e "s/%write_SWAN_OutputTMM10%/${SWANOutputControl['write_SWAN_OutputTMM10']}/" \
+        -e "s/%write_SWAN_OutputTM02%/${SWANOutputControl['write_SWAN_OutputTM02']}/" \
+        -e "s/%write_WarnElev%/${nfover['write_WarnElev']}/" \
+        -e "s/%write_iWarnElevDump%/${nfover['write_iWarnElevDump']}/" \
+        -e "s/%write_WarnElevDumpLimit%/${nfover['write_WarnElevDumpLimit']}/" \
+        -e "s/%write_ErrorElev%/${nfover['write_ErrorElev']}/" \
+        -e "s/%write_smag_comp_flag%/${Smag_Control['write_smag_comp_flag']}/" \
+        -e "s/%write_smag_upper_lim%/${Smag_Control['write_smag_upper_lim']}/" \
+        -e "s/%write_smag_lower_lim%/${Smag_Control['write_smag_lower_lim']}/" \
+        -e "s/%write_WindDragLimit%/${metControl['write_WindDragLimit']}/" \
+        -e "s/%write_DragLawString%/${metControl['write_DragLawString']}/" \
+        -e "s/%write_outputWindDrag%/${metControl['write_outputWindDrag']}/" \
+        -e "s/%write_rhoAir%/${metControl['write_rhoAir']}/" \
+        -e "s/%write_invertedBarometerOnElevationBoundary%/${metControl['write_invertedBarometerOnElevationBoundary']}/" \
+        -e "s/%write_nPowellSearchDomains%/${metControl['write_nPowellSearchDomains']}/" \
+        -e "s/%write_outputNodeCode%/${wetDryControl['write_outputNodeCode']}/" \
+        -e "s/%write_outputNOFF%/${wetDryControl['write_outputNOFF']}/" \
+        -e "s/%write_noffActive%/${wetDryControl['write_noffActive']}/" \
+        -e "s/%write_StatPartWetFix%/${wetDryControl['write_StatPartWetFix']}/" \
+        -e "s/%write_How2FixStatPartWet%/${wetDryControl['write_How2FixStatPartWet']}/" \
+        -e "s/%write_slim%/${wetDryControl['write_slim']}/" \
+        -e "s/%write_windlim%/${wetDryControl['write_windlim']}/" \
+        -e "s/%write_directvelWD%/${wetDryControl['write_directvelWD']}/" \
+        -e "s/%write_useHF%/${wetDryControl['write_useHF']}/" \
+        -e "s/%write_inundationOutput%/${inundationOutputControl['write_inundationOutput']}/" \
+        -e "s/%write_inunThresh%/${inundationOutputControl['write_inunThresh']}/" \
+        -e "s/%write_WaveWindMultiplier%/${waveCoupling['write_WaveWindMultiplier']}/" \
+        -e "s/%write_Limit_WaveStressGrad%/${waveCoupling['write_Limit_WaveStressGrad']}/" \
+        -e "s/%write_WaveStressGrad_Cap%/${waveCoupling['write_WaveStressGrad_Cap']}/" \
             < $controlParametersTemplate \
             > $SCENARIODIR/${layer}.control_parameters.yaml
         if [[ $? != 0 ]]; then
