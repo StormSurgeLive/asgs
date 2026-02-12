@@ -39,7 +39,7 @@ if [ ! -e $OPT/bin/ncks ]; then
    echo $OPT/bin/ncks was not found
    tar zxvf ./$NCO_TGZ
    cd $NCO_DIR
-   ./configure --prefix=$OPT --enable-gsl=no
+   ./configure --prefix=$OPT --enable-gsl=no --disable-shared --enable-static
    make -j $JOBS
    make install
 fi

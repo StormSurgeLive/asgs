@@ -52,13 +52,13 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e netcdf-${NETCDF4_C_VERSION}.tar.gz ]; then
-  echo wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
-  wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
+  echo wget -4 https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
+  wget -4 https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NETCDF4_C_VERSION}.tar.gz
 fi
 
 if [ ! -e netcdf-fortran-${NETCDF4_F_VERSION}.tar.gz ]; then
-  echo wget --verbose https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NETCDF4_F_VERSION}.tar.gz
-  wget --verbose https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NETCDF4_F_VERSION}.tar.gz
+  echo wget -4 --verbose https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NETCDF4_F_VERSION}.tar.gz
+  wget -4 --verbose https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NETCDF4_F_VERSION}.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null

@@ -49,7 +49,7 @@ echo $line
   pushd /tmp
   tgz=$base.$ext
   echo Fetching $module via $mURL/$tgz
-  wget $mURL/$tgz
+  wget -4 $mURL/$tgz
   cpanm --verbose $tgz
   rm -v $tgz
   popd
