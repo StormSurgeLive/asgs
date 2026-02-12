@@ -471,7 +471,7 @@ my $ititer=1;
 #
 # the first digit of IM specifies both 2D/3D and lateral turbulence representation
 my $IMDig1 = "1"; # 2D with constant lateral eddy viscosity
-if ( $p->{lateral_turbulence} eq "smagorinsky" ) {
+if ( $p->{lateral_turbulence}->{formulation} eq "smagorinsky" ) {
    $IMDig1 = "5";
 }
 # the sixth digit of IM specifies the time integration formulation
