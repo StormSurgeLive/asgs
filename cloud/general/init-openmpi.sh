@@ -61,7 +61,7 @@ fi
 cd $_ASGS_TMP
 
 if [ ! -e ${OPENMPI_FULL_VERSION}.tar.gz ]; then
-  wget https://www.open-mpi.org/software/ompi/v${OPENMPI_MAJOR_VERSION}/downloads/${OPENMPI_FULL_VERSION}.tar.gz
+  wget -4 https://www.open-mpi.org/software/ompi/v${OPENMPI_MAJOR_VERSION}/downloads/${OPENMPI_FULL_VERSION}.tar.gz
 else
   echo Found $_ASGS_TMP/${OPENMPI_FULL_VERSION}.tar.gz
   rm -rf ./${OPENMPI_FULL_VERSION} >/dev/null 2>&1
