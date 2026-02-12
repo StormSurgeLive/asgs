@@ -105,7 +105,7 @@ fileList=( )
 if [[ $SCENARIO != *"Wind10m" ]]; then
     # any scenario that is not purely meteorological will have
     # data in the following files
-    if [[ ${properties['Water Surface Elevation Format']} == "netcdf" ]]
+    if [[ ${properties['Water Surface Elevation Format']} == "netcdf" ]]; then
         fileList=( maxele.63.nc fort.63.nc )
     fi
     # if it is not a met-only scenario or tidal initialization
