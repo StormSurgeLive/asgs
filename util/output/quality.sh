@@ -105,16 +105,18 @@ fileList=( )
 if [[ $SCENARIO != *"Wind10m" ]]; then
     # any scenario that is not purely meteorological will have
     # data in the following files
-    fileList=( maxele.63.nc fort.63.nc )
+    if [[ ${properties['Water Surface Elevation Format']} == "netcdf" ]]
+        fileList=( maxele.63.nc fort.63.nc )
+    fi
     # if it is not a met-only scenario or tidal initialization
     # then also check the swan output files for issues
-    if [[ $runPropWaves == "on" && $SCENARIO != "hindcast" ]]; then
+    if [[ $runPropWaves == "on" && $SCENARIO != "hindcast" && ${properties['Wind Velocity Format']} == "netcdf" ]]; then
         fileList+=( swan_HS_max.63.nc swan_HS.63.nc swan_TPS.63.nc swan_TPS_max.63.nc swan_DIR.63.nc swan_DIR_max.63.nc )
     fi
 fi
 # any scenario other than tidal initialization will have
 # meteorological output
-if [[ $SCENARIO != "hindcast" ]]; then
+if [[ $SCENARIO != "hindcast" && ${properties['Wind Velocity Format']} == "netcdf" ]]; then
     fileList+=( maxwvel.63.nc fort.74.nc )
 fi
 #
