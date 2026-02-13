@@ -151,6 +151,22 @@ if ( $zNorth ne "northpole" ) {
    close($rotm);
 }
 #
+# we want a hotstart file if this is a nowcast or model initialization
+# and this is not a meteorology-only scenario/layer
+$NHSTAR = 0;
+$NHSINC = 99999;
+if ( $p->{output}->{inventory} eq "full" ) {
+   if ( $p->{scenario} eq "nowcast" || $p->{scenario} eq "hindcast" ) {
+      $NHSTAR = 5;
+      if ( $p->{hotstart}->{output_format} eq "netcdf3" ) {
+         $NHSTAR = 3;
+      }
+      if ( $p->{hotstart}->{output_format} eq "binary" ) {
+         $NHSTAR = 1;
+      }
+   }
+}
+#
 my $nws = $p->{meteorology}->{nws};
 my $basenws = $p->{meteorology}->{basenws};
 my $thisNWS = $p->{meteorology}->{nws};
@@ -198,22 +214,7 @@ if ( defined $specifiedRunLength ) {
    ASGSUtil::stderrMessage("DEBUG","This is a model initialization run.",$test);
    initializationParameters();
 }
-#
-# we want a hotstart file if this is a nowcast or model initialization
-# and this is not a meteorology-only scenario/layer
-$NHSTAR = 0;
-$NHSINC = 99999;
-if ( $p->{output}->{inventory} eq "full" ) {
-   if ( $p->{scenario} eq "nowcast" || $p->{scenario} eq "hindcast" ) {
-      $NHSTAR = 5;
-      if ( $p->{hotstart}->{output_format} eq "netcdf3" ) {
-         $NHSTAR = 3;
-      }
-      if ( $p->{hotstart}->{output_format} eq "binary" ) {
-         $NHSTAR = 1;
-      }
-   }
-}
+
 #
 # we always look for a fort.68 file, and since we only write one hotstart
 # file during the run, we know we will always be left with a fort.67 file.
@@ -333,12 +334,12 @@ my $invertedBarometerOnElevationBoundary = $p->{meteorology}->{invertedBarometer
 my $met_control_line = "&metControl \n";
 # use write settings for individual namelist parameters
 # to construct namelist
-$met_control_line .= getNamelistParameter("WindDragLimit",$p->{meteorology}->{wind_drag}->{WindDragLimit},"0.0035",$p->{meteorology}->{wind_drag}->{write_WindDragLimit});
-$met_control_line .= getNamelistParameter("DragLawString",$p->{meteorology}->{wind_drag}->{DragLawString},"garratt",$p->{meteorology}->{wind_drag}->{write_DragLawString});
-$met_control_line .= getNamelistParameter("outputWindDrag",$outputWindDrag,"F",$p->{meteorology}->{wind_drag}->{write_outputWindDrag});
-$met_control_line .= getNamelistParameter("rhoAir",$p->{meteorology}->{rhoAir},"1.293",$p->{meteorology}->{write_rhoAir});
-$met_control_line .= getNamelistParameter("invertedBarometerOnElevationBoundary",$invertedBarometerOnElevationBoundary,"F",$p->{meteorology}->{write_invertedBarometerOnElevationBoundary});
-$met_control_line .= getNamelistParameter("nPowellSearchDomains",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},"-1",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains});
+$met_control_line .= getNamelistParameter("WindDragLimit",$p->{meteorology}->{wind_drag}->{WindDragLimit},"0.0035","number",$p->{meteorology}->{wind_drag}->{write_WindDragLimit});
+$met_control_line .= getNamelistParameter("DragLawString",$p->{meteorology}->{wind_drag}->{DragLawString},"garratt","string",$p->{meteorology}->{wind_drag}->{write_DragLawString});
+$met_control_line .= getNamelistParameter("outputWindDrag",$outputWindDrag,"F","string",$p->{meteorology}->{wind_drag}->{write_outputWindDrag});
+$met_control_line .= getNamelistParameter("rhoAir",$p->{meteorology}->{rhoAir},"1.293","number",$p->{meteorology}->{write_rhoAir});
+$met_control_line .= getNamelistParameter("invertedBarometerOnElevationBoundary",$invertedBarometerOnElevationBoundary,"F","string",$p->{meteorology}->{write_invertedBarometerOnElevationBoundary});
+$met_control_line .= getNamelistParameter("nPowellSearchDomains",$p->{meteorology}->{wind_drag}->{nPowellSearchDomains},"-1","number",$p->{meteorology}->{wind_drag}->{write_nPowellSearchDomains});
 $met_control_line .="/\n";
 #
 # construct nws08Control namelist line %nws08_control_namelist% (first available in ADCIRC v56.1.0)
@@ -364,27 +365,27 @@ my $How2FixStatPartWet = $p->{output}->{stations}->{wetdry}->{How2FixStatPartWet
 # windlim = .false        ! global.F
 # directvelWD = .false.   ! global.F
 # useHF = .false.         ! global.F
-my $slim = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
+my $slim = $p->{wetDryControl}->{slim};
 my $windlim = $p->{wetDryControl}->{windlim} eq 'on' ? 'T' : 'F';
 my $directvelWD = $p->{wetDryControl}->{directvelWD} eq 'on' ? 'T' : 'F';
 my $useHF = $p->{wetDryControl}->{useHF} eq 'on' ? 'T' : 'F';
 #
 my $wetdry_control_line = "&wetDryControl \n";
 # the following are available in any ADCIRC version supported by ASGS
-$wetdry_control_line    .= "outputNodeCode=$outputNodeCode,\n";
-$wetdry_control_line    .= "outputNOFF=$outputNOFF,\n";
-$wetdry_control_line    .= "noffActive=$noffActive,\n";
+$wetdry_control_line .= getNamelistParameter("outputNodeCode",$outputNodeCode,"F","string",$p->{wetDryControl}->{write_outputNodeCode});
+$wetdry_control_line .= getNamelistParameter("outputNOFF",$outputNOFF,"F","string",$p->{wetDryControl}->{write_outputNOFF});
+$wetdry_control_line .= getNamelistParameter("noffActive",$noffActive,"T","string",$p->{wetDryControl}->{write_noffActive});
 # the following are availble in v55 and later
 if ( $p->{adcirc_version} ne "v53.05-modified" ) {
-   $wetdry_control_line .= "StatPartWetFix=$StatPartWetFix\n";
-   $wetdry_control_line .= "How2FixStatPartWet=$How2FixStatPartWet\n";
+   $wetdry_control_line .= getNamelistParameter("StatPartWetFix",$StatPartWetFix,"F","string",$p->{output}->{stations}->{wetdry}->{write_StatPartWetFix});
+   $wetdry_control_line .= getNamelistParameter("How2FixStatPartWet",$How2FixStatPartWet,"0","number",$p->{output}->{stations}->{wetdry}->{write_How2FixStatPartWet});
 }
 # the following are only available in v56
-if ( $p->{adcirc_version} eq "v56.0.3" ) {
-   $wetdry_control_line .= "slim=$slim\n";
-   $wetdry_control_line .= "windlim=$windlim\n";
-   $wetdry_control_line .= "directvelWD=$directvelWD\n";
-   $wetdry_control_line .= "useHF=$useHF\n";
+if ( $p->{adcirc_version} eq "v56.0.2" || $p->{adcirc_version} eq "v56.0.4" ) {
+   $wetdry_control_line .= getNamelistParameter("slim",$slim,"1000000000.0","number",$p->{wetDryControl}->{write_slim});
+   $wetdry_control_line .= getNamelistParameter("windlim",$windlim,"F","string",$p->{wetDryControl}->{write_windlim});
+   $wetdry_control_line .= getNamelistParameter("directvelWD",$directvelWD,"F","string",$p->{wetDryControl}->{write_directvelWD});
+   $wetdry_control_line .= getNamelistParameter("useHF",$useHF,"F","string",$p->{wetDryControl}->{write_useHF});
 }
 $wetdry_control_line    .= "/\n";
 #
@@ -446,9 +447,9 @@ my $waveWindMultiplier = $p->{wave_coupling}->{WaveWindMultiplier};
 my $limitWaveStressGrad = $p->{wave_coupling}->{Limit_WaveStressGrad} eq 'yes' ? 'T' : 'F' ;
 my $waveStressGradCap = $p->{wave_coupling}->{WaveStressGrad_Cap};
 my $wavecoupling_line = "&WaveCoupling\n";
-$wavecoupling_line .= "WaveWindMultiplier=$waveWindMultiplier,\n";
-$wavecoupling_line .= "Limit_WaveStressGrad=$limitWaveStressGrad,\n";
-$wavecoupling_line .= "WaveStressGradCap=$waveStressGradCap\n";
+$wavecoupling_line .= getNamelistParameter("WaveWindMultiplier",$waveWindMultiplier,"1.0","number",$p->{wave_coupling}->{write_WaveWindMultiplier});
+$wavecoupling_line .= getNamelistParameter("Limit_WaveStressGrad",$limitWaveStressGrad,"F","string",$p->{wave_coupling}->{write_Limit_WaveStressGrad});
+$wavecoupling_line .= getNamelistParameter("WaveStressGrad_Cap",$waveStressGradCap,"1000.0","number",$p->{wave_coupling}->{write_WaveStressGrad_Cap});
 $wavecoupling_line .= "/\n";
 #
 # LINTER: check for consistency between solver time integration
@@ -949,18 +950,26 @@ exit;
 #      S U B   G E T   N A M E L I S T   P A R A M E T E R
 #
 # Determines whether to write a namelist parameter, and if so, returns
-# the namelist parameter
+# the namelist parameter to add to the namelist string
 #--------------------------------------------------------------------------
 sub getNamelistParameter {
    # $n paramater name, $v value of the parameter, $d default value,
-   # and $w write specification
-   my ($n, $v, $d, $w ) = @_;
+   # $c is how to compare the parameter value with the default (string|number)
+   # and $w write specification (yes|no|nondefault)
+   my ($n, $v, $d, $c, $w ) = @_;
    # check if the output of this namelist parameter has been turned off
-   if ( $w ne "no" ) {
+   if ( $w ne "no" || $w eq "off" ) {
       # check to see if the value is equal to the default or if this
       # parameter should always be written
-      if ( $v ne $d || $w eq "yes" ) {
-         return "   $n=$v,\n"
+      if ( $c eq "string" ) {
+         if ( $v ne $d || $w eq "yes" ) {
+            return "   $n=$v,\n"
+         }
+      }
+      if ($c eq "number" ) {
+         if ( $v != $d || $w eq "yes" ) {
+            return "   $n=$v,\n"
+         }
       }
    }
 }

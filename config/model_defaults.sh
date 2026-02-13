@@ -93,6 +93,7 @@ declare -g -A Smag_Control
 Smag_Control["smag_comp_flag"]="off"
 Smag_Control["smag_upper_lim"]=100.0
 Smag_Control["smag_lower_lim"]="1.0e-8"
+Smag_Control["write_Smag_ControlNamelist"]="no"
 Smag_Control["write_smag_comp_flag"]="nondefault"
 Smag_Control["write_smag_upper_lim"]="nondefault"
 Smag_Control["write_smag_lower_lim"]="nondefault"
@@ -109,6 +110,7 @@ metControl["invertedBarometerOnElevationBoundary"]="no" # yes|no to include inve
 metControl["nPowellSearchDomains"]="-1"                 # default to searching all domains for min pressure (v55release or later)
 # control writing of individual metControl
 # namelist parameters to fort.15
+metControl["write_metControlNamelist"]="yes"  # yes|no
 metControl["write_WindDragLimit"]="nondefault"
 metControl["write_DragLawString"]="nondefault"
 metControl["write_outputWindDrag"]="nondefault"
@@ -128,12 +130,13 @@ wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in c
 wetDryControl["StatPartWetFix"]="off" # on|off to use nearby node in elements with less than 3 wet nodes
 wetDryControl["How2FixStatPartWet"]=0 # 0: use nearest neighbor if wet and H > 0.8H0, 1: use nearest neighbor if wet regardless if H > 0.8H0
 # available starting in v56.0.3
-wetDryControl["slim"]=1.d9            # value of slope limiter for wet/dry
+wetDryControl["slim"]=1000000000.0    # value of slope limiter for wet/dry
 wetDryControl["windlim"]="off"        # on|off to limit wind stress calculations in shallow water
 wetDryControl["directvelWD"]="off"    # on|off to apply direct velocity calculation in wetting
 wetDryControl["useHF"]="off"          # on|off to use high friction in shallow inundated areas
 # control writing of individual wetDryControl
 # namelist parameters to fort.15
+wetDryControl["write_wetDryControlNamelist"]="yes"  # yes|no
 wetDryControl["write_outputNodeCode"]="nondefault"
 wetDryControl["write_outputNOFF"]="nondefault"
 wetDryControl["write_noffActive"]="nondefault"
@@ -153,6 +156,7 @@ inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldo
 inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
 # control writing of individual inundationOutputCntrol
 # namelist parameters to fort.15
+inundationOutputControl["write_inundationOutputControlNamelist"]="yes"
 inundationOutputControl["write_inundationOutput"]="nondefault"
 inundationOutputControl["write_inunThresh"]="nondefault"
 #
@@ -165,6 +169,7 @@ waveCoupling["Limit_WaveStressGrad"]="no"
 waveCoupling["WaveStressGrad_Cap"]="1000.0"
 # control writing of individual waveCoupling
 # namelist parameters to fort.15
+waveCoupling["write_waveCouplingNamelist"]="no"
 waveCoupling["write_WaveWindMultiplier"]="nondefault"
 waveCoupling["write_Limit_WaveStressGrad"]="nondefault"
 waveCoupling["write_WaveStressGrad_Cap"]="nondefault"
@@ -181,6 +186,7 @@ SWANOutputControl["SWAN_OutputTMM10"]="yes"
 SWANOutputControl["SWAN_OutputTM02"]="yes"
 # control writing of individual waveCoupling
 # namelist parameters to fort.15
+SWANOutputControl["write_SWANOutputControlNamelist"]="no"
 SWANOutputControl["write_SWAN_OutputTPS"]="nondefault"
 SWANOutputControl["write_SWAN_OutputTM01"]="nondefault"
 SWANOutputControl["write_SWAN_OutputHS"]="nondefault"

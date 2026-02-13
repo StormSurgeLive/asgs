@@ -31,6 +31,7 @@ nfover["iWarnElevDump"]=1
 nfover["WarnElevDumpLimit"]=20
 nfover["ErrorElev"]=100.0
 # control writing in the warnElevControl namelist
+nfover["write_warnElevControlNamelist"]="no"
 nfover["write_WarnElev"]="nondefault"
 nfover["write_iWarnElevDump"]="nondefault"
 nfover["write_WarnElevDumpLimit"]="nondefault"
