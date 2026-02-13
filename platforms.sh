@@ -453,6 +453,13 @@ HPC_NCPU_Hint()
        echo $DEFAULT_PPN
      fi
    ;;
+   "mike.erdc.hpc.mil")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo 1
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
    *)
      echo $DEFAULT_NCPU
    ;;
