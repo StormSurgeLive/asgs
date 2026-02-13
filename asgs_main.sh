@@ -577,12 +577,13 @@ prep()
           fi
        fi
        # bring in hotstart file(s)
-       if [[ $HOTSTARTCOMP = fulldomain ]]; then
+       if [[ $HOTSTARTCOMP == "fulldomain" ]]; then
           if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
-             ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
+             logMessage "$ENSTORM: $THIS: Copying binary hotstart file '$FROMDIR/PE0000/fort.67' to '$ADVISDIR/$ENSTORM/fort.68'."
+             cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
        # jgfdebug
@@ -2820,6 +2821,13 @@ while [ true ]; do
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
    CYCLE=$ADVISORY
+   # if there the SPINUP stage was skipped because
+   # this mesh does not require tidal/river initialization,
+   # and this is the first nowcast, need to tell
+   # ASGS that it is hotstarting from now on
+   if [[ $meshInitialization == "off" ]]; then
+      START="hotstart"
+   fi
    #
    executeHookScripts "FINISH_NOWCAST_STAGE"
    #
