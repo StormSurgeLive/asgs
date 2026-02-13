@@ -516,6 +516,7 @@ if ( $p->{advection} eq "off" ) {
 # count the number of activated nodal attributes and form the
 # associated list of nodal attributes
 my $nwp = 0;
+my $nwpComment = "";
 my @nodal_attributes_activate;
 my @nodal_attributes_deactivate;
 if ( defined $p->{nodal_attributes}->{activate} ) {
@@ -538,7 +539,7 @@ if ( defined $p->{nodal_attributes}->{activate} ) {
    }
    $nwp = scalar @nodal_attributes_activate;
    if ( (scalar @nodal_attributes_deactivate) > 0 ) {
-      $nwp.=" ! deactivated: " . join(" ", @nodal_attributes_deactivate);
+      $nwpComment = " ! deactivated: " . join(" ", @nodal_attributes_deactivate);
    }
 }
 #
@@ -580,7 +581,7 @@ while(<TEMPLATE>) {
     # meteorological forcing type (depending on full inventory or metonly mode)
     s/%NWS%/$thisNWS/;
     # number of nodal attributes
-    s/%NWP%/$nwp/;
+    s/%NWP%/$nwp $nwpComment/;
     # list of nodal attributes
     if ( /%NALIST%/ ) {
        if ( $nwp == 0 ) {
