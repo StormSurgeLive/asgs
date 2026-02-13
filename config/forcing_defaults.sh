@@ -86,7 +86,8 @@ nws08Control["w_cool"]="2.0"          # magnitude of the radiative-subsidence ra
 nws08Control["CkCd_calc"]=".false."   # use constant (false) | best fit (true) for CkCd
 nws08Control["CkCd"]="1.0"            # ratio of exchange coefficients of enthalpy (Ck) and momentum
 nws08Control["WindMultiplier"]="1.0"  # wind multiplier applied to wind speed (default = 1.0, Holland model only)
-nws08Control["write_vortexModel"]="nondefault"
+nws08Control["write_nws08ControlNamelist"]="no"  # yes|no
+nws08Control["write_vortexModel"]="nondefault"   # yes|no|nondefault
 nws08Control["write_backgroundWindModel"]="nondefault"
 nws08Control["write_BCalc"]="nondefault"
 nws08Control["write_thetaLatDep"]="nondefault"

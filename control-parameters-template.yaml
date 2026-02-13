@@ -42,7 +42,7 @@
     invertedBarometerOnElevationBoundary: "%invertedBarometerOnElevationBoundary%"
     rhoAir: %rhoAir%
     write_invertedBarometerOnElevationBoundary: "%write_invertedBarometerOnElevationBoundary%"
-    write_rhoAir: %write_rhoAir%
+    write_rhoAir: "%write_rhoAir%"
     tropical_cyclone:
       storm_name: "%storm_name%"
       boundary_layer_adjustment: %BLADJ%
@@ -61,9 +61,9 @@
       outputWindDrag: "%outputWindDrag%"
       nPowellSearchDomains: %nPowellSearchDomains%
       write_DragLawString: "%write_DragLawString%"
-      write_WindDragLimit: %write_WindDragLimit%
+      write_WindDragLimit: "%write_WindDragLimit%"
       write_outputWindDrag: "%write_outputWindDrag%"
-      write_nPowellSearchDomains: %write_nPowellSearchDomains%
+      write_nPowellSearchDomains: "%write_nPowellSearchDomains%"
   tides:
     tidal_forcing: "%tidal_forcing%"
     tidefac_file: "%tidefac_file%"
@@ -105,9 +105,9 @@
     WaveWindMultiplier: %WaveWindMultiplier%
     Limit_WaveStressGrad: "%Limit_WaveStressGrad%"
     WaveStressGrad_Cap: %WaveStressGrad_Cap%
-    write_WaveWindMultiplier: %write_WaveWindMultiplier%
+    write_WaveWindMultiplier: "%write_WaveWindMultiplier%"
     write_Limit_WaveStressGrad: "%write_Limit_WaveStressGrad%"
-    write_WaveStressGrad_Cap: %write_WaveStressGrad_Cap%
+    write_WaveStressGrad_Cap: "%write_WaveStressGrad_Cap%"
   swan:
     template: "%SWANTEMPLATE%"
     hot: "%HOTSWAN%"
@@ -138,10 +138,10 @@
       iWarnElevDump: %iWarnElevDump%
       WarnElevDumpLimit: %WarnElevDumpLimit%
       ErrorElev: %ErrorElev%
-      write_WarnElev: %write_WarnElev%
-      write_iWarnElevDump: %write_iWarnElevDump%
-      write_WarnElevDumpLimit: %write_WarnElevDumpLimit%
-      write_ErrorElev: %write_ErrorElev%
+      write_WarnElev: "%write_WarnElev%"
+      write_iWarnElevDump: "%write_iWarnElevDump%"
+      write_WarnElevDumpLimit: "%write_WarnElevDumpLimit%"
+      write_ErrorElev: "%write_ErrorElev%"
     nscreen: %NSCREEN%
     log_level: "%NABOUT%"
     metonly_dt: %metOnlyTimeStepSize%
@@ -160,7 +160,7 @@
         StatPartWetFix: "%StatPartWetFix%"
         How2FixStatPartWet: %How2FixStatPartWet%
         write_StatPartWetFix: "%write_StatPartWetFix%"
-        write_How2FixStatPartWet: %write_How2FixStatPartWet%
+        write_How2FixStatPartWet: "%write_How2FixStatPartWet%"
       fort7172:
         metstations_file: "%METSTATIONS%"
         incr_seconds: %fort7172incr%
