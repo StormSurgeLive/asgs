@@ -381,15 +381,24 @@ prep()
         echo "znorth_in_spherical_coors" > $ADVISDIR/$ENSTORM/fort.rotm 2>> ${SYSLOG}
         echo "$zNorth"                  >> $ADVISDIR/$ENSTORM/fort.rotm 2>> ${SYSLOG}
     fi
-    if [ $START = coldstart ]; then
-       # if we have variable river flux, link the fort.20 file
-       if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-          # jgf20110525: For now, just copy a static file to this location
-          # and adcprep it. TODO: When real time flux data become available,
-          # grab those instead of relying on a static file.
-          ln -s ${INPUTDIR}/${HINDCASTRIVERFLUX} ./fort.20
+    if [[ $START == "coldstart" ]]; then
+       if [[ $meshInitialization == "on" ]]; then
+          # if we have variable river flux, link the fort.20 file
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
+             # jgf20110525: For now, just copy a static file to this location
+             # and adcprep it. TODO: When real time flux data become available,
+             # grab those instead of relying on a static file.
+             ln -s ${INPUTDIR}/${HINDCASTRIVERFLUX} ./fort.20
+          fi
+       else
+         # coldstarting without mesh initialization, allow for wave
+         # coupling
+         if [[ $WAVES == "on" ]]; then
+            cp $SWANTEMPLATEDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
+         fi
        fi
-    else
+    fi
+    if [[ $START == "hotstart" ]]; then
        # hotstart
        #
        # TODO: Autodetect the format of the hotstart files to read (the
@@ -416,7 +425,7 @@ prep()
        # that these files are missing.
        #
        if [[ $WAVES = on ]]; then
-          cp $SCRIPTDIR/input/meshes/common/swan/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
+          cp $SWANTEMPLATEDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
        # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file
        if [ -e $INPUTDIR/time-bonnet.in ]; then
@@ -516,8 +525,9 @@ prep()
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
     fi
     #
-    # this is a P A R A L L E L    C O L D S T A R T
-    if [ $START = coldstart ]; then
+    #    P A R A L L E L    C O L D S T A R T
+    #
+    if [[ $START == "coldstart" ]]; then
        # now run adcprep to decompose the files
        if [[ $HAVEARCHIVE = no ]]; then
           logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
@@ -541,8 +551,19 @@ prep()
              THIS="asgs_main.sh>prep()"
           fi
        fi
+       # allow SWAN to coldstart when ADCIRC coldstarts
+       if [[ $meshInitialization == "off" && $WAVES == "on" ]]; then
+          PE=0
+          format="%04d"
+          while [[ $PE -lt $NCPU ]]; do
+             PESTRING=$(printf "$format" $PE)
+             ln -s $ADVISDIR/$ENSTORM/fort.26 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.26 2>> ${SYSLOG}
+             PE=$(($PE + 1))
+          done
+       fi
     else
-       # this is a P A R A L L E L   H O T S T A R T
+       #
+       #   P A R A L L E L   H O T S T A R T
        #
        # run adcprep to decompose the new files
        if [[ $HAVEARCHIVE = no ]]; then
@@ -1790,8 +1811,8 @@ fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
-   checkFileExistence $SCRIPTDIR/input/meshes/common/swan "SWAN initialization template file " swaninit.template
-   checkFileExistence $SCRIPTDIR/input/meshes/common/swan "SWAN control template file" $SWANTEMPLATE
+   checkFileExistence $SWANTEMPLATEDIR "SWAN initialization template file " swaninit.template
+   checkFileExistence $SWANTEMPLATEDIR "SWAN control template file" $SWANTEMPLATE
    if [[ $QUEUESYS = serial ]]; then
       JOBTYPE=adcswan
       checkFileExistence $ADCIRCDIR "ADCIRC+SWAN serial executable" adcswan

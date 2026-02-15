@@ -182,10 +182,7 @@ USERIVERFILEONLY=no
 PERIODICFLUX=null     # static file containing periodic flux boundary condition
 FLUXCALCULATOR=static # static|%filename%.pl (static if a static file should be used)
 #
-# Model coupling : SWAN
-#
-WAVES=off
-REINITIALIZESWAN="no"
-SWANHSCOMPRESSION="no"
-SWANHSFULL="yes"
-wave_model="SWAN"
+# Initialization (tidal and/or river inflow) will be required
+# for any mesh with elevation (tidal) or flux (river) boundary
+# conditions
+meshInitialization="on"

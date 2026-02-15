@@ -29,12 +29,6 @@ OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
 UNITOFFSETFILE=null
 LOADTIDEURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides
 #
-# The following is common to all meshes and is only used
-# for SWAN (WAVES=on); may not give good numerical results
-# with ADCIRC+SWAN v52; not clear whether it is correctly
-# formatted with ADCIRC+SWAN v55 yet.
-SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
-#
 # Self Attraction/Earth Load Tide Forcing File (fort.24)
 # The Not all meshes will have one of these available, although the global meshes do.
 # This file is required if NTIP=2 (tidal potential parameter) in fort.15
@@ -48,11 +42,6 @@ selfAttractionEarthLoadTide="notprovided"
 CONTROLTEMPLATENOROUGH="null"
 #
 INPUTDIR="null"
-#
-# Initialization (tidal and/or river inflow) will be required
-# for any mesh with elevation (tidal) or flux (river) boundary
-# conditions
-meshInitialization="on"
 #
 case $GRIDNAME in
    "CPRA23v05b"|"CPRA23v05c")

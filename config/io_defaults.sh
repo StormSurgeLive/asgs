@@ -93,3 +93,36 @@ if [[ $ENSTORM == *"Wind10m" || $SCENARIO == *"Wind10m" ]]; then
    POSTPROCESS=( null_post.sh )
    OPENDAPNOTIFY="null"
 fi
+#
+#  I N U N D A T I O N  O U T P U T  C O N T R O L
+#                N A M E L I S T
+#
+# &inundationOutputControl inundationOutput=logicalValue, inunThresh =floatValue /
+declare -g -A inundationOutputControl
+inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
+inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
+# control writing of individual inundationOutputCntrol
+# namelist parameters to fort.15
+inundationOutputControl["write_inundationOutputControlNamelist"]="yes"
+inundationOutputControl["write_inundationOutput"]="nondefault"
+inundationOutputControl["write_inunThresh"]="nondefault"
+#
+#  S W A N   O U T P U T   C O N T R O L   N A M E L I S T
+#
+# &SWANOutputControl SWAN_OutputTPS=logicalValue, SWAN_OutputTM01=logicalValue, SWAN_OutputHS=logicalValue, SWAN_OutputDIR=logicalValue, SWAN_OutputTMM10=logicalValue, SWAN_OutputTM02=logicalValue /
+declare -g -A SWANOutputControl
+SWANOutputControl["SWAN_OutputTPS"]="yes"
+SWANOutputControl["SWAN_OutputTM01"]="yes"
+SWANOutputControl["SWAN_OutputHS"]="yes"
+SWANOutputControl["SWAN_OutputDIR"]="yes"
+SWANOutputControl["SWAN_OutputTMM10"]="yes"
+SWANOutputControl["SWAN_OutputTM02"]="yes"
+# control writing of individual waveCoupling
+# namelist parameters to fort.15
+SWANOutputControl["write_SWANOutputControlNamelist"]="no"
+SWANOutputControl["write_SWAN_OutputTPS"]="nondefault"
+SWANOutputControl["write_SWAN_OutputTM01"]="nondefault"
+SWANOutputControl["write_SWAN_OutputHS"]="nondefault"
+SWANOutputControl["write_SWAN_OutputDIR"]="nondefault"
+SWANOutputControl["write_SWAN_OutputTMM10"]="nondefault"
+SWANOutputControl["write_SWAN_OutputTM02"]="nondefault"

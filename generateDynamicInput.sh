@@ -191,7 +191,7 @@ generateDynamicInput()
         -e "s/%WaveWindMultiplier%/${waveCoupling["WaveWindMultiplier"]}/" \
         -e "s/%Limit_WaveStressGrad%/${waveCoupling["Limit_WaveStressGrad"]}/" \
         -e "s/%WaveStressGrad_Cap%/${waveCoupling["WaveStressGrad_Cap"]}/" \
-        -e "s?%SWANTEMPLATE%?${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE}?" \
+        -e "s?%SWANTEMPLATE%?${SWANTEMPLATEDIR}/${SWANTEMPLATE}?" \
         -e "s/%HOTSWAN%/$HOTSWAN/" \
         -e "s/%SWAN_OutputTPS%/${SWANOutputControl["SWAN_OutputTPS"]}/" \
         -e "s/%SWAN_OutputTM01%/${SWANOutputControl["SWAN_OutputTM01"]}/" \
