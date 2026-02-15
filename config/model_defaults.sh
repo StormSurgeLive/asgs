@@ -6,7 +6,7 @@
 # being driven by the ASGS.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2014--2024 Jason Fleming
+# Copyright(C) 2014--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -147,53 +147,6 @@ wetDryControl["write_windlim"]="nondefault"
 wetDryControl["write_directvelWD"]="nondefault"
 wetDryControl["write_useHF"]="nondefault"
 #
-#  I N U N D A T I O N  O U T P U T  C O N T R O L
-#                N A M E L I S T
-#
-# &inundationOutputControl inundationOutput=logicalValue, inunThresh =floatValue /
-declare -g -A inundationOutputControl
-inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
-inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
-# control writing of individual inundationOutputCntrol
-# namelist parameters to fort.15
-inundationOutputControl["write_inundationOutputControlNamelist"]="yes"
-inundationOutputControl["write_inundationOutput"]="nondefault"
-inundationOutputControl["write_inunThresh"]="nondefault"
-#
-#   W A V E  C O U P L I N G   N A M E L I S T
-#
-# # &waveCoupling WaveWindMultiplier=floatValue, Limit_WaveStressGrad=logicalValue, WaveStressGrad_Cap=floatValue /
-declare -g -A waveCoupling
-waveCoupling["WaveWindMultiplier"]="1.0"
-waveCoupling["Limit_WaveStressGrad"]="no"
-waveCoupling["WaveStressGrad_Cap"]="1000.0"
-# control writing of individual waveCoupling
-# namelist parameters to fort.15
-waveCoupling["write_waveCouplingNamelist"]="no"
-waveCoupling["write_WaveWindMultiplier"]="nondefault"
-waveCoupling["write_Limit_WaveStressGrad"]="nondefault"
-waveCoupling["write_WaveStressGrad_Cap"]="nondefault"
-#
-#  S W A N   O U T P U T   C O N T R O L   N A M E L I S T
-#
-# &SWANOutputControl SWAN_OutputTPS=logicalValue, SWAN_OutputTM01=logicalValue, SWAN_OutputHS=logicalValue, SWAN_OutputDIR=logicalValue, SWAN_OutputTMM10=logicalValue, SWAN_OutputTM02=logicalValue /
-declare -g -A SWANOutputControl
-SWANOutputControl["SWAN_OutputTPS"]="yes"
-SWANOutputControl["SWAN_OutputTM01"]="yes"
-SWANOutputControl["SWAN_OutputHS"]="yes"
-SWANOutputControl["SWAN_OutputDIR"]="yes"
-SWANOutputControl["SWAN_OutputTMM10"]="yes"
-SWANOutputControl["SWAN_OutputTM02"]="yes"
-# control writing of individual waveCoupling
-# namelist parameters to fort.15
-SWANOutputControl["write_SWANOutputControlNamelist"]="no"
-SWANOutputControl["write_SWAN_OutputTPS"]="nondefault"
-SWANOutputControl["write_SWAN_OutputTM01"]="nondefault"
-SWANOutputControl["write_SWAN_OutputHS"]="nondefault"
-SWANOutputControl["write_SWAN_OutputDIR"]="nondefault"
-SWANOutputControl["write_SWAN_OutputTMM10"]="nondefault"
-SWANOutputControl["write_SWAN_OutputTM02"]="nondefault"
-#
 #   M E T A D A T A
 #
 # netCDF metadata at or near the bottom of the fort.15 file
@@ -250,8 +203,28 @@ nodal_attribute_default_values["subgrid_barrier"]="99999.0"
 #
 #   S W A N
 #
-# SWAN parameters (fort.26) file
+SWANTEMPLATEDIR="$SCRIPTDIR/input/meshes/common/swan"
+SWANTEMPLATE=adcirc_swan_v53_fort.26.template
+WAVES=off
+REINITIALIZESWAN="no"
+SWANHSCOMPRESSION="no"
+SWANHSFULL="yes"
+wave_model="SWAN"
 SWANDT=1200 # swan timestep / coupling interval (seconds)
 declare -g -A swan
 swan["MXITNS"]="20"   # max number of iterations per timestep
 swan["NPNTS"]="95"    # percent of mesh vertices required to meet convergence criteria per timestep
+#
+#   W A V E  C O U P L I N G   N A M E L I S T
+#
+# # &waveCoupling WaveWindMultiplier=floatValue, Limit_WaveStressGrad=logicalValue, WaveStressGrad_Cap=floatValue /
+declare -g -A waveCoupling
+waveCoupling["WaveWindMultiplier"]="1.0"
+waveCoupling["Limit_WaveStressGrad"]="no"
+waveCoupling["WaveStressGrad_Cap"]="1000.0"
+# control writing of individual waveCoupling
+# namelist parameters to fort.15
+waveCoupling["write_waveCouplingNamelist"]="no"
+waveCoupling["write_WaveWindMultiplier"]="nondefault"
+waveCoupling["write_Limit_WaveStressGrad"]="nondefault"
+waveCoupling["write_WaveStressGrad_Cap"]="nondefault"
