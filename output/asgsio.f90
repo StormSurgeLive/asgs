@@ -4,7 +4,7 @@
 ! A module that provides helper subroutines for opening and reading
 ! ADCIRC files in ascii and netcdf format.
 !--------------------------------------------------------------------------
-! Copyright(C) 2014--2023 Jason Fleming
+! Copyright(C) 2014--2026 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -709,35 +709,35 @@ do i=1,f%nvar
       exit
    case("swan_TMM10")
       f%defaultFileName = 'swan_TMM10.63'
-      f % fileTypeDesc = "a SWAN mean absolute wave period (swan_TMM10.63) file"
+      f % fileTypeDesc = "a SWAN sea surface wave mean period from variance spectral density inverse frequency moment (swan_TMM10.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
       exit
    case("swan_TMM10_max")
       f%defaultFileName = 'swan_TMM10_max.63'
       f % dataFileCategory = MINMAX
-      f % fileTypeDesc = "a SWAN maximum mean absolute wave period (swan_TMM10_max.63) file"
+      f % fileTypeDesc = "a SWAN maximum sea surface wave mean period from variance spectral density inverse frequency moment (swan_TMM10_max.63) file"
       call initMinMaxFileMetaData(f, thisVarName, .true.)
       exit
    case("swan_TM01")
       f%defaultFileName = 'swan_TM01.63'
-      f % fileTypeDesc = "SWAN mean absolute wave period (swan_TM01.63) file"
+      f % fileTypeDesc = "SWAN sea surface wave mean period from variance spectral density first frequency moment (swan_TM01.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
       exit
    case("swan_TM01_max")
       f%defaultFileName = 'swan_TM01_max.63'
       f % dataFileCategory = MINMAX
-      f % fileTypeDesc = "a SWAN maximum mean absolute wave period (swan_TM01_max.63) file"
+      f % fileTypeDesc = "a SWAN maximum sea surface wave mean period from variance spectral density first frequency moment (swan_TM01_max.63) file"
       call initMinMaxFileMetaData(f, thisVarName, .true.)
       exit
    case("swan_TM02")
       f%defaultFileName = 'swan_TM02.63'
-      f % fileTypeDesc = "a SWAN mean absolute zero crossing period (swan_TM02.63) file"
+      f % fileTypeDesc = "a SWAN sea surface wave mean period from variance spectral density second frequency moment (swan_TM02.63) file"
       call initFileMetaData(f, thisVarName, 1, 1)
       exit
    case("swan_TM02_max")
       f%defaultFileName = 'swan_TM02_max.63'
       f % dataFileCategory = MINMAX
-      f % fileTypeDesc = "a SWAN maximum mean absolute wave period (swan_TM02_max.63) file"
+      f % fileTypeDesc = "a SWAN maximum sea surface wave mean period from variance spectral density second frequency moment (swan_TM02_max.63) file"
       call initMinMaxFileMetaData(f, thisVarName, .true.)
       exit
    case("swan_TPS")
@@ -934,10 +934,15 @@ fn%dataFileCategory = DOMAIN
 !
 ! determine data file category from default file name
 select case(trim(fn%defaultFileName))
-case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','swan_HS_max.63','swan_TPS_max.63','minmax')
+case('maxele.63','maxvel.63','maxwvel.63','maxrs.63','minpr.63','minmax')
    fn%dataFileCategory = MINMAX
    fn%timeVarying = .false.
    call allMessage(INFO,'Found min/max file.')
+case('swan_HS_max.63','swan_TPS_max.63','swan_TM01_max.63','swan_TM02_max.63','swan_TMM10_max.63','swan_DIR_max.63')
+   fn%dataFileCategory = MINMAX
+   fn%timeVarying = .false.
+   fn%timeOfOccurrence = .false. ! SWAN max files do not have this
+   call allMessage(INFO,'Found SWAN max file.')
 case('fort.13','nodalattributes')
    fn%dataFileCategory = NODALATTRIBF
    fn%timeVarying = .false.
@@ -1329,7 +1334,7 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','m s-1'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'positive','north'))
-   case('swan_dir.63') !dir
+   case('swan_dir.63','swan_DIR.63') !dir
       thisVarName = 'swan_dir'
       call initFileMetaData(fn, thisVarName, 1, 1)
       call check(nf90_def_var(fn%nc_id,'swan',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
@@ -1340,7 +1345,7 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','degrees_cw_from_east'))
-   case('swan_hs.63') !hs
+   case('swan_hs.63','swan_HS.63') !hs
       thisVarName = 'swan_hs'
       call initFileMetaData(fn, thisVarName, 1, 1)
       call check(nf90_def_var(fn%nc_id,'swan_hs',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
@@ -1351,7 +1356,7 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m'))
-   case('swan_tmm10.63') !tmm10
+   case('swan_tmm10.63','swan_TMM10.63') !tmm10
       thisVarName = 'swan_tmm10'
       call initFileMetaData(fn, thisVarName, 1, 1)
       call check(nf90_def_var(fn%nc_id,'swan_tmm10',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
@@ -1362,7 +1367,7 @@ case(DOMAIN)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','s'))
-   case('swan_tps.63') !tps
+   case('swan_tps.63','swan_TPS.63') !tps
       thisVarName = 'swan_tps'
       call initFileMetaData(fn, thisVarName, 1, 1)
       call check(nf90_def_var(fn%nc_id,'swan_tps',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
@@ -1584,10 +1589,10 @@ case(MINMAX)
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','s'))
       endif
-   case('swan_hs_max.63') ! swan_hs_max
-      thisVarName = 'swan_hs_max'
+   case('swan_hs_max.63','swan_HS_max.63') ! swan_hs_max
+      thisVarName = 'swan_HS_max'
       call initMinMaxFileMetaData(fn, thisVarName, .false.)
-      call check(nf90_def_var(fn%nc_id,'swan_hs_max',nf90_double,nc_dimid,fn%ncds(1)%nc_varID))
+      call check(nf90_def_var(fn%nc_id,'swan_HS_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum significant wave height'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
@@ -1596,21 +1601,10 @@ case(MINMAX)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m'))
-      if (fn%timeOfOccurrence.eqv..true.) then
-         call check(nf90_def_var(fn%nc_id,'time_of_swan_hs_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',-99999.d0))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum significant wave height'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name', &
-             'time_of_maximum_sea_surface_wave_significant_height'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'location','node'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','s'))
-      endif
-   case('swan_tps_max.63') ! swan_tps_max
-      thisVarName = 'swan_tps_max'
+   case('swan_tps_max.63','swan_TPS_max.63') ! swan_tps_max
+      thisVarName = 'swan_TPS_max'
       call initMinMaxFileMetaData(fn, thisVarName, .false.)
-      call check(nf90_def_var(fn%nc_id,'swan_tps_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_def_var(fn%nc_id,'swan_TPS_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum smoothed peak period'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
@@ -1619,16 +1613,76 @@ case(MINMAX)
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
       call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','s'))
+   case('swan_DIR_max.63')
+      thisVarName = 'swan_DIR_max'
+      call initMinMaxFileMetaData(fn, thisVarName, .false.)
+      call check(nf90_def_var(fn%nc_id,'swan_DIR_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum mean wave direction'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
+         'maximum_sea_surface_wave_to_direction'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','degrees'))
+   case('swan_TM01_max.63')
+      thisVarName = 'swan_TM01_max'
+      call initMinMaxFileMetaData(fn, thisVarName, .false.)
+      call check(nf90_def_var(fn%nc_id,'swan_TM01_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum TM01 mean wave period'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
+         'maximum_sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','s'))
+   case('swan_TM02_max.63')
+      thisVarName = 'swan_TM02_max'
+      call initMinMaxFileMetaData(fn, thisVarName, .false.)
+      call check(nf90_def_var(fn%nc_id,'swan_TM01_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum TM02 mean wave period'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
+         'maximum_sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','s'))
+   case('swan_TMM10_max.63')
+      thisVarName = 'swan_TMM10_max'
+      call initMinMaxFileMetaData(fn, thisVarName, .false.)
+      call check(nf90_def_var(fn%nc_id,'swan_TM01_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum TMM10 mean wave period'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
+         'maximum_sea_surface_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','s'))
+   case('maxrs.63') ! swan_tps_max
+      thisVarName = 'radstress_max'
+      call initMinMaxFileMetaData(fn, thisVarName, .false.)
+      call check(nf90_def_var(fn%nc_id,'radstress_max',nf90_double,n%nc_dimid_node,fn%ncds(1)%nc_varID))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'_fillValue',-99999.d0))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'long_name','maximum radiation stress gradient'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'standard_name', &
+         'maximum_radiation_stress'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'coordinates','time y x'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'location','node'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'mesh','adcirc_mesh'))
+      call check(nf90_put_att(fn%nc_id,fn%ncds(1)%nc_varID,'units','m-2 s-2'))
       if ( fn%timeOfOccurrence.eqv..true.) then
-         call check(nf90_def_var(fn%nc_id,'swan_tps_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
+         call check(nf90_def_var(fn%nc_id,'time_of_radstress_max',nf90_double,n%nc_dimid_node,fn%ncds(2)%nc_varID))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'_fillValue',-99999.d0))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum smoothed peak period'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'long_name','time of maximum radiation stress gradient'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'standard_name', &
-            'time_of_maximum_sea_surface_wave_period_at_variance_spectral_density_maximum'))
+            'time_of_maximum_radiation_stress'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'coordinates','y x'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'location','node'))
          call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'mesh','adcirc_mesh'))
-         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','s'))
+         call check(nf90_put_att(fn%nc_id,fn%ncds(2)%nc_varID,'units','sec'))
       endif
    case default
       call allMessage(ERROR,'Min/max file type not recognized.')
