@@ -607,7 +607,6 @@ prep()
              cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
-       # jgfdebug
        if [[ $HOTSTARTCOMP = subdomain ]]; then
           logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
@@ -683,15 +682,24 @@ prep()
           logMessage "$ENSTORM: $THIS: Detecting number of subdomains for SWAN hotstart files in ${FROMDIR}."
           hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.ncpu\s*:\s*//p' $FROMDIR/run.properties`
           logMessage "hotSubdomains is $hotSubdomains ; NCPU is $NCPU ; FROMDIR is $FROMDIR"
-          if [[ $hotSubdomains = $NCPU ]]; then
+          if [[ $hotSubdomains -eq $NCPU ]]; then
              logMessage "$ENSTORM: $THIS: The number of subdomains is the same as hotstart source; subdomain SWAN hotstart files will be copied directly."
-             # subdomain swan hotstart files
-             if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
+             # check to see if all subdomain swan hotstart files are there
+             numSubdomainSWANHotstartFiles=0
+             format="%04d"
+             PE=0
+             while [ $PE -lt $NCPU ]; do
+                PESTRING=`printf "$format" $PE`
+                if [[ -e $FROMDIR/PE${PESTRING}/swan.67 ]]; then
+                   ((numSubdomainSWANHotstartFiles++))
+                fi
+                PE=$(($PE + 1))
+             done
+             if [[ $numSubdomainSWANHotstartFiles -eq $hotSubdomains ]]; then
                 logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
                 # copy the subdomain hotstart files over
                 # subdomain hotstart files are always binary formatted
                 PE=0
-                format="%04d"
                 while [ $PE -lt $NCPU ]; do
                    PESTRING=`printf "$format" $PE`
                    cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
