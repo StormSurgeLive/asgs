@@ -103,8 +103,8 @@ for layer in ${layers[@]}; do
    if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
       # unpack subdomain fort.15 files for use in generating the layer
       tar xvf ${layer}.fort.15.tar 2>> $SCENARIOLOG 2>&1
-      # link to empty meteorological output files created in prep phase
-      for layerFile in $(ls ${layer}.fort.7* ${layer}.maxwvel* ${layer}.minpr*); do
+      # link to empty netcdf meteorological output files created in prep phase
+      for layerFile in $(ls ${layer}.fort.7*.nc ${layer}.maxwvel*.nc ${layer}.minpr*.nc); do
          if [[ -e ${layerFile#$layer.} ]]; then
             rm ${layerFile#$layer.} 2>> $SCENARIOLOG
          fi
@@ -174,13 +174,18 @@ for layer in ${layers[@]}; do
    echo "-----------------------------------------------------------------------"
    #
    # if this is a prepall or prep15 job, tar up the subdomain fort.15 files
-   # and copy the meteorological output files to their own filenames
-   #
+   # and copy the netcdf meteorological output files to their own filenames
    if [[ $jobtype == "prepall" || $jobtype == "prep15" ]]; then
       tar cvf ${layer}.fort.15.tar PE*/fort.15 2>>$SYSLOG 2>&1
       rm PE*/fort.15 2>> $SYSLOG
-      for file in $(ls fort.7* maxwvel* minpr*); do
+      for file in $(ls fort.7*.nc maxwvel*.nc minpr*.nc); do
          mv $file ${layer}.$file
+      done
+   else
+      # this is a model run; ascii files are created at run time
+      # and must be copied to their layer-based file names
+      for f in $(ls fort.7? maxwvel.63 minpr.63); do
+         mv $f ${layer}.$f
       done
    fi
 done
@@ -193,12 +198,13 @@ if [[ -e "fort.15" ]]; then
 fi
 ln -s $SCENARIO.fort.15 fort.15 2>> $SCENARIOLOG
 echo "Symbolically linking target '$SCENARIO.fort.15' to name 'fort.15'."
-#
-for file in $(ls fort.7* maxwvel* minpr*); do
-   if [[ -e $file ]]; then
+# remove netcdf symbolic links, if any
+for file in $(ls fort.7*.nc maxwvel*.nc minpr*.nc); do
+   if [[ -L $file ]]; then
       rm $file 2>> $SCENARIOLOG
    fi
 done
+# link nowcast.fort.74.nc -> fort.74.nc etc
 for file in $(ls ${SCENARIO}.fort.7* ${SCENARIO}.maxwvel* ${SCENARIO}.minpr*); do
    ln -s $file ${file#$SCENARIO.} 2>> $SCENARIOLOG
    echo "Symbolically linking target '$file' to name '${file#$SCENARIO.}'."
