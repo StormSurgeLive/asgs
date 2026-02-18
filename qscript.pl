@@ -33,6 +33,7 @@ use ASGSUtil;
 my $myNCPU = "noLineHere";   # number of CPUs the job should run on (or be decomposed for)
 my $totalcpu = "noLineHere"; # ncpu + numwriters
 my $nnodes = "noLineHere";   # number of cluster nodes
+my $serialMem = "noLineHere";   # memory request for serial jobs
 my $walltime;      # estimated maximum wall clock time
 my $wallminutes;   # integer number of minutes, calculated from HH:MM:SS
 my $qscripttemplate; # template file to use for the queue submission script
@@ -70,6 +71,9 @@ my $hpcenvshort = $jshash_ref->{'hpcenvshort'};
 if ( $jshash_ref->{"parallelism"} eq "serial" ) {
     $totalcpu = 1; # these are serial jobs
     $nnodes = 1;   # these are serial jobs
+    if ( $jshash_ref->{"queuesys"} eq "SLURM" ) {
+       $serialMem = "#SBATCH --mem-per-cpu=8G";
+    }
     if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
         # get number of compute cpus
         $myNCPU = $jshash_ref->{"forncpu"}; # for adcprep
@@ -240,6 +244,8 @@ while(<$TEMPLATE>) {
     s/%qos%/$qos/;
     # fills in the number of nodes on platforms that require it
     s/%nnodes%/$nnodes/g;
+    # fill in the memory request for serial requests on SLURM
+    s/%serialmem%/$serialMem/;
     # fill in serial queue
     if ( $jshash_ref->{"parallelism"} eq "serial" ) {
         # name of the queue on which to run
