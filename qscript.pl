@@ -29,7 +29,7 @@ use integer;
 use JSON::PP;
 use MIME::Base64 qw(encode_base64 decode_base64);
 use ASGSUtil;
-use Template::Toolkit;
+use Template;
 #
 my $myNCPU = "noLineHere";   # number of CPUs the job should run on (or be decomposed for)
 my $totalcpu = "noLineHere"; # ncpu + numwriters
