@@ -24,9 +24,11 @@
 #SBATCH --constraint=%constraint%
 #SBATCH --account=%account%
 #SBATCH --qos=%qos%
-[% IF runinfo.parallelism == "serial" AND runinfo.mempercpu.defined -%]
+  [%# Note: this section is processed by Template Toolkit in qscript.pl -%]
+  [%# Note: TODO: update entire template to use Template Toolkit syntax -%]
+  [% IF runinfo.parallelism == "serial" AND runinfo.mempercpu.defined -%]
 #SBATCH --mem-per-cpu=[% runinfo.mempercpu %]
-[% END -%]
+  [% END -%]
 #SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
 #SBATCH --mail-type=FAIL,TIME_LIMIT
 #SBATCH --mail-user=%notifyuser%
