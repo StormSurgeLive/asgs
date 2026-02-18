@@ -178,13 +178,15 @@ for layer in ${layers[@]}; do
    if [[ $jobtype == "prepall" || $jobtype == "prep15" ]]; then
       tar cvf ${layer}.fort.15.tar PE*/fort.15 2>>$SYSLOG 2>&1
       rm PE*/fort.15 2>> $SYSLOG
-      for file in $(ls fort.7*.nc maxwvel*.nc minpr*.nc); do
-         mv $file ${layer}.$file
+      for f in $(ls fort.7*.nc maxwvel*.nc minpr*.nc); do
+         echo "Renaming '$f' to '${layer}.$f'."
+         mv $f ${layer}.$f
       done
    else
-      # this is a model run; ascii files are created at run time
+      # this is a model run; ascii output files are created at run time
       # and must be copied to their layer-based file names
       for f in $(ls fort.7? maxwvel.63 minpr.63); do
+         echo "Renaming '$f' to '${layer}.$f'."
          mv $f ${layer}.$f
       done
    fi
