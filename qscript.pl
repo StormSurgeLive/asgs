@@ -29,6 +29,7 @@ use integer;
 use JSON::PP;
 use MIME::Base64 qw(encode_base64 decode_base64);
 use ASGSUtil;
+use Template::Toolkit;
 #
 my $myNCPU = "noLineHere";   # number of CPUs the job should run on (or be decomposed for)
 my $totalcpu = "noLineHere"; # ncpu + numwriters
@@ -142,130 +143,165 @@ $qscript = $jobtype . "." . $queuesyslc;
 my $TEMPLATE;
 if ( -e $qScriptTemplate ) {
     if (! open($TEMPLATE,"<",$qScriptTemplate) ) {
-        ASGSUtil::stderrMessage("ERROR",
-                              "Found the queue script template file ".
-                              "$qscripttemplate but could not open it: $!.");
+        ASGSUtil::stderrMessage("ERROR", "Found the queue script template file ". "$qscripttemplate but could not open it: $!.");
         die;
     }
-} else {
-    ASGSUtil::stderrMessage("ERROR",
-                            "The queue script template file $qscripttemplate ".
-                            "was not found.");
+}
+ else {
+    ASGSUtil::stderrMessage("ERROR", "The queue script template file $qscripttemplate ". "was not found.");
     die;
 }
 #
-ASGSUtil::stderrMessage("INFO",
-                        "Processing queue script template $qScriptTemplate.");
-while(<$TEMPLATE>) {
+ASGSUtil::stderrMessage("INFO", "Processing queue script template $qScriptTemplate.");
+
+# update additional values for preserving in a JSON file
+# before updating the contents in stored in $TEMPLATE
+
+$jshash_ref->{qScriptFileName} = $qscript;
+$jshash_ref->{cmd} = $cmd;
+$jshash_ref->{cmdLineOptions} = $cloptions;
+$jshash_ref->{totalcpu} = $totalcpu;
+$jshash_ref->{nnodes} = $nnodes;
+$jshash_ref->{mempercpu} = $ENV{MEMPERCPU} // undef;
+
+TEMPLATE_RENDER:
+while(my $line = <$TEMPLATE>) {
     # remove queue system directives from queueing systems other than
     # the one specified and then fill in the correct environment
     # variables for the queue system we ar using
     if ( $jshash_ref->{"queuesys"} eq "PBS" ) {
-        s/#SBATCH/noLineHere/g;
-        s/%JOBID%/PBS_JOBID/g;
-        s/%JOBDIR%/PBS_O_WORKDIR/g;
-        s/%JOBHOST%/PBS_O_HOST/g;
-        s/%JOBNODES%/"`cat \$PBS_NODEFILE`"/g;  # PBS var contains name of node list file
-        s/%JOBNNODES%/PBS_NUM_NODES/g;
-        s/%JOBNTASKSPERNODE%/PBS_NUM_PPN/g;
-        s/%JOBNTASKS%/PBS_TASKNUM/g;
+        $line =~ s/#SBATCH/noLineHere/g;
+        $line =~ s/%JOBID%/PBS_JOBID/g;
+        $line =~ s/%JOBDIR%/PBS_O_WORKDIR/g;
+        $line =~ s/%JOBHOST%/PBS_O_HOST/g;
+        $line =~ s/%JOBNODES%/"`cat \$PBS_NODEFILE`"/g;  # PBS var contains name of node list file
+        $line =~ s/%JOBNNODES%/PBS_NUM_NODES/g;
+        $line =~ s/%JOBNTASKSPERNODE%/PBS_NUM_PPN/g;
+        $line =~ s/%JOBNTASKS%/PBS_TASKNUM/g;
     }
     if ( $jshash_ref->{"queuesys"} eq "SLURM" ) {
-        s/#PBS/noLineHere/g;
-        s/%JOBID%/SLURM_JOBID/g;
-        s/%JOBDIR%/SLURM_SUBMIT_DIR/g;
-        s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
-        s/%JOBNODES%/\$SLURM_JOB_NODELIST/g;  # SLURM var contains node list
-        s/%JOBNNODES%/SLURM_NNODES/g;
-        s/%JOBNTASKSPERNODE%/SLURM_NTASKS_PER_NODE/g;
-        s/%JOBNTASKS%/SLURM_NTASKS/g;
+        $line =~ s/#PBS/noLineHere/g;
+        $line =~ s/%JOBID%/SLURM_JOBID/g;
+        $line =~ s/%JOBDIR%/SLURM_SUBMIT_DIR/g;
+        $line =~ s/%JOBHOST%/SLURM_SUBMIT_HOST/g;
+        $line =~ s/%JOBNODES%/\$SLURM_JOB_NODELIST/g;  # SLURM var contains node list
+        $line =~ s/%JOBNNODES%/SLURM_NNODES/g;
+        $line =~ s/%JOBNTASKSPERNODE%/SLURM_NTASKS_PER_NODE/g;
+        $line =~ s/%JOBNTASKS%/SLURM_NTASKS/g;
     }
-    if ( $jshash_ref->{"queuesys"} eq "mpiexec" ||
-         $jshash_ref->{"queuesys"} eq "serial" ) {
-        s/%JOBID%/\$/g;
-        s/%JOBDIR%/PWD/g;
-        s/{%JOBHOST%}/(hostname)/g;
-        s/QUEUEONLY/noLineHere/g;
+    if ( $jshash_ref->{"queuesys"} eq "mpiexec" || $jshash_ref->{"queuesys"} eq "serial" ) {
+        $line =~ s/%JOBID%/\$/g;
+        $line =~ s/%JOBDIR%/PWD/g;
+        $line =~ s/{%JOBHOST%}/(hostname)/g;
+        $line =~ s/QUEUEONLY/noLineHere/g;
     }
     # fill in the lower case name of the queueing system
-    s/%queuesyslc%/$queuesyslc/g;
+    $line =~ s/%queuesyslc%/$queuesyslc/g;
+
     # fill in the name of the queueing system
-    s/%queuesys%/$jshash_ref->{"queuesys"}/g;
+    $line =~ s/%queuesys%/$jshash_ref->{"queuesys"}/g;
+
     # fill in the number of compute cores (i.e., not including writers)
-    s/%ncpu%/$myNCPU/;
+    $line =~ s/%ncpu%/$myNCPU/g;
+
     # number of cores per compute node
-    s/%ppn%/$ppn/;
+    $line =~ s/%ppn%/$ppn/g;
+
     # fill in the total number of cores
-    s/%totalcpu%/$totalcpu/;
+    $line =~ s/%totalcpu%/$totalcpu/g;
+
     # the estimated amount of wall clock time
     if ( $jshash_ref->{"walltimeformat"} eq "minutes" ) {
-       s/%walltime%/$wallminutes/;
+       $line =~ s/%walltime%/$wallminutes/g;
     } else {
-       s/%walltime%/$walltime/;
+       $line =~ s/%walltime%/$walltime/g;
     }
     # name of the account to take the hours from
     # the value "null" is used to represent the default
     # account for the Operator; we can omit this line
     # from the queue script
     my $account = getQueueScriptParameter($jshash_ref,"account");
-    s/%account%/$account/;
+    $line =~ s/%account%/$account/g;
+
     # directory where adcirc executables are located
-    s/%adcircdir%/$jshash_ref->{"adcircdir"}/;
+    $line =~ s/%adcircdir%/$jshash_ref->{"adcircdir"}/g;
+
     # directory where asgs executables are located
-    s/%scriptdir%/$jshash_ref->{"scriptdir"}/;
+    $line =~ s/%scriptdir%/$jshash_ref->{"scriptdir"}/g;
+
     # directory for this particular advisory
-    s/%advisdir%/$jshash_ref->{"advisdir"}/;
+    $line =~ s/%advisdir%/$jshash_ref->{"advisdir"}/g;
+
     # name of this member of the ensemble (nowcast, storm3, etc)
-    s/%scenario%/$jshash_ref->{"scenario"}/g;
+    $line =~ s/%scenario%/$jshash_ref->{"scenario"}/g;
+
     # name of overall asgs log file
-    s/%syslog%/$jshash_ref->{"syslog"}/g;
+    $line =~ s/%syslog%/$jshash_ref->{"syslog"}/g;
+
     # whether to generate a Wind10m layer
-    s/%wind10mlayer%/$jshash_ref->{"wind10mlayer"}/g;
+    $line =~ s/%wind10mlayer%/$jshash_ref->{"wind10mlayer"}/g;
+
     # fill in command line options
-    s/%cloptions%/$cloptions/;
+    $line =~ s/%cloptions%/$cloptions/g;
+
     # fill in command to be executed
-    s/%cmd%/$cmd/;
+    $line =~ s/%cmd%/$cmd/g;
+
     # the type of job that is being submitted (partmesh, prep15, padcirc, etc)
-    s/%jobtype%/$jobtype/g;
+    $line =~ s/%jobtype%/$jobtype/g;
+
     # the email address of the ASGS Operator
     my $notifyuser = getQueueScriptParameter($jshash_ref,"asgsadmin");
-    s/%notifyuser%/$notifyuser/;
+    $line =~ s/%notifyuser%/$notifyuser/g;
+
     # reservation, constraint, and qos are only for SLURM
     # partition is not here b/c it is synonym for queuename
     my $reservation = getQueueScriptParameter($jshash_ref,"reservation");
-    s/%reservation%/$reservation/;
+    $line =~ s/%reservation%/$reservation/g;
+
     my $constraint = getQueueScriptParameter($jshash_ref,"constraint");
-    s/%constraint%/$constraint/;
+    $line =~ s/%constraint%/$constraint/g;
+
     my $qos = getQueueScriptParameter($jshash_ref,"qos");
-    s/%qos%/$qos/;
+    $line =~ s/%qos%/$qos/g;
+
     # fills in the number of nodes on platforms that require it
-    s/%nnodes%/$nnodes/g;
+    $line =~ s/%nnodes%/$nnodes/g;
+
     # fill in serial queue
     if ( $jshash_ref->{"parallelism"} eq "serial" ) {
         # name of the queue on which to run
-        s/%queuename%/$jshash_ref->{"serqueue"}/;
+        $line =~ s/%queuename%/$jshash_ref->{"serqueue"}/g;
     }
+
     # fill in parallel queue
     if ( $jshash_ref->{"parallelism"} eq "parallel" ) {
         # name of the queue on which to run
-        s/%queuename%/$jshash_ref->{"queuename"}/;
+        $line =~ s/%queuename%/$jshash_ref->{"queuename"}/g;
     }
+
     # copy non-noLineHere lines to the queue script
-    unless ( $_ =~ /noLineHere/ ) {
-        $qScriptScalar .= $_;
+    unless ( $line =~ /noLineHere/ ) {
+        $qScriptScalar .= $line;
     }
 }
 close($TEMPLATE);
-#
-$jshash_ref->{"qScriptFileName"} = $qscript;
-$jshash_ref->{"cmd"} = $cmd;
-$jshash_ref->{"cmdLineOptions"} = $cloptions;
-$jshash_ref->{"totalcpu"} = $totalcpu;
-$jshash_ref->{"nnodes"} = $nnodes;
-$jshash_ref->{"script"} = encode_base64($qScriptScalar);
+
+# Now that "$qScriptScalar" contains the contents as renderd using the "TEMPLATE_RENDER"
+# loop labeled above, we shall commence with dealing with more complicated conditional
+# parts of the template using Template::Toolkit
+my $tt = Template->new();
+my $final_queue_script = '';
+$tt->process(\$qScriptScalar, { runinfo => $jshash_ref }, \$final_queue_script);
+
+# instead of writing the rendered queue script to a file first, we are
+# storing it as an encoded string in the JSON hash
+$jshash_ref->{script} = encode_base64($final_queue_script);
+
 # write the response to a file called qscript.pl.json
 # adds a timestamp to the json data
 ASGSUtil::writeJSON($jshash_ref);
+
 # write the response to STDOUT
 print JSON::PP->new->utf8->pretty->canonical->encode($jshash_ref);
 1;

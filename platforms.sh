@@ -77,6 +77,7 @@ init_supermic()
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   export HPCENV=supermic.hpc.lsu.edu
   export QUEUESYS=SLURM
+  export MEMPERCPU=8G   # may be used for Slurm's "--mem-per-cpu" or PBS' "pmem"
   export PPN=20
   export QCHECKCMD=sacct
   export QUOTACHECKCMD=showquota

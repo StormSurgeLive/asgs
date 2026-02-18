@@ -2,6 +2,7 @@
 #----------------------------------------------------------------------------
 #            Q U E U E   S Y S T E M   D I R E C T I V E S
 #----------------------------------------------------------------------------
+[% IF queuesys == "PBS" -%]
 #PBS -N %jobtype%.%scenario%
 #PBS -l walltime=%walltime%
 #PBS -l nodes=%nnodes%:ppn=%ppn%
@@ -12,6 +13,7 @@
 #PBS -j oe
 #PBS -m a
 #PBS -M %notifyuser%
+[% ELSIF queuesys == "SLURM" -%]
 #SBATCH --job-name="%jobtype%.%scenario%"
 #SBATCH --time=%walltime%
 #SBATCH --ntasks-per-node=%ppn%
@@ -22,9 +24,13 @@
 #SBATCH --constraint=%constraint%
 #SBATCH --account=%account%
 #SBATCH --qos=%qos%
+[% IF rundetails.parallelism == "serial" AND rundetails.memPerCPU -%]
+#SBATCH --mem-per-cpu=[% rundetails.mempercpu -%]
+[% END -%]
 #SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
 #SBATCH --mail-type=FAIL,TIME_LIMIT
 #SBATCH --mail-user=%notifyuser%
+[% END -%]
 echo "------------------------------------------------------------------------"
 #
 #----------------------------------------------------------------------------
