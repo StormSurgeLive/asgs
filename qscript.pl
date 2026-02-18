@@ -290,9 +290,15 @@ close($TEMPLATE);
 # Now that "$qScriptScalar" contains the contents as renderd using the "TEMPLATE_RENDER"
 # loop labeled above, we shall commence with dealing with more complicated conditional
 # parts of the template using Template::Toolkit
-my $tt = Template->new();
+
+my $tt = Template->new({
+    STRICT => 1,   # undefined vars become errors (great for job scripts)
+    TRIM   => 1,
+}) or die Template->error;
+
 my $final_queue_script = '';
-$tt->process(\$qScriptScalar, { runinfo => $jshash_ref }, \$final_queue_script);
+$tt->process(\$qScriptScalar, { runinfo => $jshash_ref }, \$final_queue_script)
+  or die "TT process failed: " . $tt->error . "\n";
 
 # instead of writing the rendered queue script to a file first, we are
 # storing it as an encoded string in the JSON hash
