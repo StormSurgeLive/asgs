@@ -424,6 +424,9 @@ writeJobResourceRequestProperties()
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR_RUN_PROPERTIES
+   if [[ -n "$MEMPERCPU"  ]]; then
+     echo "hpc.job.${JOBTYPE}.mempercpu: $MEMPERCPU" >> $STORMDIR_RUN_PROPERTIES
+   fi
    if [[ $NCPU -gt 1 ]]; then
       echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR_RUN_PROPERTIES
       echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR_RUN_PROPERTIES
@@ -441,7 +444,7 @@ writeJobResourceRequestProperties()
    echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR_RUN_PROPERTIES
    unset _PPN
 
-   if [[ $QUEUESYS = SLURM ]]; then
+   if [[ $QUEUESYS == SLURM ]]; then
       # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
       _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
       echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR_RUN_PROPERTIES
