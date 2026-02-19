@@ -838,8 +838,15 @@ prepFile()
       wind10mlayer="yes"
    fi
    #
-   # create queue script request by filling in template
-   # with data needed to create queue script
+   # Now create queue script request by filling in the JSON template
+   # with data needed to create queue script, the JSON file is read 
+   # by $SCRIPTDIR/qscript.pl and defines many (but not all) of the
+   # values used to fill in the template ($QSCRIPTTEMPLATE), which is
+   # usually just "$SCRIPTDIR/qscript.template"; in addition to the
+   # values defined in this JSON file generated below, qscript.pl uses
+   # values defined in %ENV, and possibly other sources - inspect
+   # qscript.pl to be sure!
+   #
    sed \
       -e "s/%jobtype%/$JOBTYPE/" \
       -e "s?%qscripttemplate%?$QSCRIPTTEMPLATE?" \
@@ -884,10 +891,13 @@ prepFile()
    # extract queue script name from response
    qscript=$(bashJSON.pl --key "qScriptFileName"        \
                         < $qScriptResponse 2>> $SYSLOG)
+
    # extract queue script from response
+   # this is where the actual script is written
    bashJSON.pl --key "script" < $qScriptResponse 2>> $SYSLOG \
                               | base64 -d                    \
                               > $qscript 2>> $SYSLOG
+
    # check to make sure the file is there
    if [[ ! -e $qscript ]]; then
       fatal "Failed to extract queue script $qscript from $qScriptResponse."
@@ -1380,8 +1390,15 @@ submitJob()
       wind10mlayer="yes"
    fi
    #
-   # create queue script request by filling in template
-   # with data needed to create queue script
+   # Now create queue script request by filling in the JSON template
+   # with data needed to create queue script, the JSON file is read 
+   # by $SCRIPTDIR/qscript.pl and defines many (but not all) of the
+   # values used to fill in the template ($QSCRIPTTEMPLATE), which is
+   # usually just "$SCRIPTDIR/qscript.template"; in addition to the
+   # values defined in this JSON file generated below, qscript.pl uses
+   # values defined in %ENV, and possibly other sources - inspect
+   # qscript.pl to be sure!
+   #
    sed \
       -e "s/%jobtype%/$JOBTYPE/" \
       -e "s?%qscripttemplate%?$QSCRIPTTEMPLATE?" \
@@ -1425,7 +1442,7 @@ submitJob()
    if [[ $? != 0 ]]; then
       fatal "Failed to generate queue script."
    fi
-   # extract queue script name from response
+   # extract queue script name to generate from response
    qscript=$(bashJSON.pl --key "qScriptFileName"        \
                         < $qScriptResponse 2>> $SYSLOG)
    # extract queue script from response
