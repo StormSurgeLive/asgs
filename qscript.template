@@ -26,7 +26,7 @@
 #SBATCH --qos=%qos%
 [%# Note: this section is processed by Template Toolkit in qscript.pl -%]
 [%# Note: TODO: update entire template to use Template Toolkit syntax -%]
-[% IF runinfo.parallelism == "serial" AND runinfo.mempercpu.defined -%]
+[% IF runinfo.parallelism == "serial" AND runinfo.mempercpu -%]
 #SBATCH --mem-per-cpu=[% runinfo.mempercpu %]
 [% END -%]
 #SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
