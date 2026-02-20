@@ -162,7 +162,7 @@ $jshash_ref->{cmd} = $cmd;
 $jshash_ref->{cmdLineOptions} = $cloptions;
 $jshash_ref->{totalcpu} = $totalcpu;
 $jshash_ref->{nnodes} = $nnodes;
-$jshash_ref->{mempercpu} = $ENV{MEMPERCPU} // undef;
+$jshash_ref->{mempercpu} = $ENV{MEMPERCPU} // "";
 
 TEMPLATE_RENDER:
 while(my $line = <$TEMPLATE>) {
