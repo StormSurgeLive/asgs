@@ -381,8 +381,15 @@ HPC_PPN_Hint()
        echo $DEFAULT_PPN
      fi
    ;;
+   "qbd.loni.org")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo $SERQUEUE_NTASKS # this is defined above
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
    "mike.hpc.lsu.edu")
-   if [[ "$QUEUENAME" == "single" && "$CPUREQUEST" -lt 64 ]]; then
+     if [[ "$QUEUENAME" == "single" && "$CPUREQUEST" -lt 64 ]]; then
        echo $CPUREQUEST
      else
        echo $DEFAULT_PPN
