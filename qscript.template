@@ -16,8 +16,12 @@
 [% ELSIF runinfo.queuesys == "SLURM" -%]
 #SBATCH --job-name="%jobtype%.%scenario%"
 #SBATCH --time=%walltime%
+[% IF runinfo.parallelism == "serial" -%]
+#SBATCH --ntasks=%ppn%
+[% ELSIF runinfo.parallelism == "parallel" -%]
 #SBATCH --ntasks-per-node=%ppn%
 #SBATCH --ntasks=%totalcpu%
+[% END -%]
 #SBATCH --nodes=%nnodes%
 #SBATCH --partition=%queuename%
 #SBATCH --reservation=%reservation%

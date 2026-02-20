@@ -77,13 +77,14 @@ init_supermic()
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   export HPCENV=supermic.hpc.lsu.edu
   export QUEUESYS=SLURM
-  export MEMPERCPU=8G   # may be used for Slurm's "--mem-per-cpu" or PBS' "pmem"
   export PPN=20
   export QCHECKCMD=sacct
   export QUOTACHECKCMD=showquota
   export ALLOCCHECKCMD=showquota
   export QUEUENAME=workq
   export SERQUEUE=single
+  export SERQUEUE_NTASKS=4 # for slurm, this is a memory multiplier (x4G), applied to --ntasks
+  export MEMPERCPU=8G      # (needed?) may be used for Slurm's "--mem-per-cpu" or PBS' "pmem"
   export SUBMITSTRING=sbatch
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
@@ -409,8 +410,8 @@ HPC_PPN_Hint()
    local CPUREQUEST=$6
    case "$HPCENV" in
    "supermic.hpc.lsu.edu")
-     if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
-       echo 20
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo $SERQUEUE_NTASKS # this is defined above
      else
        echo $DEFAULT_PPN
      fi
