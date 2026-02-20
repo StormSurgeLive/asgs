@@ -424,9 +424,6 @@ writeJobResourceRequestProperties()
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.${JOBTYPE}.ncpu : $NCPU" >> $STORMDIR_RUN_PROPERTIES
-   if [[ -n "$MEMPERCPU"  ]]; then
-     echo "hpc.job.${JOBTYPE}.mempercpu: $MEMPERCPU" >> $STORMDIR_RUN_PROPERTIES
-   fi
    if [[ $NCPU -gt 1 ]]; then
       echo "hpc.job.${JOBTYPE}.parallelism : parallel" >> $STORMDIR_RUN_PROPERTIES
       echo "hpc.job.${JOBTYPE}.numwriters : $NUMWRITERS" >> $STORMDIR_RUN_PROPERTIES
@@ -435,6 +432,12 @@ writeJobResourceRequestProperties()
    echo "hpc.job.limit.nowcastwalltime : $NOWCASTWALLTIME" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR_RUN_PROPERTIES
+
+   if [[ -n "$SERQUEUE_NTASKS" ]]; then
+     echo "hpc.job.${JOBTYPE}.serqueue_ntasks: $SERQUEUE_NTASKS" >> $STORMDIR_RUN_PROPERTIES
+   else
+     echo "hpc.job.${JOBTYPE}.serqueue_ntasks: default ppn" >> $STORMDIR_RUN_PROPERTIES
+   fi
 
    # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
    # $PPN is not adjusted so the original value is preserved; yet the "corrected" value

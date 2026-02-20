@@ -84,7 +84,6 @@ init_supermic()
   export QUEUENAME=workq
   export SERQUEUE=single
   export SERQUEUE_NTASKS=4 # for slurm, this is a memory multiplier (x4G), applied to --ntasks
-  export MEMPERCPU=8G      # (needed?) may be used for Slurm's "--mem-per-cpu" or PBS' "pmem"
   export SUBMITSTRING=sbatch
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
