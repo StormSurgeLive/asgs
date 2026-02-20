@@ -56,7 +56,7 @@ init_queenbee()
   export SUBMITSTRING=qsub
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
   export JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
   export ACCOUNT=null
   export TDS=( lsu_tds )
@@ -88,7 +88,7 @@ init_supermic()
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
-  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
   export JOBLAUNCHER='srun '
   export PERL5LIB=${PERL5LIB}:${SCRIPTDIR}/PERL
   local  THIS="platforms.sh>env_dispatch()>init_supermic()"
@@ -127,7 +127,7 @@ init_queenbeeC()
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/scratch,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
-  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
   export ARCHIVE=enstorm_pedir_removal.sh
   export ARCHIVEBASE=$SCRATCH
   export ARCHIVEDIR=$SCRATCH
@@ -154,7 +154,7 @@ init_frontera()
   export SUBMITSTRING=sbatch
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
-  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
+  export OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
   export GROUP="G-803086"
   export QSUMMARYCMD=null
   export QUOTACHECKCMD=null
