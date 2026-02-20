@@ -17,6 +17,9 @@
 #SBATCH --job-name="%jobtype%.%scenario%"
 #SBATCH --time=%walltime%
 [% IF runinfo.parallelism == "serial" -%]
+[%# Note: For serial jobs, --ntasks is going to be either 1 or -%]
+[%# Note: SERQUEUE_NTASKS, if set and added to HPC_PPN_Hint()  -%]
+[%# Note: defined in platforms.sh                              -%]
 #SBATCH --ntasks=%ppn%
 [% ELSIF runinfo.parallelism == "parallel" -%]
 #SBATCH --ntasks-per-node=%ppn%
