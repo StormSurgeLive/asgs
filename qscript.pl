@@ -69,7 +69,7 @@ my $hpcenvshort = $jshash_ref->{'hpcenvshort'};
 #
 # construct command line for running adcprep or serial job
 if ( $jshash_ref->{"parallelism"} eq "serial" ) {
-    $totalcpu = 1; # these are serial jobs
+    $totalcpu = $jshash_ref->{"ncpu"}; # these are serial jobs
     $nnodes = 1;   # these are serial jobs
     if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
         # get number of compute cpus

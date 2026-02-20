@@ -408,7 +408,7 @@ HPC_PPN_Hint()
    local DEFAULT_PPN=$5 # default, returned if conditions not met
    local CPUREQUEST=$6
    case "$HPCENV" in
-   "supermic.hpc.lsu.edu")
+   "supermic.hpc.lsu.edu") # TODO - may be able to remove in issue-1629
      if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
        echo 20
      else
@@ -446,18 +446,25 @@ HPC_NCPU_Hint()
    local DEFAULT_NCPU=$5 # default, returned if conditions not met
    local CPUREQUEST=$6
    case "$HPCENV" in
+   "supermic.hpc.lsu.edu")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo 4
+     else
+       echo $DEFAULT_NCPU
+     fi
+   ;;
    "carpenter.erdc.hpc.mil")
      if [[ "$QUEUEKIND" == "serial" ]]; then
        echo 1
      else
-       echo $DEFAULT_PPN
+       echo $DEFAULT_NCPU
      fi
    ;;
    "mike.erdc.hpc.mil")
      if [[ "$QUEUEKIND" == "serial" ]]; then
        echo 1
      else
-       echo $DEFAULT_PPN
+       echo $DEFAULT_NCPU
      fi
    ;;
    *)
