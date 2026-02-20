@@ -121,6 +121,7 @@ init_queenbeeC()
   export QCHECKCMD=sacct
   export QUEUENAME=workq
   export SERQUEUE=single
+  export SERQUEUE_NTASKS=4 # for slurm, this is a memory multiplier (x4G), applied to --ntasks
   export PPN=48
   export JOBLAUNCHER='srun '
   export SUBMITSTRING=sbatch
@@ -409,6 +410,13 @@ HPC_PPN_Hint()
    local CPUREQUEST=$6
    case "$HPCENV" in
    "supermic.hpc.lsu.edu")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo $SERQUEUE_NTASKS # this is defined above
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
+   "qbc.loni.org")
      if [[ "$QUEUEKIND" == "serial" ]]; then
        echo $SERQUEUE_NTASKS # this is defined above
      else
