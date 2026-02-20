@@ -40,50 +40,19 @@
 
 source ${SCRIPTDIR:-.}/monitoring/logging.sh
 
-init_queenbee()
-{ #<- can replace the following with a custom script
-  local THIS="platforms.sh>env_dispatch()>init_queenbee()"
-  scenarioMessage "$THIS: Setting platforms-specific parameters."
-  export HPCENV=queenbee.loni.org
-  export QUEUESYS=PBS
-  export PPN=20
-  export QCHECKCMD=qstat
-  export QSUMMARYCMD=showq
-  export QUOTACHECKCMD=showquota
-  export ALLOCCHECKCMD=showquota
-  export QUEUENAME=workq
-  export SERQUEUE=single
-  export SUBMITSTRING=qsub
-  export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
-  export QSCRIPTGEN=qscript.pl # asgs looks in $SCRIPTDIR for this
-  export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
-  export JOBLAUNCHER='mpirun -np %totalcpu% -machinefile $PBS_NODEFILE'
-  export ACCOUNT=null
-  export TDS=( lsu_tds )
-  export REMOVALCMD="rmpurge"
-  export ARCHIVE=enstorm_pedir_removal.sh
-  export ARCHIVEBASE=$SCRATCH
-  export ARCHIVEDIR=$SCRATCH
-  # @jasonfleming: for ~/.bashrc: Prevent git push from opening up a graphical
-  # dialog box to ask for a password; it will interactively ask for
-  # a password instead
-  unset SSH_ASKPASS
-  export MAKEJOBS=8
-}
-#
 init_supermic()
 { #<- can replace the following with a custom script
   local THIS="platforms.sh>env_dispatch()>init_supermic()"
   scenarioMessage "$THIS: Setting platforms-specific parameters."
   export HPCENV=supermic.hpc.lsu.edu
   export QUEUESYS=SLURM
-  export MEMPERCPU=8G   # may be used for Slurm's "--mem-per-cpu" or PBS' "pmem"
   export PPN=20
   export QCHECKCMD=sacct
   export QUOTACHECKCMD=showquota
   export ALLOCCHECKCMD=showquota
   export QUEUENAME=workq
   export SERQUEUE=single
+  export SERQUEUE_NTASKS=4 # 12G for slurm, $SERQUEUE_NTASKS * 3G, applied to --ntasks
   export SUBMITSTRING=sbatch
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
@@ -121,6 +90,7 @@ init_queenbeeC()
   export QCHECKCMD=sacct
   export QUEUENAME=workq
   export SERQUEUE=single
+  export SERQUEUE_NTASKS=3 # 12G for slurm, $SERQUEUE_NTASKS * 4G, applied to --ntasks
   export PPN=48
   export JOBLAUNCHER='srun '
   export SUBMITSTRING=sbatch
@@ -250,14 +220,6 @@ set_hpc() {
       HPCENVSHORT=frontera
       return
    fi
-   if [ 1 -eq $(hostname --fqdn | grep -c qb1) ]; then
-      HPCENV=queenbee.loni.org
-      HPCENVSHORT=queenbee
-   fi
-   if [ 1 -eq $(hostname --fqdn | grep -c qb2) ]; then
-      HPCENV=queenbee.loni.org
-      HPCENVSHORT=queenbee
-   fi
    if [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
       HPCENV=qbc.loni.org
       HPCENVSHORT=queenbeeC
@@ -320,9 +282,6 @@ env_dispatch() {
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  case $HPCENVSHORT in
-  "queenbee") logMessage "$I Queenbee (LONI) configuration found."
-          init_queenbee
-          ;;
   "supermic") logMessage "$I SuperMIC (LSU HPC) configuration found."
           init_supermic
           ;;
@@ -409,15 +368,15 @@ HPC_PPN_Hint()
    local CPUREQUEST=$6
    case "$HPCENV" in
    "supermic.hpc.lsu.edu")
-     if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
-       echo 20
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo $SERQUEUE_NTASKS # this is defined above
      else
        echo $DEFAULT_PPN
      fi
    ;;
-   "queenbee.loni.org")
-     if [[ "$QUEUENAME" == "priority" && "$QUEUEKIND" == "serial" ]]; then
-       echo 20
+   "qbc.loni.org")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo $SERQUEUE_NTASKS # this is defined above
      else
        echo $DEFAULT_PPN
      fi
