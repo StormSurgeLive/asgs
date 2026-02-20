@@ -83,7 +83,7 @@ init_supermic()
   export ALLOCCHECKCMD=showquota
   export QUEUENAME=workq
   export SERQUEUE=single
-  export SERQUEUE_NTASKS=4 # for slurm, this is a memory multiplier (x4G), applied to --ntasks
+  export SERQUEUE_NTASKS=4 # 12G for slurm, $SERQUEUE_NTASKS * 3G, applied to --ntasks
   export SUBMITSTRING=sbatch
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
@@ -121,7 +121,7 @@ init_queenbeeC()
   export QCHECKCMD=sacct
   export QUEUENAME=workq
   export SERQUEUE=single
-  export SERQUEUE_NTASKS=4 # for slurm, this is a memory multiplier (x4G), applied to --ntasks
+  export SERQUEUE_NTASKS=3 # 12G for slurm, $SERQUEUE_NTASKS * 4G, applied to --ntasks
   export PPN=48
   export JOBLAUNCHER='srun '
   export SUBMITSTRING=sbatch
