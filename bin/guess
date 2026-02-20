@@ -27,7 +27,9 @@ _guess_platform()
 # !!!
 # add new platforms to platforms/platforms-lookup.txt
 # !!!
-  if [ 1 -eq $(echo $HOSTNAME | grep -c smic) ]; then
+  if [ 1 -eq $(echo $HOSTNAME | grep -c qbc) ]; then
+    default_platform=queenbeeC
+  elif [ 1 -eq $(echo $HOSTNAME | grep -c smic) ]; then
     default_platform=supermic
   elif [ 1 -eq $(echo $HOSTNAME | grep -c frontera) ]; then
     default_platform=frontera
