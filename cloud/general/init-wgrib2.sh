@@ -15,8 +15,7 @@ fi
 pushd $SCRIPTDIR
 
 if [ ! -e wgrib2${VERSION}.tgz ]; then
-  #wget https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/wgrib2-${VERSION}.tgz -O wgrib2-${VERSION}.tgz
-  wget https://ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v${VERSION} -O wgrib2-${VERSION}.tgz
+  wget -4 https://ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz.v${VERSION} -O wgrib2-${VERSION}.tgz
 fi
 
 rm -rf grib2 > /dev/null 2>&1

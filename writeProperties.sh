@@ -433,6 +433,12 @@ writeJobResourceRequestProperties()
    echo "hpc.job.limit.forecastwalltime : $FORECASTWALLTIME" >> $STORMDIR_RUN_PROPERTIES
    echo "hpc.job.limit.adcprepwalltime : $ADCPREPWALLTIME" >> $STORMDIR_RUN_PROPERTIES
 
+   if [[ -n "$SERQUEUE_NTASKS" ]]; then
+     echo "hpc.job.${JOBTYPE}.serqueue_ntasks: $SERQUEUE_NTASKS" >> $STORMDIR_RUN_PROPERTIES
+   else
+     echo "hpc.job.${JOBTYPE}.serqueue_ntasks: default ppn" >> $STORMDIR_RUN_PROPERTIES
+   fi
+
    # adjusts $_PPN, if criteria is met; othewise returns current value as the defaults;
    # $PPN is not adjusted so the original value is preserved; yet the "corrected" value
    # is written to $STORMDIR_RUN_PROPERTIES, which is where ./qscript.pl gets the value
@@ -441,7 +447,7 @@ writeJobResourceRequestProperties()
    echo "hpc.job.${JOBTYPE}.ppn : ${_PPN}" >> $STORMDIR_RUN_PROPERTIES
    unset _PPN
 
-   if [[ $QUEUESYS = SLURM ]]; then
+   if [[ $QUEUESYS == SLURM ]]; then
       # adjusts $RESERVATION, if criteria is met; othewise returns current value as the defaults;
       _RESERVATION=$(HPC_Reservation_Hint "$RESERVATION" "$HPCENV" "$QOS" "$CPUREQUEST")
       echo "hpc.slurm.job.${JOBTYPE}.reservation : ${_RESERVATION}" >> $STORMDIR_RUN_PROPERTIES

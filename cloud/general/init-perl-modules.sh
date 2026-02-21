@@ -30,7 +30,7 @@ fi
 echo Installing Perl modules required for ASGS
 
 # ensure CPAN over non-SSL
-MIRROR="http://www.cpan.org/"
+MIRROR="https://www.cpan.org/"
 
 # install tempermental modules first
 for module in $(cat ./PERL-MODULES.notest); do
@@ -49,7 +49,7 @@ echo $line
   pushd /tmp
   tgz=$base.$ext
   echo Fetching $module via $mURL/$tgz
-  wget --no-check-certificate $mURL/$tgz
+  wget -4 $mURL/$tgz
   cpanm --verbose $tgz
   rm -v $tgz
   popd

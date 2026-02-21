@@ -91,7 +91,6 @@ ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
 if [ -z "$BATCH" ]; then
   # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
-  echo "queenbee       - Queenbee (LONI)"     # qb2
   echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
   echo "supermic       - SuperMIC (LSU HPC)"  # smic
   echo "frontera       - Frontera (TACC)"     # frontera
@@ -168,7 +167,7 @@ export SUBMITSTRING
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 # catch WORK and SCRATCH as early as possible
 case "$platform" in
-  queenbee|queenbeeC|supermic)
+  queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
     SCRATCH=${SCRATCH:-"/scratch/$USER"}
     ;;

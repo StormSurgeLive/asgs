@@ -21,7 +21,7 @@ mkdir -p /tmp/$$-adcirc-test
 pushd /tmp/$$-adcirc-test
 echo
 
-wget --no-check-certificate https://www.dropbox.com/s/1wk91r67cacf132/NetCDF_shinnecock_inlet.tar.bz2 > /dev/null 2>&1
+wget -4 https://www.dropbox.com/s/1wk91r67cacf132/NetCDF_shinnecock_inlet.tar.bz2 > /dev/null 2>&1
 bunzip2 NetCDF_shinnecock_inlet.tar.bz2 > /dev/null 2>&1
 tar xvf NetCDF_shinnecock_inlet.tar > /dev/null 2>&1
 

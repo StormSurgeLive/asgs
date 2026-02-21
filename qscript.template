@@ -2,9 +2,10 @@
 #----------------------------------------------------------------------------
 #            Q U E U E   S Y S T E M   D I R E C T I V E S
 #----------------------------------------------------------------------------
+[% IF runinfo.queuesys == "PBS" -%]
 #PBS -N %jobtype%.%scenario%
 #PBS -l walltime=%walltime%
-#PBS -l nodes=%nnodes%:ppn=%ppn%
+#PBS -l select=%nnodes%:ncpus=%ppn%:mpiprocs=%ppn%
 #PBS -q %queuename%
 #PBS -A %account%
 #PBS -o %advisdir%/%scenario%/%jobtype%.out
@@ -12,10 +13,17 @@
 #PBS -j oe
 #PBS -m a
 #PBS -M %notifyuser%
+[% ELSIF runinfo.queuesys == "SLURM" -%]
 #SBATCH --job-name="%jobtype%.%scenario%"
 #SBATCH --time=%walltime%
+[% IF runinfo.parallelism == "serial" -%]
+[%# Note: For serial jobs, --ntasks is going to be either 1 or SERQUEUE_NTASKS, -%]
+[%# Note: if set and added to HPC_PPN_Hint() defined in platforms.sh            -%]
+#SBATCH --ntasks=%ppn%
+[% ELSIF runinfo.parallelism == "parallel" -%]
 #SBATCH --ntasks-per-node=%ppn%
 #SBATCH --ntasks=%totalcpu%
+[% END -%]
 #SBATCH --nodes=%nnodes%
 #SBATCH --partition=%queuename%
 #SBATCH --reservation=%reservation%
@@ -25,6 +33,7 @@
 #SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
 #SBATCH --mail-type=FAIL,TIME_LIMIT
 #SBATCH --mail-user=%notifyuser%
+[% END -%]
 echo "------------------------------------------------------------------------"
 #
 #----------------------------------------------------------------------------
