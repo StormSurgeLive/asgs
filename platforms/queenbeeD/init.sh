@@ -7,6 +7,7 @@ export QUEUESYS=SLURM
 export QCHECKCMD=sacct
 export QUEUENAME=workq
 export SERQUEUE=single
+export SERQUEUE_NTASKS=3 # 12G for slurm, $SERQUEUE_NTASKS * 4G, applied to --ntasks
 export WORK=${WORK:-/work/$USER}
 export SCRATCH=${SCRATCH:-/work/$USER}
 export JOBLAUNCHER='srun '
