@@ -2212,7 +2212,7 @@ while [ true ]; do
    readConfig
    THIS=asgs_main.sh
    FROMDIR=null
-   if [[ $hotstartURL == "null" ]]; then
+   if [[ $hotstartURL == "null" && $OLDADVISDIR != "cold" ]]; then
       for dir in nowcast hindcast; do
          logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/${dir}."
          if [[ -d $OLDADVISDIR/$dir ]]; then
@@ -2220,11 +2220,7 @@ while [ true ]; do
          fi
       done
    else
-      # already downloaded the hotstart file
-      FROMDIR=$RUNDIR
-   fi
-   # if we are performing a nowcast from cold start
-   if [[ $OLDADVISDIR == "cold" ]]; then
+      # already downloaded the hotstart file or nowcasting from cold
       FROMDIR=$RUNDIR
    fi
    # turn SWAN hotstarting on or off as appropriate
@@ -2852,9 +2848,9 @@ while [ true ]; do
    CYCLE=$ADVISORY
    # if there the SPINUP stage was skipped because
    # this mesh does not require tidal/river initialization,
-   # and this is the first nowcast, need to tell
-   # ASGS that it is hotstarting from now on
-   if [[ $meshInitialization == "off" ]]; then
+   # and this is the first nowcast, and it was not skipped,
+   # need to hotstart from now on
+   if [[ $meshInitialization == "off" && $NOWCASTDIR != $FROMDIR ]]; then
       START="hotstart"
    fi
    #
@@ -2868,13 +2864,17 @@ while [ true ]; do
    #
    ENSTORM="forecast"
    logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
-
-   checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
-   THIS="asgs_main.sh"
-   if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
-      HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
-   else
-      HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
+   #
+   # we may be forecasting from a cold start if this mesh doesn't require
+   # initialization and the nowcast was skipped
+   if [[ $START == "hotstart" ]]; then
+      checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
+      THIS="asgs_main.sh"
+      if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
+         HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
+      else
+         HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
+      fi
    fi
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0

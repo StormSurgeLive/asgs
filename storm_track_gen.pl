@@ -462,7 +462,7 @@ if ( $zdFound == 0 ) {
 # write properties unless they are already in the run.properties file
 # FIXME: if the a property exists but is null or empty, it should be
 # removed from the run.properties file
-if ( $stormClass != " " ) {
+if ( $stormClass ne " " ) {
    if ( ! exists $runProp{'storm class'} || $runProp{'storm class'} eq "" || $runProp{'storm class'} eq "null" ) {
       printf PROPS "storm class : $stormClass\n";
    }

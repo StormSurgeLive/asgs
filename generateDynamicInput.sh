@@ -24,7 +24,7 @@ generateDynamicInput()
 {
     #
     local THIS="asgs_main.sh>generateDynamicInput.sh"
-    logMessage "$SCENARIO: $THIS: Generating tide_fac.out, fort.13, and fort.15."
+    logMessage "$SCENARIO: $THIS: Generating input files (usually includes tide_fac.out, fort.13, and fort.15)."
     #
     # tidal forcing
     tidefac_file="$SCENARIODIR/tide_fac.out"
