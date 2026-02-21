@@ -17,6 +17,7 @@ export QUOTACHECKCMD=null
 export ALLOCCHECKCMD=null
 export QUEUENAME=workq
 export SERQUEUE=single
+export SERQUEUE_NTASKS=3 # 12G for slurm, $SERQUEUE_NTASKS * 4G, applied to --ntasks
 export ACCOUNT=null
 export SUBMITSTRING=sbatch
 export JOBLAUNCHER='srun -N %nnodes%'

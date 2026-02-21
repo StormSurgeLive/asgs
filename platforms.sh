@@ -383,14 +383,14 @@ HPC_PPN_Hint()
    ;;
    "qbd.loni.org")
      if [[ "$QUEUEKIND" == "serial" ]]; then
-       echo $SERQUEUE_NTASKS # this is defined above
+       echo $SERQUEUE_NTASKS # this is defined in ./platforms/queenbeeQ
      else
        echo $DEFAULT_PPN
      fi
    ;;
    "mike.hpc.lsu.edu")
-     if [[ "$QUEUENAME" == "single" && "$CPUREQUEST" -lt 64 ]]; then
-       echo $CPUREQUEST
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo $SERQUEUE_NTASKS # this is defined in ./platforms/mike-lsu
      else
        echo $DEFAULT_PPN
      fi
