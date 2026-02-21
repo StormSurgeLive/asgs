@@ -799,7 +799,8 @@ prepFile()
    WALLTIME=$4
    THIS="asgs_main.sh>prepFile()"
 
-   echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
+   _NCPU=$(HPC_NCPU_Hint "serial" "$SERQUEUE" "$HPCENV" "$QOS" "$NCPU" "1")
+   echo "hpc.job.${JOBTYPE}.for.ncpu : ${_NCPU}" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
@@ -851,7 +852,7 @@ prepFile()
       -e "s/%jobtype%/$JOBTYPE/" \
       -e "s?%qscripttemplate%?$QSCRIPTTEMPLATE?" \
       -e "s/%parallelism%/$parallelism/" \
-      -e "s/%ncpu%/$NCPU/" \
+      -e "s/%ncpu%/${_NCPU}/" \
       -e "s/%forncpu%/$NCPU/" \
       -e "s/%numwriters%/$NUMWRITERS/" \
       -e "s/%joblauncher%/$JOBLAUNCHER/" \
@@ -881,6 +882,7 @@ prepFile()
       > $qScriptRequest \
     2>> $SYSLOG
    unset _PPN
+   unset _NCPU
    unset _RESERVATION
    # generate queue script
    $SCRIPTDIR/qscript.pl < $qScriptRequest   \
