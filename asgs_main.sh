@@ -6,8 +6,8 @@
 # System (ASGS). It performs configuration tasks via config.sh, then enters a
 # loop which is executed once per advisory cycle.
 #----------------------------------------------------------------
-# Copyright(C) 2006--2024 Jason Fleming
-# Copyright(C) 2006--2007, 2019--2024 Brett Estrade
+# Copyright(C) 2006--2025 Jason Fleming
+# Copyright(C) 2006--2007, 2019--2025 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -381,15 +381,24 @@ prep()
         echo "znorth_in_spherical_coors" > $ADVISDIR/$ENSTORM/fort.rotm 2>> ${SYSLOG}
         echo "$zNorth"                  >> $ADVISDIR/$ENSTORM/fort.rotm 2>> ${SYSLOG}
     fi
-    if [ $START = coldstart ]; then
-       # if we have variable river flux, link the fort.20 file
-       if [[ $VARFLUX = on || $VARFLUX = default ]]; then
-          # jgf20110525: For now, just copy a static file to this location
-          # and adcprep it. TODO: When real time flux data become available,
-          # grab those instead of relying on a static file.
-          ln -s ${INPUTDIR}/${HINDCASTRIVERFLUX} ./fort.20
+    if [[ $START == "coldstart" ]]; then
+       if [[ $meshInitialization == "on" ]]; then
+          # if we have variable river flux, link the fort.20 file
+          if [[ $VARFLUX = on || $VARFLUX = default ]]; then
+             # jgf20110525: For now, just copy a static file to this location
+             # and adcprep it. TODO: When real time flux data become available,
+             # grab those instead of relying on a static file.
+             ln -s ${INPUTDIR}/${HINDCASTRIVERFLUX} ./fort.20
+          fi
+       else
+         # coldstarting without mesh initialization, allow for wave
+         # coupling
+         if [[ $WAVES == "on" ]]; then
+            cp $SWANTEMPLATEDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
+         fi
        fi
-    else
+    fi
+    if [[ $START == "hotstart" ]]; then
        # hotstart
        #
        # TODO: Autodetect the format of the hotstart files to read (the
@@ -416,7 +425,7 @@ prep()
        # that these files are missing.
        #
        if [[ $WAVES = on ]]; then
-          cp $SCRIPTDIR/input/meshes/common/swan/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
+          cp $SWANTEMPLATEDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
        # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file
        if [ -e $INPUTDIR/time-bonnet.in ]; then
@@ -516,8 +525,9 @@ prep()
         rm $UNCOMPRESSEDARCHIVE 2>> ${SYSLOG}
     fi
     #
-    # this is a P A R A L L E L    C O L D S T A R T
-    if [ $START = coldstart ]; then
+    #    P A R A L L E L    C O L D S T A R T
+    #
+    if [[ $START == "coldstart" ]]; then
        # now run adcprep to decompose the files
        if [[ $HAVEARCHIVE = no ]]; then
           logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
@@ -541,8 +551,19 @@ prep()
              THIS="asgs_main.sh>prep()"
           fi
        fi
+       # allow SWAN to coldstart when ADCIRC coldstarts
+       if [[ $meshInitialization == "off" && $WAVES == "on" ]]; then
+          PE=0
+          format="%04d"
+          while [[ $PE -lt $NCPU ]]; do
+             PESTRING=$(printf "$format" $PE)
+             ln -s $ADVISDIR/$ENSTORM/fort.26 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.26 2>> ${SYSLOG}
+             PE=$(($PE + 1))
+          done
+       fi
     else
-       # this is a P A R A L L E L   H O T S T A R T
+       #
+       #   P A R A L L E L   H O T S T A R T
        #
        # run adcprep to decompose the new files
        if [[ $HAVEARCHIVE = no ]]; then
@@ -577,15 +598,15 @@ prep()
           fi
        fi
        # bring in hotstart file(s)
-       if [[ $HOTSTARTCOMP = fulldomain ]]; then
+       if [[ $HOTSTARTCOMP == "fulldomain" ]]; then
           if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
           else
-             ln -s $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
+             logMessage "$ENSTORM: $THIS: Copying binary hotstart file '$FROMDIR/PE0000/fort.67' to '$ADVISDIR/$ENSTORM/fort.68'."
+             cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
-       # jgfdebug
        if [[ $HOTSTARTCOMP = subdomain ]]; then
           logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
@@ -661,15 +682,24 @@ prep()
           logMessage "$ENSTORM: $THIS: Detecting number of subdomains for SWAN hotstart files in ${FROMDIR}."
           hotSubdomains=`sed -n 's/[ ^]*$//;s/hpc.job.padcswan.ncpu\s*:\s*//p' $FROMDIR/run.properties`
           logMessage "hotSubdomains is $hotSubdomains ; NCPU is $NCPU ; FROMDIR is $FROMDIR"
-          if [[ $hotSubdomains = $NCPU ]]; then
+          if [[ $hotSubdomains -eq $NCPU ]]; then
              logMessage "$ENSTORM: $THIS: The number of subdomains is the same as hotstart source; subdomain SWAN hotstart files will be copied directly."
-             # subdomain swan hotstart files
-             if [[ -e $FROMDIR/PE0000/swan.67 ]]; then
+             # check to see if all subdomain swan hotstart files are there
+             numSubdomainSWANHotstartFiles=0
+             format="%04d"
+             PE=0
+             while [ $PE -lt $NCPU ]; do
+                PESTRING=`printf "$format" $PE`
+                if [[ -e $FROMDIR/PE${PESTRING}/swan.67 ]]; then
+                   ((numSubdomainSWANHotstartFiles++))
+                fi
+                PE=$(($PE + 1))
+             done
+             if [[ $numSubdomainSWANHotstartFiles -eq $hotSubdomains ]]; then
                 logMessage "$ENSTORM: $THIS: Starting copy of subdomain swan hotstart files."
                 # copy the subdomain hotstart files over
                 # subdomain hotstart files are always binary formatted
                 PE=0
-                format="%04d"
                 while [ $PE -lt $NCPU ]; do
                    PESTRING=`printf "$format" $PE`
                    cp $FROMDIR/PE${PESTRING}/swan.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/swan.68 2>> ${SYSLOG}
@@ -799,7 +829,8 @@ prepFile()
    WALLTIME=$4
    THIS="asgs_main.sh>prepFile()"
 
-   echo "hpc.job.${JOBTYPE}.for.ncpu : $NCPU" >> $ADVISDIR/$ENSTORM/run.properties
+   _NCPU=$(HPC_NCPU_Hint "serial" "$SERQUEUE" "$HPCENV" "$QOS" "$NCPU" "1")
+   echo "hpc.job.${JOBTYPE}.for.ncpu : ${_NCPU}" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
@@ -851,7 +882,7 @@ prepFile()
       -e "s/%jobtype%/$JOBTYPE/" \
       -e "s?%qscripttemplate%?$QSCRIPTTEMPLATE?" \
       -e "s/%parallelism%/$parallelism/" \
-      -e "s/%ncpu%/$NCPU/" \
+      -e "s/%ncpu%/${_NCPU}/" \
       -e "s/%forncpu%/$NCPU/" \
       -e "s/%numwriters%/$NUMWRITERS/" \
       -e "s/%joblauncher%/$JOBLAUNCHER/" \
@@ -881,6 +912,7 @@ prepFile()
       > $qScriptRequest \
     2>> $SYSLOG
    unset _PPN
+   unset _NCPU
    unset _RESERVATION
    # generate queue script
    $SCRIPTDIR/qscript.pl < $qScriptRequest   \
@@ -1806,8 +1838,8 @@ fi
 if [[ $WAVES = on ]]; then
    JOBTYPE=padcswan
    checkDirExistence $SWANDIR "SWAN executables directory (SWANDIR)"
-   checkFileExistence $SCRIPTDIR/input/meshes/common/swan "SWAN initialization template file " swaninit.template
-   checkFileExistence $SCRIPTDIR/input/meshes/common/swan "SWAN control template file" $SWANTEMPLATE
+   checkFileExistence $SWANTEMPLATEDIR "SWAN initialization template file " swaninit.template
+   checkFileExistence $SWANTEMPLATEDIR "SWAN control template file" $SWANTEMPLATE
    if [[ $QUEUESYS = serial ]]; then
       JOBTYPE=adcswan
       checkFileExistence $ADCIRCDIR "ADCIRC+SWAN serial executable" adcswan
@@ -2037,7 +2069,7 @@ stage="SPINUP"  # modelling phase : SPINUP, NOWCAST, or FORECAST
 CYCLE="initialize"
 executeHookScripts "START_SPINUP_STAGE"
 #
-if [[ $START = coldstart ]]; then
+if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    ENSTORM=hindcast
    SCENARIO=$ENSTORM
    executeHookScripts "BUILD_SPINUP"
@@ -2081,15 +2113,8 @@ if [[ $START = coldstart ]]; then
       logMessage "$ENSTORM: $THIS: Running $FLUXCALCULATOR with options $FLUXOPTIONS."
       perl $FLUXCALCULATOR $FLUXOPTIONS >> ${SYSLOG} 2>&1
    fi
-   CONTROLOPTIONS="--name $ENSTORM --advisorynum $ADVISORY --cst $CSDATE --hsformat $HOTSTARTFORMAT --advisorynum 0"
-   CONTROLOPTIONS="$CONTROLOPTIONS --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-   CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
-   if [[ $NOFORCING = true ]]; then
-      CONTROLOPTIONS="$_RPCONTROLOPTIONS --specifiedRunLength $HINDCASTLENGTH"
-   fi
    #
-   logMessage "$ENSTORM: $THIS: Constructing control file with the following options: $CONTROLOPTIONS."
+   logMessage "$ENSTORM: $THIS: Constructing control file."
    runLength=$HINDCASTLENGTH # to compute long term tidal constituents
    # uses parameters described above as well as control-parameters.yaml
    # to generate tide_fac.out, fort.13, fort.15, and fort.26
@@ -2149,28 +2174,32 @@ if [[ $START = coldstart ]]; then
    echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
-
-else
+fi
+if [[ $START == "hotstart" && $meshInitialization == "on" ]]; then
    # start from   H O T S T A R T   file
    #
    executeHookScripts "HOT_SPINUP"
    #
-   if [[ $hotstartURL = null ]]; then
-      if [[ `basename $LASTSUBDIR` = nowcast || `basename $LASTSUBDIR` = hindcast ]]; then
+   if [[ $hotstartURL == "null" ]]; then
+      if [[ `basename $LASTSUBDIR` == "nowcast" || `basename $LASTSUBDIR` == "hindcast" ]]; then
       logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it."
       LASTSUBDIR=`dirname $LASTSUBDIR`
       fi
    fi
-   if [[ $LASTSUBDIR = null ]]; then
+   if [[ $LASTSUBDIR == "null" ]]; then
       fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
    fi
-   if [[ $hotstartURL = null ]]; then
+   if [[ $hotstartURL == "null" ]]; then
       OLDADVISDIR=$LASTSUBDIR
    else
       OLDADVISDIR=$RUNDIR
    fi
-
 fi
+if [[ $meshInitialization == "off" ]]; then
+   OLDADVISDIR=cold
+   HSTIME=0
+fi
+
 CYCLELOG=null
 SCENARIOLOG=null
 #
@@ -2202,7 +2231,7 @@ while [ true ]; do
    readConfig
    THIS=asgs_main.sh
    FROMDIR=null
-   if [[ $hotstartURL = null ]]; then
+   if [[ $hotstartURL == "null" && $OLDADVISDIR != "cold" ]]; then
       for dir in nowcast hindcast; do
          logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/${dir}."
          if [[ -d $OLDADVISDIR/$dir ]]; then
@@ -2210,7 +2239,7 @@ while [ true ]; do
          fi
       done
    else
-      # already downloaded the hotstart file
+      # already downloaded the hotstart file or nowcasting from cold
       FROMDIR=$RUNDIR
    fi
    # turn SWAN hotstarting on or off as appropriate
@@ -2230,9 +2259,9 @@ while [ true ]; do
          done
       done
    fi
-
-   checkHotstart $FROMDIR $HOTSTARTFORMAT  67
-
+   if [[ $OLDADVISDIR != "cold" ]]; then
+      checkHotstart $FROMDIR $HOTSTARTFORMAT  67
+   fi
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
@@ -2348,14 +2377,13 @@ while [ true ]; do
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
       #
       METOPTIONS="--dir $ADVISDIR --storm $STORM --year $YEAR --name $ENSTORM --nws $NWS --hotstartseconds $HSTIME --coldstartdate $CSDATE $STORMTRACKOPTIONS"
-      CONTROLOPTIONS=" --name $ENSTORM --advisorynum $ADVISORY --hst $HSTIME --cst $CSDATE --hsformat $HOTSTARTFORMAT"
       logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for nowcast with the following options: $METOPTIONS."
       ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
       # get the storm's name (e.g. BERTHA) from the run.properties
       logMessage "$ENSTORM: $THIS: Detecting storm name in run.properties file."
       STORMNAME=$(grep "forcing.tropicalcyclone.stormname" run.properties | sed 's/forcing.tropicalcyclone.stormname.*://' | sed 's/^\s//' 2>> ${SYSLOG})
       tcEnd=$(grep "forcing.tropicalcyclone.best.time.end" run.properties | sed 's/forcing.tropicalcyclone.best.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
-      CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
+      endTime=$tcEnd
       # create a GAHM or ASYMMETRIC fort.22 file from the existing track file
       case $VORTEXMODEL in
          "GAHM"|"ASYMMETRIC")
@@ -2363,6 +2391,11 @@ while [ true ]; do
             $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+               if [[ $BACKGROUNDMET == "off" ]]; then
+                  # this is the only met file ADCIRC will need to read so
+                  # rename it fort.22
+                  cp NWS_${BASENWS}_fort.22 fort.22 >> ${SYSLOG} 2>&1
+               fi
             else
                fatal "$ENSTORM: $THIS: '$ADCIRCDIR/aswip -n $BASENWS' failed to produce 'NWS_${BASENWS}_fort.22'."
             fi
@@ -2541,7 +2574,6 @@ while [ true ]; do
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
@@ -2587,7 +2619,6 @@ while [ true ]; do
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
          STORMDIR=$NOWCASTDIR
-         CONTROLOPTIONS="--advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "RRFS")
          logMessage "$SCENARIO: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2664,7 +2695,6 @@ while [ true ]; do
                ln -s $file fort.${ext} 2>> ${SYSLOG} # symbolically link data
             fi
          done
-         CONTROLOPTIONS="$CONTROLOPTIONS --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
       "off")
          # don't need to download any data
@@ -2698,18 +2728,7 @@ while [ true ]; do
       fi
       mv $RUNDIR/run.properties $NOWCASTDIR 2>> run.properties
       writeScenarioProperties $NOWCASTDIR
-      CONTROLOPTIONS="--advisorynum $ADVISORY"
-      CONTROLOPTIONS="$CONTROLOPTIONS --specifiedRunLength $NOWCASTDAYS"
-      CONTROLOPTIONS="$CONTROLOPTIONS --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
-      logMessage "CONTROLOPTIONS is $CONTROLOPTIONS"
    fi
-   # activate padcswan based on ASGS configuration
-   if [[ $WAVES = on ]]; then
-      CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
-   fi
-   CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-   CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-   CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
    # generate fort.15 file
    runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
    # uses parameters described above as well as control-parameters.yaml
@@ -2846,6 +2865,13 @@ while [ true ]; do
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
    CYCLE=$ADVISORY
+   # if there the SPINUP stage was skipped because
+   # this mesh does not require tidal/river initialization,
+   # and this is the first nowcast, and it was not skipped,
+   # need to hotstart from now on
+   if [[ $meshInitialization == "off" && $NOWCASTDIR != $FROMDIR ]]; then
+      START="hotstart"
+   fi
    #
    executeHookScripts "FINISH_NOWCAST_STAGE"
    #
@@ -2857,13 +2883,17 @@ while [ true ]; do
    #
    ENSTORM="forecast"
    logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
-
-   checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
-   THIS="asgs_main.sh"
-   if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
-      HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
-   else
-      HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
+   #
+   # we may be forecasting from a cold start if this mesh doesn't require
+   # initialization and the nowcast was skipped
+   if [[ $START == "hotstart" ]]; then
+      checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
+      THIS="asgs_main.sh"
+      if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
+         HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
+      else
+         HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
+      fi
    fi
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
@@ -3054,11 +3084,10 @@ while [ true ]; do
             echo "track_modified : n" >> run.properties 2>> ${SYSLOG}
          fi
          writeTropicalCycloneForecastProperties $STORMDIR
-         CONTROLOPTIONS="--cst $CSDATE --advisorynum $ADVISORY --hst $HSTIME --name $ENSTORM --hsformat $HOTSTARTFORMAT"
          logMessage "$ENSTORM: $THIS: Generating ADCIRC Met File (fort.22) for $ENSTORM with the following options: $METOPTIONS."
          ${SCRIPTDIR}/storm_track_gen.pl $METOPTIONS >> ${SYSLOG} 2>&1
          tcEnd=$(grep "forcing.tropicalcyclone.fcst.time.end" run.properties | sed 's/forcing.tropicalcyclone.fcst.time.end.*://' | sed 's/^\s//' 2>> ${SYSLOG})
-         CONTROLOPTIONS="$CONTROLOPTIONS --endtime $tcEnd"
+         endTime=$tcEnd
          if [[ $BASENWS = 19 || $BASENWS = 20 ]]; then
             # create a new file that contains metadata and has the Rmax
             # in it already ... potentially with Rmax changes if desired
@@ -3178,20 +3207,7 @@ while [ true ]; do
             echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
             echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
          fi
-         CONTROLOPTIONS=" --advisorynum $ADVISORY --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
       fi
-      # if there is no forcing from an external data source, set control options
-      if [[ $NOFORCING = true ]]; then
-         CONTROLOPTIONS="--advisorynum $ADVISORY"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --specifiedRunLength $FORECASTDAYS"
-         CONTROLOPTIONS="${CONTROLOPTIONS} --name $ENSTORM --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
-      fi
-      if [[ $WAVES = on ]]; then
-         CONTROLOPTIONS="${CONTROLOPTIONS} --swantemplate ${SCRIPTDIR}/input/meshes/common/swan/${SWANTEMPLATE} --hotswan $HOTSWAN"
-      fi
-      CONTROLOPTIONS="${CONTROLOPTIONS} --elevstations ${INPUTDIR}/${ELEVSTATIONS} --velstations ${INPUTDIR}/${VELSTATIONS} --metstations ${INPUTDIR}/${METSTATIONS}"
-      CONTROLOPTIONS="$CONTROLOPTIONS --gridname $GRIDNAME" # for run.properties
-      CONTROLOPTIONS="$CONTROLOPTIONS --nscreen $NSCREEN"
       runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
       # uses parameters described above as well as control-parameters.yaml
       # to generate tide_fac.out, fort.13, fort.15, and fort.26

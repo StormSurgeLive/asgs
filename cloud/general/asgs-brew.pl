@@ -776,7 +776,7 @@ sub get_steps {
                   my $found = `which $exe 2>/dev/null`;
 		  chomp $found;
 		  # eliminates the false positive when Intel's "mpif90" is provided
-		  if ($found and $found =~ m/intel/ ) {
+		  if (not $found or ($found and $found =~ m/intel/)) {
                     $ok = 0;
 		  }
 		}

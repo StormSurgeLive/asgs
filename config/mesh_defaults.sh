@@ -29,27 +29,6 @@ OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
 UNITOFFSETFILE=null
 LOADTIDEURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides
 #
-# The following is common to all meshes and is only used
-# for SWAN (WAVES=on); may not give good numerical results
-# with ADCIRC+SWAN v52; not clear whether it is correctly
-# formatted with ADCIRC+SWAN v55 yet.
-SWANTEMPLATE=adcirc_swan_v53_fort.26.template # found in input/meshes/common/swan
-#
-# For ADCIRC versions v55.01 and later, rotated spherical coordinate
-# systems are available that are useful for global meshes to place the
-# poles on land to avoid numerical distortion. The use of this capability
-# and the specification of the coordinates of the north pole are controlled
-# via the zNorth parameter and triggered by a negative value of ICS in the
-# fort.15 file. The north pole location $zNorth is written to a fort.rotm file.
-# Options include the fcollowing:
-# zNorth="northpole"         ! no coordinate system rotation
-# zNorth="-42.8906  72.3200  ! Greenland-Antarctica"
-# zNorth="112.8516  40.3289  ! China-Argentina"
-# zNorth="114.16991  0.77432 ! Borneo-Brazil"
-# Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
-# Model coordinate system reference: https://wiki.adcirc.org/ICS
-zNorth="northpole"
-#
 # Self Attraction/Earth Load Tide Forcing File (fort.24)
 # The Not all meshes will have one of these available, although the global meshes do.
 # This file is required if NTIP=2 (tidal potential parameter) in fort.15

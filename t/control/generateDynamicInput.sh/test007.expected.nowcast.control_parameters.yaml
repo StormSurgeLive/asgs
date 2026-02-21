@@ -1,0 +1,174 @@
+---
+  mesh: "EGOMv20b"
+  controltemplate: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOMv20b.15.ASGS2024.1.template"
+  adcirc_version: "v56.0.2"
+  adcirc_version_support: [  'notset' ]
+  coldstartdate: 2024010100
+  cycle: 1
+  scenario: "nowcast"
+  endtime: 2024010400
+  timestepsize: 1.0
+  coordinate_system:
+    projection: "geographic"
+    reprojection: "CPP"
+    earthCurvature: "no"
+    rotation: "northpole"
+  solver_time_integration: "explicit"
+  initialization_length: 2.0
+  time_weighting_coefficients: "0.0 1.0 0.0"
+  lateral_turbulence:
+    formulation: "smagorinsky"
+    eddy_viscosity_coefficient: 20.0
+    smagorinsky_coefficient: 0.2
+    smag_comp_flag: "off"
+    smag_lower_lim: "1.0e-8"
+    smag_upper_lim: "100.0"
+  h0: 0.1
+  velmin: 0.01
+  bottom_friction_limit: 0.001
+  advection: "on"
+  hotstart:
+    input_format: "netcdf"
+    output_format: "netcdf"
+    time: 172800.0
+  meteorology:
+    nws: 8
+    basenws: 8
+    wtiminc: "notset"
+    windExposure: "surface"
+    invertedBarometerOnElevationBoundary: "yes"
+    rhoAir: 1.293
+    tropical_cyclone:
+      storm_name: "TESTVORTEX"
+      boundary_layer_adjustment: 0.9
+    owi_win_pre:
+      nwset: 1
+      nwbs: 0
+      dwm: 1.0
+      startdatetime: 1970010100
+      enddatetime: 1980010100
+    blending:
+      pure_vortex_radius: 3.0
+      pure_background_radius: 5.0
+    wind_drag:
+      DragLawString: "garratt"
+      WindDragLimit: 0.0025
+      outputWindDrag: "no"
+      nPowellSearchDomains: -1
+  tides:
+    tidal_forcing: "on"
+    tidefac_file: "$SCRIPTDIR/t/control/generateDynamicInput.sh/tide_fac.out"
+    tidal_potential_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'."
+    tidal_boundary_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'."
+  flux:
+    periodicity: "null"
+    file: "null"
+  wetDryControl:
+    outputNodeCode: "no"
+    outputNOFF: "no"
+    noffActive: "on"
+    slim: 1000000000.0
+    windlim: "off"
+    directvelWD: "off"
+    useHF: "off"
+  netcdf_metadata:
+    ncproj: "ASGS"
+    ncinst: "Seahorse Consulting"
+    ncsour: "ADCIRC"
+    nchist: "ASGS Workflow"
+    ncref:  "https://doi.org/10.1061/40990(324)48"
+    nccom:  "Trusted since 2006."
+    nchost: "www.seahorsecoastal.com"
+    ncconv: "CF"
+    nccont: "jason.fleming@adcirc.live"
+    ncdate: "2010-05-01 00:00:00 UTC"
+  wave_coupling:
+    waves: "off"
+    wave_model: "SWAN"
+    rstiminc: 1800
+    WaveWindMultiplier: 1.0
+    Limit_WaveStressGrad: "no"
+    WaveStressGrad_Cap: 1000.0
+  swan:
+    template: "$SCRIPTDIR/input/meshes/common/swan/adcirc_swan_v53_fort.26.template"
+    hot: "off"
+    mxitns: 20
+    npnts: 95
+    SWANOutputControl:
+      SWAN_OutputTPS: "yes"
+      SWAN_OutputTM01: "yes"
+      SWAN_OutputHS: "yes"
+      SWAN_OutputDIR: "yes"
+      SWAN_OutputTMM10: "yes"
+      SWAN_OutputTM02: "yes"
+  nodal_attributes:
+    template: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_asgs_chk_header.13.template"
+    activate: 
+      - "sea_surface_height_above_geoid"
+      - "advection_state"
+      - "mannings_n_at_sea_floor"
+      - "primitive_weighting_in_continuity_equation"
+      - "surface_canopy_coefficient"
+      - "surface_directional_effective_roughness_length"
+      - "elemental_slope_limiter"
+    default_values: 
+      mannings_n_at_sea_floor: "0.025"
+      subgrid_barrier: "99999.0"
+      average_horizontal_eddy_viscosity_in_sea_water_wrt_depth: "10.0"
+      surface_submergence_state: "1"
+      initial_river_elevation: "0.0"
+      advection_state: "-99999.0"
+      sea_surface_height_above_geoid: "-0.106"
+      surface_canopy_coefficient: "1.0"
+      internal_tide_friction: "0.0  0.0  0.0"
+      overland_reduction_factor: "0.0333"
+      surface_directional_effective_roughness_length: "0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+      elemental_slope_limiter: "0.02"
+      primitive_weighting_in_continuity_equation: "0.03"
+
+  output:
+    inventory: "full"
+    non_fatal_override:
+      nfover: 1
+      WarnElev: 20.0
+      iWarnElevDump: 1
+      WarnElevDumpLimit: 20
+      ErrorElev: 100.0
+    nscreen: -1000
+    log_level: "INFO"
+    metonly_dt: 300.0
+    stations:
+      fort61:
+        elevstations_file: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
+        incr_seconds: 300.0
+        format: "netcdf4"
+        append: "yes"
+      fort62:
+        velstations_file: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
+        incr_seconds: 0.0
+        format: "netcdf4"
+        append: "yes"
+      wetdry:
+        StatPartWetFix: "off"
+        How2FixStatPartWet: 0
+      fort7172:
+        metstations_file: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
+        incr_seconds: 300.0
+        format: "netcdf4"
+        append: "yes"
+    fulldomain:
+      fort63:
+        incr_seconds: 3600.0
+        format: "sparse-ascii"
+        append: "yes"
+      fort64:
+        incr_seconds: 3600.0
+        format: "sparse-ascii"
+        append: "yes"
+      fort7374:
+        incr_seconds: 3600.0
+        format: "sparse-ascii"
+        append: "yes"
+    inundationOutputControl:
+      inundationOutput: "yes"
+      inunThresh: 0.6

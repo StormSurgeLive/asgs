@@ -47,7 +47,7 @@ WAVES=${properties["coupling.waves"]}
 SWANHSCOMPRESSION=${properties["coupling.waves.swan.swanhscompression"]}
 SWANHSFULL=${properties["coupling.waves.swan.swanhsfull"]}
 hotstartcomp=${properties['adcirc.hotstartcomp']}
-#echo "hotstartcomp is $hotstartcomp" # jgfdebug
+hotStartFormat=${properties['adcirc.hotstartformat']}
 #
 scenarioMessage "$THIS: Starting cleanup of subdomain (PE*) subdirectories." $LOGFILE
 consoleMessage "$I Starting cleanup of subdomain (PE*) subdirectories."
@@ -149,6 +149,9 @@ rm errmsg ; touch errmsg
 # off the deletion of the PE* subdirectories
 if [[ $hotstartcomp != "subdomain" ]]; then
    for dir in `ls -d PE*`; do
+      if [[ $hotStartFormat == "binary" && $dir == "PE0000" ]]; then
+         continue
+      fi
       $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG
    done
 fi

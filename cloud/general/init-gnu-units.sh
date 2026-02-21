@@ -28,7 +28,7 @@ UNITS_TGZ=${UNITS_DIR}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${UNITS_TGZ} ]; then
-  wget --no-check-certificate https://github.com/StormSurgeLive/asgs-thirdparty/raw/master/gnu-units/${UNITS_TGZ}
+  wget -4 https://github.com/StormSurgeLive/asgs-thirdparty/raw/master/gnu-units/${UNITS_TGZ}
 fi
 
 rm -rf ./$UNITS_DIR 2> /dev/null
