@@ -383,7 +383,7 @@ HPC_PPN_Hint()
    ;;
    "qbd.loni.org")
      if [[ "$QUEUEKIND" == "serial" ]]; then
-       echo $SERQUEUE_NTASKS # this is defined in ./platforms/queenbeeQ
+       echo $SERQUEUE_NTASKS # this is defined in ./platforms/queenbeeD
      else
        echo $DEFAULT_PPN
      fi
