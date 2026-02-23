@@ -36,6 +36,7 @@ my $totalcpu = "noLineHere";  # ncpu + numwriters
 my $nnodes = "noLineHere";    # number of cluster nodes
 my $serqueue = "noLineHere";  # name of serial queue
 my $queuename = "noLineHere"; # name of parallel queue
+my $slot_type_str = "";       # type of compute node in PBS systems
 my $walltime;      # estimated maximum wall clock time
 my $wallminutes;   # integer number of minutes, calculated from HH:MM:SS
 my $qscripttemplate; # template file to use for the queue submission script
@@ -64,6 +65,11 @@ my $jobtype            = $jshash_ref->{'jobtype'}; # partmesh, prep15, padcirc e
 my $asgs_container_cmd = $ENV{ASGS_SINGULARITY_CMD}   // undef;
 my $adcirc_sif         = $ENV{ADCIRC_SINGULARITY_SIF} // undef;
 my $container_cmd      = ($asgs_container_cmd && $adcirc_sif) ? sprintf("%s %s", $asgs_container_cmd, $adcirc_sif) : "";
+# fill in the slot_type for PBS systems that define it
+if ( $jshash_ref->{'slot_type'} ne "null" ) {
+    # create the slot type string including : and =
+    $slot_type_str = ":slot_type=$jshash_ref->{'slot_type'}";
+}
 # get number of processors per node (if it is defined)
 # the number of processors per node
 my $ppn = getQueueScriptParameter($jshash_ref, "ppn");
@@ -269,6 +275,11 @@ while(my $line = <$TEMPLATE>) {
 
     # fills in the number of nodes on platforms that require it
     $line =~ s/%nnodes%/$nnodes/g;
+
+    # some PBS platforms need a slot_type describing the type
+    # of node to place the job on; will be an empty string
+    # if the platform does not require this parameter
+    $line =~ s/%slot_type%/$slot_type_str/g;
 
     # fill in serial queue (can be null/unused on certain platforms)
     if ( $jshash_ref->{"parallelism"} eq "serial" ) {

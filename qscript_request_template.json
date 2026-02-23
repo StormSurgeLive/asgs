@@ -23,6 +23,7 @@
     "wind10mlayer" : "%wind10mlayer%",
     "reservation" : "%reservation%",
     "constraint" : "%constraint%",
+    "slot_type" : "%slot_type%",
     "qos" : "%qos%",
     "syslog" : "%syslog%",
     "scenariolog" : "%scenariolog%",

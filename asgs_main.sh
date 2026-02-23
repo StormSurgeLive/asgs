@@ -892,6 +892,7 @@ prepFile()
       -e "s/%queuename%/$QUEUENAME/" \
       -e "s/%serqueue%/$SERQUEUE/" \
       -e "s/%account%/$ACCOUNT/" \
+      -e "s/%slot_type%/$SLOT_TYPE/" \
       -e "s?%advisdir%?$ADVISDIR?" \
       -e "s?%scriptdir%?$SCRIPTDIR?" \
       -e "s?%adcircdir%?$ADCIRCDIR?" \
@@ -1445,6 +1446,7 @@ submitJob()
       -e "s/%queuename%/${_QUEUENAME}/" \
       -e "s/%serqueue%/$SERQUEUE/" \
       -e "s/%account%/$ACCOUNT/" \
+      -e "s/%slot_type%/$SLOT_TYPE/" \
       -e "s?%advisdir%?$ADVISDIR?" \
       -e "s?%scriptdir%?$SCRIPTDIR?" \
       -e "s?%adcircdir%?$ADCIRCDIR?" \

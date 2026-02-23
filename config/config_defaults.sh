@@ -5,7 +5,7 @@
 # configuration parameters for the ASGS.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2014--2024 Jason Fleming
+# Copyright(C) 2014--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,6 +28,7 @@ THIS=$(basename -- $0)
 QUEUESYS=null
 QUEUENAME=null
 SERQUEUE=null
+SLOT_TYPE=null  # used on certain PBS platforms
 QCHECKCMD=null
 SUBMITSTRING=null
 RESERVATION=null # for SLURM
