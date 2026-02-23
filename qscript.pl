@@ -4,8 +4,8 @@
 # and send result to a queue script file and modified json
 # to STDOUT
 #--------------------------------------------------------------------------
-# Copyright(C) 2006--2022 Jason Fleming
-# Copyright(C) 2006, 2007 Brett Estrade
+# Copyright(C) 2006--20226 Jason Fleming
+# Copyright(C) 2006, 2007, 2026 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -31,9 +31,11 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 use ASGSUtil;
 use Template;
 #
-my $myNCPU = "noLineHere";   # number of CPUs the job should run on (or be decomposed for)
-my $totalcpu = "noLineHere"; # ncpu + numwriters
-my $nnodes = "noLineHere";   # number of cluster nodes
+my $myNCPU = "noLineHere";    # number of CPUs the job should run on (or be decomposed for)
+my $totalcpu = "noLineHere";  # ncpu + numwriters
+my $nnodes = "noLineHere";    # number of cluster nodes
+my $serqueue = "noLineHere";  # name of serial queue
+my $queuename = "noLineHere"; # name of parallel queue
 my $walltime;      # estimated maximum wall clock time
 my $wallminutes;   # integer number of minutes, calculated from HH:MM:SS
 my $qscripttemplate; # template file to use for the queue submission script
@@ -78,7 +80,6 @@ if ( $jshash_ref->{"parallelism"} eq "serial" ) {
     } else {
         $cmd = $jshash_ref->{"cmd"};
     }
-    my $serqueue = $jshash_ref->{'serqueue'};
 }
 $myNCPU = $jshash_ref->{"ncpu"}; # for queue script (effective NCPU for current job)
 
@@ -108,8 +109,8 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
            if ( ($totalcpu%$ppn) != 0 ) {
                $nnodes++;
            }
-        } else { 
-	   # the number of parallel tasks is less than 
+        } else {
+	   # the number of parallel tasks is less than
 	   # the maximum tasks per node
 	   # so just request one node
 	   $nnodes = 1;
@@ -269,16 +270,16 @@ while(my $line = <$TEMPLATE>) {
     # fills in the number of nodes on platforms that require it
     $line =~ s/%nnodes%/$nnodes/g;
 
-    # fill in serial queue
+    # fill in serial queue (can be null/unused on certain platforms)
     if ( $jshash_ref->{"parallelism"} eq "serial" ) {
-        # name of the queue on which to run
-        $line =~ s/%queuename%/$jshash_ref->{"serqueue"}/g;
+        $serqueue = getQueueScriptParameter($jshash_ref,"serqueue");
+        $line =~ s/%queuename%/$serqueue/g;
     }
 
     # fill in parallel queue
     if ( $jshash_ref->{"parallelism"} eq "parallel" ) {
-        # name of the queue on which to run
-        $line =~ s/%queuename%/$jshash_ref->{"queuename"}/g;
+        $queuename = getQueueScriptParameter($jshash_ref,"queuename");
+        $line =~ s/%queuename%/$queuename/g;
     }
 
     # copy non-noLineHere lines to the queue script
