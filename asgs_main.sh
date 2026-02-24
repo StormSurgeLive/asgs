@@ -1925,10 +1925,7 @@ if [[ $START == "hotstart" ]]; then
          checkDirExistence $LSDIR "local subdirectory containing advisory from the previous run"
          checkDirExistence $FROMDIR "local subdirectory containing hotstart file from the previous run"
          ;;
-      esac
-   else
-
-   fi
+   esac
    if [[ $HOTSTARTFORMAT == "binary" ]]; then
       # don't need the .nc suffix
       hotstartSuffix=""
