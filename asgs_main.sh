@@ -1043,7 +1043,7 @@ downloadCycloneData()
           ;;
        "ftp")
           if [ $START = hotstart ]; then
-             if ! diff $LASTSUBDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
+             if ! diff $LSDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
                 # forecasts from NHC ftp site do not have advisory number
                 newAdvisoryNum=`printf "%02d" $[$ADVISORY + 1]`
                 newAdvisory="true"
@@ -1643,8 +1643,10 @@ SCENARIO="null"    # name of a forecast job
 #
 # subdirectory with the most recent valid hotstart file
 # will be null if there is no hotstart file to start from
-LASTSUBDIR="null"
+LASTSUBDIR="null"  # set in config file and statefile
+LSDIR="null"       # LASTSUBDIR currently in active use
 FROMDIR="null"
+ADVISORY=0
 #
 # Option Summary
 #
@@ -1734,12 +1736,12 @@ if [[ -e $STATEFILE ]]; then
    if [[ $STATEFILE_LASTSUBDIR == "null" ]]; then
       # ASGS has not written a hotstart file yet
       START=coldstart
-      LASTSUBDIR=$CONFIG_LASTSUBDIR
+      LSDIR=$CONFIG_LASTSUBDIR
    else
       # there is a hot solution in the directory
       # indicated by LASTSUBDIR in the STATEFILE
       START=hotstart
-      LASTSUBDIR=$STATEFILE_LASTSUBDIR
+      LSDIR=$STATEFILE_LASTSUBDIR
    fi
 else
    # if the state file is not there, just start by using the
@@ -1749,12 +1751,13 @@ else
    # this is an ongoing execution, and the statefile does not
    # exist yet, so create it now using info straight from the
    # ASGS config file
+   LSDIR=$CONFIG_LASTSUBDIR
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-   echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG} # LASTSUBDIR set in config file, could be URL
+   echo LASTSUBDIR=${LSDIR} >> $STATEFILE 2>> ${SYSLOG} # LASTSUBDIR set in config file, could be URL
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
-   if [[ $LASTSUBDIR == "null" ]]; then
+   if [[ $LSDIR == "null" ]]; then
       START=coldstart
    else
       START=hotstart
@@ -1886,39 +1889,45 @@ hotstartDownloadRedirect="--output"
 if [[ $START == "hotstart" ]]; then
    consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
-   if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
-      # always look for fort.68.nc from a URL because only a forecast
-      # will be posted to a URL, and only the hotstart file that was used
-      # to start the forecast will be posted ... asgs always hotstarts from
-      # a fort.68 file and always writes a fort.67 file
-      hotstartURL=$LASTSUBDIR
-      # If scp is to be used, the host where the hotstart (and run.properties) files
-      # are downloaded from must support public key authentication. The URL is expected
-      # to be in the form scp://tacc_tds3//full/path/to/hotstart/file
-      if [[ $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
-         hotstartDownloadExecutable="scp"
-         hotstartDownloadRedirect=""
-         hotstartURL=${hotstartURL:6}     # remove leading scp://
-         hotstartURL=${hotstartURL/\//:}  # replace 1st / between host and path with :
-      fi
-   else
-      # starting from a hotstart file on the local filesystem, not from a URL
-      checkDirExistence $LASTSUBDIR "local subdirectory containing 'hindcast', 'nowcast', or 'remote' subdirectory with hotstart file from the previous run"
-      # we are reading the hotstart file from the local filesystem, determine
-      # whether it is from a nowcast, hindcast, or remote (if the Operator
-      # has manually downloaded the hotstart and run.properties files,
-      # those files should be placed in $RUNDIR/initialize/remote
-      # and then set LASTSUBDIR=$RUNDIR/initialize) ... if ASGS is downloading
-      # the hotstart/run.properties files, it will create the "remote" directory
-      # automatically below
-      for d in hindcast nowcast remote ; do
-         if [[ -d $LASTSUBDIR/$d ]]; then
-            FROMDIR=${LASTSUBDIR}/$d
-            break
+   case $LSDIR in
+      http://*|https://*|scp://*|ssh://*)
+         # always look for fort.68.nc from a URL because only a forecast
+         # will be posted to a URL, and only the hotstart file that was used
+         # to start the forecast will be posted ... asgs always hotstarts from
+         # a fort.68 file and always writes a fort.67 file
+         hotstartURL=$LSDIR
+         # If scp is to be used, the host where the hotstart (and run.properties) files
+         # are downloaded from must support public key authentication. The URL is expected
+         # to be in the form scp://tacc_tds3//full/path/to/hotstart/file
+         if [[ $LSDIR =~ "scp://" || $LSDIR =~ "ssh://" ]]; then
+            hotstartDownloadExecutable="scp"
+            hotstartDownloadRedirect=""
+            hotstartURL=${hotstartURL:6}     # remove leading scp://
+            hotstartURL=${hotstartURL/\//:}  # replace 1st / between host and path with :
          fi
-      done
-      checkDirExistence $LASTSUBDIR "local subdirectory containing advisory from the previous run"
-      checkDirExistence $FROMDIR "local subdirectory containing hotstart file from the previous run"
+         ;;
+      *)
+         # starting from a hotstart file on the local filesystem, not from a URL
+         checkDirExistence $LSDIR "local subdirectory containing 'hindcast', 'nowcast', or 'remote' subdirectory with hotstart file from the previous run"
+         # we are reading the hotstart file from the local filesystem, determine
+         # whether it is from a nowcast, hindcast, or remote (if the Operator
+         # has manually downloaded the hotstart and run.properties files,
+         # those files should be placed in $RUNDIR/initialize/remote
+         # and then set LASTSUBDIR=$RUNDIR/initialize) ... if ASGS is downloading
+         # the hotstart/run.properties files, it will create the "remote" directory
+         # automatically below
+         for d in hindcast nowcast remote ; do
+            if [[ -d $LSDIR/$d ]]; then
+               FROMDIR=${LSDIR}/$d
+               break
+            fi
+         done
+         checkDirExistence $LSDIR "local subdirectory containing advisory from the previous run"
+         checkDirExistence $FROMDIR "local subdirectory containing hotstart file from the previous run"
+         ;;
+      esac
+   else
+
    fi
    if [[ $HOTSTARTFORMAT == "binary" ]]; then
       # don't need the .nc suffix
@@ -1953,12 +1962,12 @@ if [[ $START == "hotstart" ]]; then
          $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${FROMDIR}/${hotstartFile}
          logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $FROMDIR/${hotstartFile}."
       fi
-      LASTSUBDIR=$RUNDIR/initialize
+      LSDIR=$RUNDIR/initialize
    else
       # check to make sure the COLDSTARTDATE was not set to "auto" in the
       # asgs config file (unless the run.properties file was also supplied)
       if [[ $COLDSTARTDATE == "auto" ]]; then
-         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory '${LASTSUBDIR}'. The COLDSTARTDATE will therefore be determined from '$FROMDIR/run.properties file."
+         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory '${LSDIR}'. The COLDSTARTDATE will therefore be determined from '$FROMDIR/run.properties file."
       fi
       checkFileExistence $FROMDIR "run properties file" run.properties
       CSDATE=$(sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' $FROMDIR/run.properties)
@@ -1966,7 +1975,6 @@ if [[ $START == "hotstart" ]]; then
       if [[ $COLDSTARTDATE != $CSDATE ]]; then
          logMessage "The ASGS config file set the COLDSTARTDATE to '$COLDSTARTDATE' but the value found from the '$FROMDIR/run.properties' file was '$CSDATE'. The value from the run.properties file will be used."
       fi
-
    fi
    logMessage "Now checking hotstart file content."
    checkHotstart $FROMDIR $HOTSTARTFORMAT 67
@@ -2027,7 +2035,7 @@ NOFORCING=false
 if [[ $BACKGROUNDMET = off && $TIDEFAC = off && $TROPICALCYCLONE = off && $WAVES = off && $VARFLUX = off ]]; then
    NOFORCING=true
 fi
-ADVISDIR=null
+ADVISDIR=$RUNDIR/initialize
 #
 # execute FINISH_INIT hooks
 executeHookScripts "FINISH_INIT"
@@ -2045,7 +2053,7 @@ CYCLE="initialize"
 executeHookScripts "START_SPINUP_STAGE"
 #
 if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
-   ADVISORY=initialize
+   ADVISORY=0
    ENSTORM=hindcast
    SCENARIO=$ENSTORM
    executeHookScripts "BUILD_SPINUP"
@@ -2055,7 +2063,7 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    si=-2      # represents a hindcast
    readConfig
    THIS=asgs_main.sh
-   ADVISDIR=$RUNDIR/$ADVISORY
+   ADVISDIR=$RUNDIR/initialize
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
    CYCLEDIR=$ADVISDIR
    CYCLELOG=$ADVISDIR/cycle.log
@@ -2108,10 +2116,10 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
-      fatal "$ENSTORM: $THIS: The prep for the hindcast run has failed."
+      fatal "$ENSTORM: $THIS: The prep for the initialization has failed."
    fi
    # then submit the job
-   logMessage "$ENSTORM: $THIS: Submitting ADCIRC $ENSTORM job."
+   logMessage "$ENSTORM: $THIS: Submitting ADCIRC initialization job."
    cd $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
    JOBTYPE=padcirc  # we won't run waves during the spinup hindcast
    if [[ $QUEUESYS = serial ]]; then
@@ -2140,13 +2148,13 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    #
    cd $ADVISDIR 2>> ${SYSLOG}
    START=hotstart
-   LASTSUBDIR=$ADVISDIR
+   LSDIR=$ADVISDIR
    FROMDIR=$ADVISDIR/$ENSTORM
    #
    # create new statefile to reflect the successful tide/river initialization
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-   echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
+   echo LASTSUBDIR=${LSDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 fi
@@ -2185,7 +2193,7 @@ while [ true ]; do
    readConfig
    THIS=asgs_main.sh
    if [[ $START == "hotstart" ]]; then
-      checkDirExistence $LASTSUBDIR "local subdirectory containing advisory from the previous run"
+      checkDirExistence $LSDIR "local subdirectory containing advisory from the previous run"
       checkDirExistence $FROMDIR "local subdirectory containing hotstart file from the previous run"
       checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    fi
@@ -2716,7 +2724,7 @@ while [ true ]; do
          ADVISORY=$LASTADVISORYNUM
          echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
          echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-         echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
+         echo LASTSUBDIR=${LSDIR} >> $STATEFILE 2>> ${SYSLOG}
          echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
          echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
          continue  # abandon this nowcast and wait for the next one
@@ -2757,7 +2765,7 @@ while [ true ]; do
          ADVISORY=$LASTADVISORYNUM
          echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
          echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-         echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
+         echo LASTSUBDIR=${LSDIR} >> $STATEFILE 2>> ${SYSLOG}
          echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
          echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
          continue # abandon this nowcast scenario and start over
@@ -2778,8 +2786,8 @@ while [ true ]; do
       #
       executeHookScripts "FINISH_NOWCAST_SCENARIO"
       START=hotstart
-      LASTSUBDIR=$RUNDIR/$ADVISORY
-      FROMDIR=$RUNDIR/$ADVISORY/$SCENARIO
+      LSDIR=$ADVISDIR
+      FROMDIR=$ADVISDIR/$SCENARIO
       cd $ADVISDIR 2>> ${SYSLOG}
    else
       # we didn't run the nowcast, because our latest nowcast data end
@@ -2791,7 +2799,7 @@ while [ true ]; do
    LUN=67  # asgs always tells adcirc to read a 68 file and write a 67 file
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-   echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
+   echo LASTSUBDIR=${LSDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
