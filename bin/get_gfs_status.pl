@@ -35,8 +35,8 @@ use Cwd;
 use ASGSUtil;
 #
 my $startcycle = "null";  # optional arg that indicates start of range of interest
-my $backsite = "null";    # ncep ftp site for gfs data
-my $backdir = "null";     # dir on ncep ftp site
+my $backsite = "null";    # ncep site for gfs data
+my $backdir = "null";     # dir on ncep site
 my @cyclerange;           # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest
 #
 my $ncepcycles = "cyclelist";
@@ -53,7 +53,6 @@ GetOptions(
 {
     my $ua = HTTP::Tiny->new;
 
-    # replaces the $ftp->ls for files, looks only for gfs.* files
     sub http_ls {
         my $dir = shift;
         my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s/ls-l}, $dir );
@@ -66,7 +65,6 @@ GetOptions(
         return @files;
     }
 
-    # replaces the $ftp->ls for directory listings, extracts from the HTML listing
     sub http_dir {
         my $dir = shift;
         my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s}, $dir );
@@ -93,6 +91,7 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab config info and use it if it was not
 # already provided on the command line
 # also set reasonable defaults
+#
 ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "ftp.ncep.noaa.gov");
 ASGSUtil::setParameter( $jshash_ref, \$backdir,   "siteDir",  "/pub/data/nccf/com/gfs/v16.2");
 $jshash_ref->{"siteHost"} = $backsite;
@@ -155,7 +154,8 @@ if ( $startcycle ne "null" ) {
    for ( my $i=0; $i<$numbefore; $i++ ) {
       shift(@sortedGfsDirs);
    }
-} else {
+}
+else {
    # startcycle was not specified, so find the
    # first date and time that data are available
    $sortedGfsDirs[0] =~ /gfs.(\d{8})/;
@@ -165,7 +165,7 @@ if ( $startcycle ne "null" ) {
    my @earliestGfsCycles = eval { http_dir("$backdir/$sortedGfsDirs[0]") };
    if ($@) {
      my $msg = ($@) ? q{[HTTP::Tiny] } : $@;
-     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" GFS cycle subdirectories: } . $msg);
+     ASGSUtil::stderrMessage("ERROR", q{http: Cannot list "earliest" GFS cycle subdirectories: } . $msg);
      exit 1;
    }
 
