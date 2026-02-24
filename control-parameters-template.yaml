@@ -4,7 +4,7 @@
   adcirc_version: "%ADCIRCVER%"
   adcirc_version_support: [ %adcircVersions% ]
   coldstartdate: %CSDATE%
-  cycle: %ADVISORY%
+  cycle: "%ADVISORY%"
   scenario: "%SCENARIO%"
   endtime: %ENDTIME%
   timestepsize: %TIMESTEPSIZE%
@@ -83,7 +83,7 @@
     write_outputNodeCode: "%write_outputNodeCode%"
     write_outputNOFF: "%write_outputNOFF%"
     write_noffActive: "%write_noffActive%"
-    write_slim: %write_slim%
+    write_slim: "%write_slim%"
     write_windlim: "%write_windlim%"
     write_directvelWD: "%write_directvelWD%"
     write_useHF: "%write_useHF%"

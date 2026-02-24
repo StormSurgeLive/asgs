@@ -912,18 +912,34 @@ if ( $nws ne "0" ) {
 }
 # write the names of the output files to the run-control.properties file
 ASGSUtil::stderrMessage("INFO","Writing file names and formats to run-control.properties file.",$test);
-writeFileName("fort.61",(split(' ',$fort61))[0],$addHours/(((split(' ',$fort61))[3]*$dt)/3600.0));
-writeFileName("fort.62",(split(' ',$fort62))[0],$addHours/(((split(' ',$fort62))[3]*$dt)/3600.0));
-writeFileName("fort.63",(split(' ',$fort63))[0],$addHours/(((split(' ',$fort63))[3]*$dt)/3600.0));
-writeFileName("fort.64",(split(' ',$fort64))[0],$addHours/(((split(' ',$fort64))[3]*$dt)/3600.0));
-writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
-writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
-writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
-writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
-writeFileName("maxele.63",(split(' ',$fort63))[0],1);
-writeFileName("maxvel.63",(split(' ',$fort64))[0],1);
-writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
-writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
+if ( (split(' ',$fort61))[0] != 0 ) {
+   writeFileName("fort.61",(split(' ',$fort61))[0],$addHours/(((split(' ',$fort61))[3]*$dt)/3600.0));
+}
+if ( (split(' ',$fort62))[0] != 0 ) {
+   writeFileName("fort.62",(split(' ',$fort62))[0],$addHours/(((split(' ',$fort62))[3]*$dt)/3600.0));
+}
+if ( (split(' ',$fort63))[0] != 0 ) {
+   writeFileName("fort.63",(split(' ',$fort63))[0],$addHours/(((split(' ',$fort63))[3]*$dt)/3600.0));
+   writeFileName("maxele.63",(split(' ',$fort63))[0],1);
+}
+if ( (split(' ',$fort64))[0] != 0 ) {
+   writeFileName("fort.64",(split(' ',$fort64))[0],$addHours/(((split(' ',$fort64))[3]*$dt)/3600.0));
+   writeFileName("maxvel.63",(split(' ',$fort64))[0],1);
+}
+if ( $fort7172 ne "NO LINE HERE" ) {
+   if ( (split(' ',$fort7172))[0] != 0 ) {
+      writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+      writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+   }
+}
+if ( $fort7374 ne "NO LINE HERE" ) {
+   if ( (split(' ',$fort7374))[0] != 0 ) {
+      writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+      writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+      writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
+      writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
+   }
+}
 if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    writeFileName("maxrs.63",(split(' ',$fort7374))[0],1);
    writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
