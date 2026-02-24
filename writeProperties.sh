@@ -59,7 +59,7 @@ writeProperties()
    echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.inputdir : $INPUTDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR_RUN_PROPERTIES
-   echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.scratchdir : $SCRATCH" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.spinup.length : $HINDCASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR_RUN_PROPERTIES

@@ -72,7 +72,7 @@ readConfig()
       ENSTORM=$SCENARIO                   # ENSTORM is still used in ASGS, pending removal via refactoring
    fi
    #
-   RUNARCHIVEBASE=$SCRATCHDIR
+   RUNARCHIVEBASE=$SCRATCH
    #
    # set the instancename if it was not set in the Operator's config file
    if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
@@ -199,13 +199,13 @@ checkArchiveFreshness()
    VELSTATIONS=$6
    METSTATIONS=$7
    NAFILE=$8
-   SCRATCHDIR=$9
+   SCRATCH=$9
    THIS="asgs_main.sh>checkArchiveFreshness()"
 
    logMessage "$THIS: Checking to see if the archive of preprocessed subdomain files is up to date."
    for archiveFile in $PREPPEDARCHIVE $HINDCASTARCHIVE; do
       if [ ! -e $RUNARCHIVEBASE/$archiveFile ]; then
-         logMessage "$THIS: The subdomain archive file $SCRATCHDIR/$archiveFile does not exist."
+         logMessage "$THIS: The subdomain archive file $SCRATCH/$archiveFile does not exist."
          continue
       fi
       # jgfdebug:: for some meshes, $NAFILE is undefined but this case is not handled
@@ -219,9 +219,9 @@ checkArchiveFreshness()
             continue
          fi
          # see if the archiveFile is older than inputFile
-         if [ $SCRATCHDIR/$archiveFile -ot $INPUTDIR/$inputFile ]; then
+         if [ $SCRATCH/$archiveFile -ot $INPUTDIR/$inputFile ]; then
             logMessage "$THIS: A change in the input files has been detected. The archive file $archiveFile is older than the last modification time of the input file ${inputFile}. The archive file is therefore stale and will be deleted. A fresh one will automatically be created the next time adcprep is run."
-            rm $SCRATCHDIR/$archiveFile 2>> $SYSLOG
+            rm $SCRATCH/$archiveFile 2>> $SYSLOG
          fi
       done
    done
@@ -282,9 +282,9 @@ checkHotstart()
          # that with backticks and tee to the log file
          HSTIME=''
          if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG}`
+            HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG})
          else
-            HSTIME=`$ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG}`
+            HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
          fi
          failureOccurred=$?
          errorOccurred=$(expr index "$HSTIME" ERROR)
@@ -346,7 +346,7 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
+    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
     echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
@@ -355,7 +355,7 @@ prep()
     fi
     # determine if there is an archive of preprocessed input files
     HAVEARCHIVE=yes
-    if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
+    if [[ ! -e ${SCRATCH}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
     # create directory to run in
@@ -507,13 +507,13 @@ prep()
     fi
     # determine if there is an archive of preprocessed input files
     HAVEARCHIVE=yes
-    if [[ ! -e ${SCRATCHDIR}/${PREPPED} ]]; then
+    if [[ ! -e ${SCRATCH}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
     if [[ $HAVEARCHIVE = yes ]]; then
         # copy in the files that have already been preprocessed
         logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
-        cp ${SCRATCHDIR}/${PREPPED} . 2>> ${SYSLOG}
+        cp ${SCRATCH}/${PREPPED} . 2>> ${SYSLOG}
         gunzip -f ${PREPPED} 2>> ${SYSLOG}
         # untar the uncompressed archive
         UNCOMPRESSEDARCHIVE=${PREPPED%.gz}
@@ -800,7 +800,7 @@ EOF
     # if we don't have an archive of our preprocessed files, create
     # one so that we don't have to do another prepall
     if [[ $HAVEARCHIVE = no ]]; then
-       logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${SCRATCHDIR}/${PREPPED} to avoid having to run prepall again."
+       logMessage "$ENSTORM: $THIS: Creating an archive of preprocessed files and saving to ${SCRATCH}/${PREPPED} to avoid having to run prepall again."
        FILELIST='partmesh.txt PE*/fort.14 PE*/fort.18'
        if [[ $selfAttractionEarthLoadTide != "notprovided" ]]; then
           FILELIST=$FILELIST' PE*/fort.24'
@@ -810,11 +810,11 @@ EOF
        # it attempted to make and alert the operator
        if [[ $? != 0 ]]; then
           warn "$ENSTORM: $THIS: The construction of a tar archive of the preprocessed input files has failed."
-          rm ${SCRATCHDIR}/${PREPPED} 2>> ${SYSLOG} 2>&1
+          rm ${SCRATCH}/${PREPPED} 2>> ${SYSLOG} 2>&1
        fi
     fi
     echo "time.adcprep.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
-    debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY LASTADVISORYNUM=$LASTADVISORYNUM STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
+    debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -985,14 +985,13 @@ downloadCycloneData()
     YEAR=$2
     RUNDIR=$3
     SCRIPTDIR=$4
-    OLDADVISDIR=$5
-    TRIGGER=$6
-    ADVISORY=$7
-    FTPSITE=$8
-    RSSSITE=$9
-    FDIR=${10}
-    HDIR=${11}
-    STATEFILE=${12}
+    TRIGGER=$5
+    ADVISORY=$6
+    FTPSITE=$7
+    RSSSITE=$8
+    FDIR=$9
+    HDIR=${10}
+    STATEFILE=${11}
     #
     THIS="asgs_main.sh>downloadCycloneData()"
     APPLOGFILE=$RUNDIR/get_atcf.log
@@ -1044,7 +1043,7 @@ downloadCycloneData()
           ;;
        "ftp")
           if [ $START = hotstart ]; then
-             if ! diff $OLDADVISDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
+             if ! diff $LASTSUBDIR/$forecastFileName ./$forecastFileName > /dev/null 2>> ${SYSLOG}; then
                 # forecasts from NHC ftp site do not have advisory number
                 newAdvisoryNum=`printf "%02d" $[$ADVISORY + 1]`
                 newAdvisory="true"
@@ -1603,13 +1602,12 @@ handleFailedJob()
    YEAR=$7
    STORMDIR=$8
    ADVISORY=$9
-   LASTADVISORYNUM=${10}
-   STATEFILE=${11}
-   GRIDFILE=${12}
-   EMAILNOTIFY=${13}
-   JOB_FAILED_LIST="${14}"
-   ARCHIVEBASE=${15}
-   ARCHIVEDIR=${16}
+   STATEFILE=${10}
+   GRIDFILE=${11}
+   EMAILNOTIFY=${12}
+   JOB_FAILED_LIST="${13}"
+   ARCHIVEBASE=${14}
+   ARCHIVEDIR=${15}
    THIS="asgs_main.sh>handleFailedJob()"
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
@@ -1619,12 +1617,6 @@ handleFailedJob()
       $NOTIFYSCRIPT $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       warn "$ENSTORM: $THIS: Moving failed cycle to 'failed.${FAILDATETIME}'."
       mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
-      # roll back the latest advisory number if the nowcast failed
-      if [[ $ENSTORM = nowcast ]]; then
-         logMessage "Rolling back the advisory number in the state file $STATEFILE due to failed nowcast."
-         sed 's/ADVISORY=.*/ADVISORY='$LASTADVISORYNUM'/' $STATEFILE > ${STATEFILE}.new 2>> ${SYSLOG}
-         mv -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1
-      fi
       if [[ $EXITONERROR == "yes" ]]; then
          fatal "The parameter EXITONERROR is set to '$EXITONERROR' so the ASGS is stopping execution due to job failure."
       fi
@@ -1647,7 +1639,12 @@ source $SCRIPTDIR/generateDynamicInput.sh # generates tide_fac.out, fort.13, for
 #               B E G I N     E X E C U T I O N
 #####################################################################
 
-SCENARIO="null"
+SCENARIO="null"    # name of a forecast job
+#
+# subdirectory with the most recent valid hotstart file
+# will be null if there is no hotstart file to start from
+LASTSUBDIR="null"
+FROMDIR="null"
 #
 # Option Summary
 #
@@ -1668,7 +1665,7 @@ EXIT_OK=0
 #
 si=-2  # storm index for forecast scenario; -1 indicates nowcast, -2 hindcast
 # need to determine standard time format to be used for pasting log files
-STARTDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
+STARTDATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
 
 # set the value of SCRIPTDIR
 SCRIPTDIR=${0%%/asgs_main.sh}  # ASGS scripts/executables
@@ -1720,57 +1717,51 @@ trap 'sigexit' EXIT
 # set the file and directory permissions, which are platform dependent
 umask $UMASK
 #
-RUNDIR=$SCRATCHDIR/asgs$$
+RUNDIR=$SCRATCH/asgs$$
 #
 # save the value from of LASTSUBDIR from config in case
 # LASTSUBDIR=null in STATEFILE due to previous failed
 # initialization
-ORIGLASTSUBDIR=$LASTSUBDIR
-# if we are starting from cron, look for a state file
-if [[ $ONESHOT = yes ]]; then
-   # if it is there, read it
-   if [[ -e $STATEFILE ]]; then
-      logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
-      consoleMessage "$I Reading $STATEFILE for previous ASGS state."
-      source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
-      if [[ $LASTSUBDIR = null ]]; then
-         HOTORCOLD=coldstart
-         LASTSUBDIR=$ORIGLASTSUBDIR
-      else
-         HOTORCOLD=hotstart
-      fi
+CONFIG_LASTSUBDIR=$LASTSUBDIR
+START=$HOTORCOLD   # <-<< default to start as specified in config file
+STATEFILE=${SCRATCH}/${INSTANCENAME}.state
+# if it is there, read it
+if [[ -e $STATEFILE ]]; then
+   logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
+   consoleMessage "$I Reading $STATEFILE for previous ASGS state."
+   source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
+   STATEFILE_LASTSUBDIR=$LASTSUBDIR
+   if [[ $STATEFILE_LASTSUBDIR == "null" ]]; then
+      # ASGS has not written a hotstart file yet
+      START=coldstart
+      LASTSUBDIR=$CONFIG_LASTSUBDIR
    else
-      # if the state file is not there, just start from cold
-      consoleMessage "$I '$STATEFILE' was not found. Creating a new statefile."
-      logMessage "$THIS: The statefile '$STATEFILE' was not found. The ASGS will start cold and create a new statefile."
-      HOTORCOLD=coldstart
+      # there is a hot solution in the directory
+      # indicated by LASTSUBDIR in the STATEFILE
+      START=hotstart
+      LASTSUBDIR=$STATEFILE_LASTSUBDIR
    fi
 else
-   # if we are not starting from cron, use the default statefile name,
-   # and load it if it is there; if it is not there, just go by the
+   # if the state file is not there, just start by using the
    # info in the config file
-   STATEFILE=${SCRATCHDIR}/${INSTANCENAME}.state
-   if [[ -e $STATEFILE ]]; then
-      logMessage "$THIS: Reading $STATEFILE for previous ASGS state."
-      consoleMessage "$I Reading '$STATEFILE'."
-      source $STATEFILE # contains RUNDIR, LASTSUBDIR, ADVISORY and SYSLOG values
-      if [[ $LASTSUBDIR = null ]]; then
-         HOTORCOLD=coldstart
-         LASTSUBDIR=$ORIGLASTSUBDIR
-      else
-         HOTORCOLD=hotstart
-      fi
+   consoleMessage "$I '$STATEFILE' was not found. Creating a new statefile."
+   logMessage "$THIS: The statefile '$STATEFILE' was not found. The ASGS will create a new statefile."
+   # this is an ongoing execution, and the statefile does not
+   # exist yet, so create it now using info straight from the
+   # ASGS config file
+   echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
+   echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
+   echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG} # LASTSUBDIR set in config file, could be URL
+   echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
+   echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+   if [[ $LASTSUBDIR == "null" ]]; then
+      START=coldstart
    else
-      # this is an ongoing execution, and the statefile does not
-      # exist yet, so create it now using info straight from the
-      # ASGS config file
-      echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
-      echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-      echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
-      echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
-      echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+      START=hotstart
+
    fi
 fi
+#
 # used to store instantaneous status files
 statusDir=$RUNDIR/status  # after reading STATEFILE so we have value of RUNDIR
 # see if the storm directory already exists in the scratch space
@@ -1889,11 +1880,10 @@ fi
 LUN=67
 hotstartBase=fort.${LUN}
 hotstartSuffix=.nc
-hotstartPath=${LASTSUBDIR}/nowcast # only for reading from local filesystem
 hotstartURL=null
 hotstartDownloadExecutable="curl --insecure"
 hotstartDownloadRedirect="--output"
-if [[ $HOTORCOLD = hotstart ]]; then
+if [[ $START == "hotstart" ]]; then
    consoleMessage "$I Acquiring hotstart file."
    # check to see if the LASTSUBDIR is actually a URL
    if [[ $LASTSUBDIR =~ "http://" || $LASTSUBDIR =~ "https://" || $LASTSUBDIR =~ "scp://" || $LASTSUBDIR =~ "ssh://" ]]; then
@@ -1912,15 +1902,27 @@ if [[ $HOTORCOLD = hotstart ]]; then
          hotstartURL=${hotstartURL/\//:}  # replace 1st / between host and path with :
       fi
    else
+      # starting from a hotstart file on the local filesystem, not from a URL
+      checkDirExistence $LASTSUBDIR "local subdirectory containing 'hindcast', 'nowcast', or 'remote' subdirectory with hotstart file from the previous run"
       # we are reading the hotstart file from the local filesystem, determine
-      # whether it is from a nowcast or hindcast
-      if [[ -d $LASTSUBDIR/hindcast ]]; then
-         hotstartPath=${LASTSUBDIR}/hindcast
-      fi
+      # whether it is from a nowcast, hindcast, or remote (if the Operator
+      # has manually downloaded the hotstart and run.properties files,
+      # those files should be placed in $RUNDIR/initialize/remote
+      # and then set LASTSUBDIR=$RUNDIR/initialize) ... if ASGS is downloading
+      # the hotstart/run.properties files, it will create the "remote" directory
+      # automatically below
+      for d in hindcast nowcast remote ; do
+         if [[ -d $LASTSUBDIR/$d ]]; then
+            FROMDIR=${LASTSUBDIR}/$d
+            break
+         fi
+      done
+      checkDirExistence $LASTSUBDIR "local subdirectory containing advisory from the previous run"
+      checkDirExistence $FROMDIR "local subdirectory containing hotstart file from the previous run"
    fi
-   if [[ $HOTSTARTFORMAT = binary ]]; then
+   if [[ $HOTSTARTFORMAT == "binary" ]]; then
       # don't need the .nc suffix
-      hotstartSuffix=
+      hotstartSuffix=""
    fi
    # form the name of the hotstart file
    hotstartFile=${hotstartBase}${hotstartSuffix}
@@ -1932,51 +1934,46 @@ if [[ $HOTORCOLD = hotstart ]]; then
    # is the same as the hotstart format that is being read
    if [[ $hotstartURL != "null" ]]; then
       consoleMessage "$I Downloading hotstart file."
-      debugMessage "The current directory is ${PWD}."
-      debugMessage "The run directory is ${RUNDIR}."
-      logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL}."
+      # create a directory to hotstart from
+      FROMDIR=$RUNDIR/initialize/remote  # FROMDIR is the directory actually containing the hotstart file
+      mkdir -p $FROMDIR 2>> $SYSLOG
+      logMessage "Downloading run.properties file associated with hotstart file from ${hotstartURL} to store in '$FROMDIR'."
       # get cold start time from the run.properties file
-      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect $RUNDIR/from.run.properties
-      logMessage "$THIS: Detecting cold start date from $RUNDIR/from.run.properties."
-      COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${RUNDIR}/from.run.properties`
-      logMessage "The cold start datetime associated with the remote hotstart file is ${COLDSTARTDATE}."
+      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect $FROMDIR/run.properties
+      logMessage "$THIS: Detecting cold start date from $FROMDIR/run.properties."
+      CSDATE=$(sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${FROMDIR}/run.properties)
+      logMessage "The cold start datetime associated with the remote hotstart file is ${CSDATE}."
       # pull down fort.68 file and save as fort.67 just because that
       # is what the rest of asgs_main.sh is expecting
-      if [[ $HOTSTARTFORMAT = "binary" ]]; then
-         mkdir -p $RUNDIR/PE0000 2>> $SYSLOG
-         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/PE0000/${hotstartFile}
-         logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/PE0000/${hotstartFile}."
+      if [[ $HOTSTARTFORMAT == "binary" ]]; then
+         mkdir -p $FROMDIR/PE0000 2>> $SYSLOG
+         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${FROMDIR}/PE0000/${hotstartFile}
+         logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $FROMDIR/PE0000/${hotstartFile}."
       else
-         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${RUNDIR}/${hotstartFile}
-         logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $RUNDIR/${hotstartFile}."
+         $hotstartDownloadExecutable ${hotstartURL}/fort.68${hotstartSuffix} $hotstartDownloadRedirect ${FROMDIR}/${hotstartFile}
+         logMessage "Downloaded hotstart file fort.68$hotstartSuffix from $hotstartURL to $FROMDIR/${hotstartFile}."
       fi
-
-      logMessage "Now checking hotstart file content."
-      checkHotstart $RUNDIR $HOTSTARTFORMAT 67
-      # get cold start time from the run.properties file
-      $hotstartDownloadExecutable $hotstartURL/run.properties $hotstartDownloadRedirect from.run.properties
+      LASTSUBDIR=$RUNDIR/initialize
    else
-      # starting from a hotstart file on the local filesystem, not from a URL
-      checkDirExistence $LASTSUBDIR "local subdirectory containing hotstart file from the previous run"
       # check to make sure the COLDSTARTDATE was not set to "auto" in the
       # asgs config file (unless the run.properties file was also supplied)
-      if [[ $COLDSTARTDATE = auto ]]; then
-         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory ${LASTSUBDIR}. The COLDSTARTDATE will therefore be determined from the ColdStartTime property in the $LASTSUBDIR (nowcast or hindcast) run.properties file."
+      if [[ $COLDSTARTDATE == "auto" ]]; then
+         logMessage "The COLDSTARTDATE parameter in the ASGS config file was set to 'auto' and the LASTSUBDIR parameter was set to the local filesystem directory '${LASTSUBDIR}'. The COLDSTARTDATE will therefore be determined from '$FROMDIR/run.properties file."
       fi
-      for dir in nowcast hindcast; do
-         if [[ -d $LASTSUBDIR/$dir ]]; then
-            configColdStartDate=$COLDSTARTDATE
-            checkFileExistence $LASTSUBDIR/$dir "run properties file" run.properties
-            COLDSTARTDATE=`sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' ${LASTSUBDIR}/$dir/run.properties`
-            logMessage "The cold start datetime from the run.properties file is ${COLDSTARTDATE}."
-            if [[ $configColdStartDate != $COLDSTARTDATE ]]; then
-               logMessage "The ASGS config file set the COLDSTARTDATE to '$configColdStartDate' but the value found from the '$LASTSUBDIR/$dir/run.properties' file was '$COLDSTARTDATE'. The value from the run.properties file will be used."
-            fi
-            break
-         fi
-      done
-      checkHotstart $hotstartPath $HOTSTARTFORMAT 67
+      checkFileExistence $FROMDIR "run properties file" run.properties
+      CSDATE=$(sed -n 's/[ ^]*$//;s/ColdStartTime\s*:\s*//p' $FROMDIR/run.properties)
+      logMessage "The cold start datetime from the run.properties file is ${CSDATE}."
+      if [[ $COLDSTARTDATE != $CSDATE ]]; then
+         logMessage "The ASGS config file set the COLDSTARTDATE to '$COLDSTARTDATE' but the value found from the '$FROMDIR/run.properties' file was '$CSDATE'. The value from the run.properties file will be used."
+      fi
+
    fi
+   logMessage "Now checking hotstart file content."
+   checkHotstart $FROMDIR $HOTSTARTFORMAT 67
+else
+   # this is a cold start
+   CSDATE=$COLDSTARTDATE  # set coldstart date from the Operator's config file
+   HSTIME=0
 fi
 #
 if [[ -e ${RUNARCHIVEBASE}/${PREPPEDARCHIVE} ]]; then
@@ -1996,7 +1993,6 @@ for script in "${POSTPROCESS[@]}" ; do
 done
 checkFileExistence $OUTPUTDIR "email notification script" $NOTIFY_SCRIPT
 checkFileExistence ${SCRIPTDIR}/archive "data archival script" $ARCHIVE
-
 #
 if [[ $PERIODICFLUX != null ]]; then
    if [[ $FLUXCALCULATOR == "static" ]]; then
@@ -2008,13 +2004,6 @@ if [[ $PERIODICFLUX != null ]]; then
       checkFileExistence $SCRIPTDIR/bin "perl script for calculating periodic flux boundary" $FLUXCALCULATOR
    fi
 fi
-#
-# # @jasonfleming : temporarily disable until we can get this to work reliably
-# on all platforms without having to build and install additional perl modules
-#
-#if [[ $TROPICALCYCLONE != off ]]; then
-#   checkFileExistence ${PERL5LIB} "perl library to support downloading forecast/advisories from the National Hurricane Center website" Tiny.pm
-#fi
 #
 # Check for any issues or inconsistencies in configuration parameters.
 if [[ $(($NCPU + $NUMWRITERS)) -gt $NCPUCAPACITY ]]; then
@@ -2032,29 +2021,13 @@ ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
 # send out an email to notify users that the ASGS is ACTIVATED
 ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
 #
-OLDADVISDIR=null
-CSDATE=$COLDSTARTDATE
-START=$HOTORCOLD
-OLDADVISDIR=$LASTSUBDIR/hindcast
-#
-
-if [[ $BACKGROUNDMET = on && $TROPICALCYCLONE = on ]]; then
-   NWS=29
-   # not ready for this yet
-   fatal "$THIS: Background meteorology and tropical cyclone forcing are both turned on in ${CONFIG} but simultaneous use of these two forcing types is not yet supported in ASGS."
-fi
 NOFORCING=false
 # If there is no forcing from an external data source, set a flag; this
 # is most often used in running test cases for ADCIRC.
 if [[ $BACKGROUNDMET = off && $TIDEFAC = off && $TROPICALCYCLONE = off && $WAVES = off && $VARFLUX = off ]]; then
    NOFORCING=true
 fi
-#
-# If we are coldstarting, perform a hindcast ... this is necessary
-# to ramp up forcing and allow transient signals to die away before
-# performing a nowcast.
-ADVISDIR=null   # determined below
-HSTIME=null     # determined below
+ADVISDIR=null
 #
 # execute FINISH_INIT hooks
 executeHookScripts "FINISH_INIT"
@@ -2072,6 +2045,7 @@ CYCLE="initialize"
 executeHookScripts "START_SPINUP_STAGE"
 #
 if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
+   ADVISORY=initialize
    ENSTORM=hindcast
    SCENARIO=$ENSTORM
    executeHookScripts "BUILD_SPINUP"
@@ -2081,7 +2055,7 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    si=-2      # represents a hindcast
    readConfig
    THIS=asgs_main.sh
-   ADVISDIR=$RUNDIR/initialize
+   ADVISDIR=$RUNDIR/$ADVISORY
    mkdir -p $ADVISDIR 2>> ${SYSLOG}
    CYCLEDIR=$ADVISDIR
    CYCLELOG=$ADVISDIR/cycle.log
@@ -2090,11 +2064,9 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    SCENARIODIR=$STORMDIR
    cd $SCENARIODIR 2>> $SYSLOG
    SCENARIOLOG=$SCENARIODIR/scenario.log
-   HSTIME=0
    # We assume that the hindcast is only used to spin up tides or
    # initialize rivers ... therefore no met forcing.
    NWS=0
-   OLDADVISDIR=$ADVISDIR # initialize with dummy value when coldstarting
    HINDCASTLENGTH=${HINDCASTLENGTH:-30.0} # needed or --endtime swallows "--nws" in control_file_gen.pl options
    consoleMessage "$I Coldstarting."
    logMessage "$ENSTORM: $THIS: Coldstarting."
@@ -2129,11 +2101,11 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    # make sure the archive of subdomain files is up to date
    checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
    THIS="asgs_main.sh"
-   logMessage "$THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-   prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+   logMessage "$THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+   prep $ADVISDIR $INPUTDIR $ENSTORM $START $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    THIS="asgs_main.sh"
    # check to see that adcprep did not conspicuously fail
-   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
       fatal "$ENSTORM: $THIS: The prep for the hindcast run has failed."
@@ -2157,51 +2129,31 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$HINDCASTWALLTIME"
    THIS="asgs_main.sh"
    # check to see that the hindcast job did not conspicuously fail
-   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
-      fatal "$ENSTORM: $THIS: The hindcast run has failed."
+      fatal "$ENSTORM: $THIS: The initialization has failed."
    fi
-
-   scenarioMessage "$ENSTORM: $THIS: $ENSTORM run finished."
+   scenarioMessage "$ENSTORM: $THIS: $ENSTORM initialization finished."
    #
    executeHookScripts "FINISH_SPINUP_SCENARIO"
    #
    cd $ADVISDIR 2>> ${SYSLOG}
-   OLDADVISDIR=$ADVISDIR
    START=hotstart
+   LASTSUBDIR=$ADVISDIR
+   FROMDIR=$ADVISDIR/$ENSTORM
    #
+   # create new statefile to reflect the successful tide/river initialization
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
-   echo LASTSUBDIR=${OLDADVISDIR} >> $STATEFILE 2>> ${SYSLOG}
+   echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
 fi
-if [[ $START == "hotstart" && $meshInitialization == "on" ]]; then
+if [[ $START == "hotstart" ]]; then
    # start from   H O T S T A R T   file
-   #
    executeHookScripts "HOT_SPINUP"
-   #
-   if [[ $hotstartURL == "null" ]]; then
-      if [[ `basename $LASTSUBDIR` == "nowcast" || `basename $LASTSUBDIR` == "hindcast" ]]; then
-      logMessage "$THIS: The LASTSUBDIR path is $LASTSUBDIR but ASGS looks in this path to find either a nowcast or hindcast subdirectory. The LASTSUBDIR parameter is being reset to to remove either nowcast or hindcast from the end of it."
-      LASTSUBDIR=`dirname $LASTSUBDIR`
-      fi
-   fi
-   if [[ $LASTSUBDIR == "null" ]]; then
-      fatal "LASTSUBDIR is set to null, but the ASGS is trying to hotstart. Is the STATEFILE $STATEFILE up to date and correct? If not, perhaps it should be deleted. Otherwise, the HOTORCOLD parameter in the ASGS config file has been set to $HOTORCOLD and yet the LASTSUBDIR parameter is still set to null."
-   fi
-   if [[ $hotstartURL == "null" ]]; then
-      OLDADVISDIR=$LASTSUBDIR
-   else
-      OLDADVISDIR=$RUNDIR
-   fi
 fi
-if [[ $meshInitialization == "off" ]]; then
-   OLDADVISDIR=cold
-   HSTIME=0
-fi
-
 CYCLELOG=null
 SCENARIOLOG=null
 #
@@ -2213,7 +2165,6 @@ if [[ "${HINDCASTONCE_AND_EXIT}" == "y" || "${HINDCASTONCE_AND_EXIT}" == "yes" ]
    echo "$THIS: Shutting down due to HINDCASTONCE_AND_EXIT mode ..."
    exit 0
 fi
-
 #
 # B E G I N   N O W C A S T / F O R E C A S T   L O O P
 #
@@ -2225,6 +2176,7 @@ while [ true ]; do
    executeHookScripts "START_NOWCAST_STAGE"
    #
    ENSTORM=nowcast
+   LASTADVISORYNUM=$ADVISORY # record this in case we need to come back to it
    SCENARIO=$ENSTORM
    SCENARIODIR="null" # don't know the path until we have the forcing for this cycle
 
@@ -2232,21 +2184,14 @@ while [ true ]; do
    # re-read configuration file to pick up any changes, or any config that is specific to nowcasts
    readConfig
    THIS=asgs_main.sh
-   FROMDIR=null
-   if [[ $hotstartURL == "null" && $OLDADVISDIR != "cold" ]]; then
-      for dir in nowcast hindcast; do
-         logMessage "$ENSTORM: $THIS: Looking for the directory $OLDADVISDIR/${dir}."
-         if [[ -d $OLDADVISDIR/$dir ]]; then
-            FROMDIR=$OLDADVISDIR/$dir
-         fi
-      done
-   else
-      # already downloaded the hotstart file or nowcasting from cold
-      FROMDIR=$RUNDIR
+   if [[ $START == "hotstart" ]]; then
+      checkDirExistence $LASTSUBDIR "local subdirectory containing advisory from the previous run"
+      checkDirExistence $FROMDIR "local subdirectory containing hotstart file from the previous run"
+      checkHotstart $FROMDIR $HOTSTARTFORMAT  67
    fi
    # turn SWAN hotstarting on or off as appropriate
    HOTSWAN=off
-   if [[ $WAVES = on && $REINITIALIZESWAN = no ]]; then
+   if [[ $WAVES == "on" && $REINITIALIZESWAN == "no" ]]; then
       # look for a swan hotstart file
       for swanhsfile in PE0000/swan.67 swan.67; do
          if [[ -e $FROMDIR/$swanhsfile ]]; then
@@ -2261,14 +2206,10 @@ while [ true ]; do
          done
       done
    fi
-   if [[ $OLDADVISDIR != "cold" ]]; then
-      checkHotstart $FROMDIR $HOTSTARTFORMAT  67
-   fi
    cd $RUNDIR 2>> ${SYSLOG}
    #
    # N O W C A S T
    RUNNOWCAST=yes
-   NOWCASTDIR=null    # directory with hotstart files to be used in forecast
    # write the properties associated with asgs configuration to the
    # run.properties file
    writeProperties $RUNDIR
@@ -2342,13 +2283,11 @@ while [ true ]; do
       #
       # download wind data from ftp site every 60 seconds to see if
       # there is a new advisory
-      downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $OLDADVISDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
+      downloadCycloneData $STORM $YEAR $RUNDIR $SCRIPTDIR $TRIGGER $ADVISORY $FTPSITE $RSSSITE $FDIR $HDIR $STATEFILE
       THIS="asgs_main.sh"
-      #
-      LASTADVISORYNUM=$ADVISORY
-      # pull the latest advisory number from the statefile
+      # pull the new advisory number from the statefile
       logMessage "$ENSTORM: $THIS: Pulling latest advisory number from the state file ${STATEFILE}."
-      ADVISORY=`grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+      ADVISORY=$(grep "ADVISORY" $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//') 2>> ${SYSLOG}
       CYCLE=$ADVISORY
       executeHookScripts "NOWCAST_TRIGGERED"
       consoleMessage "$I Advisory '$CYCLE'"
@@ -2358,10 +2297,9 @@ while [ true ]; do
       fi
       CYCLEDIR=$ADVISDIR
       CYCLELOG=$CYCLEDIR/cycle.log
-      NOWCASTDIR=$ADVISDIR/$ENSTORM
       STORMDIR=$ADVISDIR/$ENSTORM
-      if [ ! -d $NOWCASTDIR ]; then
-          mkdir $NOWCASTDIR 2>> ${SYSLOG}
+      if [ ! -d $ADVISDIR/$ENSTORM ]; then
+          mkdir $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
       fi
       SCENARIODIR=$CYCLEDIR/$SCENARIO
       SCENARIOLOG=$SCENARIODIR/scenario.log
@@ -2373,7 +2311,7 @@ while [ true ]; do
       mv *.fst *.dat *.xml *.html $ADVISDIR 2>> ${SYSLOG}
       #
       # prepare nowcast met (fort.22) and control (fort.15) files
-      cd $NOWCASTDIR 2>> ${SYSLOG}
+      cd $SCENARIODIR 2>> ${SYSLOG}
       #
       executeHookScripts "BUILD_NOWCAST_SCENARIO"
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
@@ -2503,9 +2441,8 @@ while [ true ]; do
          downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
          #
-         LASTADVISORYNUM=$ADVISORY
          logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
-         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         ADVISORY=$(grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//') 2>> ${SYSLOG}
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
          executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
@@ -2513,7 +2450,6 @@ while [ true ]; do
          ADVISDIR=$RUNDIR/${ADVISORY}
          CYCLEDIR=$ADVISDIR
          CYCLELOG=$CYCLEDIR/cycle.log
-         NOWCASTDIR=$ADVISDIR/$ENSTORM
          SCENARIODIR=$CYCLEDIR/$SCENARIO
          SCENARIOLOG=$SCENARIODIR/scenario.log
          mkdir -p $SCENARIODIR 2>> $SYSLOG
@@ -2575,7 +2511,7 @@ while [ true ]; do
          echo "${owiWinPre["NWSET"]} ! NWSET" > $fort22
          echo "${owiWinPre["NWBS"]} ! NWBS"  >> $fort22
          echo "${owiWinPre["DWM"]} ! DWM"    >> $fort22
-         STORMDIR=$NOWCASTDIR
+         STORMDIR=$SCENARIODIR
          ;;
       "gfsBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading GFS meteorological data for blending."
@@ -2605,9 +2541,8 @@ while [ true ]; do
          downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
          THIS="asgs_main.sh"
          #
-         LASTADVISORYNUM=$ADVISORY
          logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
-         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         ADVISORY=$(grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//') 2>> ${SYSLOG}
          echo "forcing.nwp.year : ${ADVISORY:0:4}" >> $RUNDIR/run.properties
          #
          executeHookScripts "NOWCAST_TRIGGERED" # now that we know the advisory number
@@ -2620,7 +2555,7 @@ while [ true ]; do
          #
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
-         STORMDIR=$NOWCASTDIR
+         STORMDIR=$SCENARIODIR
          ;;
       "RRFS")
          logMessage "$SCENARIO: $THIS: NWS is $NWS. Downloading background meteorology."
@@ -2632,9 +2567,8 @@ while [ true ]; do
          downloadRRFS
          THIS="asgs_main.sh"
          #
-         LASTADVISORYNUM=$ADVISORY
          logMessage "$SCENARIO: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
-         ADVISORY=`grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//'` 2>> ${SYSLOG}
+         ADVISORY=$(grep ADVISORY $STATEFILE | sed 's/ADVISORY.*=//' | sed 's/^\s//') 2>> ${SYSLOG}
          CYCLE=$ADVISORY
          echo "forcing.nwp.year : ${CYCLE:0:4}" >> $RUNDIR/run.properties
          #
@@ -2648,7 +2582,7 @@ while [ true ]; do
          #
          executeHookScripts "BUILD_NOWCAST_SCENARIO"
          #
-         STORMDIR=$NOWCASTDIR
+         STORMDIR=$SCENARIODIR
          CONTROLOPTIONS="--advisorynum $CYCLE --name $SCENARIO --cst $CSDATE --hstime $HSTIME --hsformat $HOTSTARTFORMAT"
          ;;
 
@@ -2667,28 +2601,26 @@ while [ true ]; do
             logMessage "$ENSTORM: $THIS: Recording the advisory number $newAdvisoryNum to the state file ${STATEFILE}."
             sed 's/ADVISORY=.*/ADVISORY='$newAdvisoryNum'/' $STATEFILE > ${STATEFILE}.new
             cp -f ${STATEFILE}.new $STATEFILE >> ${SYSLOG} 2>&1
-            LASTADVISORYNUM=$ADVISORY
             ADVISORY=$newAdvisoryNum
          else
             fatal "${HDIR}/fort.22 file was not found."
          fi
          ADVISDIR=$RUNDIR/${ADVISORY}
-         NOWCASTDIR=$ADVISDIR/$ENSTORM
          CYCLEDIR=$ADVISDIR
          CYCLELOG=$CYCLEDIR/cycle.log
          SCENARIODIR=$CYCLEDIR/$SCENARIO
          SCENARIOLOG=$SCENARIODIR/$SCENARIO
-         mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
+         mkdir -p $SCENARIODIR 2>> ${SYSLOG}
          mv $RUNDIR/run.properties $SCENARIODIR 2>> $SYSLOG
          cd $ADVISDIR 2>> ${SYSLOG}
          # write the properties associated with asgs configuration to the
          # run.properties file
-         writeScenarioProperties $NOWCASTDIR
+         writeScenarioProperties $SCENARIODIR
          logMessage "$ENSTORM: $THIS: $START $ENSTORM cycle $ADVISORY."
          # create links to the OWI files, assuming they already have the
          # adcirc 221, 222, etc file name extensions
          cd $ENSTORM 2>> ${SYSLOG}
-         owiFiles=`ls ${HDIR}/${ADVISORY}*.22*`
+         owiFiles=$(ls ${HDIR}/${ADVISORY}*.22*)
          for file in $owiFiles; do
             ext=${file##*.}
             if [[ $ext = 22 ]]; then
@@ -2708,7 +2640,7 @@ while [ true ]; do
 
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
-   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $NOWCASTDIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $SCENARIODIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
    if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
       cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
    else
@@ -2722,14 +2654,13 @@ while [ true ]; do
       ADVISDIR=$RUNDIR/${ADVISORY}
       CYCLEDIR=$ADVISDIR
       CYCLELOG=$CYCLEDIR/cycle.log
-      NOWCASTDIR=$ADVISDIR/$ENSTORM
-      SCENARIODIR=$NOWCASTDIR
+      SCENARIODIR=$ADVISDIR/$ENSTORM
       SCENARIOLOG=$SCENARIODIR/scenario.log
-      if [ ! -d $NOWCASTDIR ]; then
-          mkdir -p $NOWCASTDIR 2>> ${SYSLOG}
+      if [ ! -d $SCENARIODIR ]; then
+          mkdir -p $SCENARIODIR 2>> ${SYSLOG}
       fi
-      mv $RUNDIR/run.properties $NOWCASTDIR 2>> run.properties
-      writeScenarioProperties $NOWCASTDIR
+      mv $RUNDIR/run.properties $SCENARIODIR 2>> run.properties
+      writeScenarioProperties $SCENARIODIR
    fi
    # generate fort.15 file
    runLength=$(echo "scale=2; ($HSTIME)/86400" | bc)
@@ -2743,7 +2674,7 @@ while [ true ]; do
    fi
    THIS="asgs_main.sh"
    if [[ $controlExitStatus -ne 0 ]]; then
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       continue  # abandon this nowcast and wait for the next one
    fi
    # load properties
@@ -2771,20 +2702,25 @@ while [ true ]; do
       checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
       THIS="asgs_main.sh"
       logMessage "$ENSTORM: $THIS: Nowcast preprocessing."
-      #logMessage "$ENSTORM: $THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $OLDADVISDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       logMessage "$ENSTORM: $THIS: prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT '$OUTPUTOPTIONS' $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       THIS="asgs_main.sh"
       # check to see that adcprep did not conspicuously fail
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       THIS="asgs_main.sh"
       # if handleFailedJob has detected a problem, it will rename the
       # nowcast directory; therefore, the non-existence of the nowcast
-      # directory is evidence that something has gone wrong in prep
-      if [[ ! -d $NOWCASTDIR ]]; then
+      # directory is evidence that something has gone wrong
+      if [[ ! -d $SCENARIODIR ]]; then
+         # revert to the old advisory number so the nowcast can be re-tried
+         ADVISORY=$LASTADVISORYNUM
+         echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
+         echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
+         echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
+         echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
+         echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
          continue  # abandon this nowcast and wait for the next one
       fi
-
       JOBTYPE=padcirc
       if [[ $QUEUESYS = "serial" ]]; then
          JOBTYPE=adcirc
@@ -2814,31 +2750,36 @@ while [ true ]; do
       monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$NOWCASTWALLTIME"
       THIS="asgs_main.sh"
       # check to see that the nowcast job did not conspicuously fail
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       THIS="asgs_main.sh"
-      if [[ ! -d $NOWCASTDIR ]]; then
-         continue # abandon this nowcast and wait for the next one
+      if [[ ! -d $SCENARIODIR ]]; then
+         # revert to the old advisory number so the nowcast can be re-tried
+         ADVISORY=$LASTADVISORYNUM
+         echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
+         echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
+         echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
+         echo SYSLOG=${SYSLOG} >> $STATEFILE 2>> ${SYSLOG}
+         echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
+         continue # abandon this nowcast scenario and start over
       fi
-
       # nowcast finished, get on with it
       logMessage "$ENSTORM: $THIS: Nowcast run finished."
-
       # archive nowcast
       logMessage "$ENSTORM: $THIS: Initiating nowcast archival process, if any."
-
       # log the start time of the archiving script so that downstream processes
       # (e.g., a subsequent nowcast or forecast run) know that this process is
       # underway and that the final tar and/or globalized swan hotstart files
       # are still under construction
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.archive.start : $DATETIME" >> ${STORMDIR}/run.properties
+      echo "time.archive.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
       ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-      echo "time.archive.finish : $DATETIME" >> ${STORMDIR}/run.properties
+      echo "time.archive.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
       THIS="asgs_main.sh"
       logMessage "$ENSTORM: $THIS: Nowcast complete for advisory '$ADVISORY.'"
       #
       executeHookScripts "FINISH_NOWCAST_SCENARIO"
+      START=hotstart
+      LASTSUBDIR=$RUNDIR/$ADVISORY
+      FROMDIR=$RUNDIR/$ADVISORY/$SCENARIO
       cd $ADVISDIR 2>> ${SYSLOG}
    else
       # we didn't run the nowcast, because our latest nowcast data end
@@ -2846,20 +2787,8 @@ while [ true ]; do
       # the prior cycle's nowcast hotstart file
       logMessage "$ENSTORM: $THIS: The nowcast data end at the same time as the hindcast/nowcast data from the previous cycle. As a result, a nowcast will not be run on this cycle; this cycle's forecast(s) will be hotstarted from the hindcast/nowcast of the previous cycle."
       logMessage "$ENSTORM: $THIS: Skipping the submission of the nowcast job and proceeding directly to the forecast(s)."
-      NOWCASTDIR=$FROMDIR
-   fi
-
-   # write the ASGS state file
-   if [[ $hotstartURL != "null" ]]; then
-      if [[ ! -e $ADVISDIR/$ENSTORM/fort.67.nc ]]; then
-         cp $RUNDIR/fort.67.nc $ADVISDIR/$ENSTORM 2>> $SYSLOG
-      fi
-      hotstartURL=null
    fi
    LUN=67  # asgs always tells adcirc to read a 68 file and write a 67 file
-   logMessage "Detecting LASTSUBDIR from NOWCASTDIR ${NOWCASTDIR}."
-   LASTSUBDIR=`echo $NOWCASTDIR | sed 's/\/nowcast//g ; s/\/hindcast//g'`
-   logMessage "RUNDIR is $RUNDIR STATEFILE is $STATEFILE SYSLOG is $SYSLOG" #jgfdebug
    echo RUNDIR=${RUNDIR} > $STATEFILE 2>> ${SYSLOG}
    echo SCRIPTDIR=${SCRIPTDIR} >> $STATEFILE 2>> ${SYSLOG}
    echo LASTSUBDIR=${LASTSUBDIR} >> $STATEFILE 2>> ${SYSLOG}
@@ -2867,13 +2796,6 @@ while [ true ]; do
    echo ADVISORY=${ADVISORY} >> $STATEFILE 2>> ${SYSLOG}
    SCENARIOLOG=null
    CYCLE=$ADVISORY
-   # if there the SPINUP stage was skipped because
-   # this mesh does not require tidal/river initialization,
-   # and this is the first nowcast, and it was not skipped,
-   # need to hotstart from now on
-   if [[ $meshInitialization == "off" && $NOWCASTDIR != $FROMDIR ]]; then
-      START="hotstart"
-   fi
    #
    executeHookScripts "FINISH_NOWCAST_STAGE"
    #
@@ -2889,13 +2811,8 @@ while [ true ]; do
    # we may be forecasting from a cold start if this mesh doesn't require
    # initialization and the nowcast was skipped
    if [[ $START == "hotstart" ]]; then
-      checkHotstart $NOWCASTDIR $HOTSTARTFORMAT 67
+      checkHotstart $FROMDIR $HOTSTARTFORMAT 67
       THIS="asgs_main.sh"
-      if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
-         HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/fort.67.nc -n` 2>> ${SYSLOG}
-      else
-         HSTIME=`$ADCIRCDIR/hstime -f ${NOWCASTDIR}/PE0000/fort.67` 2>> ${SYSLOG}
-      fi
    fi
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
@@ -3218,7 +3135,7 @@ while [ true ]; do
       generateDynamicInput
       THIS="asgs_main.sh"
       if [[ $controlExitStatus -ne 0 ]]; then
-         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       fi
       THIS="asgs_main.sh"
       #
@@ -3265,10 +3182,10 @@ while [ true ]; do
       # preprocess
       checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
       THIS="asgs_main.sh"
-      logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-      prep $ADVISDIR $INPUTDIR $ENSTORM $START $NOWCASTDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+      logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $SCENARIODIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+      prep $ADVISDIR $INPUTDIR $ENSTORM $START $SCENARIODIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       THIS="asgs_main.sh"
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       THIS="asgs_main.sh"
       # if the prep task was successful, the scenario directory will still be there
       if [[ ! -d $STORMDIR ]]; then
@@ -3307,7 +3224,7 @@ while [ true ]; do
       (
          monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$FORECASTWALLTIME"
          THIS="asgs_main.sh"
-         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $LASTADVISORYNUM $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
          THIS="asgs_main.sh"
          # only attempt post processing if this scenario
          # ended successfully
@@ -3343,14 +3260,6 @@ while [ true ]; do
    consoleMessage "$I Finished with forecast scenarios for cycle '$ADVISORY'."
    executeHookScripts "FINISH_FORECAST_STAGE"
    #
-   LASTSUBDIR=null # don't need this any longer
-   # if we ran the nowcast on this cycle, then this cycle's nowcast becomes
-   # the basis for the next cycle; on the other hand, if we used a previous
-   # nowcast as the basis for this cycle, then that previous nowcast will
-   # also have to be the basis for the next cycle
-   if [[ $RUNNOWCAST = yes ]]; then
-      OLDADVISDIR=$ADVISDIR
-   fi
    if [[ $ONESHOT = yes || $NOFORCING = true || $TRIGGER = auto ]]; then
       exit $OK  # exit because the ASGS will be started again later
    fi
