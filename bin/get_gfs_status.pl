@@ -92,7 +92,7 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # already provided on the command line
 # also set reasonable defaults
 #
-ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "ftp.ncep.noaa.gov");
+ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "nomads.ncep.noaa.gov");
 ASGSUtil::setParameter( $jshash_ref, \$backdir,   "siteDir",  "/pub/data/nccf/com/gfs/v16.2");
 $jshash_ref->{"siteHost"} = $backsite;
 $jshash_ref->{"siteDir"} = $backdir;

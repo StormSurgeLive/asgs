@@ -33,6 +33,7 @@ use File::Path 'make_path';
 use HTTP::Tiny;
 use Cwd;
 use ASGSUtil;
+
 my $startcycle = "null"; # most recent cycle for which a nowcast was completed
 my $finishcycle = "null"; # nowcast end (meaningless in the forecast stage)
 my $selectfile = "null";  # array of cycles to download
@@ -53,6 +54,8 @@ my $ncepcycles = "forcing.nam.ncep.cyclelist";
 my @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 my @cyclelist;
 #
+my $ua = HTTP::Tiny->new;
+
 GetOptions(
            "stage=s" => \$stage,
            "startcycle=s" => \$startcycle,
@@ -431,6 +434,7 @@ if ( $stage eq "FORECAST" ) {
 #
 # perform partial grib download using curl
 # only gets the U, V, P at mean sea level
+#
 sub partialGribDownload {
    my ( $dirDate, $f, $idxfile, $localDir ) = @_;
    #--------------------------------------------------------
@@ -443,17 +447,20 @@ sub partialGribDownload {
    ASGSUtil::appMessage(
              "DEBUG",
              "Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");
-   my $err=system("curl -f -s $idx -o $localDir/$idxfile");
-   if ( $err != 0 ) {
-      ASGSUtil::stderrMessage(
-                "INFO",
-                "curl: Get '$idx' failed.");
-      unlink("$localDir/$idxfile");
-      return $err;
+
+   my $response = $ua->mirror($idx, "$localDir/$idxfile");
+   my $err = $response->{success} ? 0 : $response->{status};
+  
+   if ($err != 0) {
+       ASGSUtil::stderrMessage(
+           "INFO",
+           "HTTP::Tiny: Get '$idx' failed: $response->{status} $response->{reason}"
+       );
+       unlink("$localDir/$idxfile");
+       return $err;
    }
+
    # download directly into list
-   #ASGSUtil::stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
-   #my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
    my @rangeLines;    # inventory with computed ranges
    my $last = 0;      # number of immediately preceding lines with same starting byte index
    my $lastnum = -1;  # starting byte range of previous line (or lines if there are repeats)
