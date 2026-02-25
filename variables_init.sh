@@ -111,7 +111,7 @@ variables_init()
    RUNDIR=${RUNDIR:-null}
    INPUTDIR=$SCRIPTDIR/input/meshes/null
    OUTPUTDIR=$SCRIPTDIR/output
-   HOTSTARTFORMAT=null
+   HOTSTARTFORMAT=netcdf
    STORMDIR=stormdir
    SSHKEY=null
    VELOCITYMULTIPLIER=1.0

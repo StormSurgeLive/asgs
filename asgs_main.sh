@@ -288,8 +288,8 @@ checkHotstart()
          fi
          failureOccurred=$?
          errorOccurred=$(expr index "$HSTIME" ERROR)
-         if [[ $failureOccurred != 0 || $errorOccurred != 0 ]]; then
-            fatal "$THIS: The hstime utility could not read the ADCIRC time from the file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+         if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
+            fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$HOTSTARTFORMAT' format file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
          else
             if float_cond '$HSTIME == 0.0'; then
                THIS="asgs_main.sh>checkHotstart()"
@@ -912,6 +912,9 @@ prepFile()
       < $qScriptRequestTemplate \
       > $qScriptRequest \
     2>> $SYSLOG
+   if [[ $? != 0 ]]; then
+      fatal "$THIS: Failed to fill in '$qScriptRequestTemplate' with sed to generate queue script parameters for '$qScriptRequest'."
+   fi
    unset _PPN
    unset _NCPU
    unset _RESERVATION
@@ -919,7 +922,7 @@ prepFile()
    $SCRIPTDIR/qscript.pl < $qScriptRequest   \
                          > $qScriptResponse 2>> $SYSLOG
    if [[ $? != 0 ]]; then
-      fatal "Failed to generate queue script."
+      fatal "$THIS: Failed to generate queue script."
    fi
    # extract queue script name from response
    qscript=$(bashJSON.pl --key "qScriptFileName"        \
@@ -3187,8 +3190,8 @@ while [ true ]; do
       # preprocess
       checkArchiveFreshness $PREPPEDARCHIVE $HINDCASTARCHIVE $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS $NAFILE $INPUTDIR
       THIS="asgs_main.sh"
-      logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $SCENARIODIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
-      prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $SCENARIODIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
+      logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
+      prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       THIS="asgs_main.sh"
       handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
       THIS="asgs_main.sh"
