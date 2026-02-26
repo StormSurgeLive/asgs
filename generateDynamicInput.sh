@@ -157,7 +157,7 @@ generateDynamicInput()
         -e "s/%pureVortex%/$pureVortex/" \
         -e "s/%pureBackground%/$pureBackground/" \
         -e "s/%BLADJ%/$BLADJ/" \
-        -e "s/%storm_name%/$storm_name/" \
+        -e "s/%storm_name%/$STORMNAME/" \
         -e "s/%periodicity%/$periodicity/" \
         -e "s?%periodic_flux_file%?$PERIODICFLUX?" \
         -e "s?%NCPROJ%?${netcdf_metadata["NCPROJ"]}?" \
