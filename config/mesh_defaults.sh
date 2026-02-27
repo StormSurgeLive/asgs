@@ -23,11 +23,12 @@
 THIS=$(basename -- $0)
 source $SCRIPTDIR/monitoring/logging.sh
 # mesh
-MESHURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes
-NODALATTRIBUTESURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes
+MESHURL=${MESHURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes"}
+NODALATTRIBUTESURL=${NODALATTRIBUTESURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes"}
+LOADTIDEURL=${LOADTIDEURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides"}
+# water level obs assimilation
 OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
 UNITOFFSETFILE=null
-LOADTIDEURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides
 #
 # Self Attraction/Earth Load Tide Forcing File (fort.24)
 # The Not all meshes will have one of these available, although the global meshes do.
