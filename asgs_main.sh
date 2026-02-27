@@ -133,6 +133,7 @@ checkFileExistence()
               ;;
         esac
         local downloadCMD
+        local inputExtension=".xz"
         if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
            logMessage "$THIS: The curl version is $(curl --version)"
            downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
@@ -147,26 +148,34 @@ checkFileExistence()
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+        elif [[ $URL =~ "file://" ]]; then
+           # the mesh, nodal attributes etc are stored in a path
+           # mounted locally; not compressed by default
+           URL=${URL:7}     # remove the file://
+           downloadCMD="cp $URL/${FNAME} $FPATH/${FNAME}"
         else
            # Note: we may wish to in the future add protocols such as: rsync://,
            # s3://, etc - if so, support for building the underlying command would
            # go here, and be stored in "$downloadCMD"
            warn "$THIS: Unrecognized protocol in URL: '$URL'. If you need this supported create a new issue on Github"
            downloadCMD="unknown"
+           inputExtension=""
         fi
         # attempt to download the file
-        logMessage "$THIS: Downloading $FTYPE from ${URL}/${FNAME}.xz with the command '$downloadCMD'."
-        consoleMessage "$I Downloading '$URL/${FNAME}.xz' ..."
+        logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
+        consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
         $downloadCMD 2> errmsg &
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
         local err=$?
         if [[ $err == 0 ]]; then
-           logMessage "$THIS: Uncompressing ${FPATH}/${FNAME}.xz."
-           consoleMessage "$I Uncompressing '${FNAME}.xz'."
-           xz -d ${FPATH}/${FNAME}.xz 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}.xz : `cat errmsg`." &
-           pid=$!
-           spinner 120 $pid
+           if [[ $inputExtension == ".xz" ]]; then
+               logMessage "$THIS: Uncompressing '${FPATH}/${FNAME}${inputExtension}'."
+               consoleMessage "$I Uncompressing '${FNAME}${inputExtension}'."
+               xz -d ${FPATH}/${FNAME}${inputExtension} 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}${inputExtension} : `cat errmsg`." &
+               pid=$!
+               spinner 120 $pid
+           fi
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
         else
            consoleMessage "$W Failed to download ${FNAME}.xz due to timeout of 900 seconds"
