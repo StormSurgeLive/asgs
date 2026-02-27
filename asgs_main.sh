@@ -153,13 +153,13 @@ checkFileExistence()
            # mounted locally; not compressed by default
            URL=${URL:7}     # remove the file://
            downloadCMD="cp $URL/${FNAME} $FPATH/${FNAME}"
+           inputExtension=""
         else
            # Note: we may wish to in the future add protocols such as: rsync://,
            # s3://, etc - if so, support for building the underlying command would
            # go here, and be stored in "$downloadCMD"
            warn "$THIS: Unrecognized protocol in URL: '$URL'. If you need this supported create a new issue on Github"
            downloadCMD="unknown"
-           inputExtension=""
         fi
         # attempt to download the file
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
