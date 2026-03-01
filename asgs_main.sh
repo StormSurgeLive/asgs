@@ -136,23 +136,23 @@ checkFileExistence()
         local inputExtension=".xz"
         if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
            logMessage "$THIS: The curl version is $(curl --version)"
-           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
+           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz 2>> $SYSLOG &"
         elif [[ $URL =~ "scp://" ]]; then
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz 2>> $SYSLOG"
         elif [[ $URL =~ "ssh://" ]]; then
            # Note: this is currently using scp under the hood, if for some reason
            # scp is deprecated in favor using ssh directly, it would replace the
            # following lines to build up the command
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz 2>> $SYSLOG"
         elif [[ $URL =~ "file://" ]]; then
            # the mesh, nodal attributes etc are stored in a path
            # mounted locally; not compressed by default
            URL=${URL:7}     # remove the file://
-           downloadCMD="cp $URL/${FNAME} $FPATH/${FNAME}"
+           downloadCMD="cp $URL/${FNAME} $FPATH/${FNAME} 2>> $SYSLOG"
            inputExtension=""
         else
            # Note: we may wish to in the future add protocols such as: rsync://,
@@ -164,7 +164,7 @@ checkFileExistence()
         # attempt to download the file
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
         consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
-        $downloadCMD 2> errmsg &
+        $downloadCMD
         local pid=$!
         spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
         local err=$?
