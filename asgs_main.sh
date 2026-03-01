@@ -3243,23 +3243,36 @@ while [ true ]; do
          # ended successfully
          if [[ -d $STORMDIR ]]; then
             logMessage "$ENSTORM: $THIS: The $ENSTORM job ended successfully. Starting postprocessing."
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-            echo "time.post.start : $DATETIME" >> ${STORMDIR}/run.properties
+            echo "time.post.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
             scriptIndex=0
             for script in "${POSTPROCESS[@]}" ; do
-               logMessage "$SCENARIO: $THIS: Executing POSTPROCESS hook ${OUTPUTDIR}/$script."
-               com="${OUTPUTDIR}/$script $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
+               logMessage "$SCENARIO: $THIS: Executing POSTPROCESS hook script '$script'."
+               # local assets scripts take precedence
+               if [[ -e ${ASGS_LOCAL_DIR}/output/$script ]]; then
+                  postProcessScriptPath=${ASGS_LOCAL_DIR}/output
+               else
+                  postProcessScriptPath=${OUTPUTDIR}/output
+               fi
+               com="${postProcessScriptPath}/$script $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
                $com
             done
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-            echo "time.post.finish : $DATETIME" >> ${STORMDIR}/run.properties
+            echo "time.post.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
             # notify analysts that new results are available
-            ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+            if [[ -e ${ASGS_LOCAL_DIR}/output/${NOTIFY_SCRIPT} ]]; then
+               notifyScriptPath=${ASGS_LOCAL_DIR}/output
+            else
+               notifyScriptPath=${OUTPUTDIR}/output
+            fi
+            ${notifyScriptPath}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
             # archive the files for this scenario
             logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
-            ${SCRIPTDIR}/archive/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
-            DATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
-            echo "time.archive.finish : $DATETIME" >> ${STORMDIR}/run.properties
+            if [[ -e ${ASGS_LOCAL_DIR}/archive/${ARCHIVE} ]]; then
+               archiveScriptPath=${ASGS_LOCAL_DIR}/archive
+            else
+               archiveScriptPath=${SCRIPTDIR}/archive
+            fi
+            ${archiveScriptPath}/${ARCHIVE} $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENVSHORT $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1
+            echo "time.archive.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
          fi
       ) &
       si=$((si + 1))

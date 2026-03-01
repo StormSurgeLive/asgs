@@ -57,6 +57,7 @@ ASGSADMIN=null
 ASGSADMIN_ID=null
 
 # post
+RESULTSROOT="null"   # filesystem root directory where results will be posted
 INITPOST=( null_post.sh )
 #
 #  H O O K S
