@@ -170,12 +170,11 @@ checkFileExistence()
            if [[ $inputExtension == ".xz" ]]; then
                logMessage "$THIS: Uncompressing '${FPATH}/${FNAME}${inputExtension}'."
                consoleMessage "$I Uncompressing '${FNAME}${inputExtension}'."
-               xz -d ${FPATH}/${FNAME}${inputExtension} 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}${inputExtension} : `cat errmsg`." &
+               xz -d ${FPATH}/${FNAME}${inputExtension} 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress '${FPATH}/${FNAME}${inputExtension}'."
            fi
-
         else
            consoleMessage "$W Failed to acquire '${FNAME}${inputExtension}'."
-           logMessage "$THIS: Failed to acquire $FTYPE ${URL}/${FNAME}${inputExtention} to ${FPATH}/${FNAME}${inputExtension}: `cat errmsg`."
+           logMessage "$THIS: Failed to acquire $FTYPE from '${URL}/${FNAME}${inputExtention}' and store it in '${FPATH}/${FNAME}${inputExtension}'."
         fi
      fi
      [[ -e ${FPATH}/${FNAME} ]] && success=yes
