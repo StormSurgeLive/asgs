@@ -152,7 +152,7 @@ checkFileExistence()
            # the mesh, nodal attributes etc are stored in a path
            # mounted locally; not compressed by default
            URL=${URL:7}     # remove the file://
-           downloadCMD="cp $URL/${FNAME} $FPATH/${FNAME} 2>> $SYSLOG"
+           downloadCMD="cp $URL/${FNAME} $FPATH 2>> $SYSLOG"
            inputExtension=""
         else
            # Note: we may wish to in the future add protocols such as: rsync://,
@@ -164,20 +164,18 @@ checkFileExistence()
         # attempt to download the file
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
         consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
-        $downloadCMD
+        "$downloadCMD"
         local err=$?
         if [[ $err == 0 ]]; then
            if [[ $inputExtension == ".xz" ]]; then
                logMessage "$THIS: Uncompressing '${FPATH}/${FNAME}${inputExtension}'."
                consoleMessage "$I Uncompressing '${FNAME}${inputExtension}'."
                xz -d ${FPATH}/${FNAME}${inputExtension} 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}${inputExtension} : `cat errmsg`." &
-               pid=$!
-               spinner 120 $pid
            fi
            [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
         else
-           consoleMessage "$W Failed to download ${FNAME}.xz due to timeout of 900 seconds"
-           logMessage "$THIS: Failed to download $FTYPE (timeout of 900 seconds) from ${URL}/${FNAME}.xz to ${FPATH}/${FNAME}.xz: `cat errmsg`."
+           consoleMessage "$W Failed to acquire '${FNAME}${inputExtension}'."
+           logMessage "$THIS: Failed to acquire $FTYPE ${URL}/${FNAME}${inputExtention} to ${FPATH}/${FNAME}${inputExtension}: `cat errmsg`."
         fi
      fi
   fi
