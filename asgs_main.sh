@@ -165,8 +165,6 @@ checkFileExistence()
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
         consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
         $downloadCMD
-        local pid=$!
-        spinner 900 $pid  # (add way to ADJUST per mesh?) hardcode that it should not take longer than 15 minutes to download in any case
         local err=$?
         if [[ $err == 0 ]]; then
            if [[ $inputExtension == ".xz" ]]; then
