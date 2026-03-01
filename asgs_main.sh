@@ -136,23 +136,23 @@ checkFileExistence()
         local inputExtension=".xz"
         if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
            logMessage "$THIS: The curl version is $(curl --version)"
-           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz 2>> $SYSLOG &"
+           downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
         elif [[ $URL =~ "scp://" ]]; then
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz 2>> $SYSLOG"
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         elif [[ $URL =~ "ssh://" ]]; then
            # Note: this is currently using scp under the hood, if for some reason
            # scp is deprecated in favor using ssh directly, it would replace the
            # following lines to build up the command
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
-           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz 2>> $SYSLOG"
+           downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
         elif [[ $URL =~ "file://" ]]; then
            # the mesh, nodal attributes etc are stored in a path
            # mounted locally; not compressed by default
            URL=${URL:7}     # remove the file://
-           downloadCMD="cp $URL/${FNAME} $FPATH 2>> $SYSLOG"
+           downloadCMD="cp $URL/${FNAME} $FPATH"
            inputExtension=""
         else
            # Note: we may wish to in the future add protocols such as: rsync://,
@@ -164,20 +164,21 @@ checkFileExistence()
         # attempt to download the file
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
         consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
-        "$downloadCMD"
+        "$downloadCMD" 2>> $SYSLOG
         local err=$?
-        if [[ $err == 0 ]]; then
+        if [[ $err -eq 0 ]]; then
            if [[ $inputExtension == ".xz" ]]; then
                logMessage "$THIS: Uncompressing '${FPATH}/${FNAME}${inputExtension}'."
                consoleMessage "$I Uncompressing '${FNAME}${inputExtension}'."
                xz -d ${FPATH}/${FNAME}${inputExtension} 2> errmsg 2>&1 || warn "$THIS: Failed to uncompress ${FPATH}/${FNAME}${inputExtension} : `cat errmsg`." &
            fi
-           [[ -e ${FPATH}/${FNAME} ]] && success=yes || success=no
+
         else
            consoleMessage "$W Failed to acquire '${FNAME}${inputExtension}'."
            logMessage "$THIS: Failed to acquire $FTYPE ${URL}/${FNAME}${inputExtention} to ${FPATH}/${FNAME}${inputExtension}: `cat errmsg`."
         fi
      fi
+     [[ -e ${FPATH}/${FNAME} ]] && success=yes
   fi
   if [[ $success == no ]]; then
      fatal "$THIS: The $FTYPE '${FPATH}/${FNAME}' does not exist."
