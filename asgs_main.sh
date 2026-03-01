@@ -164,7 +164,7 @@ checkFileExistence()
         # attempt to download the file
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
         consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
-        "$downloadCMD" 2>> $SYSLOG
+        $downloadCMD 2>> $SYSLOG
         local err=$?
         if [[ $err -eq 0 ]]; then
            if [[ $inputExtension == ".xz" ]]; then
@@ -174,7 +174,7 @@ checkFileExistence()
            fi
         else
            consoleMessage "$W Failed to acquire '${FNAME}${inputExtension}'."
-           logMessage "$THIS: Failed to acquire $FTYPE from '${URL}/${FNAME}${inputExtention}' and store it in '${FPATH}/${FNAME}${inputExtension}'."
+           logMessage "$THIS: Failed to acquire $FTYPE from '${URL}/${FNAME}${inputExtension}' and store it in '${FPATH}/${FNAME}${inputExtension}'."
         fi
      fi
      [[ -e ${FPATH}/${FNAME} ]] && success=yes
