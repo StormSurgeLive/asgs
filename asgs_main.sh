@@ -98,7 +98,7 @@ checkFileExistence()
         logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was found."
         success=yes
      else
-        logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was not found. Attempting to download it."
+        logMessage "$THIS: The $FTYPE '${FPATH}/${FNAME}' was not found."
         # If this is a mesh (fort.14), nodal attributes (fort.13), static water level correction,
         # or self attracting / earth load tide (fort.24) file, attempt to download and uncompress it.
         # If the URL starts with "scp://" then the Operator's ssh configuration must support
@@ -128,39 +128,61 @@ checkFileExistence()
            "ADCIRC self attracting earth load tide file")
               URL=$LOADTIDEURL
               ;;
+           "postprocessing initialization script"| \
+           "postprocessing script"               | \
+           "email notification script"           | \
+           "data archival script")
+              URL=$ASGS_LOCAL_DIR     # see if it is a local asset
+              ;;
            *) warn "$THIS: Unrecognized file type to download: '$FTYPE'."
               URL="unknown"
               ;;
         esac
         local downloadCMD
         local inputExtension=".xz"
-        if [[ $URL =~ "http://" || $URL =~ "https://" ]]; then
+        case $URL in
+        http://*|https://*)
            logMessage "$THIS: The curl version is $(curl --version)"
            downloadCMD="curl --insecure ${URL}/${FNAME}.xz --output ${FPATH}/${FNAME}.xz"
-        elif [[ $URL =~ "scp://" ]]; then
+           ;;
+        scp://*)
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
-        elif [[ $URL =~ "ssh://" ]]; then
+           ;;
+        ssh://*)
            # Note: this is currently using scp under the hood, if for some reason
            # scp is deprecated in favor using ssh directly, it would replace the
            # following lines to build up the command
            URL=${URL:6}     # remove the scp://
            URL=${URL/\//:}  # replace the / between the host and the path with a :
            downloadCMD="scp $URL/${FNAME}.xz $FPATH/${FNAME}.xz"
-        elif [[ $URL =~ "file://" ]]; then
+           ;;
+        file://*)
            # the mesh, nodal attributes etc are stored in a path
            # mounted locally; not compressed by default
            URL=${URL:7}     # remove the file://
            downloadCMD="cp $URL/${FNAME} $FPATH"
            inputExtension=""
-        else
+           ;;
+        $ASGS_LOCAL_DIR)
+           # replace $SCRIPTDIR with $ASGS_LOCAL_DIR in the path provided
+           localDir=${FDIR//$SCRIPTDIR\//$ASGS_LOCAL_DIR/}
+           if [[ -d $ASGS_LOCAL_DIR && -e $localDir/$FNAME ]]; then
+              logMessage "$THIS: The $FTYPE '${FNAME}' file was found in the local assets directory '$ASGS_LOCAL_DIR'."
+              return
+           else
+              fatal "$THIS: The $FTYPE '${FNAME}' file was not found in the local assets directory '$ASGS_LOCAL_DIR' either."
+           fi
+           ;;
+        *)
            # Note: we may wish to in the future add protocols such as: rsync://,
            # s3://, etc - if so, support for building the underlying command would
            # go here, and be stored in "$downloadCMD"
            warn "$THIS: Unrecognized protocol in URL: '$URL'. If you need this supported create a new issue on Github"
            downloadCMD="unknown"
-        fi
+           ;;
+        esac
         # attempt to download the file
         logMessage "$THIS: Acquiring $FTYPE from ${URL}/${FNAME}${inputExtension} with the command '$downloadCMD'."
         consoleMessage "$I Acquiring '$URL/${FNAME}${inputExtension}' ..."
