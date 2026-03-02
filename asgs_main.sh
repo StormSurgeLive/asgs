@@ -167,12 +167,12 @@ checkFileExistence()
            ;;
         $ASGS_LOCAL_DIR)
            # replace $SCRIPTDIR with $ASGS_LOCAL_DIR in the path provided
-           localDir=${FDIR//$SCRIPTDIR\//$ASGS_LOCAL_DIR/}
+           localDir=${FPATH//$SCRIPTDIR\//$ASGS_LOCAL_DIR/}
            if [[ -d $ASGS_LOCAL_DIR && -e $localDir/$FNAME ]]; then
-              logMessage "$THIS: The $FTYPE '${FNAME}' file was found in the local assets directory '$ASGS_LOCAL_DIR'."
+              logMessage "$THIS: The $FTYPE '${FNAME}' file was found in the local assets directory '$localDir'."
               return
            else
-              fatal "$THIS: The $FTYPE '${FNAME}' file was not found in the local assets directory '$ASGS_LOCAL_DIR' either."
+              fatal "$THIS: The $FTYPE '${FNAME}' file was not found in the local assets directory '$localDir' either."
            fi
            ;;
         *)
