@@ -3273,7 +3273,7 @@ while [ true ]; do
                if [[ -e ${ASGS_LOCAL_DIR}/output/$script ]]; then
                   postProcessScriptPath=${ASGS_LOCAL_DIR}/output
                else
-                  postProcessScriptPath=${OUTPUTDIR}/output
+                  postProcessScriptPath=${OUTPUTDIR}
                fi
                com="${postProcessScriptPath}/$script $CONFIG $ADVISDIR $STORM $YEAR $ADVISORY $HPCENV $ENSTORM $CSDATE $HSTIME $GRIDFILE $OUTPUTDIR $SYSLOG $SSHKEY >> ${SYSLOG} 2>&1"
                $com
@@ -3283,7 +3283,7 @@ while [ true ]; do
             if [[ -e ${ASGS_LOCAL_DIR}/output/${NOTIFY_SCRIPT} ]]; then
                notifyScriptPath=${ASGS_LOCAL_DIR}/output
             else
-               notifyScriptPath=${OUTPUTDIR}/output
+               notifyScriptPath=${OUTPUTDIR}
             fi
             ${notifyScriptPath}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
             # archive the files for this scenario
