@@ -24,15 +24,16 @@
 #--------------------------------------------------------------
 use strict;
 use warnings;
-use Net::FTP;
 use JSON::PP;
 use Getopt::Long;
 use Date::Calc;
 use File::Basename;
 use File::Copy qw/move copy/;
 use File::Path 'make_path';
+use HTTP::Tiny;
 use Cwd;
 use ASGSUtil;
+
 my $startcycle = "null"; # most recent cycle for which a nowcast was completed
 my $finishcycle = "null"; # nowcast end (meaningless in the forecast stage)
 my $selectfile = "null";  # array of cycles to download
@@ -53,6 +54,8 @@ my $ncepcycles = "forcing.nam.ncep.cyclelist";
 my @grib_fields = ( "PRMSL","UGRD:10 m above ground","VGRD:10 m above ground" );
 my @cyclelist;
 #
+my $ua = HTTP::Tiny->new;
+
 GetOptions(
            "stage=s" => \$stage,
            "startcycle=s" => \$startcycle,
@@ -74,7 +77,7 @@ my @json_cyclelist = @$cyclelistref;
 # already provided on the command line
 # also set reasonable defaults
 ASGSUtil::setParameter( $jshash_ref, \$backsite,
-                        "siteHost", "ftp.ncep.noaa.gov");
+                        "siteHost", "nomads.ncep.noaa.gov");
 ASGSUtil::setParameter( $jshash_ref, \$backdir,
                         "siteDir", "/pub/data/nccf/com/nam/prod");
 ASGSUtil::setParameter( $jshash_ref, \$stage,
@@ -147,23 +150,7 @@ ASGSUtil::appMessage(
           "DEBUG",
           "Connecting to $backsite:$backdir");
 my $dl = 0;   # number of files successfully downloaded
-# open ftp connection
-my $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1);
-unless ( defined $ftp ) {
-   ASGSUtil::stderrMessage(
-             "ERROR",
-             "ftp: Cannot connect to $backsite: $@");
-   die;
-}
-my $ftpLoginSuccess = $ftp->login("anonymous",'-anonymous@');
-unless ( $ftpLoginSuccess ) {
-   ASGSUtil::stderrMessage(
-             "ERROR",
-             "ftp: Cannot login: " . $ftp->message);
-   die;
-}
-# switch to binary mode
-$ftp->binary();
+
 #
 #    N O W C A S T    D A T A
 #
@@ -222,14 +209,7 @@ if ( $stage eq "NOWCAST" ) {
       ASGSUtil::stderrMessage(
                 "INFO",
                 "Downloading from directory '$backdir/$remoteDir'.");
-      my $hcDirSuccess = $ftp->cwd("$backdir/$remoteDir");
-      unless ( $hcDirSuccess ) {
-         ASGSUtil::stderrMessage(
-                   "ERROR",
-                   "ftp: Cannot change working directory to '$backdir/$remoteDir': " .
-                   $ftp->message);
-         die;
-      }
+
       # create the directory local to this ASGS instance where the
       # files will be stored (if it does not already exist)
       #
@@ -253,7 +233,7 @@ if ( $stage eq "NOWCAST" ) {
       my $fbase = "nam.t".$hourString."z.awip1200.tm00";
       my $f = $fbase . ".grib2";
       my $idxfile = $f . ".idx";
-      #my $success = $ftp->get($f,$localDir."/".$f);
+
       # don't want to re-download stuff
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
@@ -360,14 +340,7 @@ if ( $stage eq "FORECAST" ) {
    ASGSUtil::appMessage(
              "INFO",
              "Downloading from directory '$backdir/$remoteDir'.");
-   my $hcDirSuccess = $ftp->cwd("$backdir/$remoteDir");
-   unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage(
-                "ERROR",
-                "ftp: Cannot change working directory to '$backdir/$remoteDir': " .
-                $ftp->message);
-      die;
-    }
+
    # forecast files are the list of files to retrieve
    for (my $i=0; $i<=$forecastlength; $i+=3 ) {
       my $hourString = sprintf("%02d",$cyclehour);
@@ -405,7 +378,7 @@ if ( $stage eq "FORECAST" ) {
       my $idxfile = $f . ".idx";
       while ( $success == 0 && $num_retries < $max_retries ) {
          my $stat = partialGribDownload($dirDate, $f, $idxfile, $localDir);
-         # my $stat = $ftp->get($f,$localDir."/".$f);
+
          if ( $stat == 0 ) {
             push(@files_downloaded,"$localDir/$f");
             $dl++;
@@ -414,12 +387,7 @@ if ( $stage eq "FORECAST" ) {
                       "INFO",
                       "Downloaded in $num_retries attempt(s).");
          } else {
-            ASGSUtil::stderrMessage(
-                      "INFO",
-                      "ftp: Get '$f' failed: " .
-                      $ftp->message);
-            $num_retries++;
-            #ASGSUtil::stderrMessage("DEBUG","num_retries is $num_retries");
+            ASGSUtil::stderrMessage("DEBUG","num_retries is $num_retries");
             sleep 60;
          }
       }
@@ -466,6 +434,7 @@ if ( $stage eq "FORECAST" ) {
 #
 # perform partial grib download using curl
 # only gets the U, V, P at mean sea level
+#
 sub partialGribDownload {
    my ( $dirDate, $f, $idxfile, $localDir ) = @_;
    #--------------------------------------------------------
@@ -478,17 +447,20 @@ sub partialGribDownload {
    ASGSUtil::appMessage(
              "DEBUG",
              "Downloading '$idx' with the command 'curl -f -s $idx -o $localDir/$idxfile'.");
-   my $err=system("curl -f -s $idx -o $localDir/$idxfile");
-   if ( $err != 0 ) {
-      ASGSUtil::stderrMessage(
-                "INFO",
-                "curl: Get '$idx' failed.");
-      unlink("$localDir/$idxfile");
-      return $err;
+
+   my $response = $ua->mirror($idx, "$localDir/$idxfile");
+   my $err = $response->{success} ? 0 : $response->{status};
+  
+   if ($err != 0) {
+       ASGSUtil::stderrMessage(
+           "INFO",
+           "HTTP::Tiny: Get '$idx' failed: $response->{status} $response->{reason}"
+       );
+       unlink("$localDir/$idxfile");
+       return $err;
    }
+
    # download directly into list
-   #ASGSUtil::stderrMessage("INFO","Downloading '$idx' with the command 'curl -f -s $idx'.");
-   #my @gribInventoryLines = `curl -f -s $idx`; # the grib inventory file from the ftp site
    my @rangeLines;    # inventory with computed ranges
    my $last = 0;      # number of immediately preceding lines with same starting byte index
    my $lastnum = -1;  # starting byte range of previous line (or lines if there are repeats)

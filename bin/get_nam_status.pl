@@ -23,7 +23,6 @@
 #--------------------------------------------------------------
 use strict;
 use warnings;
-use Net::FTP;
 use HTTP::Tiny;
 use Getopt::Long;
 use JSON::PP;
@@ -31,8 +30,8 @@ use Cwd;
 use ASGSUtil;
 #
 my $startcycle = "null";  # optional arg that indicates start of range of interest
-my $backsite = "null";          # ncep ftp site for nam data
-my $backdir = "null"; # dir on ncep ftp site
+my $backsite = "null";          # ncep site for nam data
+my $backdir = "null"; # dir on ncep site
 my @cyclerange; # if $startcycle was supplied this array will be populated with a range of cycles from startcycle or earliest available to the latest
 #
 my $ncepcycles = "cyclelist";
@@ -49,7 +48,6 @@ GetOptions(
 {
     my $ua = HTTP::Tiny->new;
 
-    # replaces the $ftp->ls for files, looks only for nam.* files
     sub http_ls {
         my $dir = shift;
         my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s/ls-l}, $dir );
@@ -62,7 +60,6 @@ GetOptions(
         return @files;
     }
 
-    # replaces the $ftp->ls for directory listings, extracts from the HTML listing
     sub http_dir {
         my $dir = shift;
         my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s}, $dir );
@@ -85,7 +82,7 @@ my $jshash_ref = JSON::PP->new->decode($file_content);
 # grab config info and use it if it was not
 # already provided on the command line
 # also set reasonable defaults
-ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "ftp.ncep.noaa.gov");
+ASGSUtil::setParameter( $jshash_ref, \$backsite,  "siteHost", "nomads.ncep.noaa.gov");
 ASGSUtil::setParameter( $jshash_ref, \$backdir,   "siteDir",  "/pub/data/nccf/com/nam/prod");
 # use values from JSON if they were provided
 $jshash_ref->{"siteHost"} = $backsite;
@@ -152,35 +149,12 @@ if ( $startcycle eq "null" && $jshash_ref ) {
 #
 ASGSUtil::appMessage( "DEBUG", "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
-# open ftp connection
-our $ftp = Net::FTP->new($backsite, Debug => 0, Passive => 1, Timeout => 120);
-unless ( defined $ftp ) { ASGSUtil::stderrMessage("ERROR", "ftp: Cannot connect to $backsite: $@");
-   exit 1;
-}
-my $ftpLoginSuccess = eval{ $ftp->login("anonymous",'-anonymous@') };
-unless ( $ftpLoginSuccess ) {
-   ASGSUtil::stderrMessage("ERROR", "ftp: Cannot login: " . $ftp->message);
-   exit 1;
-}
-# switch to binary mode
-$ftp->binary();
-# cd to the directory containing the NAM files
-my $hcDirSuccess = eval { $ftp->cwd($backdir) };
-unless ( $hcDirSuccess ) {
-   ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir': " .  $ftp->message);
-   exit 1;
-}
-#
-# now go to the ftp site and
-# get the list of nam dates where data is available
-# and report latest data available on the site
-# directory entries are named e.g., nam.20220111
 
 local $@;
-my @ncepDirs = eval { http_dir($ftp->pwd) }; # gets all the current data dirs, incl. nam dirs
+my @ncepDirs = eval { http_dir($backdir) }; # gets all the current data dirs, incl. nam dirs
 if ($@) {
-   my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-   ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list NCEP directories: } . $msg);
+   my $msg = ($@ =~ m/timeout/i) ? q{[HTTP::Tiny] Timeout} : $@;
+   ASGSUtil::stderrMessage("ERROR", q{http: Cannot list NCEP directories: } . $msg);
    exit 1;
 }
 
@@ -214,23 +188,19 @@ if ( $startcycle ne "null" ) {
    for ( my $i=0; $i<$numbefore; $i++ ) {
       shift(@sortedNamDirs);
    }
-} else {
+}
+else {
    # startcycle was not specified, so find the
    # first date and time that data are available
    $sortedNamDirs[0] =~ /nam.(\d{10})/;
    $startdate = $1;
-   # change to that directory and see if there are files in there
-   $hcDirSuccess = eval { $ftp->cwd("$backdir/$sortedNamDirs[0]") };
-   unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$sortedNamDirs[0]': " .  $ftp->message);
-      exit 1;
-   }
-   #my @allFiles = http_ls($ftp->pwd);
+
    local $@;
-   my @earliestFiles = eval { grep /awip1200.tm00/, http_ls($ftp->pwd) };
+   my @earliestFiles = eval { grep /awip1200.tm00/, http_ls("$backdir/$sortedNamDirs[0]") };
+
    if ($@) {
-     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "earliest" files: } . $msg);
+     my $msg = ($@ =~ m/timeout/i) ? q{[HTTP::Tiny] Timeout} : $@;
+     ASGSUtil::stderrMessage("ERROR", q{http: Cannot list "earliest" files: } . $msg);
      exit 1;
    }
 
@@ -261,19 +231,12 @@ LATESTDIR : while ( ! $targetDirFound && scalar(@sortedNamDirs) != 0 ) {
    $targetDir =~ /nam.(\d+)/;
    $cycledate = $1;
    ASGSUtil::appMessage("DEBUG", "The cycledate is '$cycledate'.");
-   # change to that directory and see if there are files in there
-   $hcDirSuccess = eval { $ftp->cwd("$backdir/$targetDir") };
-   unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage("ERROR", "ftp: Cannot change working directory to '$backdir/$targetDir': " . $ftp->message);
-      exit 1;
-   }
-   #my @allFiles = $ftp->ls();
 
    local $@;
-   my @allFiles = eval { grep /awip1200.tm00/, http_ls($ftp->pwd) };
+   my @allFiles = eval { grep /awip1200.tm00/, http_ls("$backdir/$targetDir") };
    if ($@) {
-     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
+     my $msg = ($@ =~ m/timeout/i) ? q{[HTTP::Tiny] Timeout} : $@;
+     ASGSUtil::stderrMessage("ERROR", q{http: Cannot list "all" files: } . $msg);
      exit 1;
    }
 
@@ -314,20 +277,14 @@ unless ( $cyclehour ne "null" ) {
 my @cyclesInRange; # between startcycle and the latest
 DIRECTORIES : foreach my $dir (@sortedNamDirs) {
    # cd to the directory containing the NAM directories
-   my $hcDirSuccess = eval { $ftp->cwd("$backdir/$dir") };
-   unless ( $hcDirSuccess ) {
-      ASGSUtil::stderrMessage( "ERROR", "ftp: Cannot change working directory to '$backdir/$dir': " .
-                $ftp->message);
-      exit 1;
-   }
    $dir =~ /nam.(\d+)/;
    my $thisdate = $1;
 
    local $@;
-   my @allFiles = eval { grep /awip1200.tm00/, http_ls($ftp->pwd) };
+   my @allFiles = eval { grep /awip1200.tm00/, http_ls("$backdir/$dir") };
    if ($@) {
-     my $msg = ($@ =~ m/timeout/i) ? q{[Net::FTP] Timeout} : $@;
-     ASGSUtil::stderrMessage("ERROR", q{ftp: Cannot list "all" files: } . $msg);
+     my $msg = ($@ =~ m/timeout/i) ? q{[HTTP::Tiny] Timeout} : $@;
+     ASGSUtil::stderrMessage("ERROR", q{http: Cannot list "all" files: } . $msg);
      exit 1;
    }
 
