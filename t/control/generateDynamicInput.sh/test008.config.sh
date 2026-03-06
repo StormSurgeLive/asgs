@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  T E S T   0 0 6
+#  T E S T   0 0 8
 #
 # Description: Shinnecock Inlet with default parameter package
 # (not hardcoded into template) nowcast with GAHM
@@ -20,6 +20,9 @@ source ${SCRIPTDIR}/config/forcing_defaults.sh
 source $SCRIPTDIR/generateDynamicInput.sh
 #
 # dynamic input
+GRIDNAME=Shinnecock
+parameterPackage="default"
+source $SCRIPTDIR/config/mesh_defaults.sh
 CSDATE=2024010100
 HINDCASTLENGTH=2.0
 HSTIME=172800.0 # 2 days
@@ -30,11 +33,6 @@ ADVISORY=1
 BASENWS=20
 NWS=20
 WAVES="off"
-storm_name="TESTVORTEX" # <---<< FIXME: this is not populated in asgs_main.sh
-GRIDNAME=Shinnecock
-parameterPackage="default"
-source $SCRIPTDIR/config/mesh_defaults.sh
-NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 # specify namelist parameters
 CONTROLTEMPLATE=shinnecock.15.2026.1.template
 metControl["WindDragLimit"]="0.003"   # max wind drag coefficient, unitless
@@ -56,6 +54,8 @@ SWANOutputControl["write_SWAN_OutputTM02"]="yes"
 metControl["write_WindDragLimit"]="yes"
 metControl["write_DragLawString"]="yes"
 metControl["write_outputWindDrag"]="yes"
-waveCoupling["WaveWindMultiplier"]="yes"
+waveCoupling["write_WaveWindMultiplier"]="yes"
 waveCoupling["write_Limit_WaveStressGrad"]="yes"
 waveCoupling["write_WaveStressGrad_Cap"]="yes"
+STORMNAME="TESTVORTEX"
+test_adcirc_version="v56.0.4"  # needed because v53release does not support certain namelist parameters

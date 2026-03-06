@@ -1,48 +1,49 @@
- ASGS cs:20240101000000 cy:TESTVORTEX1
+ ASGS TEMPLATE15:2026.1 cs:20240101000000 cy:TESTVORTEX1 ADCIRCVersion:v56.0.4
  24 hour nowcast run
- 1                            ! NFOVER - NONFATAL ERROR OVERRIDE OPTION
- 1                            ! NABOUT - ABREVIATED OUTPUT OPTION PARAMETER
--1000   ! output frequency (in time steps) to STDOUT or adcirc.log
- 568                       ! IHOT - HOT START OPTION PARAMETER
- 2                            ! ICS - COORDINATE SYSTEM OPTION PARAMETER
- 0                            ! IM - MODEL RUN TYPE: 0=2DDI, 1=3DL(VS), 2=3DL(DSS)
- 2                            ! NOLIBF - NONLINEAR BOTTOM FRICTION OPTION
- 2                            ! NOLIFA - OPTION TO INCLUDE FINITE AMPLITUDE TERMS
- 1                   ! NOLICA - OPTION TO INCLUDE CONVECTIVE ACCELERATION TERMS
- 1             ! NOLICAT - OPTION TO CONSIDER TIME DERIVATIVE OF CONV ACC TERMS
- 0       ! NWP - VARIABLE BOTTOM FRICTION AND LATERAL VISCOSITY OPTION PARAMETER
- 1                       ! NCOR - VARIABLE CORIOLIS IN SPACE OPTION PARAMETER
- 1                       ! NTIP - TIDAL POTENTIAL OPTION PARAMETER
- 20             ! NWS - WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER
- 1                         ! NRAMP - RAMP FUNCTION OPTION
- 9.81                       ! G - ACCELERATION DUE TO GRAVITY - DETERMINES UNITS
- 0.005                                    ! TAU0 - WEIGHTING FACTOR IN GWCE
- 6.0                                     ! DT - TIME STEP (IN SECONDS)
- 0.00                  ! STATIM - STARTING SIMULATION TIME IN DAYS
-0.00   ! REFTIME - REFERENCE TIME (IN DAYS) 
- 2024 01 01 00 1 0.9 1   ! WTIMINC (Not used if NWS=9) 
- 3                        ! RNDAY - TOTAL LENGTH OF SIMULATION (IN DAYS)
- 2.0                    ! DRAMP - DURATION OF RAMP FUNCTION (IN DAYS)
- 0.35  0.30  0.35           ! TIME WEIGHTING FACTORS FOR THE GWCE EQUATION
- 0.05 12 12 0.02             ! H0 - MINIMUM CUTOFF DEPTH
- -72.43 40.66                ! SLAM0,SFEA0
- 0.0025  1.0  10.  0.33333   ! FFACTOR, HBREAK, FTHETA, FGAMMA 
- 5.0                      ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT
- 0.00010                  ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
- 5                     ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BE
-M2                     ! ALPHANUMERIC DESCRIPTION
+ 1    ! %NFOVER-Line%
+ 1    ! %NABOUT-Line%
+ -1000   ! %NSCREEN-Line%
+ 568      ! %IHOT-Line%
+ 2           ! %ICS-Line%
+ 111111        ! %IM-Line%
+ 2           ! %NOLIBF-Line%
+ 2           ! %NOLIFA-Line%
+ 1    ! %NOLICA-Line%
+ 1   ! %NOLICAT-Line%
+ 1        ! %NWP-Line%
+sea_surface_height_above_geoid
+ 1           ! %NCOR-Line%
+ 1           ! %NTIP-Line%
+ 20       ! %NWS-Line%
+ 1           ! %NRAMP-Line%
+ 9.81        ! %G-Line%
+ 0.005       ! %TAU0-Line%
+ 6.0        ! %DTDP-Line%
+ 0.00        ! %STATIM-Line%
+ 0.00        ! %REFTIM-Line%
+ 2024 01 01 00 1 0.9 1   ! %WTIMINC-Line%
+ 3     ! %RNDAY-Line%
+ 2.0         ! %DRAMP-Line%
+ 0.35 0.3 0.35 ! %A00B00C00-Line%
+ 0.05 12 12 0.02         ! %H0-Line%
+ -72.43 40.66                ! %SLAM0-Line%
+ 0.0025 1.0  10.  0.33333 ! %FFACTOR-Line%
+ 5.0                      ! %ESLM-Line%
+ 0.00010                     ! %CORI-Line%
+ 5 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test008.actual.syslog.log'. %NTIF-Line%
+M2
  0.242334  1.405174E-004 0.693000  0.96555  247.47
-N2                                                       ! ALPHANUMERIC DESCRIPTION
+N2
  0.046398  1.378783E-004 0.693000  0.96555  71.31
-S2                                                       ! ALPHANUMERIC DESCRIPTION
+S2
  0.112841  1.454426E-004 0.693000  1.00000  0.00
-K1                                                       ! ALPHANUMERIC DESCRIPTION
+K1
  0.141565  7.292040E-005 0.736000  1.10726  7.41
-O1                                                       ! ALPHANUMERIC DESCRIPTION
+O1
  0.100514  6.759704E-005 0.695000  1.17401  241.17
- 5                                        ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
- M2                                       ! BOUNTAG - ALPHA DESCRIPTOR OF FORCING FREQUENCY ON NEXT LINE
-      0.000140518902509   0.96555  247.47   ! CONST. FREQ. (Hz*2*pi), NODAL FACTOR, EQUIL. ARG.
+ 5 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test008.actual.syslog.log'. %NBFR-Line%
+ M2
+      0.000140518902509   0.96555  247.47
  N2
       0.000137879699487  0.96555  71.31
  S2
@@ -51,7 +52,7 @@ O1                                                       ! ALPHANUMERIC DESCRIPT
       0.000072921158358  1.10726  7.41
  O1
       0.000067597744151  1.17401  241.17
- M2                                       ! AMPLITUDE AND PHASE (IN DEGREES) OF HARMONIC FORCING FUNCTION
+ M2
    0.44836049  343.380
    0.44938938  343.532
    0.45035859  343.680
@@ -431,40 +432,57 @@ O1                                                       ! ALPHANUMERIC DESCRIPT
    0.05380042  184.054
    0.05377795  184.050
    0.05375799  184.047
- 90.0             ! ANGINN : INNER ANGLE THRESHOLD
- 5 0.0 999.0 50         ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT (UNIT 61)
+ 90.0                 ! %ANGINN-Line%
+ 5 0.0 999.0 50             ! %NOUTE-Line%
  3 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/shinnecock/shinnecock_stations.txt NSTAE
 -72.537491 40.840000  ! Shinnecock Bay
 -72.476286 40.841489  ! Shinnecock Inlet
--72.466796 40.778291  ! Shinnecock Open Water   ! NSTAE 
- 0 0.0 999.0 99999         ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT (UNIT 62)
+-72.466796 40.778291  ! Shinnecock Open Water    ! %NSTAE-Line%
+ 0 0.0 999.0 99999             ! %NOUTV-Line%
  3 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/shinnecock/shinnecock_stations.txt NSTAV
 -72.537491 40.840000  ! Shinnecock Bay
 -72.476286 40.841489  ! Shinnecock Inlet
--72.466796 40.778291  ! Shinnecock Open Water    ! NSTAV - TOTAL NUMBER OF VELOCITY RECORDING STATIONS
- 5 0.0 999.0 50       ! NOUTM,TOUTSM,TOUTFM,NSPOOLM:MET STATION OUTPUT (UNITS 71/72)
+-72.466796 40.778291  ! Shinnecock Open Water     ! %NSTAV-Line%
+ 5 0.0 999.0 50           ! %NOUTM-Line%
  3 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/shinnecock/shinnecock_stations.txt NSTAM
 -72.537491 40.840000  ! Shinnecock Bay
 -72.476286 40.841489  ! Shinnecock Inlet
--72.466796 40.778291  ! Shinnecock Open Water ! NSTAM - TOTAL NUMBER OF MET RECORDING STATIONS
- 5 0.0 999.0 600         ! NOUTGE,TOUTSGE,TOUTFGE,NSPOOLGE : GLOBAL ELEVATION OUTPUT INFO (UNIT 63)
- 5 0.0 999.0 600         ! NOUTGV,TOUTSGV,TOUTFGV,NSPOOLGV : GLOBAL VELOCITY OUTPUT INFO (UNIT 64)
- 5 0.0 999.0 600       ! NOUTGW,TOUTSGW,TOUTFGW,NSPOOLGW : GLOBAL MET OUTPUT INFO (UNIT 73 and 74)
- 0                                        ! NHARF - NUMBER OF FREQENCIES IN HARMONIC ANALYSIS
- 0.0 0.0 0 0.0                            ! THAS,THAF,NHAINC,FMV - HARMONIC ANALYSIS PARAMETERS
- 0 0 0 0                                  ! NHASE,NHASV,NHAGE,NHAGV - CONTROL HARMONIC ANALYSIS AND OUTPUT TO UNITS 51,52,53,54
- 5  43200     ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS
- 1 0 1.0E-7 25                           ! ITITER, ISLDIA, CONVCR, ITMAX - ALGEBRAIC SOLUTION PARAMETERS
-Shinnecock ASGS 
-Seahorse Coastal Consulting
+-72.466796 40.778291  ! Shinnecock Open Water     ! %NSTAM-Line%
+ 5 0.0 999.0 600             ! %NOUTGE-Line%
+ 5 0.0 999.0 600             ! %NOUTGV-Line%
+ 5 0.0 999.0 600           ! %NOUTGW-Line%
+ 0                    ! %NHARF-Line%
+ 0.0 0.0 0 0.0        ! %THAS-Line%
+ 0 0 0 0              ! %NHASE-Line%
+ 5  43200   ! %NHSTAR-Line%
+ 1 0 1.0E-7 25 ! %ITITER-Line%
 ASGS
-NONE
-http://www.seahorsecoastal.com
-Model time is relative to UTC.
-desktop
+Seahorse Consulting
+ADCIRC
+ASGS Workflow
+https://doi.org/10.1061/40990(324)48
+Trusted since 2006.
+www.seahorsecoastal.com
 CF
-jason.fleming@seahorsecoastal.com
+jason.fleming@adcirc.live
 2024-01-01 00:00:00
-&inundationOutputControl inundationOutput=.true. inunThresh=0.6 /
-%offsetline%
+!
+! namelists:
+&metControl 
+   WindDragLimit=0.003,
+   DragLawString=garratt,
+   outputWindDrag=F,
+/
 
+&wetDryControl 
+   StatPartWetFix=T,
+   windlim=T,
+/
+
+&inundationOutputControl inundationOutput=F, inunThresh=0.6 /
+&SWANOutputControl SWAN_OutputTPS=T, SWAN_OutputTM01=T, SWAN_OutputHS=T, SWAN_OutputDIR=T, SWAN_OutputTMM10=T, SWAN_OutputTM02=T /
+&WaveCoupling
+   WaveWindMultiplier=1.0,
+   Limit_WaveStressGrad=F,
+   WaveStressGrad_Cap=0.1,
+/

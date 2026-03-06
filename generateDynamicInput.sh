@@ -102,6 +102,11 @@ generateDynamicInput()
             layerWaves="off"
         fi
         # record adcirc version support (according to config/mesh_defaults.sh)
+        if [[ $TEST == "unit" ]]; then
+            ADCIRCVERSION=$test_adcirc_version # defined in the test config
+        else
+            ADCIRCVERSION=$(adcirc -v)
+        fi
         avs="" ;
         for v in ${adcircVersions[*]}; do
         avs+=" \'$v\', "
@@ -111,7 +116,7 @@ generateDynamicInput()
         sed \
         -e "s/%GRIDNAME%/$GRIDNAME/" \
         -e "s?%CONTROLTEMPLATE%?$controlTemplate?" \
-        -e "s/%ADCIRCVER%/$(adcirc -v)/" \
+        -e "s/%ADCIRCVER%/$ADCIRCVERSION/" \
         -e "s/%adcircVersions%/$avs/" \
         -e "s/%CSDATE%/$CSDATE/" \
         -e "s/%HSTIME%/$HSTIME/" \

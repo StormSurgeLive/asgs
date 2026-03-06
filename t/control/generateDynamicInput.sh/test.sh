@@ -20,6 +20,13 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
+# One Liners:
+# 1. Collect diffs for failed tests:
+# for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
+# 2. Fix tests to reflect new expectations:
+# for f in $(ls test???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#----------------------------------------------------------------
+#
 # Test Descriptions:
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
 #
@@ -82,6 +89,7 @@ for g in $(ls *expected*) ; do
 done
 echo "Results: $pass tests passed. $fail tests failed."
 if [[ $fail -gt 0 ]]; then
+   echo "Failed:"
    for t in ${actualFails[@]}; do
       echo $t
    done

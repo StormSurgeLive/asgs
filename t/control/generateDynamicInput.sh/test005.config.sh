@@ -19,6 +19,10 @@ source ${SCRIPTDIR}/config/forcing_defaults.sh
 source $SCRIPTDIR/generateDynamicInput.sh
 #
 # dynamic input
+GRIDNAME=EGOMv20b
+parameterPackage="default"
+source $SCRIPTDIR/config/mesh_defaults.sh
+NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 CSDATE=2024010100
 HINDCASTLENGTH=2.0
 HSTIME=172800.0 # 2 days
@@ -29,11 +33,6 @@ ADVISORY=1
 BASENWS=20
 NWS=20
 WAVES="on"
-storm_name="TESTVORTEX" # <---<< FIXME: this is not populated in asgs_main.sh
-GRIDNAME=EGOMv20b
-parameterPackage="default"
-source $SCRIPTDIR/config/mesh_defaults.sh
-NAFILE=EGOM-RT_v20b_asgs_chk_header.13.template # avoid handling the whole nodal attributes file
 NWS=320
 HOTSWAN=on
 # turn off output except for fulldomain water surface elevation
@@ -43,3 +42,5 @@ fort63["format"]="netcdf4"
 fort7172["format"]="off"
 fort64["format"]="off"
 fort7374["format"]="off"
+STORMNAME="TESTVORTEX" # <---<< FIXME: this is not populated in asgs_main.sh
+test_adcirc_version="v53.05-modified"

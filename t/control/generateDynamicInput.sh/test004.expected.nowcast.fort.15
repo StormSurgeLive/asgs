@@ -1,16 +1,16 @@
- ASGS TEMPLATE15:2024.1 cs:20240101000000 cy:TESTVORTEX1 ADCIRCVersion:v56.0.2
+ ASGS TEMPLATE15:2024.1 cs:20240101000000 cy:TESTVORTEX1 ADCIRCVersion:v53.05-modified
  24 hour nowcast run
  1    ! %NFOVER-Line%
  1    ! %NABOUT-Line%
  -1000   ! %NSCREEN-Line%
  568      ! %IHOT-Line%
  2           ! %ICS-Line%
- 111112        ! %IM-Line%
+ 511112        ! %IM-Line%
  1           ! %NOLIBF-Line%
  2           ! %NOLIFA-Line%
  1    ! %NOLICA-Line%
  1   ! %NOLICAT-Line%
- 7       ! %NWP-Line%
+ 7        ! %NWP-Line%
 sea_surface_height_above_geoid
 advection_state
 mannings_n_at_sea_floor
@@ -1696,7 +1696,7 @@ K2
 0                    ! %NHARF-Line%
 0.0 0.0 0 0.0        ! %THAS-Line%
 0 0 0 0              ! %NHASE-Line%
-5  99999   ! %NHSTAR-Line%
+5  259200   ! %NHSTAR-Line%
 -1 0 1.0E-7 25 ! %ITITER-Line%
 ASGS
 Seahorse Consulting
@@ -1711,16 +1711,11 @@ jason.fleming@adcirc.live
 !
 ! namelists:
 &metControl 
-            WindDragLimit=0.0025, 
-            invertedBarometerOnElevationBoundary=T,
-            /
+   WindDragLimit=0.0025,
+   invertedBarometerOnElevationBoundary=T,
+/
 
 &wetDryControl 
-outputNodeCode=F,
-outputNOFF=F,
-noffActive=T,
-StatPartWetFix=F
-How2FixStatPartWet=0
 /
 
 &inundationOutputControl inundationOutput=T, inunThresh=0.6 /

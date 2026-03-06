@@ -1,10 +1,10 @@
 ---
   mesh: "EGOMv20b"
   controltemplate: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b.15.template"
-  adcirc_version: "v56.0.2"
+  adcirc_version: "v53.05-modified"
   adcirc_version_support: [  'notset' ]
   coldstartdate: 2024010100
-  cycle: 1
+  cycle: "1"
   scenario: "nowcast"
   endtime: 2024010400
   timestepsize: 1.0
@@ -23,6 +23,9 @@
     smag_comp_flag: "off"
     smag_lower_lim: "1.0e-8"
     smag_upper_lim: "100.0"
+    write_smag_comp_flag: "nondefault"
+    write_smag_lower_lim: "nondefault"
+    write_smag_upper_lim: "nondefault"
   h0: 0.1
   velmin: 0.1
   bottom_friction_limit: 0.001
@@ -38,6 +41,8 @@
     windExposure: "surface"
     invertedBarometerOnElevationBoundary: "no"
     rhoAir: 1.293
+    write_invertedBarometerOnElevationBoundary: "nondefault"
+    write_rhoAir: "nondefault"
     tropical_cyclone:
       storm_name: "TESTVORTEX"
       boundary_layer_adjustment: 0.9
@@ -55,6 +60,10 @@
       WindDragLimit: 0.0025
       outputWindDrag: "no"
       nPowellSearchDomains: -1
+      write_DragLawString: "nondefault"
+      write_WindDragLimit: "nondefault"
+      write_outputWindDrag: "nondefault"
+      write_nPowellSearchDomains: "nondefault"
   tides:
     tidal_forcing: "on"
     tidefac_file: "$SCRIPTDIR/t/control/generateDynamicInput.sh/tide_fac.out"
@@ -67,10 +76,17 @@
     outputNodeCode: "no"
     outputNOFF: "no"
     noffActive: "on"
-    slim: 1.d9
+    slim: 1000000000.0
     windlim: "off"
     directvelWD: "off"
     useHF: "off"
+    write_outputNodeCode: "nondefault"
+    write_outputNOFF: "nondefault"
+    write_noffActive: "nondefault"
+    write_slim: "nondefault"
+    write_windlim: "nondefault"
+    write_directvelWD: "nondefault"
+    write_useHF: "nondefault"
   netcdf_metadata:
     ncproj: "ASGS"
     ncinst: "Seahorse Consulting"
@@ -89,6 +105,9 @@
     WaveWindMultiplier: 1.0
     Limit_WaveStressGrad: "no"
     WaveStressGrad_Cap: 1000.0
+    write_WaveWindMultiplier: "nondefault"
+    write_Limit_WaveStressGrad: "nondefault"
+    write_WaveStressGrad_Cap: "nondefault"
   swan:
     template: "$SCRIPTDIR/input/meshes/common/swan/adcirc_swan_v53_fort.26.template"
     hot: "off"
@@ -101,6 +120,12 @@
       SWAN_OutputDIR: "yes"
       SWAN_OutputTMM10: "yes"
       SWAN_OutputTM02: "yes"
+      write_SWAN_OutputTPS: "nondefault"
+      write_SWAN_OutputTM01: "nondefault"
+      write_SWAN_OutputHS: "nondefault"
+      write_SWAN_OutputDIR: "nondefault"
+      write_SWAN_OutputTMM10: "nondefault"
+      write_SWAN_OutputTM02: "nondefault"
   nodal_attributes:
     template: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_asgs_chk_header.13.template"
     activate: 
@@ -127,6 +152,10 @@
       iWarnElevDump: 1
       WarnElevDumpLimit: 20
       ErrorElev: 100.0
+      write_WarnElev: "nondefault"
+      write_iWarnElevDump: "nondefault"
+      write_WarnElevDumpLimit: "nondefault"
+      write_ErrorElev: "nondefault"
     nscreen: -1000
     log_level: "INFO"
     metonly_dt: 300.0
@@ -144,6 +173,8 @@
       wetdry:
         StatPartWetFix: "off"
         How2FixStatPartWet: 0
+        write_StatPartWetFix: "nondefault"
+        write_How2FixStatPartWet: "nondefault"
       fort7172:
         metstations_file: "$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
         incr_seconds: 300.0
@@ -165,3 +196,5 @@
     inundationOutputControl:
       inundationOutput: "yes"
       inunThresh: 0.6
+      write_inundationOutput: "nondefault"
+      write_inunThresh: "nondefault"
