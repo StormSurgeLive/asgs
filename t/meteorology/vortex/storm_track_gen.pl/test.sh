@@ -23,7 +23,7 @@
 # 1. Collect diffs for failed tests:
 # for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
 # 2. Fix tests to reflect new expectations:
-# for f in $(ls test???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+# for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 # 3. Collect run.properties into a single file for bulk inspection:
