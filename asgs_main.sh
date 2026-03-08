@@ -839,7 +839,7 @@ prepFile()
    fi
    #
    # Now create queue script request by filling in the JSON template
-   # with data needed to create queue script, the JSON file is read 
+   # with data needed to create queue script, the JSON file is read
    # by $SCRIPTDIR/qscript.pl and defines many (but not all) of the
    # values used to fill in the template ($QSCRIPTTEMPLATE), which is
    # usually just "$SCRIPTDIR/qscript.template"; in addition to the
@@ -1391,7 +1391,7 @@ submitJob()
    fi
    #
    # Now create queue script request by filling in the JSON template
-   # with data needed to create queue script, the JSON file is read 
+   # with data needed to create queue script, the JSON file is read
    # by $SCRIPTDIR/qscript.pl and defines many (but not all) of the
    # values used to fill in the template ($QSCRIPTTEMPLATE), which is
    # usually just "$SCRIPTDIR/qscript.template"; in addition to the
@@ -2363,6 +2363,11 @@ while [ true ]; do
             $ADCIRCDIR/aswip -n $BASENWS >> ${SYSLOG} 2>&1
             if [[ -e NWS_${BASENWS}_fort.22 ]]; then
                mv fort.22 fort.22.orig >> ${SYSLOG} 2>&1
+               # if there is no blending, symbolically link
+               # the aswip'd track file as fort.22
+               if [[ $BACKGROUNDMET == "off" ]]; then
+                  ln -s NWS_${BASENWS}_fort.22 fort.22 2>> $SYSLOG
+               fi
             else
                fatal "$ENSTORM: $THIS: '$ADCIRCDIR/aswip -n $BASENWS' failed to produce 'NWS_${BASENWS}_fort.22'."
             fi
