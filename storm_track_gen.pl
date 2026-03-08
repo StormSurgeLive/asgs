@@ -70,13 +70,13 @@ $^W++;
 # usage: perl storm_track_gen.pl --dir /path/to/atcf/files --storm 09 --year 2009 --startdate 2009081400 --name nhcConsensus
 # the output will be stored in a file called fort.22
 
-my $dir;                            # path to raw ATCF files
-my $storm;                          # number, e.g., 05 or 12
-my $year;                           # YYYY
+my $dir;                           # path to raw ATCF files
+my $storm;                         # number, e.g., 05 or 12
+my $year;                          # YYYY
 my $coldstartdate;                 # YYYYMMDDHH24
-my $hotstartseconds = 0.0;        # default is not hotstart
-my $nws = 20;                        # the ADCIRC wind model to target
-our $name = "nhcConsensus";          # default track to generate
+my $hotstartseconds = 0.0;         # default is not hotstart
+my $nws = 20;                      # the ADCIRC wind model to target
+our $name = "nhcConsensus";        # default track to generate
 my $percent = "null";              # magnitude of parameter variation
 my $strengthPercent = "null";
 my $overlandSpeedPercent = "null";
@@ -146,6 +146,10 @@ unless ( $storm ) {
 unless ( $year ) {
    ASGSUtil::stderrMessage("ERROR","The year was not specified using the --year argument.",$test);
 }
+my $setColdStartDate = 0; # true if we need to set it ourselves
+unless ( $coldstartdate ) {
+   $setColdStartDate = 1;
+}
 # if the cold start date was not provided on the command line, we use the
 # oldest data in the BEST track file
 my $firstBESTDate = "notfound";
@@ -193,10 +197,10 @@ if ( $firstBESTDate eq "notfound" && $firstOFCLDate eq "notfound" ) {
    die;
 }
 #
-unless ( $coldstartdate ) {
+if ( $setColdStartDate == 1 ) {
    # pick whichever date was actually found
    if ( $firstBESTDate ne "notfound" ) {
-      $coldstartdate = $firstBESTDate;
+      $coldstartdate = $firstBESTDate;  # this could change later if there are incomplete lines in the BEST track file
    } else {
       $coldstartdate = $firstOFCLDate;
    }
@@ -209,7 +213,6 @@ unless ( $coldstartdate ) {
    ASGSUtil::stderrMessage("INFO","The cold start date was not specified using the --coldstartdate argument.",$test);
    ASGSUtil::stderrMessage("INFO","The starting date/time of the BEST track data is '$firstBESTDate'.",$test);
    ASGSUtil::stderrMessage("INFO","The starting date/time of the OFCL track data is '$firstOFCLDate'.",$test);
-   ASGSUtil::stderrMessage("INFO","This coldstart date/time will be set to '$coldstartdate'.",$test);
 }
 #
 # Check to make sure that the scenario name does not match more than
@@ -289,9 +292,9 @@ if ( $match == 0 && $percent ne "null" ) {
 }
 #
 # preprocess and rearrange ATCF files if necessary
-my @rad;                     # wind radii in the 4 quadrants (current time)
-my @oldrad;                  # wind radii in the 4 quadrants (previous time)
-
+my @rad;                  # wind radii in the 4 quadrants (current time)
+my @oldrad;               # wind radii in the 4 quadrants (previous time)
+my @bestTimes;            # list of usable BEST track dates/times
 my $firstBestTime = "";
 my $lastBestTime;
 my $lastBestPressure;
@@ -300,27 +303,13 @@ my $lastBestRmax;
 my $old_lat;
 my $old_lon;
 my $hours = 0;
-$coldstartdate =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-my $csyear = $1;
-my $csmon = $2;
-my $csday = $3;
-my $cshour = $4;
 my $fhcyear; my $fhcmon; my $fhcday; my $fhchour; # first relevant BEST line
-my $hyear; my $hmon; my $hday; my $hhour;         # this relevant BEST line
-my $zdyear; my $zdmon; my $zdday; my $zdhour;     # the zero date
-my $zdmin; my $zdsec;                             # not used
-($zdyear,$zdmon,$zdday,$zdhour,$zdmin,$zdsec) =
-   Date::Calc::Add_Delta_DHMS($csyear,$csmon,$csday, $cshour,0,0,0,0,0,$hotstartseconds);
-my $zeroDate = sprintf("%4d%02d%02d%02d",$zdyear,$zdmon,$zdday,$zdhour);
-ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on $zeroDate UTC.",$test);
-my $zdFound = 0; # set to 1 if/when we find the zero date in the file
-my $fyear; my $fmon; my $fday; my $fhour; # time at which forecast is valid
-my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
-my $ftmin; my $ftsec;                             # not used
 my $tsflag="0";  # set to 1 when the storm reaches tropical storm force
+my $hotstartDate = getHotstartDate($coldstartdate, $hotstartseconds);
+my $hsFound = 0; # set to 1 if/when we find the hotstart date in the file
 #
 # create the fort.22 output file, which is the wind input file for ADCIRC
-unless (open(MEMBER, ">", "./fort.22")) {
+unless (open(FORT22, ">", "./fort.22")) {
    ASGSUtil::stderrMessage("ERROR","Failed to open file for scenario '$name' fort.22 output file: $!.",$test);
    die;
 }
@@ -329,11 +318,14 @@ unless (open(MEMBER, ">", "./fort.22")) {
 #---------------------------------------------------------------------
 #
 # open ATCF BEST file
+my $bestLineNum = 0;
 my $bestATCF = "$dir/bal$storm$year.dat";
 unless (open(BEST, "<", $bestATCF)) {
    ASGSUtil::stderrMessage("INFO","Failed to open BEST track ATCF file '$bestATCF' for scenario '$name': $!.",$test);
 } else {
    while(<BEST>) {
+      $bestLineNum++;
+      my $hyear; my $hmon; my $hday; my $hhour;   # date/time of current BEST line
       my @fields = split / *, */, $_;
       # ignore BEST track lines that are after the time that the forecast
       # is valid (only if a forecast file is being processed)
@@ -343,10 +335,53 @@ unless (open(BEST, "<", $bestATCF)) {
          }
       }
       my $line = $_;
-      # check to see if this is a complete line (meaning that all the fields
-      # up to and including the storm name are there)
+      # examples of incomplete lines at the top of a BEST track file (IRMA al112017)
+      #                                                                                                     1         1         1         1         1         1         1         1         1         1         2         2         2         2         2
+      #           1         2         3         4         5         6         7         8         9         0         1         2         3         4         5         6         7         8         9         0         1         2         3         4
+      # 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+      # AL, 11, 2017082718,   , BEST,   0, 115N,  160W,  25,    0, DB,   0,    ,    0,    0,    0,    0, 1013,    0,   0,   0,   0,    ,   0,    ,   0,   0, GENESIS023,  ,  0,    ,    0,    0,    0,    0, genesis-num, 023,
+      # AL, 11, 2017082800,   , BEST,   6, 115N,  178W,  25,    0, DB,   0,    ,    0,    0,    0,    0, 1013,    0,   0,   0,   0,    ,   0,    ,   0,   0, GENESIS023,  ,  0,    ,    0,    0,    0,    0, genesis-num, 023,
+      # AL, 11, 2017082806,   , BEST,  12, 116N,  193W,  25, 1009, DB,   0,    ,    0,    0,    0,    0, 1013,  150,  40,   0,   0,   L,   0,    ,   0,   0,     INVEST, S,  0,    ,    0,    0,    0,    0, genesis-num, 023, SPAWNINVEST, al712017 to al932017,
+      #  0,  1,          2,  3,    4,   5,    6,     7,   8,    9, 10,  11,  12,   13,   14,   15,   16,   17,   18,  19,  20,  21,  22,  23,  24,  25,  26,         27,
+      # examples of incomplete lines in a BEST track file due to special advisories issued at weird times (KATRINA al122005)
+      # AL, 12, 2005082522, 30, BEST,   0, 260N,  801W,  70,  984, HU,   0,    ,    0,    0,    0,    0,
+      # AL, 12, 2005082911, 10, BEST,   0, 293N,  896W, 110,  920, HU,   0,    ,    0,    0,    0,    0,
+      # examples of incomplete lines in a BEST track file due to special advisories issued at weird times (MELISSA al132025)
+      # AL, 13, 2025102817, 25, BEST,   0, 181N,  780W, 160,  897, HU,  34, NEQ,  170,  130,   60,   80, 1006,  270,   5,   0,   0,   L,   0,    ,   0,   0,
+      # AL, 13, 2025102817, 25, BEST,   0, 181N,  780W, 160,  897, HU,  50, NEQ,   50,   45,   30,   45, 1006,  270,   5,   0,   0,   L,   0,    ,   0,   0,
+      # AL, 13, 2025102817, 25, BEST,   0, 181N,  780W, 160,  897, HU,  64, NEQ,   25,   25,   20,   25, 1006,  270,   5,   0,   0,   L,   0,    ,   0,   0,
+      # AL, 13, 2025102907, 20, BEST,   0, 200N,  762W, 100,  954, HU,  34, NEQ,  160,  140,   80,  100, 1007,  270,  20,   0,   0,   L,   0,    ,   0,   0,    MELISSA,  ,  0,    ,    0,    0,    0,    0, genesis-num, 035,
+      # AL, 13, 2025102907, 20, BEST,   0, 200N,  762W, 100,  954, HU,  50, NEQ,   60,   70,   35,   45, 1007,  270,  20,   0,   0,   L,   0,    ,   0,   0,    MELISSA,  ,  0,    ,    0,    0,    0,    0, genesis-num, 035,
+      # AL, 13, 2025102907, 20, BEST,   0, 200N,  762W, 100,  954, HU,  64, NEQ,   25,   25,   20,   25, 1007,  270,  20,   0,   0,   L,   0,    ,   0,   0,    MELISSA,  ,  0,    ,    0,    0,    0,    0, genesis-num, 035,
+      # examples of incomplete lines at the end of a BEST track file (KATRINA al122005)
+      # AL, 12, 2005083018,   , BEST,   0, 370N,  870W,  30,  990, TD,   0,    ,    0,    0,    0,    0,
+      # AL, 12, 2005083100,   , BEST,   0, 386N,  853W,  30,  994, EX,   0,    ,    0,    0,    0,    0,
+      # AL, 12, 2005083106,   , BEST,   0, 401N,  829W,  25,  996, EX,   0,    ,    0,    0,    0,    0,
       my $line_length = length($line);
+      # reject lines at the start of the BEST track file that are incomplete
+      unless ($firstBestTime) {
+         if ( $line_length >= 160 ) {
+            my $n = $fields[27];
+            if ( $n =~ /GENESIS/ || $n =~ /INVEST/ ) {
+               ASGSUtil::stderrMessage("INFO","The storm name in '$bestATCF' on line '$bestLineNum' contains '$n' which does not indicate a closed circulation. This line will be skipped.",$test);
+               next;
+            }
+         }
+         my $cp = $fields[9];
+         if ( $cp == 0 ) {
+            ASGSUtil::stderrMessage("INFO","The central pressure storm name in '$bestATCF' on line '$bestLineNum' is '$cp'. This line will be skipped.",$test);
+            next;
+         }
+         unless ( defined $fields[10] ) {
+            ASGSUtil::stderrMessage("INFO","The quadrant designation 'NEQ' in '$bestATCF' on line '$bestLineNum' is missing. This line will be skipped.",$test);
+            next;
+         }
+      }
       my $isotach_kts = $fields[11]; #substr($line,63,3);
+      # BEST lines that predate tropical cyclone formation
+      # will be missing some key information like the isotach
+      # magnitude, the storm quadrant string, and/or the central pressure
+
       if ( $line_length >= 112 ) { # this is a complete line
          # the first isotach is 34, but can be 0 in the source data in some cases
          if ( $isotach_kts == 34 || $isotach_kts == 0 ) {
@@ -410,6 +445,22 @@ unless (open(BEST, "<", $bestATCF)) {
       #$rad[3]=substr($line,92,3);
       # jgfdebug20090624: the sub that fills in the rmax is not working
       #populateWindRadii(\@rad,\@oldrad,$lastBestRmax);
+      push(@bestTimes,$fields[2]);
+      # grab the date/time first usable BEST line
+      unless ($firstBestTime) {
+         $firstBestTime = $fields[2];
+         $firstBestTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+         $fhcyear = $1;
+         $fhcmon = $2;
+         $fhcday = $3;
+         $fhchour = $4;
+         if ( $setColdStartDate == 1 ) {
+            $coldstartdate = $firstBestTime;
+            $hotstartDate = getHotstartDate($coldstartdate, $hotstartseconds);
+            $hsFound = 1;
+            ASGSUtil::stderrMessage("INFO","The cold start date will be set to $coldstartdate UTC.",$test);
+         }
+      }
       #
       # for NWS 9 and 19, check to see if the BEST track line is prior to the
       # zero date, if it is, then it will not be placed in the fort.22 file
@@ -420,36 +471,29 @@ unless (open(BEST, "<", $bestATCF)) {
       # for NWS8, because it will be easiest for control_file_gen.pl to
       # calculate the run length if there aren't any extra lines in the
       # fort.22 file.
-      if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
-         if ( $fields[2] < $zeroDate ) {
-            next;
+      if ( $setColdStartDate == 0 ) {
+         if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
+            if ( $fields[2] < $hotstartDate ) {
+               next;
+            }
          }
-      }
-      # check to see if we have found the zero hour in the BEST track file
-      if ( $fields[2] == $zeroDate ) {
-         $zdFound = 1;
-      }
-      if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
-         if ( ($zdFound == 0) && ($fields[2] > $zeroDate) ) {
-            ASGSUtil::stderrMessage("ERROR","The date '$fields[2]' was encountered in the BEST track file '$bestATCF'; however an exact match of the starting date '$zeroDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the zero date). The fort.22 file will not be written.",$test);
-            die;
+         # check to see if we have found the hotstart in the BEST track file
+         if ( $fields[2] == $hotstartDate ) {
+            $hsFound = 1;
          }
-      }
-      # grab the first relevant BEST line; this is the zero hour
-      unless ($firstBestTime) {
-         $firstBestTime = $fields[2];
-         $firstBestTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-         $fhcyear = $1;
-         $fhcmon = $2;
-         $fhcday = $3;
-         $fhchour = $4;
+         if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
+            if ( ($hsFound == 0) && ($fields[2] > $hotstartDate) ) {
+               ASGSUtil::stderrMessage("ERROR","The date '$fields[2]' was encountered in the BEST track file '$bestATCF'; however an exact match of the date corresonding to the hotstart '$hotstartDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the date corresponding to hotstart). The fort.22 file will not be written.",$test);
+               die;
+            }
+         }
       }
       $fields[2] =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
       $hyear = $1;
       $hmon = $2;
       $hday = $3;
       $hhour = $4;
-      # get difference between zero hour and this BEST time
+      # get difference between start of usable BEST track file and this BEST time
       (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$hyear,$hmon,$hday,$hhour,0,0);
       my $time_difference = $ddays*24 + $dhrs; # in hours
       if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || abs($nws) == 330 || $nws == 320 || $nws == 319 ) {
@@ -467,15 +511,12 @@ unless (open(BEST, "<", $bestATCF)) {
       #substr($line,92,3)=sprintf("%3d",$rad[3]);
       # write the line to the file, writing an eol if the line does not have one
       if ( /\n/ ) {
-         print MEMBER $line;
+         print FORT22 $line;
       } else {
-         printf MEMBER "$line\n";
+         printf FORT22 "$line\n";
       }
    }
    close(BEST);
-   if ( $zdFound == 0 ) {
-      ASGSUtil::stderrMessage("INFO","The zero date '$zeroDate' was not found in the BEST track file $bestATCF.",$test);
-   }
    #
    # add properties to the hash
    if ( $stormClass ne " " ) {
@@ -485,10 +526,11 @@ unless (open(BEST, "<", $bestATCF)) {
       $runProp{'stormname'} = $nhcName;
       $runProp{'forcing.tropicalcyclone.stormname'} = $nhcName;
    }
-   if ( defined $firstBestTime ) {
-     $runProp{'forcing.tropicalcyclone.best.time.start'} = "$firstBestTime";
-   }
+   $runProp{'forcing.tropicalcyclone.best.time.start'} = "$firstBestTime";
    if ( defined $lastBestTime ) {
+      $runProp{'forcing.tropicalcyclone.best.time.end'} = "$lastBestTime";
+   } else {
+      $lastBestTime = $firstBestTime;
       $runProp{'forcing.tropicalcyclone.best.time.end'} = "$lastBestTime";
    }
    $runProp{'track_raw_dat'} = "bal$storm$year.dat";
@@ -496,10 +538,16 @@ unless (open(BEST, "<", $bestATCF)) {
 my $forecastedDate; # as a string
 my $last_pressure = $lastBestPressure;
 my $last_windspeed = $lastBestWindspeed;
-my $consensus_angle=0;      # direction of motion of consensus track
-my $old_consensus_angle=0;  # previous direction of consensus track
+my $consensus_angle=0;      # direction of motion of NHC track
+my $old_consensus_angle=0;  # previous direction of NHC track
+#
+ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on $hotstartDate UTC.",$test);
+#
 my $firstForecastTime;
 my $lastForecastTime;
+my $fyear; my $fmon; my $fday; my $fhour;     # time at which forecast is valid
+my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
+my $ftmin; my $ftsec;                         # not used
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E
 #---------------------------------------------------------------------
@@ -529,24 +577,23 @@ if ( -e $forecastATCF ) {
       ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
       Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0);
       my $forecastedDate = sprintf("%4d%02d%02d%02d",$ftyear,$ftmon,$ftday,$fthour);
-      # grab the first relevant BEST track line; this is the zero hour
       unless ($firstForecastTime) {
          $firstForecastTime = $forecastedDate;
       }
       $lastForecastTime = $forecastedDate;
       #
-      # check to see if the forecast line is prior to the zero date,
+      # check to see if the forecast line is prior to the hotstart date,
       # if it is, then it will not be placed in the fort.22 file
-      if ( $forecastedDate < $zeroDate ) {
+      if ( $forecastedDate < $hotstartDate ) {
          next;
       }
-      # if we have found the zero hour in the forecast file
-      if ( $forecastedDate == $zeroDate ) {
-         $zdFound = 1;
+      # if we have found the hotstart time in the forecast file
+      if ( $forecastedDate == $hotstartDate ) {
+         $hsFound = 1;
       }
       if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
-         if ( ($zdFound == 0) && ($forecastedDate > $zeroDate) ) {
-            ASGSUtil::stderrMessage("ERROR","The date found in the forecast file '$forecastATCF' is after the zero hour of '$zeroDate', but exact zero date was never found.",$test);
+         if ( ($hsFound == 0) && ($forecastedDate > $hotstartDate) ) {
+            ASGSUtil::stderrMessage("ERROR","The date '$forecastedDate' found in the forecast file '$forecastATCF' is after the date '$hotstartDate' corresponding to the time in the hotstart file, but exact hotstart date was never found. There is no meteorological data that corresponds to the time of the hotstart.",$test);
             die;
          }
       }
@@ -557,9 +604,14 @@ if ( -e $forecastATCF ) {
          substr($line,8,10)=sprintf("%10d",$forecastedDate);
       }
       #
-      # next, calculate the difference between the forecasted date and the zero
-      # hour so that we can fill in the forecast period
-      (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($zdyear,$zdmon,$zdday,$zdhour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
+      # next, calculate the difference between the forecasted date and the hotstart
+      # date so that we can fill in the forecast period
+      $hotstartDate =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+      my $hsyear = $1;
+      my $hsmon = $2;
+      my $hsday = $3;
+      my $hshour = $4;
+      (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($hsyear,$hsmon,$hsday,$hshour,0,0,$ftyear,$ftmon,$ftday,$fthour,0,0);
       my $time_difference = $ddays*24 + $dhrs; # in hours
       if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || abs($nws) == 330  || $nws == 320 || $nws == 319 ) {
          # fill in the time difference as tau
@@ -735,9 +787,9 @@ if ( -e $forecastATCF ) {
       }
       # write the line to the file, writing an eol if the line does not have one
       if ( /\n/ ) {
-         print MEMBER $line;
+         print FORT22 $line;
       } else {
-         printf MEMBER "$line\n";
+         printf FORT22 "$line\n";
       }
    }
    close(OFCL);
@@ -745,13 +797,11 @@ if ( -e $forecastATCF ) {
    $runProp{'forcing.tropicalcyclone.fcst.time.end'} = $lastForecastTime;
 } else {
    ASGSUtil::stderrMessage("INFO","The forecast ATCF file '$forecastATCF' for scenario '$name' was not found and will not be processed.",$test);
-   close(MEMBER);
-   exit;
 }
-close(MEMBER);
-if ( $zdFound == 0 ) {
+close(FORT22);
+if ( $hsFound == 0 ) {
    if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || abs($nws) == 330 || $nws == 320 || $nws == 319 ) {
-      ASGSUtil::stderrMessage("ERROR","The zero hour '$zeroDate' was not found in the BEST track file $bestATCF or the forecast file $forecastATCF.",$test);
+      ASGSUtil::stderrMessage("ERROR","The date corresponding to the hotstart '$hotstartDate' was not found in the BEST track file $bestATCF or the forecast file $forecastATCF.",$test);
    }
 }
 #
@@ -766,6 +816,30 @@ foreach my $rp (sort keys %runProp) {
 close(PROPS);
 
 1;
+
+
+#------------------------------------------------------------------------
+# getHotstartDate: Compute the hotstart date/time from the coldstart
+# date/time and the number of hotstart seconds.
+#------------------------------------------------------------------------
+sub getHotstartDate {
+   my $c=shift;     # coldstartdate
+   my $h=shift;     # hotstartseconds
+   $c =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+   my $csyear = $1;
+   my $csmon = $2;
+   my $csday = $3;
+   my $cshour = $4;
+   # calculate the date/time associated with the hotstart file
+   # by starting with the coldstart date time and adding the
+   # number of seconds in the hotstart file
+   my $hsyear; my $hsmon; my $hsday; my $hshour;     # the hotstart date/time
+   my $hsmin; my $hssec;                             # not used
+   ($hsyear,$hsmon,$hsday,$hshour,$hsmin,$hssec) =
+      Date::Calc::Add_Delta_DHMS($csyear,$csmon,$csday, $cshour,0,0,0,0,0,$hotstartseconds);
+   return sprintf("%4d%02d%02d%02d",$hsyear,$hsmon,$hsday,$hshour);
+}
+
 
 #------------------------------------------------------------------------
 # populateRadii: This subroutine checks the wind radii to see if any are
@@ -815,6 +889,10 @@ sub populateWindRadii {
        $oldrad[$i] = $rad[$i];
     }
 }
+
+
+
+
 #------------------------------------------------------------------------
 # interpolateRadius: This subroutine accepts the forecast period (tau)
 # in hours and returns the radius of uncertainty in nautical miles. It
