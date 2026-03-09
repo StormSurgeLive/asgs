@@ -1,0 +1,4 @@
+timestamp INFO: storm_track_gen.pl: The BEST track ATCF file 'input004/bal112017.dat' for scenario 'testscenario' was not found and will not be processed.
+timestamp INFO: storm_track_gen.pl: The forecast ATCF file 'input004/al112017.fst' for scenario 'testscenario' was not found and will not be processed.
+timestamp ERROR: storm_track_gen.pl: Neither a BEST or OFCL file is available. There is no data to generate a storm track fort.22 file from.
+Died at $SCRIPTDIR/storm_track_gen.pl line 197.

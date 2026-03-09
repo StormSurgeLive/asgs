@@ -1,0 +1,15 @@
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '1' contains 'GENESIS023' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '2' contains 'GENESIS023' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '3' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '4' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '5' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '6' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '7' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '8' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '9' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '10' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '11' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
+timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on 2017090800 UTC.
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
+timestamp ERROR: storm_track_gen.pl: The date '2017090815' found in the forecast file 'input007/al112017.fst' is after the date '2017090800' corresponding to the time in the hotstart file, but exact hotstart date was never found. There is no meteorological data that corresponds to the time of the hotstart.
+Died at $SCRIPTDIR/storm_track_gen.pl line 597, <OFCL> line 1.
