@@ -68,7 +68,6 @@ rm *actual* run.properties fort.22 2> /dev/null # remove old test results
 pass=0
 fail=0
 declare -a actualFails
-
 #
 for a in $(seq 1 $numArgSets) ; do
     argSetNumber=$(printf "%03d" $a)
