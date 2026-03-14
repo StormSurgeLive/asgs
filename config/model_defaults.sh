@@ -6,7 +6,7 @@
 # being driven by the ASGS.
 #
 #----------------------------------------------------------------
-# Copyright(C) 2014--2024 Jason Fleming
+# Copyright(C) 2014--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,10 +28,33 @@
 parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and static nodal attributes
 subvariant="null"             # most parameter packages will not have subvariants
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
-adcirc_version="notset"
-TIMESTEPSIZE="1.0"            # ADCIRC time step in seconds
+adcircVersions=( "notset" )
+CONTROLTEMPLATENOROUGH="null"
+TIMESTEPSIZE="1.0"            # ADCIRC time step (DTDP) in seconds
+metOnlyTimeStepSize="300.0"   # ADCIRC time step (DTDP) for meteorology-only mode
 WTIMINC=900                   # time increment of meteorological data sets in seconds
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+#
+# For ADCIRC versions v55.01 and later, rotated spherical coordinate
+# systems are available that are useful for global meshes to place the
+# poles on land to avoid numerical distortion. The use of this capability
+# and the specification of the coordinates of the north pole are controlled
+# via the zNorth parameter and triggered by a negative value of ICS in the
+# fort.15 file. The north pole location $zNorth is written to a fort.rotm file.
+# Options include the fcollowing:
+# zNorth="northpole"         ! no coordinate system rotation
+# zNorth="-42.8906  72.3200  ! Greenland-Antarctica"
+# zNorth="112.8516  40.3289  ! China-Argentina"
+# zNorth="114.16991  0.77432 ! Borneo-Brazil"
+# Coordinate rotation reference:     https://wiki.adcirc.org/Fort.rotm
+# Model coordinate system reference: https://wiki.adcirc.org/ICS
+zNorth="northpole"                          # greenland-antarctica|china-argentina|borneo-brazil
+declare -g -A coordinateSystem
+coordinateSystem["projection"]="geographic" # cartesian|geographic
+coordinateSystem["reprojection"]="CPP"      # CPP|equal-area|merator|miller|gall-stereographic
+coordinateSystem["earthCurvature"]="no"     # no|yes
+coordinateSystem["rotation"]=$zNorth
+#
 solver_time_integration="implicit"          # implicit|explicit|full-gravity-wave-implicit
 # A00 B00 C00 in fort.15, valid value sets as follows:
 # "0.35 0.30  0.35"  ! implicit time stepping, oldest and most used values
@@ -45,6 +68,103 @@ lateral_turbulence="eddy_viscosity"         # "smagorinsky" or "eddy_viscosity"
 h0=0.1                        # min depth (m) to be considered wet
 velmin=0.1                    # min pseudovelocity (m/s) from wet to dry to change state
 bottom_friction_limit=0.001   # min bottom friction when using Manning's n (CF/FFACTOR)
+#
+#      C O N T R O L   W R I T I N G   O F
+#     N A M E L I S T   P A R A M E T E R S
+#
+# The writing of individual namelist parameters can be
+# controlled:
+# yes: always write the namelist parameter if there is a
+#      corresponding namelist pattern to fill in the
+#      fort.15 template)
+# no:  never write the namelist paramneter, even if there
+#      is a place to write it, and the assigned value is
+#      different from the default value for that parameter
+# nondefault:
+#      only write the parameter in cases where the assigned
+#      parameter value is different from the default value
+#
+# yes|no|nondefault
+#
+#  S M A G   C O N T R O L  N A M E L I S T
+#
+# smagorinsky dynamic lateral friction
+declare -g -A Smag_Control
+Smag_Control["smag_comp_flag"]="off"
+Smag_Control["smag_upper_lim"]=100.0
+Smag_Control["smag_lower_lim"]="1.0e-8"
+Smag_Control["write_Smag_ControlNamelist"]="no"
+Smag_Control["write_smag_comp_flag"]="nondefault"
+Smag_Control["write_smag_upper_lim"]="nondefault"
+Smag_Control["write_smag_lower_lim"]="nondefault"
+#
+#   M E T   C O N T R O L   N A M E L I S T
+#
+# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
+declare -g -A metControl
+metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
+metControl["DragLawString"]="garratt" # "garratt" or "powell"
+metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
+metControl["rhoAir"]="1.293"          # kg/m^3, not often modified
+metControl["invertedBarometerOnElevationBoundary"]="no" # yes|no to include inverse barometer effect on boundary
+metControl["nPowellSearchDomains"]="-1"                 # default to searching all domains for min pressure (v55release or later)
+# control writing of individual metControl
+# namelist parameters to fort.15
+metControl["write_metControlNamelist"]="yes"  # yes|no
+metControl["write_WindDragLimit"]="nondefault"
+metControl["write_DragLawString"]="nondefault"
+metControl["write_outputWindDrag"]="nondefault"
+metControl["write_rhoAir"]="nondefault"
+metControl["write_invertedBarometerOnElevationBoundary"]="nondefault"
+metControl["write_nPowellSearchDomains"]="nondefault"
+#
+#   W E T D R Y   C O N T R O L   N A M E L I S T
+#
+# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
+declare -g -A wetDryControl
+# available in v53release and later
+wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
+wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
+wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
+# available starting in v55release
+wetDryControl["StatPartWetFix"]="off" # on|off to use nearby node in elements with less than 3 wet nodes
+wetDryControl["How2FixStatPartWet"]=0 # 0: use nearest neighbor if wet and H > 0.8H0, 1: use nearest neighbor if wet regardless if H > 0.8H0
+# available starting in v56.0.3
+wetDryControl["slim"]=1000000000.0    # value of slope limiter for wet/dry
+wetDryControl["windlim"]="off"        # on|off to limit wind stress calculations in shallow water
+wetDryControl["directvelWD"]="off"    # on|off to apply direct velocity calculation in wetting
+wetDryControl["useHF"]="off"          # on|off to use high friction in shallow inundated areas
+# control writing of individual wetDryControl
+# namelist parameters to fort.15
+wetDryControl["write_wetDryControlNamelist"]="yes"  # yes|no
+wetDryControl["write_outputNodeCode"]="nondefault"
+wetDryControl["write_outputNOFF"]="nondefault"
+wetDryControl["write_noffActive"]="nondefault"
+wetDryControl["write_StatPartWetFix"]="nondefault"
+wetDryControl["write_How2FixStatPartWet"]="nondefault"
+wetDryControl["write_slim"]="nondefault"
+wetDryControl["write_windlim"]="nondefault"
+wetDryControl["write_directvelWD"]="nondefault"
+wetDryControl["write_useHF"]="nondefault"
+#
+#   M E T A D A T A
+#
+# netCDF metadata at or near the bottom of the fort.15 file
+declare -g -A netcdf_metadata
+netcdf_metadata["NCPROJ"]="ASGS"                      # project title
+netcdf_metadata["NCINST"]="Seahorse Consulting"       # institution
+netcdf_metadata["NCSOUR"]="ADCIRC"                    # source (model, instrument type)
+netcdf_metadata["NCHIST"]="ASGS Workflow"             # history (audit trail of processing operations)
+netcdf_metadata["NCREF"]="https://doi.org/10.1061/40990(324)48"   # reference (publications, URLs)
+netcdf_metadata["NCCOM"]="Trusted since 2006."        # comments
+netcdf_metadata["NCHOST"]="www.seahorsecoastal.com"   # host
+netcdf_metadata["NCCONV"]="CF"                        # conventions
+netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live" # contact information
+# strongly suggest NCDATE be hardcoded to "%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00"
+# in the control file (fort.15) template
+netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"   # cold start date and time (with time zone)
+#
+#  N O D A L   A T T R I B U T E S
 #
 # nodal attributes listed in fort.15 file
 declare -g -a nodal_attribute_activate
@@ -65,52 +185,6 @@ nodal_attribute_activate=( )
 #    subgrid_barrier
 # e.g.: nodal_attribute_activate=( "sea_surface_height_above_geoid" "mannings_n_at_sea_floor" )
 #
-# &metControl WindDragLimit=floatValue, DragLawString='stringValue', rhoAir=floatValue, outputWindDrag=logicalValue /
-declare -g -A metControl
-metControl["WindDragLimit"]="0.0025"  # max wind drag coefficient, unitless
-metControl["DragLawString"]="garratt" # "garratt" or "powell"
-metControl["outputWindDrag"]="no"     # "yes" or "no" to write fulldomain time varying wind drag coefficient
-metControl["invertedBarometerOnElevationBoundary"]="no" # yes|no to include inverse barometer effect on boundary
-#
-# &wetDryControl outputNodeCode=logicalValue, outputNOFF=logicalValue, noffActive=logicalValue /
-declare -g -A wetDryControl
-wetDryControl["outputNodeCode"]="no"  # yes|no to write out fulldomain time varying integer node wet/dry state
-wetDryControl["outputNOFF"]="no"      # yes|no to write out fulldomain time varying integer element wet/dry state
-wetDryControl["noffActive"]="on"      # on|off to use element wet/dry state in calculations
-wetDryControl["slim"]=0.0004          # value of slope limiter for wet/dry
-wetDryControl["windlim"]="off"        # on|off to limit wind stress calculations in shallow water
-wetDryControl["directvelWD"]="off"    # on|off to apply direct velocity calculation in wetting
-wetDryControl["useHF"]="off"          # on|off to use high friction in shallow inundated areas
-#
-# &inundationOutputControl inundationOutput=logicalValue, inunThresh =floatValue /
-declare -g -A inundationOutputControl
-inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
-inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
-#
-# &SWANOutputControl SWAN_OutputTPS=logicalValue, SWAN_OutputTM01=logicalValue, SWAN_OutputHS=logicalValue, SWAN_OutputDIR=logicalValue, SWAN_OutputTMM10=logicalValue, SWAN_OutputTM02=logicalValue /
-declare -g -A SWANOutputControl
-SWANOutputControl["SWAN_OutputTPS"]="yes"
-SWANOutputControl["SWAN_OutputTM01"]="yes"
-SWANOutputControl["SWAN_OutputHS"]="yes"
-SWANOutputControl["SWAN_OutputDIR"]="yes"
-SWANOutputControl["SWAN_OutputTMM10"]="yes"
-SWANOutputControl["SWAN_OutputTM02"]="yes"
-#
-# netCDF metadata at or near the bottom of the fort.15 file
-declare -g -A netcdf_metadata
-netcdf_metadata["NCPROJ"]="ASGS"                      # project title
-netcdf_metadata["NCINST"]="Seahorse Consulting"       # institution
-netcdf_metadata["NCSOUR"]="ADCIRC"                    # source (model, instrument type)
-netcdf_metadata["NCHIST"]="ASGS Workflow"             # history (audit trail of processing operations)
-netcdf_metadata["NCREF"]="https://doi.org/10.1061/40990(324)48"   # reference (publications, URLs)
-netcdf_metadata["NCCOM"]="Trusted since 2006."        # comments
-netcdf_metadata["NCHOST"]="www.seahorsecoastal.com"   # host
-netcdf_metadata["NCCONV"]="CF"                        # conventions
-netcdf_metadata["NCCONT"]="jason.fleming@adcirc.live" # contact information
-# strongly suggest NCDATE be hardcoded to "%CSYEAR%-%CSMONTH%-%CSDAY% %CSHOUR%:00:00"
-# in the control file (fort.15) template
-netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"   # cold start date and time (with time zone)
-#
 # ADCIRC nodal attributes (fort.13) file
 declare -g -A nodal_attribute_default_values
 nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
@@ -127,8 +201,30 @@ nodal_attribute_default_values["initial_river_elevation"]="0.0"
 nodal_attribute_default_values["internal_tide_friction"]="0.0  0.0  0.0"
 nodal_attribute_default_values["subgrid_barrier"]="99999.0"
 #
-# SWAN parameters (fort.26) file
+#   S W A N
+#
+SWANTEMPLATEDIR="$SCRIPTDIR/input/meshes/common/swan"
+SWANTEMPLATE=adcirc_swan_v53_fort.26.template
+WAVES=off
+REINITIALIZESWAN="no"
+SWANHSCOMPRESSION="no"
+SWANHSFULL="yes"
+wave_model="SWAN"
 SWANDT=1200 # swan timestep / coupling interval (seconds)
 declare -g -A swan
 swan["MXITNS"]="20"   # max number of iterations per timestep
 swan["NPNTS"]="95"    # percent of mesh vertices required to meet convergence criteria per timestep
+#
+#   W A V E  C O U P L I N G   N A M E L I S T
+#
+# # &waveCoupling WaveWindMultiplier=floatValue, Limit_WaveStressGrad=logicalValue, WaveStressGrad_Cap=floatValue /
+declare -g -A waveCoupling
+waveCoupling["WaveWindMultiplier"]="1.0"
+waveCoupling["Limit_WaveStressGrad"]="no"
+waveCoupling["WaveStressGrad_Cap"]="1000.0"
+# control writing of individual waveCoupling
+# namelist parameters to fort.15
+waveCoupling["write_waveCouplingNamelist"]="no"
+waveCoupling["write_WaveWindMultiplier"]="nondefault"
+waveCoupling["write_Limit_WaveStressGrad"]="nondefault"
+waveCoupling["write_WaveStressGrad_Cap"]="nondefault"

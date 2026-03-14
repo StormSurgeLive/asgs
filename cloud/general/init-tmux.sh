@@ -27,7 +27,7 @@ fi
 cd $_ASGS_TMP
 
 # libevent dependencies
-wget https://github.com/libevent/libevent/releases/download/release-2.1.11-stable/libevent-2.1.11-stable.tar.gz
+wget -4 https://github.com/libevent/libevent/releases/download/release-2.1.11-stable/libevent-2.1.11-stable.tar.gz
 tar zxvf libevent-2.1.11-stable.tar.gz
 cd libevent-2.1.11-stable
 mkdir -p $HOME/local
@@ -36,7 +36,7 @@ mkdir -p $HOME/local
 make -j 3 && make install
 
 cd $HOME/tmp
-wget http://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.1.tar.gz
+wget -4 https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.1.tar.gz
 tar zxvf ncurses-6.1.tar.gz
 cd ncurses-6.1/
 ./configure --prefix=$ASGS_INSTALL_PATH

@@ -3,7 +3,7 @@
 # get_gfs_status.pl: determines the latest available cycle(s)
 # from NCEP GFS for ASGS nowcasts and forecasts
 #--------------------------------------------------------------
-# Copyright(C) 2022 Jason Fleming
+# Copyright(C) 2022--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -110,7 +110,6 @@ if ( $startcycle eq "null" && $jshash_ref ) {
 #
 ASGSUtil::appMessage( "INFO", "Connecting to $backsite:$backdir");
 our $dl = 0;   # true if latest status was determined successfully
-
 # now go to the ftp site and
 # get the list of gfs dates where data is available
 # and report latest data available on the site
@@ -160,7 +159,6 @@ else {
    # first date and time that data are available
    $sortedGfsDirs[0] =~ /gfs.(\d{8})/;
    $startdate = $1;
-
    local $@;
    my @earliestGfsCycles = eval { http_dir("$backdir/$sortedGfsDirs[0]") };
    if ($@) {
@@ -193,7 +191,7 @@ my $cycledate = "null";   # date of latest cycle
 my $cyclehour = "null";   # hour of latest cycle
 LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sortedGfsDirs) != 0 ) {
    $targetDir = $sortedGfsDirs[-1];
-   ASGSUtil::stderrMessage("DEBUG", "LATESTDATEDIR: targetDir is $targetDir");
+   ASGSUtil::appMessage("DEBUG", "LATESTDATEDIR: targetDir is $targetDir");
    # determine the most recent date/hour ... this is the latest gfs cycle time
    $targetDir =~ /gfs.(\d+)/;
    $cycledate = $1;
@@ -215,7 +213,7 @@ LATESTDATEDIR : while ( ! $targetDirFound && ! $targetCycleFound && scalar(@sort
    LATESTCYCLEDIR: while ( ! $targetCycleFound && scalar(@sortedLatestCycles) != 0 ) {
 
       $targetCycle = $sortedLatestCycles[-1];
-      ASGSUtil::stderrMessage("DEBUG", "LATESTCYCLEDIR: targetCycle is $targetCycle");
+      ASGSUtil::appMessage("DEBUG", "LATESTCYCLEDIR: targetCycle is $targetCycle");
       # change to that cycle directory and see if there are files in there
 
       # looking for files like gfs.t00z.pgrb2.0p25.f000
@@ -264,7 +262,7 @@ unless ( $cyclehour ne "null" ) {
 my @cyclesInRange; # between startcycle and the latest
 DIRECTORIES : foreach my $dir (@sortedGfsDirs) {
    # cd to the directory containing the GFS directories
-   ASGSUtil::stderrMessage("DEBUG", "DIRECTORIES: dir is $dir");
+   ASGSUtil::appMessage("DEBUG", "DIRECTORIES: dir is $dir");
    $dir =~ /gfs.(\d+)/;
    my $thisdate = $1;
 
@@ -279,7 +277,7 @@ DIRECTORIES : foreach my $dir (@sortedGfsDirs) {
    my @sortedCycles = sort { lc($a) cmp lc($b) } @cycles;
 
    CYCLES: foreach my $cycle (@sortedCycles) {
-      ASGSUtil::stderrMessage("DEBUG", "CYCLES: cycle is $cycle");
+      ASGSUtil::appMessage("DEBUG", "CYCLES: cycle is $cycle");
       my $thishour = $cycle;
       my $thiscycle = $thisdate . $thishour;
       if ( $thiscycle >= $startcycle && $thiscycle <= $cycletime ) {

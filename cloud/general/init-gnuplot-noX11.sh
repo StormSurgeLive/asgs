@@ -28,7 +28,7 @@ GNUP_TGZ=${GNUP_DIR}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${GNUP_TGZ} ]; then
-  wget --no-check-certificate https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/${GNUP_TGZ}
+  wget -4 https://asgs-static-assets.sfo2.digitaloceanspaces.com/lib/${GNUP_TGZ}
 fi
 
 rm -rf ./$GNUP_DIR 2> /dev/null

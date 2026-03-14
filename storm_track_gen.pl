@@ -778,7 +778,7 @@ if ( -e $forecastATCF ) {
       }
       # If NWS is 8, fill in the Rmax. If the requested variation is Rmax,
       # change it and then fill it in.
-      if ( $nws == 8 ) {
+      if ( $nws == 8 || $nws == 308 ) {
          my $rmax = $lastBestRmax;
          if ( $name eq "rMax") {
             $rmax *= $sizePercent;

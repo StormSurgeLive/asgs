@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+   <pubDate>Wed, 30 Aug 2017 15:00:00 GMT</pubDate>
+   <title>Seahorse Coastal Consulting, LLC</title>
+   <description>Simulated NHC Forecast/Advisories</description>
+   <link>http://www.seahorsecoastal.com/</link>
+   <copyright>2015 Jason Fleming</copyright>
+   <managingEditor>jason.fleming@seahorsecoastal.com</managingEditor>
+   <language>en-us</language>
+   <webMaster>jason.fleming@seahorsecoastal.com</webMaster>
+   <image>
+      <url>http://www.seahorsecoastal.com/seahorse.png</url>
+      <link>http://www.seahorsecoastal.com/</link>
+      <description>Seahorse</description>
+      <title>Seahorse Coastal Consulting, LLC</title>
+      <width>96</width>
+      <height>128</height>
+   </image>
+   <item>
+      <title>Tropical Storm IRMA Forecast/Advisory Number 1</title>
+      <description>Issued at 1500 UTC WED AUG 30 2017 <![CDATA[<pre>
+ZCZC MIATCMAT1 ALL
+TTAA00 KNHC DDHHMM
+ 
+TROPICAL STORM IRMA FORECAST/ADVISORY NUMBER   1
+NWS NATIONAL HURRICANE CENTER MIAMI FL       AL112017
+1500 UTC WED AUG 30 2017
+ 
+THERE ARE NO COASTAL WATCHES OR WARNINGS IN EFFECT.
+ 
+TROPICAL STORM CENTER LOCATED NEAR 16.4N  30.3W AT 30/1500Z
+POSITION ACCURATE WITHIN  20 NM
+ 
+PRESENT MOVEMENT TOWARD THE WEST OR 280 DEGREES AT  11 KT
+ 
+ESTIMATED MINIMUM CENTRAL PRESSURE 1004 MB
+MAX SUSTAINED WINDS  45 KT WITH GUSTS TO  55 KT.
+34 KT....... 20NE   0SE   0SW  30NW.
+12 FT SEAS.. 20NE   0SE   0SW  30NW.
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+ 
+REPEAT...CENTER LOCATED NEAR 16.4N  30.3W AT 30/1500Z
+AT 30/1200Z CENTER WAS LOCATED NEAR 16.4N  29.8W
+ 
+FORECAST VALID 31/0000Z 16.7N  31.9W
+MAX WIND  50 KT...GUSTS  60 KT.
+50 KT... 20NE   0SE   0SW   0NW.
+34 KT... 40NE  20SE   0SW  40NW.
+ 
+FORECAST VALID 31/1200Z 17.3N  33.8W
+MAX WIND  55 KT...GUSTS  65 KT.
+50 KT... 30NE   0SE   0SW  30NW.
+34 KT... 60NE  40SE  20SW  60NW.
+ 
+FORECAST VALID 01/0000Z 17.9N  35.7W
+MAX WIND  60 KT...GUSTS  75 KT.
+50 KT... 30NE  20SE   0SW  30NW.
+34 KT... 60NE  40SE  30SW  60NW.
+ 
+FORECAST VALID 01/1200Z 18.2N  37.6W
+MAX WIND  65 KT...GUSTS  80 KT.
+50 KT... 30NE  20SE   0SW  30NW.
+34 KT... 70NE  40SE  30SW  60NW.
+ 
+FORECAST VALID 02/1200Z 18.7N  41.9W
+MAX WIND  70 KT...GUSTS  85 KT.
+50 KT... 40NE  20SE  10SW  30NW.
+34 KT... 80NE  40SE  30SW  60NW.
+ 
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR 150 NM
+ON DAY 4 AND 200 NM ON DAY 5...AND FOR INTENSITY NEAR 15 KT EACH DAY
+ 
+OUTLOOK VALID 03/1200Z 17.7N  46.5W
+MAX WIND  75 KT...GUSTS  90 KT.
+ 
+OUTLOOK VALID 04/1200Z 17.0N  51.0W
+MAX WIND  80 KT...GUSTS 100 KT.
+ 
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF 16.4N  30.3W
+ 
+NEXT ADVISORY AT 30/2100Z
+ 
+$$
+FORECASTER BLAKE
+
+</pre>]]></description>
+      <pubDate>Wed, 30 Aug 2017 15:00:00 GMT</pubDate>
+      <link>http://www.seahorsecoastal.com/2017/11/01.112017.index-at.xml</link>
+      <guid>http://www.seahorsecoastal.com/2017/11/01.112017.index-at.xml</guid>
+      <author>jason.fleming@seahorsecoastal.com</author>
+   </item>
+</channel>
+</rss>

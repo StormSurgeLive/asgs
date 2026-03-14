@@ -6,7 +6,38 @@
 # See ./platforms/README
 #
 
-export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR:-.}
+# pull off subcommand first so getopts can see -L/-p after it
+cmd="$1"
+shift
+
+OPTIND=1
+while getopts "L:p:" optname; do
+   case "$optname" in
+      L|p)
+         export ASGS_LOCAL_DIR="$(readlink -f "${OPTARG}")" # get full path
+         ;;
+   esac
+done
+
+shift $((OPTIND - 1))
+
+_guess(){
+  case "${cmd}" in
+    age)
+      _guess_installation_age
+      ;;
+    health)
+      _guess_health
+      ;;
+    platform)
+      _guess_platform
+      ;;
+    *)
+      echo "'guess' supports: age | health | platform"
+      return 1
+      ;;
+  esac
+}
 
 BK=$(tput setaf 0)
 RD=$(tput setaf 1)
@@ -48,6 +79,35 @@ _guess_platform()
   # IF NOT FOUND ABOVE ... dive into platforms defined in ./platforms/
   local _PLATFORMS=()
   local _BASE=${SCRIPTDIR:-.} # needs to operate outside of asgsh, for ./init-asgs.sh
+
+  # look in $ASGS_LOCAL_DIR first, if ENV is set or passed in via -L/-p
+  if [ $default_platform == unknown ]; then
+    if [[ -n "${ASGS_LOCAL_DIR}" && -d ${ASGS_LOCAL_DIR}/platforms ]]; then
+      for platform in $(find ${ASGS_LOCAL_DIR}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
+        _PLATFORMS+=($platform);
+      done
+      for platform in "${_PLATFORMS[@]}"; do
+        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh ]]; then
+            default_platform=$platform
+            break
+        fi
+      done
+      if [[ -e ${ASGS_LOCAL_DIR}/platforms/platforms-lookup.txt ]]; then
+        # look up via the text, find common name that is associated with
+        # the matching regular expression that is based on the expected hostname
+        IFS=$'\n'
+        for line in $(cat ${ASGS_LOCAL_DIR}/platforms/platforms-lookup.txt | grep -v '#'); do
+          local common_name=$(echo $line | awk '{print $1}')
+          local hostname_regex=$(echo $line | awk '{print $2}')
+          if [[ $(echo $HOSTNAME | egrep -c "$hostname_regex") -eq 1 && -e ${ASGS_LOCAL_DIR}/platforms/${common_name}/init.sh ]]; then
+            default_platform=$common_name
+            break
+          fi
+        done
+        IFS=$OLDIFS
+      fi
+    fi
+  fi
 
   # method 1 to find platform - using $_BASE/platforms-lookup.txt
   if [ $default_platform == unknown ]; then
@@ -94,31 +154,15 @@ _guess_platform()
     return
   fi
 
-  #TODO 2: implement support for $ASGS_LOCAL_DIR/platforms-lookup.txt
-  #TODO 3: deprecate method below in favor of platforms-lookup.txt
-  # method 3 - supporting locally defined platforms
-  # look in $ASGS_LOCAL_DIR, if ENV is set
-  if [ $default_platform == unknown ]; then
-    if [[ -n "${ASGS_LOCAL_DIR}" && -d ${ASGS_LOCAL_DIR}/platforms ]]; then
-      for platform in $(find ${ASGS_LOCAL_DIR}/platforms/ -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); do
-        _PLATFORMS+=($platform);
-      done
-      for platform in "${_PLATFORMS[@]}"; do
-        if [[ 1 -eq $(echo $HOSTNAME | grep -c $platform) && -e ${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh ]]; then
-            default_platform=$platform
-            break
-        fi
-      done
-    fi
-  fi
-
   # return if platform is not unknown 
   if [ $default_platform != unknown ]; then
     echo "$default_platform"
     return
   fi
 
-  # ultimate fallback is to general OS/linux distro support
+  # ultimate fallback is to general OS/linux distro support with
+  # tailored batch submission system detection - add as needed, this
+  # is not meant to be general support for all OS/batch system combos
   if [ -e /etc/oracle-release ]; then
     default_platform=oracle
   elif [ -e /etc/debian_version ]; then
@@ -126,6 +170,12 @@ _guess_platform()
     local sbatch=$(which sbatch)
     if [ -x "$sbatch" ]; then
       default_platform=debian+slurm
+    fi
+  elif [ -e /etc/SUSE-brand ]; then
+    default_platform=suse
+    local qsub=$(which qsub)
+    if [ -x "$qsub" ]; then
+      default_platform=suse+qsub
     fi
   elif [ -e /etc/redhat-release ]; then
     if [[ $(cat /etc/redhat-release | grep -ic CentOS) == 1 ]]; then 
@@ -190,22 +240,4 @@ _guess_health()
   fi
 }
 
-_guess(){
-  case "${1}" in
-    age)
-      _guess_installation_age
-      ;;
-    health)
-      _guess_health
-      ;;
-    platform)
-      _guess_platform
-      ;;
-    *)
-      echo "'guess' currently supports only 'guess platform'."
-      return
-      ;;
-  esac
-}
-
-_guess $@
+_guess "$@"

@@ -27,7 +27,7 @@ if [ 1 -eq "$(echo $CURRENT_PERL | grep -c perl5)" ]; then
 fi
 
 if [ ! -e "$PERLBREW_ROOT/bin/perlbrew" ]; then
-  curl -k -sL https://install.perlbrew.pl | bash
+  curl -4 --http1.1 -L https://install.perlbrew.pl | bash
 else
   echo perlbrew seems to be already set up and avaiable via PATH
 fi
@@ -39,14 +39,14 @@ source $PERLBREW_ROOT/etc/bashrc > /dev/null 2>&1
 # platforms with old CA bundles
 
 PB=$(which perlbrew)
-perl -pi -e "s/download => '--silent/download => '-k --silent/g" "$PB"
+perl -pi -e "s/download => '--silent/download => '-4 --http1.1 --silent/g" "$PB"
 
 if [ ! -e "$PERLBREW_ROOT/perls/$PERL_VERSION/bin/perl" ]; then
 
   _PERL_COMPILER=$(basename $CC)      # turns full "/path/to/Ccompiler" to "Ccompiler"
   PERL_COMPILER=${PERL_COMPILER:-gcc} # if $CC was not set after all, go with 'gcc' which will be right 99.99999% of the time
   # --notest is just to increase the speed of the installation
-  perlbrew -Dcc=$PERL_COMPILER --verbose --notest install $PERL_VERSION --mirror http://www.cpan.org
+  perlbrew -Dcc=$PERL_COMPILER --verbose --notest install $PERL_VERSION --mirror https://www.cpan.org
   # -D useshrplib #<- to build libperl.so rather than libperl.a
 
   if [ $? -ne 0 ]; then

@@ -30,7 +30,7 @@ NCO_TGZ=${NCO_VERSION}.tar.gz
 cd $_ASGS_TMP
 
 if [ ! -e ${NCO_TGZ} ]; then
-  wget --no-check-certificate https://github.com/nco/nco/archive/refs/tags/${NCO_TGZ}
+  wget -4 https://github.com/nco/nco/archive/refs/tags/${NCO_TGZ}
 fi
 
 rm -rf ./$NCO_DIR 2> /dev/null
@@ -39,7 +39,7 @@ if [ ! -e $OPT/bin/ncks ]; then
    echo $OPT/bin/ncks was not found
    tar zxvf ./$NCO_TGZ
    cd $NCO_DIR
-   ./configure --prefix=$OPT --enable-gsl=no
+   ./configure --prefix=$OPT --enable-gsl=no --disable-shared --enable-static
    make -j $JOBS
    make install
 fi

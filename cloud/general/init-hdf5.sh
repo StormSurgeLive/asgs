@@ -52,8 +52,8 @@ chmod 700 $_ASGS_TMP
 cd $_ASGS_TMP
 
 if [ ! -e hdf5-${HDF5_VERSION}.tar.gz ]; then
-  echo wget --no-check-certificate https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz
-  wget --no-check-certificate https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz
+  echo wget -4 https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz
+  wget -4 https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz
 fi
 
 mkdir -p $OPT 2> /dev/null

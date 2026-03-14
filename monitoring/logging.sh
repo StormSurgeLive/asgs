@@ -39,10 +39,9 @@ setSyslogFileName()
 # write an INFO-level message to the main asgs log file
 logMessage()
 {
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $1"
   for syslogfile in $SYSLOG $2 ; do
     if [[ -f $syslogfile ]]; then
-      echo ${MSG} >> $syslogfile
+      echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $1" >> $syslogfile
     fi
   done
 }

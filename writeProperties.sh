@@ -51,7 +51,6 @@ writeProperties()
    echo "asgs.git.tags : $ASGS_GIT_TAGS" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.container.cmd : $ASGS_SINGULARITY_CMD" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.run.hostname : $(hostname)" >> $STORMDIR_RUN_PROPERTIES
-
    echo "instancename : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "operator : $operator" >> $STORMDIR_RUN_PROPERTIES
    echo "adcirc.time.coldstartdate : $CSDATE" >> $STORMDIR_RUN_PROPERTIES
@@ -59,7 +58,13 @@ writeProperties()
    echo "path.scriptdir : $SCRIPTDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.inputdir : $INPUTDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "path.outputdir : $OUTPUTDIR" >> $STORMDIR_RUN_PROPERTIES
-   echo "path.scratchdir : $SCRATCHDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.scratchdir : $SCRATCH" >> $STORMDIR_RUN_PROPERTIES
+   echo "path.results.root : $RESULTSROOT" >> $STORMDIR_RUN_PROPERTIES
+   if [[ -d $ASGS_LOCAL_DIR ]]; then
+      echo "path.localdir : $ASGS_LOCAL_DIR" >> $STORMDIR_RUN_PROPERTIES
+   else
+      echo "path.localdir : null" >> $STORMDIR_RUN_PROPERTIES
+   fi
    echo "forcing.spinup.length : $HINDCASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.backgroundmet : $BACKGROUNDMET" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tidefac : $TIDEFAC" >> $STORMDIR_RUN_PROPERTIES
@@ -402,7 +407,7 @@ writeWaveCouplingProperties()
    echo "coupling.waves.swan.swanhscompression : $SWANHSCOMPRESSION" >> $STORMDIR_RUN_PROPERTIES
    echo "coupling.waves.swan.swanhsfull : $SWANHSFULL" >> $STORMDIR_RUN_PROPERTIES
    echo "swan.swandt : $SWANDT" >> $STORMDIR_RUN_PROPERTIES
-   echo "swan.input.file.swantemplate : $SWANTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
+   echo "swan.input.file.swantemplate : $SWANTEMPLATEDIR/$SWANTEMPLATE" >> $STORMDIR_RUN_PROPERTIES
    echo "swan.input.file.swaninit : swaninit.template" >> $STORMDIR_RUN_PROPERTIES
 }
 #

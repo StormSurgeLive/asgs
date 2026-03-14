@@ -3,7 +3,7 @@
 # io_defaults.sh : Functions required for initializing
 # parameters that are only related to input/output controls.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2024 Jason Fleming
+# Copyright(C) 2019--2025 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -23,47 +23,67 @@
 THIS=$(basename -- $0)
 #
 NSCREEN=${NSCREEN:-"-1000"} # frequency (in time steps) of output to adcirc.log
-nfover=${nfover:-"1 20.0 1 20 100.0"}       # nonfatal override; warnelev and errorelev
+# nonfatal override; warnelev and errorelev
+declare -g -A nfover
+nfover["NFOVER"]=1
+nfover["WarnElev"]=20.0
+nfover["iWarnElevDump"]=1
+nfover["WarnElevDumpLimit"]=20
+nfover["ErrorElev"]=100.0
+# control writing in the warnElevControl namelist
+nfover["write_warnElevControlNamelist"]="no"
+nfover["write_WarnElev"]="nondefault"
+nfover["write_iWarnElevDump"]="nondefault"
+nfover["write_WarnElevDumpLimit"]="nondefault"
+nfover["write_ErrorElev"]="nondefault"
+# log level
 log_level=${log_level:-"INFO"}              # NABOUT (DEBUG=-1, ECHO=0, INFO=1, WARNING=2, ERROR=3)
 outputInventory=${outputInventory:-"full"}  # full|metonly
-# io
+# email
+MAILINGLIST=${MAILINGLIST:-"null"}
+NOTIFYUSER=${NOTIFYUSER:-"null"}
+#
+# the use of the OUTPUTOPTIONS string is deprecated
+# station lists
 ELEVSTATIONS=${ELEVSTATIONS:-"null"}
 VELSTATIONS=${VELSTATIONS:-"null"}
 METSTATIONS=${METSTATIONS:-"null"}
-OUTPUTOPTIONS=${OUTPUTOPTIONS:-"notset"}
-HOTSTARTCOMP=${HOTSTARTCOMP:-"fulldomain"}
-MAILINGLIST=${MAILINGLIST:-"null"}
-NOTIFYUSER=${NOTIFYUSER:-"null"}
-HOTSTARTFORMAT=${HOTSTARTFORMAT:-"null"}
-#
-# water surface elevation station output
-FORT61="--fort61freq 300.0 --fort61netcdf"
-# water current velocity station output
-FORT62="--fort62freq 0"
-# full domain water surface elevation output
-FORT63="--fort63freq 3600.0 --fort63netcdf"
-# full domain water current velocity output
-FORT64="--fort64freq 3600.0 --fort64netcdf"
-# met station output
-FORT7172="--fort7172freq 300.0 --fort7172netcdf"
-# full domain meteorological output
-FORT7374="--fort7374freq 3600.0 --fort7374netcdf"
-#SPARSE="--sparse-output"
-SPARSE=""
-NETCDF4="--netcdf4"
-OUTPUTOPTIONS="${SPARSE} ${NETCDF4} ${FORT61} ${FORT62} ${FORT63} ${FORT64} ${FORT7172} ${FORT7374}"
-# fulldomain or subdomain hotstart files
-if [[ $HOTSTARTCOMP != "subdomain" ]]; then
-   HOTSTARTCOMP="fulldomain"
-fi
-# binary, netcdf, or netcdf3 hotstart files
-if [[ $HOTSTARTFORMAT != "netcdf3" && $HOTSTARTFORMAT != "binary" ]]; then
-   HOTSTARTFORMAT="netcdf"
-fi
+OUTPUTOPTIONS=null
+# stations
+declare -g -A fort61
+declare -g -A fort62
+declare -g -A fort7172
+fort61["format"]="netcdf4"
+fort61["incr_seconds"]=300.0
+fort61["append"]="yes"
+fort62["format"]="netcdf4"
+fort62["incr_seconds"]=0.0
+fort62["append"]="yes"
+fort7172["format"]="netcdf4"
+fort7172["incr_seconds"]=300.0
+fort7172["append"]="yes"
+# fulldomain
+declare -g -A fort63
+declare -g -A fort64
+declare -g -A fort7374
+fort63["format"]="netcdf4"
+fort63["incr_seconds"]=3600.0
+fort63["append"]="yes"
+fort64["format"]="netcdf4"
+fort64["incr_seconds"]=3600.0
+fort64["append"]="yes"
+fort7374["format"]="netcdf4"
+fort7374["incr_seconds"]=3600.0
+fort7374["append"]="yes"
+# hotstart files
+HOTSTARTCOMP=${HOTSTARTCOMP:-"fulldomain"} # fulldomain or subdomain
+HOTSTARTFORMAT=${HOTSTARTFORMAT:-"netcdf"} # netcdf3 or netcdf (meaning netcdf4) or binary
+hotStartInputFormat=$HOTSTARTFORMAT
+hotStartOutputFormat=$HOTSTARTFORMAT
 # "continuous" or "reset" for maxele.63 etc files
 MINMAX=reset
 #
-createWind10mLayer="no"  # yes|no ; applies to all scenarios that have meteorological forcing
+createWind10mLayer=${createWind10mLayer:-"no"}  # yes|no ; applies to all scenarios that have meteorological forcing
 #
 # settings to take care of explicitly defined Wind10m scenarios
 # old config files (or new config files copied from old config files)
@@ -73,3 +93,36 @@ if [[ $ENSTORM == *"Wind10m" || $SCENARIO == *"Wind10m" ]]; then
    POSTPROCESS=( null_post.sh )
    OPENDAPNOTIFY="null"
 fi
+#
+#  I N U N D A T I O N  O U T P U T  C O N T R O L
+#                N A M E L I S T
+#
+# &inundationOutputControl inundationOutput=logicalValue, inunThresh =floatValue /
+declare -g -A inundationOutputControl
+inundationOutputControl["inundationOutput"]="yes" # yes|no to write extra fulldomain inundation data at end of execution
+inundationOutputControl["inunThresh"]="0.6"       # inundation reference depth (m) used in inundation output calculations
+# control writing of individual inundationOutputCntrol
+# namelist parameters to fort.15
+inundationOutputControl["write_inundationOutputControlNamelist"]="yes"
+inundationOutputControl["write_inundationOutput"]="nondefault"
+inundationOutputControl["write_inunThresh"]="nondefault"
+#
+#  S W A N   O U T P U T   C O N T R O L   N A M E L I S T
+#
+# &SWANOutputControl SWAN_OutputTPS=logicalValue, SWAN_OutputTM01=logicalValue, SWAN_OutputHS=logicalValue, SWAN_OutputDIR=logicalValue, SWAN_OutputTMM10=logicalValue, SWAN_OutputTM02=logicalValue /
+declare -g -A SWANOutputControl
+SWANOutputControl["SWAN_OutputTPS"]="yes"
+SWANOutputControl["SWAN_OutputTM01"]="yes"
+SWANOutputControl["SWAN_OutputHS"]="yes"
+SWANOutputControl["SWAN_OutputDIR"]="yes"
+SWANOutputControl["SWAN_OutputTMM10"]="yes"
+SWANOutputControl["SWAN_OutputTM02"]="yes"
+# control writing of individual waveCoupling
+# namelist parameters to fort.15
+SWANOutputControl["write_SWANOutputControlNamelist"]="no"
+SWANOutputControl["write_SWAN_OutputTPS"]="nondefault"
+SWANOutputControl["write_SWAN_OutputTM01"]="nondefault"
+SWANOutputControl["write_SWAN_OutputHS"]="nondefault"
+SWANOutputControl["write_SWAN_OutputDIR"]="nondefault"
+SWANOutputControl["write_SWAN_OutputTMM10"]="nondefault"
+SWANOutputControl["write_SWAN_OutputTM02"]="nondefault"

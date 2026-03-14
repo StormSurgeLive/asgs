@@ -4,8 +4,8 @@
 # and send result to a queue script file and modified json
 # to STDOUT
 #--------------------------------------------------------------------------
-# Copyright(C) 2006--2022 Jason Fleming
-# Copyright(C) 2006, 2007 Brett Estrade
+# Copyright(C) 2006--20226 Jason Fleming
+# Copyright(C) 2006, 2007, 2026 Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -31,9 +31,12 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 use ASGSUtil;
 use Template;
 #
-my $myNCPU = "noLineHere";   # number of CPUs the job should run on (or be decomposed for)
-my $totalcpu = "noLineHere"; # ncpu + numwriters
-my $nnodes = "noLineHere";   # number of cluster nodes
+my $myNCPU = "noLineHere";    # number of CPUs the job should run on (or be decomposed for)
+my $totalcpu = "noLineHere";  # ncpu + numwriters
+my $nnodes = "noLineHere";    # number of cluster nodes
+my $serqueue = "noLineHere";  # name of serial queue
+my $queuename = "noLineHere"; # name of parallel queue
+my $slot_type_str = "";       # type of compute node in PBS systems
 my $walltime;      # estimated maximum wall clock time
 my $wallminutes;   # integer number of minutes, calculated from HH:MM:SS
 my $qscripttemplate; # template file to use for the queue submission script
@@ -62,6 +65,11 @@ my $jobtype            = $jshash_ref->{'jobtype'}; # partmesh, prep15, padcirc e
 my $asgs_container_cmd = $ENV{ASGS_SINGULARITY_CMD}   // undef;
 my $adcirc_sif         = $ENV{ADCIRC_SINGULARITY_SIF} // undef;
 my $container_cmd      = ($asgs_container_cmd && $adcirc_sif) ? sprintf("%s %s", $asgs_container_cmd, $adcirc_sif) : "";
+# fill in the slot_type for PBS systems that define it
+if ( $jshash_ref->{'slot_type'} ne "null" ) {
+    # create the slot type string including : and =
+    $slot_type_str = ":slot_type=$jshash_ref->{'slot_type'}";
+}
 # get number of processors per node (if it is defined)
 # the number of processors per node
 my $ppn = getQueueScriptParameter($jshash_ref, "ppn");
@@ -73,13 +81,14 @@ if ( $jshash_ref->{"parallelism"} eq "serial" ) {
     $nnodes = 1;   # these are serial jobs
     if ( $jobtype eq "partmesh" || $jobtype =~ /prep/ ) {
         # get number of compute cpus
-        $myNCPU = $jshash_ref->{"forncpu"}; # for adcprep
+        $myNCPU = $jshash_ref->{"forncpu"}; # for adcprep command ("real" NCPU)
         $cmd = "$container_cmd adcprep --np $myNCPU --$jobtype --strict-boundaries";
     } else {
         $cmd = $jshash_ref->{"cmd"};
     }
-    my $serqueue = $jshash_ref->{'serqueue'};
 }
+$myNCPU = $jshash_ref->{"ncpu"}; # for queue script (effective NCPU for current job)
+
 #
 # construct command line for running padcirc, padcswan, or other parallel job
 if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
@@ -106,8 +115,8 @@ if ( $jobtype eq "padcirc" || $jobtype eq "padcswan" ){
            if ( ($totalcpu%$ppn) != 0 ) {
                $nnodes++;
            }
-        } else { 
-	   # the number of parallel tasks is less than 
+        } else {
+	   # the number of parallel tasks is less than
 	   # the maximum tasks per node
 	   # so just request one node
 	   $nnodes = 1;
@@ -267,16 +276,21 @@ while(my $line = <$TEMPLATE>) {
     # fills in the number of nodes on platforms that require it
     $line =~ s/%nnodes%/$nnodes/g;
 
-    # fill in serial queue
+    # some PBS platforms need a slot_type describing the type
+    # of node to place the job on; will be an empty string
+    # if the platform does not require this parameter
+    $line =~ s/%slot_type%/$slot_type_str/g;
+
+    # fill in serial queue (can be null/unused on certain platforms)
     if ( $jshash_ref->{"parallelism"} eq "serial" ) {
-        # name of the queue on which to run
-        $line =~ s/%queuename%/$jshash_ref->{"serqueue"}/g;
+        $serqueue = getQueueScriptParameter($jshash_ref,"serqueue");
+        $line =~ s/%queuename%/$serqueue/g;
     }
 
     # fill in parallel queue
     if ( $jshash_ref->{"parallelism"} eq "parallel" ) {
-        # name of the queue on which to run
-        $line =~ s/%queuename%/$jshash_ref->{"queuename"}/g;
+        $queuename = getQueueScriptParameter($jshash_ref,"queuename");
+        $line =~ s/%queuename%/$queuename/g;
     }
 
     # copy non-noLineHere lines to the queue script

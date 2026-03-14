@@ -96,12 +96,6 @@ variables_init()
    LASTSUBDIR=null
    FTPSITE=null
    ADCIRCDIR=${ADCIRCDIR:-null} # will respect ADCIRCDIR if already sent in the environment
-   # if not set, try to set SCRATCHDIR to SCRATCH (if set); otherwise default to "null"
-   # "SCRATCH" is set on TACC platforms in a USER's default environment; init-asgs.sh sets
-   # it for all others to provide some consistency
-   if [ -z "$SCRATCHDIR" ]; then
-     SCRATCHDIR=${SCRATCH:-null}
-   fi
    MAILINGLIST=null
    INTENDEDAUDIENCE=${INTENDEDAUDIENCE:-"developers-only"} # "general" | "developers-only" | "professional"
    QUEUESYS=${QUEUESYS:-null}
@@ -117,7 +111,7 @@ variables_init()
    RUNDIR=${RUNDIR:-null}
    INPUTDIR=$SCRIPTDIR/input/meshes/null
    OUTPUTDIR=$SCRIPTDIR/output
-   HOTSTARTFORMAT=null
+   HOTSTARTFORMAT=netcdf
    STORMDIR=stormdir
    SSHKEY=null
    VELOCITYMULTIPLIER=1.0

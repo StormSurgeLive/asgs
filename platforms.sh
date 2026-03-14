@@ -78,7 +78,7 @@ init_supermic()
 # propagates in the ASGS Shell environment
 
 init_queenbeeC()
-{ 
+{
   # Environment assumed with this ~/.modules file:
   #    module load intel/19.0.5
   #    module load intel-mpi/2019.5.281
@@ -281,6 +281,14 @@ env_dispatch() {
  HPCENVSHORT=$1
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
+ # set default ways to obtain input files on this platform
+ MESHURL=${MESHURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes"}
+ NODALATTRIBUTESURL=${NODALATTRIBUTESURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes"}
+ LOADTIDEURL=${LOADTIDEURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides"}
+ # water level obs assimilation
+ OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
+ UNITOFFSETFILE=null
+ #
  case $HPCENVSHORT in
   "supermic") logMessage "$I SuperMIC (LSU HPC) configuration found."
           init_supermic
@@ -397,6 +405,37 @@ HPC_PPN_Hint()
    ;;
    *)
      echo $DEFAULT_PPN
+   ;;
+   esac
+}
+
+# encapsulated potentially hairy logic for adjusting PPN for
+# certain platforms and based on more than one variable
+HPC_NCPU_Hint()
+{
+   local QUEUEKIND=$1
+   local QUEUENAME=$2
+   local HPCENV=$3
+   local QOS=$4
+   local DEFAULT_NCPU=$5 # default, returned if conditions not met
+   local CPUREQUEST=$6
+   case "$HPCENV" in
+   "carpenter.erdc.hpc.mil")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo 1
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
+   "mike.erdc.hpc.mil")
+     if [[ "$QUEUEKIND" == "serial" ]]; then
+       echo 1
+     else
+       echo $DEFAULT_PPN
+     fi
+   ;;
+   *)
+     echo $DEFAULT_NCPU
    ;;
    esac
 }
