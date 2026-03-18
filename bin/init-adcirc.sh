@@ -317,8 +317,6 @@ echo
 #   dialog.
 #
 
-ADCIRC_SINGULARITY_MANIFEST=./sample-manifest.txt # remove when finised testing XXXXXXXXXXXXXXXXX
-
 if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
   # finds .sif associated with SELECTED_VERSION, if listed in ADCIRC_SINGULARITY_MANIFEST file
   if [[ -e "$ADCIRC_SINGULARITY_MANIFEST" && -z "${BATCH}" ]]; then
