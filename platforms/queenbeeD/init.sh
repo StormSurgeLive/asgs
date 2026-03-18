@@ -15,7 +15,7 @@ export JOBLAUNCHER='srun '
 # defined by ADCIRC_SINGULARITY_SIF defined in a registered
 # ADCIRC's metadata file of the version that's been loaded
 export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/scratch,/project '
-export ADCIRC_SINGULARITY_OPTS='/project/cera/adcirc/containers/MANIFEST.txt'
+export ADCIRC_SINGULARITY_MANIFEST='/project/cera/adcirc/containers/MANIFEST.txt'
 export SUBMITSTRING=sbatch
 export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
 export QSCRIPTGEN=qscript.pl

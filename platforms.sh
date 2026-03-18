@@ -55,7 +55,7 @@ init_supermic()
   export SERQUEUE_NTASKS=4 # 12G for slurm, $SERQUEUE_NTASKS * 3G, applied to --ntasks
   export SUBMITSTRING=sbatch
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/project '
-  export ADCIRC_SINGULARITY_SIFS='/project/cera/adcirc/containers/MANIFEST.txt'
+  export ADCIRC_SINGULARITY_MANIFEST='/project/cera/adcirc/containers/MANIFEST.txt'
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
   export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
@@ -96,7 +96,7 @@ init_queenbeeC()
   export JOBLAUNCHER='srun '
   export SUBMITSTRING=sbatch
   export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/scratch,/project '
-  export ADCIRC_SINGULARITY_SIFS='/project/cera/adcirc/containers/MANIFEST.txt'
+  export ADCIRC_SINGULARITY_MANIFEST='/project/cera/adcirc/containers/MANIFEST.txt'
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
   export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed

@@ -296,8 +296,8 @@ fi
 
 _BUILD_PARALLEL_ADCIRC=yes
 if [[ -z "$BATCH" ]]; then
-   echo
-   read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC
+  echo
+  read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC
 fi
 if [ -z "$BUILD_PARALLEL_ADCIRC" ]; then
   BUILD_PARALLEL_ADCIRC=$_BUILD_PARALLEL_ADCIRC
@@ -311,15 +311,62 @@ echo
 #
 # S I N G U L A R I T Y  S U P P O R T
 #
+# Note:
+#   ASGS_SINGULARITY_CMD must be exported and set for 
+#   this given platform in order to get the Singularity
+#   dialog.
+#
 
-__ADCIRC_SINGULARITY_SIF=
+ADCIRC_SINGULARITY_MANIFEST=./sample-manifest.txt # remove when finised testing XXXXXXXXXXXXXXXXX
+
 if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
-  read -p "Enter full path to the .sif (<enter> if you don't know)? " _ADCIRC_SINGULARITY_SIF
-fi
+  # finds .sif associated with SELECTED_VERSION, if listed in ADCIRC_SINGULARITY_MANIFEST file
+  if [[ -e "$ADCIRC_SINGULARITY_MANIFEST" && -z "${BATCH}" ]]; then
+    # attempt to find mapping of ADCIRC version to .sif
+    # in base directory of ADCIRC_SINGULARITY_MANIFEST
+    IFS=$'\n'
+    default_sif="<enter> if you don't know"
+    for line in $(cat ${ADCIRC_SINGULARITY_MANIFEST} | grep -v '#'); do
+      adcirc_version=$(echo $line | awk '{print $1}')
+      adcirc_sif=$(echo $line | awk '{print $2}')
+  
+      ## *note* match on adcirc version selected, if found offer
+      #  that .sif as the default in the following dialog
+      if [[ "$SELECTED_VERSION" == "$adcirc_version" ]]; then
+        default_sif=$adcirc_sif
+        singularity_supported=yes
+        break
+      fi
+    done
+    IFS=$OLDIFS
+  fi
 
-if [ -n "${_ADCIRC_SINGULARITY_SIF}" ]; then
-  ADCIRC_SINGULARITY_SIF=$_ADCIRC_SINGULARITY_SIF
-  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-singularity
+  # if found for SELECTED_VERSION, asks user if they want to use Singularity at all
+  if [[ "$singularity_supported" == "yes" ]]; then
+    default_answer=yes
+    read -p "Singularity is supported her for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
+    echo
+    answer="${answer:-$default_answer}"
+  fi
+  
+  # if they do want to use Singularity, it asks which .sif and defaults to the one
+  #   found in ADCIRC_SINGULARITY_MANIFEST
+  if [[ "$answer" == "yes" ]]; then
+    read -p "Enter full path to the .sif [$default_sif]? " _ADCIRC_SINGULARITY_SIF
+    echo
+
+    _ADCIRC_SINGULARITY_SIF="${_ADCIRC_SINGULARITY_SIF:-$default_sif}"
+
+    if [[ ! -e $_ADCIRC_SINGULARITY_SIF ]]; then
+      echo "Can't find '$_ADCIRC_SINGULARITY_SIF'! exiting ADCIRC building ..."
+      exit
+    fi
+  
+    if [ -n "${_ADCIRC_SINGULARITY_SIF}" ]; then
+      ADCIRC_SINGULARITY_SIF=$_ADCIRC_SINGULARITY_SIF
+      __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-singularity
+    fi
+  fi
 fi
 
 #
@@ -327,7 +374,6 @@ fi
 #
 
 if [[ -z "$BATCH" ]]; then
-  echo
   read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
 fi
 
