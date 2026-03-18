@@ -322,6 +322,7 @@ if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
   if [[ -e "$ADCIRC_SINGULARITY_MANIFEST" && -z "${BATCH}" ]]; then
     # attempt to find mapping of ADCIRC version to .sif
     # in base directory of ADCIRC_SINGULARITY_MANIFEST
+    OLDIFS=$IFS
     IFS=$'\n'
     default_sif="<enter> if you don't know"
     for line in $(cat ${ADCIRC_SINGULARITY_MANIFEST} | grep -v '#'); do
