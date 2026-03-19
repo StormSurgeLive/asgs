@@ -1,0 +1,17 @@
+diff --git a/src/adcirc.F b/src/adcirc.F
+index 6a27894b..b8c1fcc5 100644
+--- a/src/adcirc.F
++++ b/src/adcirc.F
+@@ -643,9 +643,9 @@ C-----------------------------------------------------------------------
+ C-----------------------------------------------------------------------
+ C-----------------------------------------------------------------------
+       SUBROUTINE ADCIRC_CheckLocalTerminate()
+-        USE MESSENGER
+-        USE GLOBAL,ONLY: terminate_localproc, screenUnit
+-        USE MPI
++        USE MESSENGER, ONLY : COMM, IERR
++        USE GLOBAL, ONLY : terminate_localproc, screenUnit
++        USE SIZES, ONLY : myproc
+         IMPLICIT NONE
+         INTEGER :: TERM_LOCAL(2)
+         INTEGER :: TERM_GLOBAL(2)
