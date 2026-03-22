@@ -3,7 +3,7 @@ timestamp INFO: storm_track_gen.pl: The cold start date was not specified using 
 timestamp INFO: storm_track_gen.pl: The starting date/time of the BEST track data is 'notfound'.
 timestamp INFO: storm_track_gen.pl: The starting date/time of the OFCL track data is ' 2017090815'.
 timestamp INFO: storm_track_gen.pl: Failed to open BEST track ATCF file 'input003/bal112017.dat' for scenario 'testscenario': No such file or directory.
-timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on 2017090815 UTC.
+timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on ' 2017090815' UTC.
 timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
 timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
 timestamp INFO: storm_track_gen.pl: The forecast period tau is    0

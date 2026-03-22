@@ -14,5 +14,5 @@ timestamp INFO: storm_track_gen.pl: The storm name in 'input002/bal112017.dat' o
 timestamp INFO: storm_track_gen.pl: The storm name in 'input002/bal112017.dat' on line '10' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
 timestamp INFO: storm_track_gen.pl: The storm name in 'input002/bal112017.dat' on line '11' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
 timestamp INFO: storm_track_gen.pl: The cold start date will be set to 2017083012 UTC.
-timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on 2017083012 UTC.
+timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on '2017083012' UTC.
 timestamp INFO: storm_track_gen.pl: The forecast ATCF file 'input002/al112017.fst' for scenario 'testscenario' was not found and will not be processed.

@@ -1,0 +1,3 @@
+timestamp INFO: storm_track_gen.pl: The forecast ATCF file './single001/al072010.fst' for scenario 'nowcast' was not found and will not be processed.
+timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on '2010082900' UTC.
+timestamp INFO: storm_track_gen.pl: The forecast ATCF file './single001/al072010.fst' for scenario 'nowcast' was not found and will not be processed.
