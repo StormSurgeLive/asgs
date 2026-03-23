@@ -23,7 +23,8 @@
 # 1. Collect diffs for failed tests:
 # for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
 # 2. Fix tests to reflect new expectations:
-# for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   a. for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   b. for f in $(ls single???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 # 3. Collect run.properties into a single file for bulk inspection:
@@ -31,7 +32,7 @@
 #----------------------------------------------------------------
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
 #
-# Input set descriptions:
+# Input set descriptions (all use al112017 IRMA):
 # 001 BEST and OFCL files both present
 # 002 Only BEST file is present
 # 003 Only OFCL file is present
@@ -48,7 +49,8 @@ numInputSets=8   # number of sets of input data
 # forcing.tropicalcyclone.fcst.time.start : 2017090815
 # forcing.tropicalcyclone.fcst.time.end : 2017091312
 #
-# define command line argument sets
+# define command line argument sets to be used for IRMA
+# input sets defined above
 declare -A argSets
 # a001 missing coldstart date and hotstart time
 argSets['a001']="--name testscenario --test"
@@ -82,7 +84,7 @@ for a in $(seq 1 $numArgSets) ; do
         perl $SCRIPTDIR/storm_track_gen.pl --dir "input${inputNumber}" --storm 11 --year 2017 ${argSets["a$argSetNumber"]} 2>> $SYSLOG
         # make the test-specific $SCRIPTDIR path generic for use
         # in comparing results
-        for f in $(ls *.yaml *.log *.properties 2>> /dev/null); do
+        for f in $(ls $SYSLOG run.properties 2>> /dev/null); do
             sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
             sed -i "s?$HOME?\$HOME?g" $f
         done
@@ -92,6 +94,33 @@ for a in $(seq 1 $numArgSets) ; do
                     mv $f input${inputNumber}.arg${argSetNumber}.actual.$f
                 fi
             done
+        done
+    done
+done
+# now run one-off tests for individual cases to
+# prevent regression
+numSingleTests=1
+argSets['s001']="--dir ./single001 --storm 07 --year 2010 --name nowcast --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2010073000 --strengthPercent null --test"
+for t in $(seq 1 $numSingleTests) ; do
+    testNumber=$(printf "%03d" $t)
+    SYSLOG="single${testNumber}.actual.syslog.log"
+    output=( fort.22 run.properties $SYSLOG )
+    TEST=unit
+    if [[ -e "single${inputNumber}/run.properties" ]]; then
+        cp input${inputNumber}/run.properties . 2>> $SYSLOG
+    fi
+    perl $SCRIPTDIR/storm_track_gen.pl ${argSets["s$testNumber"]} 2>> $SYSLOG
+    # make the test-specific $SCRIPTDIR path generic for use
+    # in comparing results
+    for f in $(ls $SYSLOG run.properties 2>> /dev/null); do
+        sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
+        sed -i "s?$HOME?\$HOME?g" $f
+    done
+    for o in ${output[@]} ; do
+        for f in $(ls *$o 2> /dev/null); do
+            if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
+                mv $f single${testNumber}.actual.$f
+            fi
         done
     done
 done

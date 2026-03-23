@@ -75,6 +75,8 @@ my $storm;                         # number, e.g., 05 or 12
 my $year;                          # YYYY
 my $coldstartdate;                 # YYYYMMDDHH24
 my $hotstartseconds = 0.0;         # default is not hotstart
+my $runstartDate;                  # coldstartdate + hotstartseconds yyyymmddhh24
+my $rsFound = 0;                   # set to 1 if/when we find the run start date in the file
 my $nws = 20;                      # the ADCIRC wind model to target
 our $name = "nhcConsensus";        # default track to generate
 my $percent = "null";              # magnitude of parameter variation
@@ -88,7 +90,7 @@ my $method="twoslope";              # algorithm for predicting central pressure
 # BEST track file. This hash will save the most recent complete lines, to fill
 # in any missing data.
 my %complete_hc_lines = ();
-my $nhcName;  # NHC's current storm name (IKE, KATRINA, INVEST, ONE, etc)
+my $nhcName = "STORMNAME";  # NHC's current storm name (IKE, KATRINA, INVEST, ONE, etc)
 my $stormClass = " "; # NHC's current storm classification (TD, TS, HU, IN, etc)
 #
 # jgf20160105: Enable direct specification of scenario variations on the
@@ -145,10 +147,17 @@ unless ( $storm ) {
 # the year is needed to form the file names of the BEST and OFCL track files
 unless ( $year ) {
    ASGSUtil::stderrMessage("ERROR","The year was not specified using the --year argument.",$test);
+   die;
 }
 my $setColdStartDate = 0; # true if we need to set it ourselves
 unless ( $coldstartdate ) {
    $setColdStartDate = 1;
+   if ( $hotstartseconds != 0.0 ) {
+      ASGSUtil::stderrMessage("ERROR","The coldstartdate was not specified but the number of hotstart seconds was specified as '$hotstartseconds'. The current time cannot be calculated without the coldstartdate.",$test);
+      die;
+   }
+} else {
+   $runstartDate = getRunstartDate($coldstartdate, $hotstartseconds);
 }
 # if the cold start date was not provided on the command line, we use the
 # oldest data in the BEST track file
@@ -164,6 +173,7 @@ if ( -e $bestATCF ) {
       my @fields = split(',',$_);
       $firstBESTDate = $fields[2];
       $firstBESTDate =~ s/\s*//g; # remove spaces
+      #ASGSUtil::stderrMessage("INFO","The BEST track ATCF file '$bestATCF' for scenario '$name' starts on '$firstBESTDate'.",$test);
       last;
    }
    close(BEST);
@@ -295,7 +305,7 @@ if ( $match == 0 && $percent ne "null" ) {
 my @rad;                  # wind radii in the 4 quadrants (current time)
 my @oldrad;               # wind radii in the 4 quadrants (previous time)
 my @bestTimes;            # list of usable BEST track dates/times
-my $firstBestTime = "";
+my $firstUsableBestTime;
 my $lastBestTime;
 my $lastBestPressure;
 my $lastBestWindspeed;
@@ -305,8 +315,6 @@ my $old_lon;
 my $hours = 0;
 my $fhcyear; my $fhcmon; my $fhcday; my $fhchour; # first relevant BEST line
 my $tsflag="0";  # set to 1 when the storm reaches tropical storm force
-my $hotstartDate = getHotstartDate($coldstartdate, $hotstartseconds);
-my $hsFound = 0; # set to 1 if/when we find the hotstart date in the file
 #
 # create the fort.22 output file, which is the wind input file for ADCIRC
 unless (open(FORT22, ">", "./fort.22")) {
@@ -314,7 +322,7 @@ unless (open(FORT22, ">", "./fort.22")) {
    die;
 }
 #---------------------------------------------------------------------
-# P R O C E S S I N G   H I N D C A S T   F I L E
+#   P R O C E S S I N G   B E S T   T R A C K   F I L E
 #---------------------------------------------------------------------
 #
 # open ATCF BEST file
@@ -325,8 +333,14 @@ unless (open(BEST, "<", $bestATCF)) {
 } else {
    while(<BEST>) {
       $bestLineNum++;
-      my $hyear; my $hmon; my $hday; my $hhour;   # date/time of current BEST line
       my @fields = split / *, */, $_;
+      # skip BEST track lines that are prior to the runstartDate
+      # if it has been set
+      if ( $runstartDate ) {
+         if ( $fields[2] < $runstartDate ) {
+            next;
+         }
+      }
       # ignore BEST track lines that are after the time that the forecast
       # is valid (only if a forecast file is being processed)
       if ( $firstOFCLDate ne "notfound" ) {
@@ -359,7 +373,7 @@ unless (open(BEST, "<", $bestATCF)) {
       # AL, 12, 2005083106,   , BEST,   0, 401N,  829W,  25,  996, EX,   0,    ,    0,    0,    0,    0,
       my $line_length = length($line);
       # reject lines at the start of the BEST track file that are incomplete
-      unless ($firstBestTime) {
+      unless ($firstUsableBestTime) {
          if ( $line_length >= 160 ) {
             my $n = $fields[27];
             if ( $n =~ /GENESIS/ || $n =~ /INVEST/ ) {
@@ -367,7 +381,7 @@ unless (open(BEST, "<", $bestATCF)) {
                next;
             }
          }
-         my $cp = $fields[9];
+         my $cp = $fields[9]; # central pressure
          if ( $cp == 0 ) {
             ASGSUtil::stderrMessage("INFO","The central pressure storm name in '$bestATCF' on line '$bestLineNum' is '$cp'. This line will be skipped.",$test);
             next;
@@ -407,12 +421,14 @@ unless (open(BEST, "<", $bestATCF)) {
          }
       }
       #
-      # grab the current storm name and class
+      # grab the current storm name and class, if it is defined on the
+      # BEST track line (later lines overwrite storm names in earlier lines,
+      # so if the name is INVEST or SEVEN etc earlier in the file, the
+      # proper storm name will be recorded later in the file and ultimately
+      # reported in run.properties)
       if (defined $fields[27]) {
          $fields[27]=~/\s*(\S*)\s*/; # strip spaces from current storm name
          $nhcName = $1;
-      } else {
-         $nhcName = "STORMNAME";
       }
       if (defined $fields[10]) {
          $fields[10]=~/\s*(\S*)\s*/; # strip spaces from current storm class
@@ -447,17 +463,16 @@ unless (open(BEST, "<", $bestATCF)) {
       #populateWindRadii(\@rad,\@oldrad,$lastBestRmax);
       push(@bestTimes,$fields[2]);
       # grab the date/time first usable BEST line
-      unless ($firstBestTime) {
-         $firstBestTime = $fields[2];
-         $firstBestTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-         $fhcyear = $1;
-         $fhcmon = $2;
-         $fhcday = $3;
-         $fhchour = $4;
+      unless ($firstUsableBestTime) {
+         $firstUsableBestTime = $fields[2];
+         $firstUsableBestTime =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
          if ( $setColdStartDate == 1 ) {
-            $coldstartdate = $firstBestTime;
-            $hotstartDate = getHotstartDate($coldstartdate, $hotstartseconds);
-            $hsFound = 1;
+            $coldstartdate = $firstUsableBestTime;
+            # if we are setting the coldstartdate, the hotstartseconds
+            # must be zero, so the runstartDate and coldstartdate are the
+            # same
+            $runstartDate = getRunstartDate($coldstartdate, $hotstartseconds);
+            $rsFound = 1;
             ASGSUtil::stderrMessage("INFO","The cold start date will be set to $coldstartdate UTC.",$test);
          }
       }
@@ -467,34 +482,34 @@ unless (open(BEST, "<", $bestATCF)) {
       # for NWS 8, put all lines in the file, it will figure out which one
       # it needs
       # jgf20110720: Added possibility of swan coupling
-      # jgf20160515: Skip lines that are before the hotstartdate, even
+      # jgf20160515: Skip lines that are before the runstartDate, even
       # for NWS8, because it will be easiest for control_file_gen.pl to
       # calculate the run length if there aren't any extra lines in the
       # fort.22 file.
       if ( $setColdStartDate == 0 ) {
-         if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
-            if ( $fields[2] < $hotstartDate ) {
-               next;
-            }
-         }
          # check to see if we have found the hotstart in the BEST track file
-         if ( $fields[2] == $hotstartDate ) {
-            $hsFound = 1;
+         if ( $fields[2] == $runstartDate ) {
+            $rsFound = 1;
          }
          if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
-            if ( ($hsFound == 0) && ($fields[2] > $hotstartDate) ) {
-               ASGSUtil::stderrMessage("ERROR","The date '$fields[2]' was encountered in the BEST track file '$bestATCF'; however an exact match of the date corresonding to the hotstart '$hotstartDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the date corresponding to hotstart). The fort.22 file will not be written.",$test);
+            if ( ($rsFound == 0) && ($fields[2] > $runstartDate) ) {
+               ASGSUtil::stderrMessage("ERROR","The date '$fields[2]' was encountered in the BEST track file '$bestATCF'; however an exact match of the date corresonding to the run start '$runstartDate' should have preceded it somewhere. Therefore, the file does not contain the proper starting date (i.e., the date corresponding to run start). The fort.22 file will not be written.",$test);
                die;
             }
          }
       }
-      $fields[2] =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
-      $hyear = $1;
-      $hmon = $2;
-      $hday = $3;
-      $hhour = $4;
+      $runstartDate =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/; # yyyymmddhh of the start of the usable BEST track data
+      my $hsyear = $1;
+      my $hsmon = $2;
+      my $hsday = $3;
+      my $hshour = $4;
+      $fields[2] =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;    # yyyymmddhh for this BEST Line
+      my $blyear = $1;
+      my $blmon = $2;
+      my $blday = $3;
+      my $blhour = $4;
       # get difference between start of usable BEST track file and this BEST time
-      (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($fhcyear,$fhcmon,$fhcday,$fhchour,0,0,$hyear,$hmon,$hday,$hhour,0,0);
+      (my $ddays,my $dhrs, my $dsec) = Date::Calc::Delta_DHMS($hsyear,$hsmon,$hsday,$hshour,0,0,$blyear,$blmon,$blday,$blhour,0,0);
       my $time_difference = $ddays*24 + $dhrs; # in hours
       if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || abs($nws) == 330 || $nws == 320 || $nws == 319 ) {
          # fill in the time difference as tau
@@ -526,12 +541,13 @@ unless (open(BEST, "<", $bestATCF)) {
       $runProp{'stormname'} = $nhcName;
       $runProp{'forcing.tropicalcyclone.stormname'} = $nhcName;
    }
-   $runProp{'forcing.tropicalcyclone.best.time.start'} = "$firstBestTime";
+   if ( $rsFound == 1 ) {
+      $runProp{'forcing.tropicalcyclone.best.time.start'} = "$runstartDate";
+   }
    if ( defined $lastBestTime ) {
       $runProp{'forcing.tropicalcyclone.best.time.end'} = "$lastBestTime";
    } else {
-      $lastBestTime = $firstBestTime;
-      $runProp{'forcing.tropicalcyclone.best.time.end'} = "$lastBestTime";
+      ASGSUtil::stderrMessage("WARNING","The BEST track file does not contain any usable data.",$test);
    }
    $runProp{'track_raw_dat'} = "bal$storm$year.dat";
 }
@@ -541,7 +557,13 @@ my $last_windspeed = $lastBestWindspeed;
 my $consensus_angle=0;      # direction of motion of NHC track
 my $old_consensus_angle=0;  # previous direction of NHC track
 #
-ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on $hotstartDate UTC.",$test);
+# if the starting time of the run was not set
+# then start the run at the beginning of the forecast
+unless ( $runstartDate ) {
+   $runstartDate = $firstOFCLDate;
+   $rsFound = 1;
+}
+ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on '$runstartDate' UTC.",$test);
 #
 my $firstForecastTime;
 my $lastForecastTime;
@@ -563,6 +585,10 @@ if ( -e $forecastATCF ) {
    while(<OFCL>) {
       my @fields = split(',',$_);
       my $line = $_;
+      if (defined $fields[27]) {
+         $fields[27]=~/\s*(\S*)\s*/; # strip spaces from current storm name
+         $nhcName = $1;
+      }
       # grab the datetime at which the forecast is valid
       $fields[2] =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
       $fyear = $1;
@@ -584,16 +610,16 @@ if ( -e $forecastATCF ) {
       #
       # check to see if the forecast line is prior to the hotstart date,
       # if it is, then it will not be placed in the fort.22 file
-      if ( $forecastedDate < $hotstartDate ) {
+      if ( $forecastedDate < $runstartDate ) {
          next;
       }
       # if we have found the hotstart time in the forecast file
-      if ( $forecastedDate == $hotstartDate ) {
-         $hsFound = 1;
+      if ( $forecastedDate == $runstartDate ) {
+         $rsFound = 1;
       }
       if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || $nws == 8 || abs($nws) == 330 || $nws == 320 || $nws == 319 || $nws == 308 ) {
-         if ( ($hsFound == 0) && ($forecastedDate > $hotstartDate) ) {
-            ASGSUtil::stderrMessage("ERROR","The date '$forecastedDate' found in the forecast file '$forecastATCF' is after the date '$hotstartDate' corresponding to the time in the hotstart file, but exact hotstart date was never found. There is no meteorological data that corresponds to the time of the hotstart.",$test);
+         if ( ($rsFound == 0) && ($forecastedDate > $runstartDate) ) {
+            ASGSUtil::stderrMessage("ERROR","The date '$forecastedDate' found in the forecast file '$forecastATCF' is after the date '$runstartDate' corresponding to the run start time, but exact run start date was never found. There is no meteorological data that corresponds to the time that the run should start.",$test);
             die;
          }
       }
@@ -606,7 +632,7 @@ if ( -e $forecastATCF ) {
       #
       # next, calculate the difference between the forecasted date and the hotstart
       # date so that we can fill in the forecast period
-      $hotstartDate =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
+      $runstartDate =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
       my $hsyear = $1;
       my $hsmon = $2;
       my $hsday = $3;
@@ -795,13 +821,16 @@ if ( -e $forecastATCF ) {
    close(OFCL);
    $runProp{'forcing.tropicalcyclone.fcst.time.start'} = $firstForecastTime;
    $runProp{'forcing.tropicalcyclone.fcst.time.end'} = $lastForecastTime;
+   $runProp{'stormname'} = $nhcName;
+   $runProp{'forcing.tropicalcyclone.stormname'} = $nhcName;
 } else {
    ASGSUtil::stderrMessage("INFO","The forecast ATCF file '$forecastATCF' for scenario '$name' was not found and will not be processed.",$test);
 }
 close(FORT22);
-if ( $hsFound == 0 ) {
+if ( $rsFound == 0 ) {
    if ( abs($nws) == 30 || $nws == 20 || $nws == 19 || abs($nws) == 330 || $nws == 320 || $nws == 319 ) {
-      ASGSUtil::stderrMessage("ERROR","The date corresponding to the hotstart '$hotstartDate' was not found in the BEST track file $bestATCF or the forecast file $forecastATCF.",$test);
+      ASGSUtil::stderrMessage("ERROR","The date corresponding to the run start time '$runstartDate' was not found in the BEST track file '$bestATCF' or the forecast file '$forecastATCF'.",$test);
+      die;
    }
 }
 #
@@ -819,10 +848,10 @@ close(PROPS);
 
 
 #------------------------------------------------------------------------
-# getHotstartDate: Compute the hotstart date/time from the coldstart
+# getRunstartDate: Compute the hotstart date/time from the coldstart
 # date/time and the number of hotstart seconds.
 #------------------------------------------------------------------------
-sub getHotstartDate {
+sub getRunstartDate {
    my $c=shift;     # coldstartdate
    my $h=shift;     # hotstartseconds
    $c =~ m/\s*(\d\d\d\d)(\d\d)(\d\d)(\d\d)/;
@@ -905,10 +934,10 @@ sub interpolateUncertaintyRadius($) {
     my $radius = 0;
     #my @nhc_tau = (0, 12, 24, 36, 48, 72, 96, 120);
     #
-    #my @nhc_radii = (9.5, 32, 52, 71, 90, 122, 170, 225); #2015
-    #my @nhc_radii = (9.5, 30, 49, 66, 84, 115, 165, 237); #2016
-    #my @nhc_radii = (9.5, 29, 45, 63, 78, 107, 159, 211); #2017
-    #my @nhc_radii = (9.5, 26, 43, 56, 74, 103, 151, 198); #2018
+    #my @nhc_radii = (9.5, 32, 52, 71, 90, 122, 170, 225); # 2015
+    #my @nhc_radii = (9.5, 30, 49, 66, 84, 115, 165, 237); # 2016
+    #my @nhc_radii = (9.5, 29, 45, 63, 78, 107, 159, 211); # 2017
+    #my @nhc_radii = (9.5, 26, 43, 56, 74, 103, 151, 198); # 2018
     #my @nhc_radii = (9.5, 16, 26, 41, 55,  69,  86, 103, 151, 196); # 2020
     #my @nhc_radii = (9.5, 16, 27, 40, 55,  69,  86, 102, 148, 200); # 2021
     #my @nhc_radii = (9.5, 16, 26, 39, 52,  67,  84, 100, 142, 200); # 2022
