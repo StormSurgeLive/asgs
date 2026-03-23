@@ -1,7 +1,7 @@
 #!/bin/bash
 #----------------------------------------------------------------
-# test.sh: Driver script for the creating yaml to feed
-# control_file_gen.pl
+# test.sh: Driver script for the creating yaml with
+# generateDynamicInput.sh to feed control_file_gen.pl
 #----------------------------------------------------------------
 # Copyright(C) 2026 Jason Fleming
 #
@@ -25,6 +25,8 @@
 # for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
 # 2. Fix tests to reflect new expectations:
 # for f in $(ls test???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+# 3. Collect logs into a single file for bulk inspection:
+# for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 #----------------------------------------------------------------
 #
 # Test Descriptions:
@@ -56,9 +58,7 @@ for t in $(seq 1 $numTests) ; do
    rm run.properties 2> /dev/null # this is just a duplicate of run-control.properties
    # make the test-specific $SCRIPTDIR path generic for use
    # in comparing results
-   for f in $(ls *.yaml *.log); do
-      sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
-   done
+
    for o in ${output[@]} ; do
       for f in $(ls *$o 2> /dev/null); do
          if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
@@ -67,9 +67,19 @@ for t in $(seq 1 $numTests) ; do
       done
    done
 done
+for f in $(ls *actual* 2>> /dev/null); do
+   sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
+   sed -i "s?$HOME?\$HOME?g" $f
+   sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
+done
 # now compare results
 for f in $(ls *actual*) ; do
    g=${f//actual/expected}
+   if [[ ! -e $g ]]; then
+      echo "Missing: $g"
+      ((fail++))
+      continue
+   fi
    diff $g $f > /dev/null 2>&1
    if [[ $? -eq 0 ]]; then
       ((pass++))

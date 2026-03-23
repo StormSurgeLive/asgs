@@ -30,7 +30,7 @@ sea_surface_height_above_geoid
  0.0025 1.0  10.  0.33333 ! %FFACTOR-Line%
  5.0                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
- 5 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test008.actual.syslog.log'. %NTIF-Line%
+ 5 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test008.actual.syslog.log'. %NTIF-Line%
 M2
  0.242334  1.405174E-004 0.693000  0.96555  247.47
 N2
@@ -41,7 +41,7 @@ K1
  0.141565  7.292040E-005 0.736000  1.10726  7.41
 O1
  0.100514  6.759704E-005 0.695000  1.17401  241.17
- 5 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test008.actual.syslog.log'. %NBFR-Line%
+ 5 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test008.actual.syslog.log'. %NBFR-Line%
  M2
       0.000140518902509   0.96555  247.47
  N2
@@ -433,24 +433,24 @@ O1
    0.05377795  184.050
    0.05375799  184.047
  90.0                 ! %ANGINN-Line%
- 5 0.0 999.0 50             ! %NOUTE-Line%
- 3 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/shinnecock/shinnecock_stations.txt NSTAE
+ 5 0.0 4.0 50             ! %NOUTE-Line%
+ 3 $SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt NSTAE
 -72.537491 40.840000  ! Shinnecock Bay
 -72.476286 40.841489  ! Shinnecock Inlet
 -72.466796 40.778291  ! Shinnecock Open Water    ! %NSTAE-Line%
- 0 0.0 999.0 99999             ! %NOUTV-Line%
- 3 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/shinnecock/shinnecock_stations.txt NSTAV
+ 0 0.0 4.0 99999             ! %NOUTV-Line%
+ 3 $SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt NSTAV
 -72.537491 40.840000  ! Shinnecock Bay
 -72.476286 40.841489  ! Shinnecock Inlet
 -72.466796 40.778291  ! Shinnecock Open Water     ! %NSTAV-Line%
- 5 0.0 999.0 50           ! %NOUTM-Line%
- 3 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/shinnecock/shinnecock_stations.txt NSTAM
+ 5 0.0 4.0 50           ! %NOUTM-Line%
+ 3 $SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt NSTAM
 -72.537491 40.840000  ! Shinnecock Bay
 -72.476286 40.841489  ! Shinnecock Inlet
 -72.466796 40.778291  ! Shinnecock Open Water     ! %NSTAM-Line%
- 5 0.0 999.0 600             ! %NOUTGE-Line%
- 5 0.0 999.0 600             ! %NOUTGV-Line%
- 5 0.0 999.0 600           ! %NOUTGW-Line%
+ 5 0.0 4.0 600             ! %NOUTGE-Line%
+ 5 0.0 4.0 600             ! %NOUTGV-Line%
+ 5 0.0 4.0 600           ! %NOUTGW-Line%
  0                    ! %NHARF-Line%
  0.0 0.0 0 0.0        ! %THAS-Line%
  0 0 0 0              ! %NHASE-Line%
