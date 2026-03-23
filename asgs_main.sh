@@ -1652,7 +1652,8 @@ handleFailedJob()
       fi
    fi
 }
-#
+
+# import functions
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh            # this includes source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/properties.sh           # read properties file into a hash
@@ -1660,11 +1661,20 @@ source $SCRIPTDIR/variables_init.sh
 source $SCRIPTDIR/writeProperties.sh
 source $SCRIPTDIR/manageHooks.sh          # depends on monitoring/logging.sh
 source $SCRIPTDIR/generateDynamicInput.sh # generates tide_fac.out, fort.13, fort.15, fort.26
+source $SCRIPTDIR/static-checks.sh        # provides assert_asgslint()
 
 #####################################################################
 #                 E N D  F U N C T I O N S
 #####################################################################
 #
+
+#####################################################################
+#                 S T A T I C  S T A R T U P  C H E C K S
+#####################################################################
+#
+
+assert_asgslint                           # runs once, if fails interactively asks to exit (default) or proceed 
+
 #####################################################################
 #               B E G I N     E X E C U T I O N
 #####################################################################
