@@ -22,6 +22,8 @@
 # One Liners:
 # 1. Collect diffs for failed tests:
 # for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
+# 2. Fix tests to reflect new expectations:
+# for f in $(ls test???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #----------------------------------------------------------------
 # Test Descriptons:
 # Related to github issue #1031
@@ -46,7 +48,6 @@ fdirs=( nofdir yesfdir )
 hdirs=( nohdir yeshdir )
 ofcls=( noofcl index-at.xml )
 bests=( nobest bal182012 )
-types=( stdout stderr )
 for f in ${fdirs[@]} ; do
    for h in ${hdirs[@]} ; do
       for o in ${ofcls[@]} ; do
@@ -54,7 +55,7 @@ for f in ${fdirs[@]} ; do
             testNumber=$(printf "%03d" $i)
             perl $SCRIPTDIR/get_atcf.pl --test --ftpsite filesystem --rsssite filesystem --fdir $SCRIPTDIR/$testPath/$f --hdir $SCRIPTDIR/$testPath/$h --trigger rssembedded --storm $storm --year $year \
                > test${testNumber}.actual.stdout 2> test${testNumber}.actual.stderr
-            ((i + 2))
+            ((i++))
          done
       done
    done

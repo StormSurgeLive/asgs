@@ -1,1 +1,2 @@
-timestamp ERROR: get_atcf.pl: Cannot find the directory '/home/jason/Campaigns/Development/2026/issue-1031/t/meteorology/vortex/get_atcf.pl/nofdir'.
+INFO: get_atcf.pl: Advisory '01' for storm 'EIGHTEEN' was found in the index-at.xml file.
+timestamp DEBUG: get_atcf.pl: The previous advisory number was not provided; the new advisory number is 01.
