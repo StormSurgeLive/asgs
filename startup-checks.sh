@@ -36,3 +36,6 @@ assert_asgslint()
     fi
   fi
 }
+
+# calls function
+assert_asgslint
