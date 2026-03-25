@@ -41,6 +41,10 @@ ADVISDIR=$PWD
 SCENARIODIR=$PWD
 #
 rm *actual* run.properties fort.13 fort.26 jobFailed 2> /dev/null # remove old test results
+# standalone cleanup
+if [[ $# -eq 1 && $1 == "clean" ]]; then
+      exit
+fi
 pass=0
 fail=0
 declare -a actualFails

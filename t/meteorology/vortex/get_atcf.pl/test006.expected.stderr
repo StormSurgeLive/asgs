@@ -1,1 +1,1 @@
-timestamp ERROR: get_atcf.pl: Cannot find the directory '/home/jason/Campaigns/Development/2026/issue-981/t/meteorology/vortex/get_atcf.pl/nofdir'.
+timestamp ERROR: get_atcf.pl: Cannot find the directory '$SCRIPTDIR/t/meteorology/vortex/get_atcf.pl/nofdir'.

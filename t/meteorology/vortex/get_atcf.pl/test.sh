@@ -35,7 +35,12 @@
 # 4. could be extended to include mock ftp and https
 #    endpoints
 #----------------------------------------------------------------
-rm *actual* 2> /dev/null # remove old test results
+#
+rm *actual* al182012.fst.html diffs logfiles 2> /dev/null # remove old test results
+# standalone cleanup
+if [[ $# -eq 1 && $1 == "clean" ]]; then
+      exit
+fi
 pass=0
 fail=0
 declare -a actualFails
@@ -59,6 +64,10 @@ for f in ${fdirs[@]} ; do
          done
       done
    done
+done
+for f in $(ls *actual* 2>> /dev/null); do
+   sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
+   sed -i "s?$HOME?\$HOME?g" $f
 done
 # now compare results
 for f in $(ls *actual*) ; do
