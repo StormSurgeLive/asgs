@@ -6,6 +6,10 @@
 #    Fix calculation of forecast end property in nhc_advisory_bot.pl when forecast crosses month boundaries
 #
 rm *actual* 2> /dev/null # remove old test results
+# standalone cleanup
+if [[ $# -eq 1 && $1 == "clean" ]]; then
+      exit
+fi
 pass=0
 fail=0
 i=1

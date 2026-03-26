@@ -22,6 +22,8 @@
 # One Liners:
 # 1. Collect diffs for failed tests:
 # for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
+# 2. Fix tests to reflect new expectations:
+# for f in $(ls test???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #----------------------------------------------------------------
 # Test Descriptons:
 # Related to github issue #1031
@@ -33,7 +35,12 @@
 # 4. could be extended to include mock ftp and https
 #    endpoints
 #----------------------------------------------------------------
-rm *actual* 2> /dev/null # remove old test results
+#
+rm *actual* al182012.fst.html diffs logfiles 2> /dev/null # remove old test results
+# standalone cleanup
+if [[ $# -eq 1 && $1 == "clean" ]]; then
+      exit
+fi
 pass=0
 fail=0
 declare -a actualFails
@@ -46,7 +53,6 @@ fdirs=( nofdir yesfdir )
 hdirs=( nohdir yeshdir )
 ofcls=( noofcl index-at.xml )
 bests=( nobest bal182012 )
-types=( stdout stderr )
 for f in ${fdirs[@]} ; do
    for h in ${hdirs[@]} ; do
       for o in ${ofcls[@]} ; do
@@ -54,10 +60,14 @@ for f in ${fdirs[@]} ; do
             testNumber=$(printf "%03d" $i)
             perl $SCRIPTDIR/get_atcf.pl --test --ftpsite filesystem --rsssite filesystem --fdir $SCRIPTDIR/$testPath/$f --hdir $SCRIPTDIR/$testPath/$h --trigger rssembedded --storm $storm --year $year \
                > test${testNumber}.actual.stdout 2> test${testNumber}.actual.stderr
-            ((i + 2))
+            ((i++))
          done
       done
    done
+done
+for f in $(ls *actual* 2>> /dev/null); do
+   sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
+   sed -i "s?$HOME?\$HOME?g" $f
 done
 # now compare results
 for f in $(ls *actual*) ; do

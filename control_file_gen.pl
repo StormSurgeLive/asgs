@@ -227,15 +227,19 @@ if ( $p->{hotstart}->{time} != 0.0 ) {
    if ( $p->{hotstart}->{input_format} eq "binary" ) {
       $ihot = 68;
    }
+} else {
+   $ihot = 0;
 }
-#
 # [de]activate output files with time step increment and with(out) appending.
-my $fort61 = getOutputParameters($p->{output}->{stations}->{fort61},$p->{output}->{inventory},$dt,"elev");
-my $fort62 = getOutputParameters($p->{output}->{stations}->{fort62},$p->{output}->{inventory},$dt,"vel");
-my $fort7172 = getOutputParameters($p->{output}->{stations}->{fort7172},$p->{output}->{inventory},$dt,"met");
-my $fort63 = getOutputParameters($p->{output}->{fulldomain}->{fort63},$p->{output}->{inventory},$dt,"elev");
-my $fort64 = getOutputParameters($p->{output}->{fulldomain}->{fort64},$p->{output}->{inventory},$dt,"vel");
-my $fort7374 = getOutputParameters($p->{output}->{fulldomain}->{fort7374},$p->{output}->{inventory},$dt,"met");
+# Set the end time for output to 1 day after the model run should end; this
+# ensures that the output will not stop before the run completes
+my $output_end = $RNDAY + 1.0;
+my $fort61 = getOutputParameters($p->{output}->{stations}->{fort61},$p->{output}->{inventory},$dt,$output_end,"elev");
+my $fort62 = getOutputParameters($p->{output}->{stations}->{fort62},$p->{output}->{inventory},$dt,$output_end,"vel");
+my $fort7172 = getOutputParameters($p->{output}->{stations}->{fort7172},$p->{output}->{inventory},$dt,$output_end,"met");
+my $fort63 = getOutputParameters($p->{output}->{fulldomain}->{fort63},$p->{output}->{inventory},$dt,$output_end,"elev");
+my $fort64 = getOutputParameters($p->{output}->{fulldomain}->{fort64},$p->{output}->{inventory},$dt,$output_end,"vel");
+my $fort7374 = getOutputParameters($p->{output}->{fulldomain}->{fort7374},$p->{output}->{inventory},$dt,$output_end,"met");
 #
 # if the code should be run in meteorology-only mode, then turn
 # off all output except meteorology (including hotstart output)
@@ -1061,7 +1065,7 @@ sub writeFileName {
 # and whether or not the netcdf format is used (ascii is the default).
 #--------------------------------------------------------------------------
 sub getOutputParameters {
-   my ($f, $inv, $timestep_seconds, $data_type ) = @_;
+   my ($f, $inv, $timestep_seconds, $end_day, $data_type ) = @_;
    my $specifier; # output format
    my $increment; # time step increment between outputs
 
@@ -1085,7 +1089,8 @@ sub getOutputParameters {
       }
       $increment = int($f->{incr_seconds}/$timestep_seconds);
    }
-   return "$specifier 0.0 999.0 $increment";
+   my $end_day_formatted = sprintf("%3.1f",$end_day);
+   return "$specifier 0.0 $end_day_formatted $increment";
 }
 #
 #--------------------------------------------------------------------------

@@ -19,6 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
+rm *actual* run.properties fort.22 2> /dev/null # remove old test results
+# standalone cleanup
+if [[ $# -eq 1 && $1 == "clean" ]]; then
+    exit
+fi
 # One Liners:
 # 1. Collect diffs for failed tests:
 # for f in $(./test.sh) ; do if [[ -e $f ]]; then echo $f ; diff ${f//actual/expected} $f ; fi ; done > diffs
@@ -66,7 +71,7 @@ numArgSets=4     # number of sets of command line arguments
 ADVISDIR=$PWD
 SCENARIODIR=$PWD
 #
-rm *actual* run.properties fort.22 2> /dev/null # remove old test results
+
 pass=0
 fail=0
 declare -a actualFails

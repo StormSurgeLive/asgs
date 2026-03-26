@@ -1,12 +1,12 @@
 ---
-  mesh: "EGOMv20b"
-  controltemplate: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b.15.template"
-  adcirc_version: "v55.00-20-g5bc04d6"
-  adcirc_version_support: [  'v53release',  'v56.0.2' ]
+  mesh: "Shinnecock"
+  controltemplate: "$SCRIPTDIR/input/meshes/shinnecock/shinnecock.15.2026.1.template"
+  adcirc_version: "v56.0.4"
+  adcirc_version_support: [  'notset' ]
   coldstartdate: 2024010100
-  cycle: 20
+  cycle: "1"
   scenario: "nowcast"
-  endtime: 2024010300
+  endtime: 2024010400
   timestepsize: 6.0
   coordinate_system:
     projection: "geographic"
@@ -14,23 +14,26 @@
     earthCurvature: "no"
     rotation: "northpole"
   solver_time_integration: "implicit"
-  initialization_length: 20.0
+  initialization_length: 2.0
   time_weighting_coefficients: "0.35 0.3 0.35"
   lateral_turbulence:
     formulation: "eddy_viscosity"
-    eddy_viscosity_coefficient: 50.0
+    eddy_viscosity_coefficient: 5.0
     smagorinsky_coefficient: 0.2
     smag_comp_flag: "off"
     smag_lower_lim: "1.0e-8"
     smag_upper_lim: "100.0"
+    write_smag_comp_flag: "nondefault"
+    write_smag_lower_lim: "nondefault"
+    write_smag_upper_lim: "nondefault"
   h0: 0.05
-  velmin: 0.1
-  bottom_friction_limit: 0.001
+  velmin: 0.02
+  bottom_friction_limit: 0.0025
   advection: "on"
   hotstart:
     input_format: "netcdf"
     output_format: "netcdf"
-    time: 86400.0
+    time: 172800.0
   meteorology:
     nws: 20
     basenws: 20
@@ -38,8 +41,10 @@
     windExposure: "surface"
     invertedBarometerOnElevationBoundary: "no"
     rhoAir: 1.293
+    write_invertedBarometerOnElevationBoundary: "nondefault"
+    write_rhoAir: "nondefault"
     tropical_cyclone:
-      storm_name: "KATRINA"
+      storm_name: "TESTVORTEX"
       boundary_layer_adjustment: 0.9
     owi_win_pre:
       nwset: 1
@@ -52,14 +57,18 @@
       pure_background_radius: 5.0
     wind_drag:
       DragLawString: "garratt"
-      WindDragLimit: 0.0025
+      WindDragLimit: 0.003
       outputWindDrag: "no"
       nPowellSearchDomains: -1
+      write_DragLawString: "yes"
+      write_WindDragLimit: "yes"
+      write_outputWindDrag: "yes"
+      write_nPowellSearchDomains: "nondefault"
   tides:
     tidal_forcing: "on"
-    tidefac_file: "/home/jason/Campaigns/Development/2025/issue-1354/t/tide_fac.out"
-    tidal_potential_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 1.00 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t 2>> test_control_file_gen.sh-syslog.log'."
-    tidal_boundary_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 1.00 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t 2>> test_control_file_gen.sh-syslog.log'."
+    tidefac_file: "$SCRIPTDIR/t/control/control_file_gen.pl/test008.tide_fac.out"
+    tidal_potential_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $SCRIPTDIR/t/control/control_file_gen.pl 2>> test008.actual.syslog.log'."
+    tidal_boundary_comment: "Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 m2 s2 n2 k1 k2 o1 q1 p1 --outputformat simple --outputdir $SCRIPTDIR/t/control/control_file_gen.pl 2>> test008.actual.syslog.log'."
   flux:
     periodicity: "null"
     file: "null"
@@ -67,10 +76,17 @@
     outputNodeCode: "no"
     outputNOFF: "no"
     noffActive: "on"
-    slim: 1.d9
-    windlim: "off"
+    slim: 1000000000.0
+    windlim: "on"
     directvelWD: "off"
     useHF: "off"
+    write_outputNodeCode: "nondefault"
+    write_outputNOFF: "nondefault"
+    write_noffActive: "nondefault"
+    write_slim: "nondefault"
+    write_windlim: "nondefault"
+    write_directvelWD: "nondefault"
+    write_useHF: "nondefault"
   netcdf_metadata:
     ncproj: "ASGS"
     ncinst: "Seahorse Consulting"
@@ -88,9 +104,12 @@
     rstiminc: 1200
     WaveWindMultiplier: 1.0
     Limit_WaveStressGrad: "no"
-    WaveStressGrad_Cap: 1000.0
+    WaveStressGrad_Cap: 0.1
+    write_WaveWindMultiplier: "yes"
+    write_Limit_WaveStressGrad: "yes"
+    write_WaveStressGrad_Cap: "yes"
   swan:
-    template: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/common/swan/adcirc_swan_v53_fort.26.template"
+    template: "$SCRIPTDIR/input/meshes/common/swan/adcirc_swan_v53_parameters_fort.26.template"
     hot: "off"
     mxitns: 20
     npnts: 95
@@ -101,9 +120,16 @@
       SWAN_OutputDIR: "yes"
       SWAN_OutputTMM10: "yes"
       SWAN_OutputTM02: "yes"
+      write_SWAN_OutputTPS: "yes"
+      write_SWAN_OutputTM01: "yes"
+      write_SWAN_OutputHS: "yes"
+      write_SWAN_OutputDIR: "yes"
+      write_SWAN_OutputTMM10: "yes"
+      write_SWAN_OutputTM02: "yes"
   nodal_attributes:
-    template: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_asgs_chk_header.13.template"
+    template: "$SCRIPTDIR/input/meshes/shinnecock/shinnecock_nodal_attributes.template"
     activate: 
+      - "sea_surface_height_above_geoid"
     default_values: 
       mannings_n_at_sea_floor: "0.02"
       subgrid_barrier: "99999.0"
@@ -127,41 +153,49 @@
       iWarnElevDump: 1
       WarnElevDumpLimit: 20
       ErrorElev: 100.0
+      write_WarnElev: "nondefault"
+      write_iWarnElevDump: "nondefault"
+      write_WarnElevDumpLimit: "nondefault"
+      write_ErrorElev: "nondefault"
     nscreen: -1000
     log_level: "INFO"
     metonly_dt: 300.0
     stations:
       fort61:
-        elevstations_file: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
+        elevstations_file: "$SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt"
         incr_seconds: 300.0
-        format: "netcdf"
+        format: "netcdf4"
         append: "yes"
       fort62:
-        velstations_file: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
+        velstations_file: "$SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt"
         incr_seconds: 0.0
-        format: "netcdf"
+        format: "netcdf4"
         append: "yes"
       wetdry:
-        StatPartWetFix: "off"
+        StatPartWetFix: "on"
         How2FixStatPartWet: 0
+        write_StatPartWetFix: "nondefault"
+        write_How2FixStatPartWet: "nondefault"
       fort7172:
-        metstations_file: "/home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt"
+        metstations_file: "$SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt"
         incr_seconds: 300.0
-        format: "netcdf"
+        format: "netcdf4"
         append: "yes"
     fulldomain:
       fort63:
         incr_seconds: 3600.0
-        format: "netcdf"
+        format: "netcdf4"
         append: "yes"
       fort64:
         incr_seconds: 3600.0
-        format: "netcdf"
+        format: "netcdf4"
         append: "yes"
       fort7374:
         incr_seconds: 3600.0
-        format: "netcdf"
+        format: "netcdf4"
         append: "yes"
     inundationOutputControl:
-      inundationOutput: "yes"
+      inundationOutput: "no"
       inunThresh: 0.6
+      write_inundationOutput: "nondefault"
+      write_inunThresh: "nondefault"

@@ -36,7 +36,7 @@ elemental_slope_limiter
  0.001 1.0  10.  0.33333 ! %FFACTOR-Line%
  -0.2                      ! %ESLM-Line%
  0.00010                     ! %CORI-Line%
- 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'. %NTIF-Line%
+ 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'. %NTIF-Line%
  K1
  0.141565  0.000072921158358   0.695  1.10726 7.41
  O1
@@ -53,7 +53,7 @@ elemental_slope_limiter
  0.112841  0.000145444104333   0.693  1.00000 0.00
  K2
  0.030704  0.000145842317201   0.693  1.29722 194.49
- 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir /home/jason/Campaigns/Development/2025/issue-1354/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'. %NBFR-Line%
+ 8 ! Tide nodal factors and equilibrium arguments generated with the command 'tide_fac.x --length 3.0 --year 2024 --month 01 --day 01 --hour 00 -n 8 k1 o1 p1 q1 n2 m2 s2 k2 --outputformat simple --outputdir $SCRIPTDIR/t/control/generateDynamicInput.sh 2>> test007.actual.syslog.log'. %NBFR-Line%
  K1
  0.000072921158358  1.10726 7.41
  O1
@@ -1567,8 +1567,8 @@ K2
    0.038810     27.797266
    0.038813     27.811527
  110.0 ! ANGINN : INNER ANGLE THRESHOLD
-5 0.0 999.0 300             ! %NOUTE-Line%
-39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAE
+5 0.0 4.0 300             ! %NOUTE-Line%
+39 $SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAE
 -80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
 -80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
 -80.1618000000 25.7314000000 ! 8723214 ! NOAA NOS ! Virginia Key
@@ -1608,8 +1608,8 @@ K2
 -88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
 -86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
 -84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves    ! %NSTAE-Line%
-0 0.0 999.0 99999             ! %NOUTV-Line%
-39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAV
+0 0.0 4.0 99999             ! %NOUTV-Line%
+39 $SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAV
 -80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
 -80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
 -80.1618000000 25.7314000000 ! 8723214 ! NOAA NOS ! Virginia Key
@@ -1649,8 +1649,8 @@ K2
 -88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
 -86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
 -84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves     ! %NSTAV-Line%
-5 0.0 999.0 300           ! %NOUTM-Line%
-39 /home/jason/Campaigns/Development/2025/issue-1354/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAM
+5 0.0 4.0 300           ! %NOUTM-Line%
+39 $SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt NSTAM
 -80.5931000000 28.4158000000 ! 8721604 ! NOAA NOS ! Trident Pier
 -80.0333000000 26.6117000000 ! 8722670 ! NOAA NOS ! Lake Worth Pier
 -80.1618000000 25.7314000000 ! 8723214 ! NOAA NOS ! Virginia Key
@@ -1690,9 +1690,9 @@ K2
 -88.237 29.207 ! 42040 ! NOAA NDBC ! wind waves
 -86.007 28.787 ! 42039 ! NOAA NDBC ! wind waves
 -84.508 28.501 ! 42036 ! NOAA NDBC ! wind waves     ! %NSTAM-Line%
-4 0.0 999.0 3600             ! %NOUTGE-Line%
-4 0.0 999.0 3600             ! %NOUTGV-Line%
-4 0.0 999.0 3600           ! %NOUTGW-Line%
+4 0.0 4.0 3600             ! %NOUTGE-Line%
+4 0.0 4.0 3600             ! %NOUTGV-Line%
+4 0.0 4.0 3600           ! %NOUTGW-Line%
 0                    ! %NHARF-Line%
 0.0 0.0 0 0.0        ! %THAS-Line%
 0 0 0 0              ! %NHASE-Line%
