@@ -288,6 +288,7 @@ writeNAMProperties()
    echo "config.forcing.nam.forecastlength : $FORECASTLENGTH" >> $STORMDIR_RUN_PROPERTIES
    echo "config.forcing.nam.reprojection.ptfile : $PTFILE" >> $STORMDIR_RUN_PROPERTIES
    echo "config.forcing.nam.local.altnamdir : $ALTNAMDIR" >> $STORMDIR_RUN_PROPERTIES
+   echo "config.lint.setting : $LINTSETTING" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file for GFS

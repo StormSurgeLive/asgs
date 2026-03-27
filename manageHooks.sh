@@ -21,6 +21,13 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
+
+# added default hooks - can be removed in ASGS_CONFIG
+addDefaultHooks()
+{
+    addScriptTo START_INIT "lint-checks.sh"
+}
+
 # Executed upon startup initialization
 nullifyHooks()
 {
@@ -249,22 +256,46 @@ addScriptTo()
     local hookScript="$2"
     local wasFound="false"
     local THIS="asgs_main->manageHooks->addScriptTo_${hook}()"
+    local k
+    local current_list=""
+    local target_array=""
+
+    # Figure out which array is actually in use.
+    if declare -p hookScripts >/dev/null 2>&1; then
+        target_array="hookScripts"
+        current_list="${hookScripts["$hook"]:-}"
+    elif declare -p hooksScripts >/dev/null 2>&1; then
+        target_array="hooksScripts"
+        current_list="${hooksScripts["$hook"]:-}"
+    else
+        # Neither exists yet; create one canonical associative array.
+        declare -gA hookScripts
+        target_array="hookScripts"
+        current_list=""
+    fi
+
     if [[ ! -x "$hookScript" ]]; then
         consoleMessage "$W ${THIS}: The '$hook' hook script '$hookScript' was not found or is not executable, so it will not be used."
-    else
-        # check for duplicates
-        for k in ${hookScripts["$hook"]:-} ; do
-            if [[ "$k" == "$hookScript" ]]; then
-                wasFound="true"
-            fi
-        done
-        if [[ $wasFound == "false" ]]; then
-            logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
-            hooksScripts["$hook"]+=" $hookScript"
-        else
-            # this script has already been added to this hook
-            logMessage "$I ${THIS}: The the '$hook' hook script '$hookScript' had already been added, and will not be added again (to avoid duplication)."
+        return 0
+    fi
+
+    for k in $current_list; do
+        if [[ "$k" == "$hookScript" ]]; then
+            wasFound="true"
+            break
         fi
+    done
+
+    if [[ "$wasFound" == "false" ]]; then
+        logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
+        current_list="${current_list:+$current_list }$hookScript"
+        if [[ "$target_array" == "hookScripts" ]]; then
+            hookScripts["$hook"]="$current_list"
+        else
+            hooksScripts["$hook"]="$current_list"
+        fi
+    else
+        logMessage "$I ${THIS}: The '$hook' hook script '$hookScript' had already been added, and will not be added again (to avoid duplication)."
     fi
 }
 #
@@ -278,19 +309,43 @@ removeScriptFrom()
 {
     local hook="$1"
     local hookScript="$2"
-    local s=""          # list of scripts for this hook
+    local s=""
     local wasFound="false"
     local THIS="asgs_main->manageHooks->removeScriptFrom_${hook}()"
-    for k in ${hookScripts["$hook"]}; do
-        if [[ $k != "$hookScript" ]]; then
-            s+=" $k"
+    local k
+    local current_list=""
+    local target_array=""
+
+    # Figure out which array is actually in use.
+    if declare -p hookScripts >/dev/null 2>&1; then
+        target_array="hookScripts"
+        current_list="${hookScripts["$hook"]:-}"
+    elif declare -p hooksScripts >/dev/null 2>&1; then
+        target_array="hooksScripts"
+        current_list="${hooksScripts["$hook"]:-}"
+    else
+        # Nothing exists yet; nothing to remove.
+        declare -gA hookScripts
+        target_array="hookScripts"
+        current_list=""
+    fi
+
+    for k in $current_list; do
+        if [[ "$k" != "$hookScript" ]]; then
+            s="${s:+$s }$k"
         else
             wasFound="true"
             logMessage "$I ${THIS}: Removing the '$hook' hook script '$hookScript'."
         fi
     done
-    hookScripts["$hook"]="$s"
-    if [[ $wasFound == "false" ]]; then
+
+    if [[ "$target_array" == "hookScripts" ]]; then
+        hookScripts["$hook"]="$s"
+    else
+        hooksScripts["$hook"]="$s"
+    fi
+
+    if [[ "$wasFound" == "false" ]]; then
         logMessage "$I ${THIS}: Tried to remove the '$hook' hook script '$hookScript' but it was not found in the list of scripts for that hook."
     fi
 }

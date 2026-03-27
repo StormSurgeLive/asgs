@@ -1736,6 +1736,7 @@ fi
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
 nullifyHooks          # in manageHooks.sh
+addDefaultHooks       # after hooks are nullified, add back defaults
 #
 consoleMessage "$I START_INIT $GRIDNAME $HPCENVSHORT"
 executeHookScripts "START_INIT" || exit $?
