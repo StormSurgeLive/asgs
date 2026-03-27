@@ -11,7 +11,6 @@ export QCHECKCMD=squeue
 export SUBMITSTRING=sbatch
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH
-export ARCHIVEDIR=$SCRATCH
 export OPENDAPPOST=opendap_post2.sh
 export TDS=()
 export MAKEJOBS=2

@@ -2670,7 +2670,7 @@ that performs the desired tasks.</p></div>
 <div class="content monospaced">
 <pre>ARCHIVE=ncfs_archive.sh
 ARCHIVEBASE=/projects/ncfs/data
-ARCHIVEDIR=archive</pre>
+</pre>
 </div></div>
 <div class="dlist"><div class="title">Definitions</div><dl>
 <dt class="hdlist1">
@@ -2683,7 +2683,7 @@ ARCHIVE
     It is automatically executed in the background (that is, with an ampersand)
     so that the ASGS can continue with the next nowcast/forecast cycle
     immediately, if needed. The ASGS passes the values of <em>ARCHVEBASE</em>
-    and <em>ARCHIVEDIR</em> to the archival executable, along with other
+    to the archival executable, along with other
     input arguments (see <em>asgs_main.sh</em> for details). The ASGS expects
     to find the executable program specified by this parameter in the
     <em>OUTPUTDIR</em> directory.
@@ -2698,9 +2698,6 @@ ARCHIVEBASE
     where files should be archived.
 </p>
 </dd>
-<dt class="hdlist1">
-ARCHIVEDIR
-</dt>
 <dd>
 <p>
     The archive directory parameter represents the subdirectory of

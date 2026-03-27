@@ -184,7 +184,6 @@ writeProperties()
    # archiving
    echo "archive.executable.archive : $ARCHIVE" >> $STORMDIR_RUN_PROPERTIES
    echo "archive.path.archivebase : $ARCHIVEBASE" >> $STORMDIR_RUN_PROPERTIES
-   echo "archive.path.archivedir : $ARCHIVEDIR" >> $STORMDIR_RUN_PROPERTIES
    # forecast scenario package size
    echo "forecast.scenariopackagesize : $SCENARIOPACKAGESIZE" >> $STORMDIR_RUN_PROPERTIES
    # runtime

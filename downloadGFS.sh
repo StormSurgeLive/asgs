@@ -37,8 +37,7 @@ downloadGFS()
     ALTNAMDIR=${10}
     FORECASTCYCLE=${11}
     ARCHIVEBASE=${12}
-    ARCHIVEDIR=${13}
-    STATEFILE=${14}
+    STATEFILE=${13}
     #
     local THIS="asgs_main.sh>downloadGFS.sh"
     logMessage "$ENSTORM: $THIS: Downloading GFS meteorological data."

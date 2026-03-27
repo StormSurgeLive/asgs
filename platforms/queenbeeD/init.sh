@@ -23,6 +23,5 @@ export DEFAULT_COMPILER=intel
 export OPENDAPPOST=opendap_post2.sh #<~ $SCRIPTDIR/output/ assumed
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH
-export ARCHIVEDIR=$SCRATCH
 export TDS=(lsu_tds)
 export MAKEJOBS=8

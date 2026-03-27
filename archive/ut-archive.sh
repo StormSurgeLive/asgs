@@ -31,19 +31,18 @@ ADVISORY=$5
 HOSTNAME=$6
 ENSTORM=$7
 ARCHIVEBASE=$8
-ARCHIVEDIR=$9
 #
 if [[ -e $ARCHIVEBASE ]]; then
-   if [[ ! -e ${ARCHIVEBASE}/${ARCHIVEDIR} ]]; then
-      mkdir ${ARCHIVEBASE}/${ARCHIVEDIR} 
+   if [[ ! -e ${ARCHIVEBASE} ]]; then
+      mkdir ${ARCHIVEBASE}
    fi
-   if [[ ! -e ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY} ]]; then
-      mkdir ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY}
+   if [[ ! -e ${ARCHIVEBASE}/${ADVISORY} ]]; then
+      mkdir ${ARCHIVEBASE}/${ADVISORY}
    fi
    chgrp -R G-803086 ${ADVISDIR} 
    chmod -R 750 ${ADVISDIR}
-   cp -a $ADVISDIR/*/*.zip ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY}
-   cp -a $ADVISDIR/* ${ARCHIVEBASE}/${ARCHIVEDIR}/${ADVISORY}
+   cp -a $ADVISDIR/*/*.zip ${ARCHIVEBASE}/${ADVISORY}
+   cp -a $ADVISDIR/* ${ARCHIVEBASE}/${ADVISORY}
 else
    echo "Archival process failed, archive base directory '$ARCHIVEBASE' does not exist." 1>&2
 fi

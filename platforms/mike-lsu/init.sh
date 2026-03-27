@@ -25,7 +25,6 @@ export ASGS_SINGULARITY_CMD='singularity run -B /ddnA/work,/work,/scratch,/proje
 export ADCIRC_SINGULARITY_MANIFEST='/project/cera/adcirc/containers/MANIFEST.txt'
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH
-export ARCHIVEDIR=$SCRATCH
 export SSHKEY=~/.ssh/id_rsa.pub
 export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
 export QSCRIPTGEN=qscript.pl

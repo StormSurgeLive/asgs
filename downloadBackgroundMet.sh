@@ -38,8 +38,7 @@ downloadBackgroundMet()
     ALTNAMDIR=${10}
     FORECASTCYCLE=${11}
     ARCHIVEBASE=${12}
-    ARCHIVEDIR=${13}
-    STATEFILE=${14}
+    STATEFILE=${13}
     #
     local THIS="asgs_main.sh>downloadBackgroundMet.sh"
     CURRENT_STATE="WAIT"

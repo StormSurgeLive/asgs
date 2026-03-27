@@ -65,7 +65,6 @@ init_supermic()
   export REMOVALCMD="rmpurge"
   export ARCHIVE=enstorm_pedir_removal.sh
   export ARCHIVEBASE=$SCRATCH
-  export ARCHIVEDIR=$SCRATCH
   export TDS=( lsu_tds )
   export MAKEJOBS=8
 }
@@ -102,7 +101,6 @@ init_queenbeeC()
   export OPENDAPPOST=opendap_post.sh #<~ $SCRIPTDIR/output/ assumed
   export ARCHIVE=enstorm_pedir_removal.sh
   export ARCHIVEBASE=$SCRATCH
-  export ARCHIVEDIR=$SCRATCH
   export TDS=( lsu_tds )
   export MAKEJOBS=8
 }
@@ -137,7 +135,6 @@ init_frontera()
   export THIS="platforms.sh>env_dispatch()>init_frontera()"
   export ARCHIVE=enstorm_pedir_removal.sh
   export ARCHIVEBASE=/corral-tacc/utexas/hurricane/ASGS
-  export ARCHIVEDIR=2020 # is this used?
   export TDS=( tacc_tds3 )
   export MAKEJOBS=8
 }

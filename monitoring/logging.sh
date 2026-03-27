@@ -227,7 +227,6 @@ writeASGSInstanceStatus()
     # archiving
     echo "archive.executable.archive : $ARCHIVE" >> $statfile
     echo "archive.path.archivebase : $ARCHIVEBASE" >> $statfile
-    echo "archive.path.archivedir : $ARCHIVEDIR" >> $statfile
     # runtime
     echo "path.rundir : $RUNDIR" >> $statfile
     echo "path.statusdir : $statusDir" >> $statfile

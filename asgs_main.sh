@@ -373,7 +373,7 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
+    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE"
     echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
@@ -841,7 +841,7 @@ EOF
        fi
     fi
     echo "time.adcprep.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
-    debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE ARCHIVEDIR=$ARCHIVEDIR"
+    debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE"
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -1637,14 +1637,13 @@ handleFailedJob()
    EMAILNOTIFY=${12}
    JOB_FAILED_LIST="${13}"
    ARCHIVEBASE=${14}
-   ARCHIVEDIR=${15}
    THIS="asgs_main.sh>handleFailedJob()"
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "$ENSTORM: $THIS: The job has failed."
       FAILDATETIME=`date +'%Y-%h-%d-T%H:%M:%S%z'`
       # send an email to notify the operator that a job has failed
-      $NOTIFYSCRIPT $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      $NOTIFYSCRIPT $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE jobfailed $EMAILNOTIFY $SYSLOG "${JOB_FAILED_LIST}" $ARCHIVEBASE
       warn "$ENSTORM: $THIS: Moving failed cycle to 'failed.${FAILDATETIME}'."
       mv $ADVISDIR/$ENSTORM $RUNDIR/failed.${FAILDATETIME} 2>> ${SYSLOG}
       if [[ $EXITONERROR == "yes" ]]; then
@@ -2054,7 +2053,7 @@ consoleMessage "$I RUNDIR: '$RUNDIR'"
 ALTNAMDIR="${ALTNAMDIR},$RUNDIR"
 #
 # send out an email to notify users that the ASGS is ACTIVATED
-${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $RUNDIR advisory enstorm $GRIDFILE activation $EMAILNOTIFY $SYSLOG "${ACTIVATE_LIST}" $ARCHIVEBASE >> ${SYSLOG} 2>&1
 #
 NOFORCING=false
 # If there is no forcing from an external data source, set a flag; this
@@ -2140,7 +2139,7 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
    THIS="asgs_main.sh"
    # check to see that adcprep did not conspicuously fail
-   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
       fatal "$ENSTORM: $THIS: The prep for the initialization has failed."
@@ -2164,7 +2163,7 @@ if [[ $START == "coldstart" && $meshInitialization == "on" ]]; then
    monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$HINDCASTWALLTIME"
    THIS="asgs_main.sh"
    # check to see that the hindcast job did not conspicuously fail
-   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+   handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV hindcast $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
    THIS="asgs_main.sh"
    if [[ ! -d $ADVISDIR/$ENSTORM ]]; then
       fatal "$ENSTORM: $THIS: The initialization has failed."
@@ -2413,7 +2412,7 @@ while [ true ]; do
       "namBlend")
          logMessage "$ENSTORM: $THIS: NWS is $NWS. Downloading NAM far field winds."
          writeNAMProperties $SCENARIODIR
-         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $STATEFILE
          cp $RUNDIR/get_nam_data.pl.json $SCENARIODIR 2>> $SYSLOG
          cd $SCENARIODIR 2>> ${SYSLOG}
          # convert met files to ASCII WIN/PRE format
@@ -2473,7 +2472,7 @@ while [ true ]; do
          #
          executeHookScripts "NOWCAST_POLLING"
          #
-         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $STATEFILE
          THIS="asgs_main.sh"
          #
          logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
@@ -2554,7 +2553,7 @@ while [ true ]; do
          #
          # Detect latest GFS data, subset, download, reproject, reformat
          # to Oceanweather WIN/PRE format, and make symbolic links
-         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR "00,06,12,18" $ARCHIVEBASE $STATEFILE
          cd $SCENARIODIR 2>> $SYSLOG
          ;;
       "rrfsBlend")
@@ -2573,7 +2572,7 @@ while [ true ]; do
          #
          # Detect latest GFS data, subset, download, reproject, reformat
          # to Oceanweather WIN/PRE format, and make symbolic links
-         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+         downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $STATEFILE
          THIS="asgs_main.sh"
          #
          logMessage "$ENSTORM: $THIS: Detecting the ADVISORY from the state file ${STATEFILE}."
@@ -2675,7 +2674,7 @@ while [ true ]; do
 
    # send out an email alerting end users that a new cycle has been issued
    cycleStartTime=`date +%s`  # epoch seconds
-   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $SCENARIODIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+   ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $SCENARIODIR $ADVISORY $ENSTORM $GRIDFILE newcycle $EMAILNOTIFY $SYSLOG "${NEW_ADVISORY_LIST}" $ARCHIVEBASE >> ${SYSLOG} 2>&1
    if [[ -e ${INPUTDIR}/$MESHPROPERTIES ]]; then
       cat ${INPUTDIR}/$MESHPROPERTIES >> $ADVISDIR/$ENSTORM/run.properties
    else
@@ -2709,7 +2708,7 @@ while [ true ]; do
    fi
    THIS="asgs_main.sh"
    if [[ $controlExitStatus -ne 0 ]]; then
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
       continue  # abandon this nowcast and wait for the next one
    fi
    # load properties
@@ -2741,7 +2740,7 @@ while [ true ]; do
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       THIS="asgs_main.sh"
       # check to see that adcprep did not conspicuously fail
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
       THIS="asgs_main.sh"
       # if handleFailedJob has detected a problem, it will rename the
       # nowcast directory; therefore, the non-existence of the nowcast
@@ -2785,7 +2784,7 @@ while [ true ]; do
       monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$NOWCASTWALLTIME"
       THIS="asgs_main.sh"
       # check to see that the nowcast job did not conspicuously fail
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
       THIS="asgs_main.sh"
       if [[ ! -d $SCENARIODIR ]]; then
          # revert to the old advisory number so the nowcast can be re-tried
@@ -3099,11 +3098,11 @@ while [ true ]; do
          logMessage "$ENSTORM: $THIS: Downloading background meteorology."
          case $BACKGROUNDMET in
          "on"|"NAM")
-            logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE"
-            downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+            logMessage "$ENSTORM: $THIS: downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $STATEFILE"
+            downloadBackgroundMet $SCENARIODIR $RUNDIR $SCRIPTDIR $BACKSITE $BACKDIR $ENSTORM $CSDATE $HSTIME $FORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $STATEFILE
             ;;
          "GFS")
-            downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $ARCHIVEDIR $STATEFILE
+            downloadGFS $SCENARIODIR $RUNDIR $SCRIPTDIR $GFSBACKSITE $GFSBACKDIR $ENSTORM $CSDATE $HSTIME $GFSFORECASTLENGTH $ALTNAMDIR $FORECASTCYCLE $ARCHIVEBASE $STATEFILE
             ;;
          "RRFS")
             downloadRRFS
@@ -3170,7 +3169,7 @@ while [ true ]; do
       generateDynamicInput
       THIS="asgs_main.sh"
       if [[ $controlExitStatus -ne 0 ]]; then
-         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
       fi
       THIS="asgs_main.sh"
       #
@@ -3220,7 +3219,7 @@ while [ true ]; do
       logMessage "$ENSTORM: $THIS: Starting $ENSTORM preprocessing with the following command: prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE"
       prep $ADVISDIR $INPUTDIR $ENSTORM $START $FROMDIR $HPCENVSHORT $NCPU $PREPPEDARCHIVE $GRIDFILE $ACCOUNT "$OUTPUTOPTIONS" $HOTSTARTCOMP $ADCPREPWALLTIME $HOTSTARTFORMAT $MINMAX $HOTSWAN $NAFILE
       THIS="asgs_main.sh"
-      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+      handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
       THIS="asgs_main.sh"
       # if the prep task was successful, the scenario directory will still be there
       if [[ ! -d $STORMDIR ]]; then
@@ -3259,7 +3258,7 @@ while [ true ]; do
       (
          monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$FORECASTWALLTIME"
          THIS="asgs_main.sh"
-         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE $ARCHIVEDIR
+         handleFailedJob $RUNDIR $ADVISDIR $ENSTORM ${OUTPUTDIR}/${NOTIFY_SCRIPT} $HPCENV $STORMNAME $YEAR $STORMDIR $ADVISORY $STATEFILE $GRIDFILE $EMAILNOTIFY "${JOB_FAILED_LIST}" $ARCHIVEBASE
          THIS="asgs_main.sh"
          # only attempt post processing if this scenario
          # ended successfully
@@ -3285,7 +3284,7 @@ while [ true ]; do
             else
                notifyScriptPath=${OUTPUTDIR}
             fi
-            ${notifyScriptPath}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE $ARCHIVEDIR >> ${SYSLOG} 2>&1
+            ${notifyScriptPath}/${NOTIFY_SCRIPT} $HPCENV $STORM $YEAR $STORMDIR $ADVISORY $ENSTORM $GRIDFILE results $EMAILNOTIFY $SYSLOG "${POST_LIST}" $ARCHIVEBASE >> ${SYSLOG} 2>&1
             # archive the files for this scenario
             logMessage "$ENSTORM: $THIS: Initiating archival process, if any."
             if [[ -e ${ASGS_LOCAL_DIR}/archive/${ARCHIVE} ]]; then
