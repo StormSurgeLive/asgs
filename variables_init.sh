@@ -119,7 +119,7 @@ variables_init()
    NCPUCAPACITY=2  # total number of CPUs available to run jobs
    si=0       # scenario index for ; -1 indicates non-forecast
    STATEFILE=null
-   ENSTORM=hindcast
+   ENSTORM=null
    CYCLETIMELIMIT="05:00:00"
    IMAGEMAGICKBINPATH=null
    VORTEXMODEL=GAHM

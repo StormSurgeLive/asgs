@@ -2839,8 +2839,24 @@ while [ true ]; do
    #
    executeHookScripts "START_FORECAST_STAGE"
    #
-   ENSTORM="forecast"
-   logMessage "$ENSTORM: $THIS: Starting forecast scenarios for advisory '$ADVISORY'."
+   # Count the number of forecast scenarios in the scenario package.
+   # Should this be a hook script attached to the START_FORECAST_STAGE
+   # hook?
+   THIS="asgs_main.sh"
+   logMessage "$THIS: Counting the number of scenarios in the scenario package."
+   si=0
+   numScenarios=0
+   while [ 1 ]; do
+      SCENARIO="null"
+      readConfig
+      if [[ $SCENARIO == "null" ]]; then
+         logMessage "$THIS: There are '$si' scenarios in the scenario package."
+         numScenarios=$si
+         break
+      fi
+      ((si++))
+   done
+   logMessage "$THIS: Starting forecast scenarios for advisory '$ADVISORY'."
    #
    # we may be forecasting from a cold start if this mesh doesn't require
    # initialization and the nowcast was skipped
@@ -2850,7 +2866,7 @@ while [ true ]; do
    fi
    logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
-   while [ $si -lt $SCENARIOPACKAGESIZE ]; do
+   while [ $si -lt $numScenarios ]; do
       # source config file to pick up any configuration changes, or any
       # config that is specific to forecasts, and set up the current
       # scenario
