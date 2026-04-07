@@ -74,6 +74,8 @@ netcdfVarName["swan_DIR_max.63.nc"]="swan_DIR_max"
 netcdfVarName["swan_DIR.63.nc"]="swan_DIR"
 netcdfVarName["maxwvel.63.nc"]="wind_max"
 netcdfVarName["fort.74.nc"]="windx"
+netcdfVarName["wind10m.maxwvel.63.nc"]="wind_max"
+netcdfVarName["wind10m.fort.74.nc"]="windx"
 declare -A filesNumDataSets    # number of datasets in each file
 #
 # look for numerical instability errors in the stdout/stderr files
@@ -118,6 +120,12 @@ fi
 # meteorological output
 if [[ $SCENARIO != "hindcast" && ${properties['Wind Velocity Format']} == "netcdf" ]]; then
     fileList+=( maxwvel.63.nc fort.74.nc )
+    if [[ ${properties['Wind Velocity 10m File Name']} == "wind10m.fort.74.nc" ]]; then
+        fileList+=( wind10m.fort.74.nc )
+    fi
+    if [[ ${properties['Maximum Wind Speed 10m File Name']} == "wind10m.maxwvel.63.nc" ]]; then
+        fileList+=( wind10m.maxwvel.63.nc )
+    fi
 fi
 #
 # compile statistics for each file
@@ -158,7 +166,7 @@ for file in ${filesFoundList[@]}; do
     fi
     # the missing and zero quality checks are slightly different for the different file types
     case $file in
-    "maxwvel.63.nc"|"fort.74.nc")
+    *"maxwvel.63.nc"|*"fort.74.nc")
         # for wind output, check for any missing values (should not occur)
         numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 || $5>0 { print $0 }' statistics_${file}.txt | wc -l)
         # also check for max, avg, or stdev are zero (min can be zero)
