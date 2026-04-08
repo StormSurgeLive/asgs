@@ -132,7 +132,7 @@ for f in ${fileList[@]}; do
     if [[ ! -e $f ]]; then
         filesNumDataSets[$f]=0
         ERROVALUE=1
-        ERROMSG+=" The '$f' file does not exist, indicating that the '$jobtype' job with ID '$jobID' did not finish successfully. "
+        ERROMSG+=" The '$f' file does not exist."
         continue
     fi
     filesFoundList+=( $f )
@@ -142,8 +142,7 @@ for f in ${fileList[@]}; do
         found=$(jq --arg thisFile $f '.["files.status"].[$thisFile].["numdatasets"].["found"]' < scenario.status.json)
         if [[ $expected -ne $found ]]; then
             ERROVALUE=1
-            ERROMSG+=" The '$f' file contains '$found' datasets, but '$expected' data sets were expected, indicating that the '$jobtype' job with ID '$jobID' did not finish successfully. "
-
+            ERROMSG+=" The '$f' file contains '$found' datasets, but '$expected' data sets were expected. "
         fi
     fi
     # count the number of nodes in the mesh
@@ -153,7 +152,7 @@ for f in ${fileList[@]}; do
     # check for zero records in the file
     if [[ ${filesNumDataSets[$f]} -eq 0 ]]; then
         ERROVALUE=1
-        ERROMSG+=" The '$f' file contains no data, indicating that the '$jobtype' job with ID '$jobID' did not finish successfully. "
+        ERROMSG+=" The '$f' file contains no data. "
         continue
     fi
     echo "cycle $CYCLE: $SCENARIO: job ID '$jobID' output file '$f' contains '${filesNumDataSets[$f]}' data set(s). Computing statistics." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk

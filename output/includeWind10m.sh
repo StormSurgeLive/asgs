@@ -106,16 +106,25 @@ for file in fort.72.nc fort.74.nc maxwvel.63.nc ; do
       scenarioMessage "$THIS: Adding 'wind10m.${file}' to run.properties."
       case $file in
       "fort.72.nc")
-         echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
-         echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
+         if [[ ${properties['Wind Velocity 10m Stations File Name']} == "" ]]; then
+            echo "Wind Velocity 10m Stations File Name : wind10m.fort.72.nc" >> run.properties
+            echo "Wind Velocity 10m Stations Format : netcdf" >> run.properties
+            echo "adcirc.file.output.wind10m.fort.72.nc.numdatasets : ${properties['adcirc.file.output.fort.72.nc.numdatasets']}" >> run.properties
+         fi
          ;;
       "fort.74.nc")
-         echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
-         echo "Wind Velocity 10m Format : netcdf" >> run.properties
+         if [[ ${properties['Wind Velocity 10m File Name']} == "" ]]; then
+            echo "Wind Velocity 10m File Name : wind10m.fort.74.nc" >> run.properties
+            echo "Wind Velocity 10m Format : netcdf" >> run.properties
+            echo "adcirc.file.output.wind10m.fort.74.nc.numdatasets : ${properties['adcirc.file.output.fort.74.nc.numdatasets']}" >> run.properties
+         fi
          ;;
       "maxwvel.63.nc")
-         echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
-         echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
+         if [[ ${properties['Maximum Wind Speed 10m File Name']} == "" ]]; then
+            echo "Maximum Wind Speed 10m File Name : wind10m.maxwvel.63.nc" >> run.properties
+            echo "Maximum Wind Speed 10m Format : netcdf" >> run.properties
+            echo "adcirc.file.output.wind10m.maxwvel.63.nc.numdatasets : ${properties['adcirc.file.output.maxwvel.63.nc.numdatasets']}" >> run.properties
+         fi
          ;;
       *)
          scenarioMessage "cycle $CYCLE: $SCENARIO: $THIS: The file wind10m.${file} was not found."
