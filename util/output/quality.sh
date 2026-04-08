@@ -95,7 +95,7 @@ if [ -e $file ]; then
             echo "post.qualitycontrol.warnelev.nummessages : $numMsg" >> $RUNPROPERTIES
         else
             ERROVALUE=1
-            ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. "
+            ERROMSG+=" Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. "
         fi
     fi
 fi
@@ -132,10 +132,20 @@ for file in ${fileList[@]}; do
     if [[ ! -e $file ]]; then
         filesNumDataSets[$file]=0
         ERROVALUE=1
-        ERROMSG="$ERROMSG The '$file' file does not exist, indicating that the '$jobtype.$layer' job with ID '$jobID' did not finish successfully. "
+        ERROMSG+=" The '$file' file does not exist, indicating that the '$jobtype' job with ID '$jobID' did not finish successfully. "
         continue
     fi
     filesFoundList+=( $file )
+    # check to see if the number of datasets in the file is as expected
+    if [[ -e scenario.status.json ]]; then
+        expected=$(jq --arg thisFile $f '.["files.status"].[$thisFile].["numdatasets"].["expected"]' < scenario.status.json)
+        found=$(jq --arg thisFile $f '.["files.status"].[$thisFile].["numdatasets"].["found"]' < scenario.status.json)
+        if [[ $expected -ne $found ]]; then
+            ERROVALUE=1
+            ERROMSG+=" The '$file' file contains '$found' datasets, but '$expected' data sets were expected, indicating that the '$jobtype' job with ID '$jobID' did not finish successfully. "
+
+        fi
+    fi
     # count the number of nodes in the mesh
     np=$(ncks --trd -m -M $file | grep -E -i ": node, size =" | cut -f 7 -d ' ' | tr -d "," | uniq)
     # find number of datasets in the file
@@ -143,7 +153,7 @@ for file in ${fileList[@]}; do
     # check for zero records in the file
     if [[ ${filesNumDataSets[$file]} -eq 0 ]]; then
         ERROVALUE=1
-        ERROMSG="$ERROMSG The '$file' file contains no data, indicating that the '$jobtype.$layer' job with ID '$jobID' did not finish successfully. "
+        ERROMSG+=" The '$file' file contains no data, indicating that the '$jobtype' job with ID '$jobID' did not finish successfully. "
         continue
     fi
     echo "cycle $CYCLE: $SCENARIO: job ID '$jobID' output file '$file' contains '${filesNumDataSets[$file]}' data set(s). Computing statistics." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
@@ -212,14 +222,14 @@ for file in ${filesFoundList[@]}; do
     else
         echo "cycle $CYCLE: $SCENARIO: FAILED QUALITY CHECK: Missing values (-99999) NOT OK in '$numMissing' dataset(s) of output file '$file'. Failure for job ID '$jobID'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         ERROVALUE=1
-        ERROMSG="$ERROMSG FAILED QUALITY CHECK: Missing values (-99999) NOT OK in output file '$file'. Failure for job ID '$jobID'. "
+        ERROMSG+=" FAILED QUALITY CHECK: Missing values (-99999) NOT OK in output file '$file'. Failure for job ID '$jobID'. "
     fi
     if [[ $numZero -eq 0 ]]; then
         echo "cycle $CYCLE: $SCENARIO: PASSED QUALITY CHECK: No zero values in summary statistics in output file '$file' for job ID '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
     else
         echo "cycle $CYCLE: $SCENARIO: FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for job ID '$jobID'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         ERROVALUE=1
-        ERROMSG="$ERROMSG FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for job ID '$jobID'."
+        ERROMSG+=" FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for job ID '$jobID'."
     fi
 done
 if [[ $ERROVALUE -ne 0 ]]; then

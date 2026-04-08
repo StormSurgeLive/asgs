@@ -938,10 +938,18 @@ if ( $fort7172 ne "NO LINE HERE" ) {
 }
 if ( $fort7374 ne "NO LINE HERE" ) {
    if ( (split(' ',$fort7374))[0] != 0 ) {
-      writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
-      writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
-      writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
-      writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
+      if ( $p->{output}->{windExposure} eq "surface" ) {
+         writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+         writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+         writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
+         writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
+      }
+      if ( $p->{output}->{windExposure} eq "10m" ) {
+         writeFileName("wind10m.fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+         writeFileName("wind10m.fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+         writeFileName("wind10m.maxwvel.63",(split(' ',$fort7374))[0],1);
+         writeFileName("wind10m.minpr.63",(split(' ',$fort7374))[0],1);
+      }
    }
 }
 if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
@@ -1042,6 +1050,14 @@ sub writeFileName {
    $ids_descs{"maxinundepth.63"} = "Maximum Inundation Depth";
    $ids_descs{"everdried.63"} = "Ever Dried";
    $ids_descs{"endrisinginun.63"} = "End Rising Inundation";
+
+   # wind10m layer
+   $ids_descs{"wind10m.fort.71"} = "Barometric Pressure Stations 10m";
+   $ids_descs{"wind10m.fort.72"} = "Wind Velocity Stations 10m";
+   $ids_descs{"wind10m.fort.73"} = "Barometric Pressure 10m";
+   $ids_descs{"wind10m.fort.74"} = "Wind Velocity 10m";
+   $ids_descs{"wind10m.maxwvel.63"} = "Maximum Wind Speed 10m";
+   $ids_descs{"wind10m.minpr.63"} = "Minimum Barometric Pressure 10m";
 
    # format specifier
    if ( abs($sp) == 3 || abs($sp) == 5 ) {

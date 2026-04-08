@@ -310,6 +310,9 @@ initFileStatusMonitoring() {
    fileStatusList+=( swan_TPS.63.nc swan_TMM10.63.nc swan_HS.63.nc swan_DIR.63.nc rads.64.nc )
    # swan max files
    fileStatusList+=( maxrs.63.nc swan_TPS_max.63.nc swan_TMM10_max.63.nc swan_HS_max.63.nc swan_DIR_max.63.nc )
+   # wind10m layer files
+   fileStatusList+=( wind10m.fort.71.nc wind10m.fort.72.nc wind10m.fort.73.nc wind10m.fort.74.nc )
+   fileStatusList+=( wind10m.maxwvel.63.nc wind10m.minpr.63.nc )
    # files without datasets
    declare -g -a fileStatusCheckList=( scenario.log partmesh.txt )
    # files first updated
