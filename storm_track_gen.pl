@@ -943,8 +943,9 @@ sub interpolateUncertaintyRadius($) {
     #my @nhc_radii = (9.5, 16, 26, 39, 52,  67,  84, 100, 142, 200); # 2022
     #my @nhc_radii = (9.5, 16, 26, 39, 53,  67,  81,  99, 145, 205); # 2023
     #my @nhc_radii = (9.5, 16, 26, 41, 55,  70,  88, 102, 151, 220); # 2024 (derived from 2025 numbers and changes)
+    #my @nhc_radii = (9.5, 16, 26, 39, 52,  67,  83, 100, 142, 213); # 2025 from https://www.nhc.noaa.gov/pdf/NHC_New_Products_Updates_2025.pdf
     my @nhc_tau =   (  0,  3, 12, 24, 36,  48,  60,  72,  96, 120);
-    my @nhc_radii = (9.5, 16, 26, 39, 52,  67,  83, 100, 142, 213);  # 2025 from https://www.nhc.noaa.gov/pdf/NHC_New_Products_Updates_2025.pdf
+    my @nhc_radii = (9.5, 16, 25, 39, 49,  62,  77,  95, 134, 200);  # 2026 from https://www.nhc.noaa.gov/pdf/2026NHCNewProductsAndServices.pdf
 
     if ( $tau<$nhc_tau[0] ) {
 	ASGSUtil::stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].",$test);
