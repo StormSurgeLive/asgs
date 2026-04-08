@@ -314,4 +314,7 @@ generateDynamicInput()
         mv $SCENARIODIR/run-control.properties $SCENARIODIR/${layer}.run-control.properties 2>>$SYSLOG
     done
     cat $SCENARIODIR/${SCENARIO}.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
+    if [[ -e $SCENARIODIR/wind10m.run-control.properties ]]; then
+       cat $SCENARIODIR/wind10m.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
+    fi   
 }

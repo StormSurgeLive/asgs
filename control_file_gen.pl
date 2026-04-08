@@ -932,19 +932,25 @@ if ( (split(' ',$fort64))[0] != 0 ) {
 }
 if ( $fort7172 ne "NO LINE HERE" ) {
    if ( (split(' ',$fort7172))[0] != 0 ) {
-      writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
-      writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+      if ( $p->{meteorology}->{windExposure} eq "surface" ) {
+         writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+         writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+      }
+      if ( $p->{meteorology}->{windExposure} eq "10m" ) {
+         writeFileName("wind10m.fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+         writeFileName("wind10m.fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+      }
    }
 }
 if ( $fort7374 ne "NO LINE HERE" ) {
    if ( (split(' ',$fort7374))[0] != 0 ) {
-      if ( $p->{output}->{windExposure} eq "surface" ) {
+      if ( $p->{meteorology}->{windExposure} eq "surface" ) {
          writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
          writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
          writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
          writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
       }
-      if ( $p->{output}->{windExposure} eq "10m" ) {
+      if ( $p->{meteorology}->{windExposure} eq "10m" ) {
          writeFileName("wind10m.fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
          writeFileName("wind10m.fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
          writeFileName("wind10m.maxwvel.63",(split(' ',$fort7374))[0],1);
