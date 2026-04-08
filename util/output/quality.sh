@@ -120,11 +120,8 @@ fi
 # meteorological output
 if [[ $SCENARIO != "hindcast" && ${properties['Wind Velocity Format']} == "netcdf" ]]; then
     fileList+=( maxwvel.63.nc fort.74.nc )
-    if [[ ${properties['Wind Velocity 10m File Name']} == "wind10m.fort.74.nc" ]]; then
-        fileList+=( wind10m.fort.74.nc )
-    fi
-    if [[ ${properties['Maximum Wind Speed 10m File Name']} == "wind10m.maxwvel.63.nc" ]]; then
-        fileList+=( wind10m.maxwvel.63.nc )
+    if [[ ${properties['forcing.meteorology.createwind10mlayer']} == "yes" ]]; then
+        fileList+=( wind10m.maxwvel.63.nc wind10m.fort.74.nc )
     fi
 fi
 #

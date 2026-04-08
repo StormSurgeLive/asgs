@@ -262,6 +262,7 @@ writeScenarioProperties()
             ;;
       esac
    fi
+   echo "forcing.meteorology.createwind10mlayer : $createWind10mLayer" >> $STORMDIR_RUN_PROPERTIES
 }
 #
 # write properties to the run.properties file that are associated with
