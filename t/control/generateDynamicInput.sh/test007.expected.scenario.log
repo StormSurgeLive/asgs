@@ -1,3 +1,4 @@
+[timestamp] INFO: nowcast: asgs_main.sh>generateDynamicInput.sh: '$SCRIPTDIR/t/control/generateDynamicInput.sh/tide_fac.out' is as follows:
  K1      1.10726       7.41
  O1      1.17401     241.17
  P1      1.00000     349.84

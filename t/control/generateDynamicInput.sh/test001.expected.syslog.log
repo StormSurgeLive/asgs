@@ -1,3 +1,6 @@
+[timestamp] INFO: nowcast: asgs_main.sh>generateDynamicInput.sh: Generating input files (usually includes tide_fac.out, fort.13, and fort.15).
+[timestamp] INFO: Tide nodal factors and equilibrium arguments were written to the file '$SCRIPTDIR/t/control/generateDynamicInput.sh/tide_fac.out'.
+[timestamp] INFO: nowcast: asgs_main.sh>generateDynamicInput.sh: Generating ADCIRC Control File (nowcast.fort.15) for nowcast with parameters from the file 'nowcast.control_parameters.yaml'.
 timestamp DEBUG: control_file_gen.pl: Setting parameters appropriately for vortex model.
 timestamp INFO: control_file_gen.pl: New nowcast time is 2024010400.
 timestamp INFO: control_file_gen.pl: Parsing tidal node factors and equilibrium arguments.

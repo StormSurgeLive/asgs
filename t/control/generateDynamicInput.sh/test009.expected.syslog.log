@@ -14,3 +14,17 @@ timestamp INFO: control_file_gen.pl: Wrote '21' lines to the nodal attributes fi
 timestamp INFO: control_file_gen.pl: Opening run-control.properties file for writing.
 timestamp INFO: control_file_gen.pl: Writing file names and formats to run-control.properties file.
 timestamp INFO: control_file_gen.pl: Wrote run-control.properties file 'run-control.properties'.
+[timestamp] INFO: nowcast: asgs_main.sh>generateDynamicInput.sh: Generating ADCIRC Control File (wind10m.fort.15) for nowcast with parameters from the file 'wind10m.control_parameters.yaml'.
+timestamp DEBUG: control_file_gen.pl: Setting parameters appropriately for vortex model.
+timestamp INFO: control_file_gen.pl: New nowcast time is 2024010400.
+timestamp INFO: control_file_gen.pl: Parsing tidal node factors and equilibrium arguments.
+timestamp INFO: control_file_gen.pl: There are 3 elevation stations in the file '$SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt'.
+timestamp INFO: control_file_gen.pl: There are 3 velocity stations in the file '$SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt'.
+timestamp INFO: control_file_gen.pl: There are 3 meteorology stations in the file '$SCRIPTDIR/input/meshes/shinnecock/shinnecock_stations.txt'.
+timestamp INFO: control_file_gen.pl: Filling in ADCIRC control template (fort.15).
+timestamp INFO: control_file_gen.pl: Reading nodal attributes (fort.13) template '$SCRIPTDIR/input/meshes/shinnecock/shinnecock_nodal_attributes.template' and writing nodal attributes file 'fort.13'.
+timestamp INFO: control_file_gen.pl: There are '3' nodal attributes in the fort.13 file.
+timestamp INFO: control_file_gen.pl: Wrote '21' lines to the nodal attributes file 'fort.13'.
+timestamp INFO: control_file_gen.pl: Opening run-control.properties file for writing.
+timestamp INFO: control_file_gen.pl: Writing file names and formats to run-control.properties file.
+timestamp INFO: control_file_gen.pl: Wrote run-control.properties file 'run-control.properties'.

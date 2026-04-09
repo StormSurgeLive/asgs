@@ -35,13 +35,22 @@ setSyslogFileName()
    fi
    SYSLOG=${SYSLOG:-$WORK/log/${INSTANCENAME}.asgs-${STARTDATETIME}.$$.log}
 }
+# get a test-friendly timestamp for a log message
+getLogTimeStamp()
+{
+   ts=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   if [[ $TEST == "unit" ]]; then
+      ts="timestamp"
+   fi
+   echo $ts
+}
 #
 # write an INFO-level message to the main asgs log file
 logMessage()
 {
   for syslogfile in $SYSLOG $2 ; do
     if [[ -f $syslogfile ]]; then
-      echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $1" >> $syslogfile
+      echo "[$(getLogTimeStamp)] INFO: $1" >> $syslogfile
     fi
   done
 }
@@ -49,7 +58,7 @@ logMessage()
 # write an INFO-level message to the cycle (or advisory log file)
 cycleMessage()
 {
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $1"
+  MSG="[$(getLogTimeStamp)] INFO: $1"
   for cyclelogfile in $CYCLELOG $2 ; do
     if [[ -e $cyclelogfile ]]; then
       echo ${MSG} >> $cyclelogfile
@@ -62,7 +71,7 @@ scenarioMessage()
 {
   LOGMESSAGE=$1
   EXTRALOGFILE=$2
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] INFO: $LOGMESSAGE"
+  MSG="[$(getLogTimeStamp)] INFO: $LOGMESSAGE"
   for scenariologfile in $SCENARIOLOG $EXTRALOGFILE ; do
      if [[ -e $scenariologfile ]]; then
         echo "${MSG}" >> $scenariologfile
@@ -78,7 +87,7 @@ appMessage()
 {
   LOGMESSAGE=$1
   APPLOGFILE=$2
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] DEBUG: $LOGMESSAGE"
+  MSG="[$(getLogTimeStamp)] DEBUG: $LOGMESSAGE"
   if [[ -e $RUNDIR ]]; then
      echo ${MSG} >> $APPLOGFILE
   fi
@@ -109,7 +118,7 @@ allMessage()
 # log a warning message, execution continues
 warn()
 {
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $1"
+  MSG="[$(getLogTimeStamp)] WARNING: $1"
   for warnlogfile in $SYSLOG $2 ; do
     if [[ -e $warnlogfile ]]; then
       local frame=0
@@ -126,7 +135,7 @@ warn()
 # log an error message, notify Operator
 error()
 {
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] ERROR: $1"
+  MSG="[$(getLogTimeStamp)] ERROR: $1"
   echo ${MSG}  # send to console
   # added ability for Operator to supply a "local" log file (e.g., postprocess.log)
   for errorlogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
@@ -148,7 +157,7 @@ error()
 # log an error message, execution halts
 fatal()
 {
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] FATAL ERROR: $1"
+  MSG="[$(getLogTimeStamp)] FATAL ERROR: $1"
   for fatallogfile in $SYSLOG $CYCLELOG $SCENARIOLOG $2; do
     if [[ -e $fatallogfile ]]; then
       local frame=0
@@ -169,7 +178,7 @@ fatal()
 # log a debug message
 debugMessage()
 {
-  MSG="[$(date +'%Y-%h-%d-T%H:%M:%S%z')] DEBUG: $1"
+  MSG="[$(getLogTimeStamp)] DEBUG: $1"
   for debuglogfile in $SCENARIOLOG $2; do
      if [[ -e $debuglogfile ]]; then
         echo ${MSG} >> $debuglogfile

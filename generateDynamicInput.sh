@@ -54,6 +54,10 @@ generateDynamicInput()
     fi
     #
     # nodal attribute default values to be written to nodal attributes (fort.13) file
+    local na_activate_list=""
+    for k in ${nodal_attribute_activate[@]}; do
+        na_activate_list="$na_activate_list\n      - \"$k\""
+    done
     na_defaults="\n"
     for k in ${!nodal_attribute_default_values[@]}; do
         na_defaults="$na_defaults      $k: \"${nodal_attribute_default_values[$k]}\"\n"
@@ -61,10 +65,6 @@ generateDynamicInput()
     #
     # set up options for fort.15 file(s) based on the layer being generated
     declare -a layers
-    local na_activate_list=""
-    for k in ${nodal_attribute_activate[@]}; do
-        na_activate_list="$na_activate_list\n      - \"$k\""
-    done
     # set wind exposure
     local exposure=$windExposure
     layers=( $SCENARIO )
@@ -93,7 +93,10 @@ generateDynamicInput()
             if [[ $BACKGROUNDMET == *"Blend" && $stage == "NOWCAST" ]]; then
                 metonlyNWS=-$(($BASENWS + 10))  # e.g., 20 becomes -30
             fi
+            local na_activate_list=""
             for k in ${nodal_attribute_activate[@]}; do
+                # the elemental_slope _limiter has to be removed in metonly mode
+                # so it doesn't trigger the writing of the ESLNodes.63 file
                 if [[ $k == "surface_directional_effective_roughness_length" || $k == "surface_canopy_coefficient" || $k == "elemental_slope_limiter" ]]; then
                     continue  # deactivate nodal attributes that reduce wind to ground level (or update ESLNodes.63)
                 fi
@@ -316,5 +319,5 @@ generateDynamicInput()
     cat $SCENARIODIR/${SCENARIO}.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
     if [[ -e $SCENARIODIR/wind10m.run-control.properties ]]; then
        cat $SCENARIODIR/wind10m.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
-    fi   
+    fi
 }
