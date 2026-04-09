@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#----------------------------------------------------------------
+# get-scenario-package-size : Counts the number of scenarios
+# in the forecast scenario package.
+#----------------------------------------------------------------
+# Copyright(C) 2026 Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+THIS=$(basename -- $0)
+
+if [ -z "$_ASGSH_PID" ]; then
+  echo "This script is meant to run inside of the ASGS Shell Environment, asgsh."
+  exit 1;
+fi
+
+_getScenarioPackageSize() {
+  si=0
+  while [ 1 ]; do
+    SCENARIO="null"
+    ENSTORM="null"  # ENSTORM is deprecated, older config files used this
+    # maintain backward compatibility with old config files
+    SCENARIOPACKAGESIZE=-1
+    ENSEMBLESIZE=-1
+    source $ASGS_CONFIG
+    if [[ $ENSEMBLESIZE -ne -1 ]]; then
+      SCENARIOPACKAGESIZE=$ENSEMBLESIZE   # ENSEMBLESIZE is deprecated
+    fi
+    if [[ $ENSTORM != "null" ]]; then
+      SCENARIO=$ENSTORM                   # ENSTORM is deprecated
+    fi
+    if [[ $SCENARIO == "null" ]]; then
+      logMessage "$THIS: There are '$si' scenarios in the scenario package."
+      break
+    fi
+    ((si++))
+  done
+
+  echo $si
+
+}
+
+_getScenarioPackageSize $@

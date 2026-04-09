@@ -53,7 +53,8 @@ readConfig()
    # pick up config parameters, set by the Operator, that differ from the defaults
    local e=$ENSTORM
    local s=$SCENARIO
-   local ez=$ENSEMBLESIZE
+   ENSEMBLESIZE=-1
+   SCENARIOPACKAGESIZE=-1
    source ${CONFIG}
    # ensure single digit STORM numbers issued by NHC are zero-padded
    if [[ ${#STORM} -lt 2 && $STORM -lt 10 ]]; then
@@ -61,9 +62,13 @@ readConfig()
    fi
    #
    # maintain backward compatibility with old config files
-   if [[ $ENSEMBLESIZE != $ez ]]; then
+   if [[ $ENSEMBLESIZE -ne -1 ]]; then
+      consoleMessage "$W The ENSEMBLESIZE parameter is deprecated and may be removed from the configuration file."
       SCENARIOPACKAGESIZE=$ENSEMBLESIZE   # ENSEMBLESIZE is deprecated
       ENSEMBLESIZE="null"
+   fi
+   if [[ $SCENARIOPACKAGESIZE -ne -1 ]]; then
+      consoleMessage "$W The SCENARIOPACKAGESIZE parameter is deprecated and may be removed from the configuration file."
    fi
    if [[ $ENSTORM != $e ]]; then
       SCENARIO=$ENSTORM                   # ENSTORM is deprecated
@@ -2843,20 +2848,13 @@ while [ true ]; do
    # Should this be a hook script attached to the START_FORECAST_STAGE
    # hook?
    THIS="asgs_main.sh"
+
    logMessage "$THIS: Counting the number of scenarios in the scenario package."
-   si=0
-   numScenarios=0
-   while [ 1 ]; do
-      SCENARIO="null"
-      readConfig
-      if [[ $SCENARIO == "null" ]]; then
-         logMessage "$THIS: There are '$si' scenarios in the scenario package."
-         numScenarios=$si
-         break
-      fi
-      ((si++))
-   done
-   logMessage "$THIS: Starting forecast scenarios for advisory '$ADVISORY'."
+   numScenarios=$(get-scenario-package-size)
+   if [[ $SCENARIOPACKAGESIZE -ne $numScenarios ]]; then
+     consoleMessage "$W There are '$numScenarios' forecast scenarios but the scenario package size was set to 'SCENARIOPACKAGESIZE=$SCENARIOPACKAGESIZE' in the ASGS configuration file '$ASGS_CONFIG'. ASGS will submit '$numScenarios' forecast scenarios."
+   fi
+   logMessage "$THIS: Starting '$numScenarios' forecast scenarios for advisory '$ADVISORY'."
    #
    # we may be forecasting from a cold start if this mesh doesn't require
    # initialization and the nowcast was skipped

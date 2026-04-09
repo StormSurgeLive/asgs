@@ -83,7 +83,7 @@ LASTSUBDIR=null
 # Scenario package
 #
 PERCENT=default
-#SCENARIOPACKAGESIZE=1    # <-----<< test001 commented out b/c ASGS calculates automatically
+SCENARIOPACKAGESIZE=1    # <-----<< test001 commented out b/c ASGS calculates automatically
 case $si in
    -2)
        ENSTORM=hindcast
