@@ -21,7 +21,7 @@
 #----------------------------------------------------------------
 for f in $(find . -name test.sh -print) ; do
    d=$(dirname $f)
-   pushd $d
+   pushd $d > /dev/null 2>&1
    ./test.sh $1
-   popd
+   popd > /dev/null 2>&1
 done
