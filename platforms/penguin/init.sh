@@ -29,6 +29,5 @@ export SSHKEY=~/.ssh/id_rsa.pub
 export RESERVATION=null
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH
-export ARCHIVEDIR=$SCRATCH
 export TDS=()
 export MAKEJOBS=8

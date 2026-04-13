@@ -71,7 +71,6 @@ variables_init()
    OUTPUTOPTIONS=
    NSCREEN=${NSCREEN:-"-1000"}
    ARCHIVEBASE=/dev/null
-   ARCHIVEDIR=null
    FORECASTCYCLE="00,06,12,18"
    TRIGGER="rss"
    LASTADVISORYNUM=0
