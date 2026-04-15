@@ -120,10 +120,19 @@ jobs:
             exit 1
           fi
 
-      - name: Build All Supported ADCIRCs
+      - name: Debug ASGS environment
         run: |
           set -euxo pipefail
           export TERM=xterm
-          #./asgsh -A "init-adcirc.sh -b -N v53release"
-          ./asgsh -A "verify perl"
+      
+          echo "PWD=$PWD"
+          echo "PATH=$PATH"
+          ls -l ./asgsh || true
+          type verify || true
+          command -v init-adcirc.sh || true
+          command -v perl || true
+      
+          bash -lc 'echo "INSIDE bash -lc"; echo "PATH=$PATH"; command -v init-adcirc.sh || true; command -v verify || true'
+      
+          ./asgsh -A "echo INSIDE_ASGSH; pwd; echo PATH=\$PATH; command -v init-adcirc.sh || true; command -v verify || true; env | sort"
         timeout-minutes: 120
