@@ -124,5 +124,5 @@ jobs:
         run: |
           set -euxo pipefail
           export TERM=xterm
-          ./asgsh -A "bash ./cloud/general/t/build-all-adcirc.sh"
+          ./asgsh -A "init-adcirc.sh -b -N v53release"
         timeout-minutes: 120
