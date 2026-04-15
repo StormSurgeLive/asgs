@@ -48,3 +48,9 @@ jobs:
           chmod +x ./ci/04-install-netcdf4.sh
           ./ci/04-install-netcdf4.sh
         timeout-minutes: 120
+
+      - name: Build All Supported ADCIRCs 
+        run: |
+          chmod +x ./ci/05-build-adcircs.sh
+          ./ci/05-build-adcircs.sh
+        timeout-minutes: 120
