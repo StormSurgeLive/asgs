@@ -1,0 +1,191 @@
+name: Build ASGS and All ADCIRCs
+
+on:
+  push:
+    branches:
+      - master
+      - issue-1677
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-all-adcircs:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-22.04-gfortran
+            distro: ubuntu
+            compiler: gfortran
+            container: ""
+          - name: rocky-9-gfortran
+            distro: rocky
+            compiler: gfortran
+            container: rockylinux:9
+
+    container: ${{ matrix.container != '' && matrix.container || null }}
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      TERM: xterm
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system packages (Ubuntu)
+        if: matrix.distro == 'ubuntu'
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            bash \
+            bc \
+            build-essential \
+            bzip2 \
+            ca-certificates \
+            checkinstall \
+            curl \
+            file \
+            findutils \
+            flex \
+            gawk \
+            git \
+            gfortran \
+            gzip \
+            htop \
+            libexpat1-dev \
+            libssl-dev \
+            make \
+            patch \
+            procps \
+            python3 \
+            rsync \
+            screen \
+            sed \
+            tar \
+            tmux \
+            unzip \
+            vim \
+            wget \
+            zip \
+            zlib1g-dev
+
+      - name: Install system packages (Rocky)
+        if: matrix.distro == 'rocky'
+        run: |
+          set -euxo pipefail
+          dnf -y update
+          dnf -y install \
+            bash \
+            bc \
+            bzip2 \
+            ca-certificates \
+            curl \
+            diffutils \
+            file \
+            findutils \
+            flex \
+            gcc \
+            gcc-c++ \
+            gcc-gfortran \
+            gawk \
+            git \
+            gzip \
+            make \
+            openssl-devel \
+            patch \
+            perl \
+            procps-ng \
+            python3 \
+            redhat-rpm-config \
+            rsync \
+            sed \
+            tar \
+            unzip \
+            vim-minimal \
+            wget \
+            which \
+            zip \
+            zlib-devel
+
+      - name: Prepare writable HOME/bin
+        run: |
+          set -euxo pipefail
+          mkdir -p "$HOME/bin"
+          mkdir -p "$GITHUB_WORKSPACE/tmp"
+
+      - name: Bootstrap ASGS dependencies with init-asgs.sh
+        run: |
+          set -euxo pipefail
+          chmod +x ./init-asgs.sh
+          ./init-asgs.sh -b -A -c "${{ matrix.compiler }}"
+
+      - name: Verify bootstrap outputs exist
+        run: |
+          set -euxo pipefail
+          test -x ./update-asgs || { echo "update-asgs wrapper was not created"; exit 1; }
+          test -d ./opt || { echo "./opt was not created"; exit 1; }
+          test -d ./profiles || { echo "./profiles was not created"; exit 1; }
+
+      - name: Locate build-all-adcircs script
+        run: |
+          set -euxo pipefail
+          if [ -x "./cloud/general/t/build-all-adcircs.sh" ]; then
+            echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
+          elif [ -f "./cloud/general/t/build-all-adcircs.sh" ]; then
+            chmod +x ./cloud/general/t/build-all-adcircs.sh
+            echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
+          else
+            echo "Expected build sweep script not found at ./cloud/general/t/build-all-adcircs.sh"
+            echo "Adjust this path to the current repo location of the all-ADCIRC build script."
+            exit 1
+          fi
+
+      - name: Build all ADCIRCs
+        run: |
+          set -euxo pipefail
+          "$BUILD_ALL_SCRIPT"
+
+      - name: Verify ADCIRC binaries were built
+        run: |
+          set -euxo pipefail
+          mapfile -t bins < <(find "$GITHUB_WORKSPACE" -type f \
+            \( -name adcirc -o -name padcirc -o -name adcswan -o -name padcswan \) \
+            | sort)
+
+          printf 'Discovered binaries:\n'
+          printf '  %s\n' "${bins[@]:-<none>}"
+
+          if [ "${#bins[@]}" -eq 0 ]; then
+            echo "No ADCIRC binaries were found."
+            exit 1
+          fi
+
+      - name: Upload logs and build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-logs-and-builds
+          if-no-files-found: warn
+          path: |
+            update-asgs
+            opt/
+            profiles/
+            tmp/
+            **/*.log
+            **/cmake*.log
+            **/make.log
+            **/build.log
+            **/adcirc
+            **/padcirc
+            **/adcswan
+            **/padcswan
