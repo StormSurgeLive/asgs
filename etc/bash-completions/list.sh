@@ -1,20 +1,18 @@
 # START ASGS "list" completion
 # This file is in the public domain
 
-_list_completion() 
+_list_completion()
 {
-    local cur prev files 
+    local cur
     COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-    case $prev in
-      *)
-        COMPREPLY=( $(compgen -W "adcirc configs meshes platforms profiles" -- $cur) )
-        ;;
-    esac
+    cur="${COMP_WORDS[COMP_CWORD]}"
+
+    COMPREPLY=( $(compgen -W "adcirc configs meshes platforms profiles" -- "$cur") )
+
     return 0
-} &&
-  complete -F _list_completion list
+}
+
+complete -o default -F _list_completion list
 
 # END list completion
