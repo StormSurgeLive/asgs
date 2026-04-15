@@ -13,29 +13,6 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Load SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.ADCIRC_SSH_KEY }}
-      
-      - name: Add github.com to known_hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-      
-      - name: Debug SSH setup
-        run: |
-          set -euxo pipefail
-          ssh-add -l
-          ssh -vT git@github.com || true
-      
-      - name: Test clone of adcirc
-        run: |
-          set -euxo pipefail
-          rm -rf adcirc-test
-          git clone git@github.com:adcirc/adcirc.git adcirc-test
-          ls -la adcirc-test
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -157,16 +134,9 @@ jobs:
           done
         timeout-minutes: 120
 
-      - name: Debug Build All Supported ADCIRCs
+      - name: Build All Supported ADCIRCs
         run: |
           set -euxo pipefail
           export TERM=xterm
-          env
-          pwd
-          ls -l ./asgsh
-          ls -l ./cloud/general/t/build-all-adcirc.sh
-
-          head -50 ./cloud/general/t/build-all-adcirc.sh || true
-
-          ./asgsh -A "pwd; env; stat ./cloud/general/t/build-all-adcirc.sh; ./cloud/general/t/build-all-adcirc.sh"
+          ./asgsh -A "bash ./cloud/general/t/build-all-adcirc.sh"
         timeout-minutes: 120
