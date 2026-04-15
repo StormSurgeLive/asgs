@@ -42,9 +42,9 @@ elif [ "$COMPILER" = "intel-oneapi" ]; then
     export CXX=icpx
   else
     echo "mpiifx not found; falling back to Intel classic Fortran toolchain"
-    export CC=icx
+    export CC=icc
     export FC=ifort
-    export CXX=icpx
+    export CXX=icpc
   fi
 
 elif [ "$COMPILER" = "gfortran" ]; then
