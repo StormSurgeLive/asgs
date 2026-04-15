@@ -30,12 +30,37 @@ jobs:
           export TERM=xterm
           ./init-asgs.sh -b -x "--update-shell"
 
-      - name: Run ASGS build steps
+      - name: Cache OpenMPI build directory
+        id: cache-openmpi
+        uses: actions/cache@v4
+        with:
+          path: ./tmp/openmpi-builddir
+          key: ${{ runner.os }}-openmpi-builddir-${{ hashFiles('cloud/general/init-openmpi.sh', 'cloud/general/asgs-brew.pl') }}
+
+      - name: Build or install OpenMPI
         run: |
           set -e
-      
+          export TERM=xterm
+
+          if [ -d ./tmp/openmpi-builddir ]; then
+            echo "Using cached OpenMPI build directory"
+            cd ./tmp/openmpi-builddir
+            make install
+          else
+            echo "No cached OpenMPI build directory found; building OpenMPI"
+            cd "$GITHUB_WORKSPACE"
+            export ASGS_PRESERVE_OPENMPI_BUILD=1
+            ./init-asgs.sh -b -x "--run-steps openmpi"
+          fi
+        timeout-minutes: 120
+
+      - name: Run remaining ASGS build steps
+        run: |
+          set -e
+          export TERM=xterm
+
           steps=(
-            openmpi
+            setup-env
             hdf5
             netcdf4
             wgrib2
@@ -54,20 +79,17 @@ jobs:
             jq
             asgs-lint
           )
-      
+
           for step in "${steps[@]}"; do
             echo "=============================="
             echo "Running ASGS step: $step"
             echo "=============================="
             ./init-asgs.sh -b -x "--run-steps $step"
           done
-        timeout-minutes: 240
-
-
-      - name: Build All Supported ADCIRCs 
-        run: |
-          ./asgsh.sh -A "bash ./cloud/general/t/build-all-adcirc.sh"
         timeout-minutes: 120
 
-
-
+      - name: Build All Supported ADCIRCs
+        run: |
+          export TERM=xterm
+          ./asgsh.sh -A "bash ./cloud/general/t/build-all-adcirc.sh"
+        timeout-minutes: 120
