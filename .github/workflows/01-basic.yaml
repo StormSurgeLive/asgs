@@ -88,8 +88,16 @@ jobs:
           done
         timeout-minutes: 120
 
-      - name: Build All Supported ADCIRCs
-        run: |
-          export TERM=xterm
-          ./asgsh -A "bash ./cloud/general/t/build-all-adcirc.sh"
-        timeout-minutes: 120
+        - name: Debug Build All Supported ADCIRCs
+          run: |
+            set -euxo pipefail
+            export TERM=xterm
+            env 
+            pwd
+            ls -l ./asgsh
+            ls -l ./cloud/general/t/build-all-adcirc.sh
+        
+            head -50 ./cloud/general/t/build-all-adcirc.sh || true
+        
+            ./asgsh -A "pwd; env; ls -l ./cloud/general/t/build-all-adcirc.sh; bash -x ./cloud/general/t/build-all-adcirc.sh"
+          timeout-minutes: 120
