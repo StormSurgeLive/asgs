@@ -54,12 +54,11 @@ jobs:
           path: ./opt
           key: ${{ runner.os }}-asgs-opt-${{ hashFiles('cloud/general/asgs-brew.pl','cloud/general/init-gnu-units.sh','cloud/general/init-hdf5.sh','cloud/general/init-input-nodalattr.sh','cloud/general/init-jq.sh','cloud/general/init-nco.sh','cloud/general/init-netcdf4.sh','cloud/general/init-openmpi.sh','cloud/general/init-perlbrew.sh','cloud/general/init-perl-modules.sh','cloud/general/init-pigz.sh','cloud/general/init-util-output.sh','cloud/general/init-util.sh') }}
 
-      - name: Prepare shell environment
+      - name: Prepare ASGS shell environment
         run: |
           set -euxo pipefail
           export TERM=xterm
-          chmod +x ./ci/01-install-shell-only.sh
-          ./ci/01-install-shell-only.sh
+          ./init-asgs.sh -b -x "--update-shell"
 
       - name: Check cached opt marker
         id: opt-marker
@@ -138,20 +137,23 @@ jobs:
         run: |
           set -euxo pipefail
           export TERM=xterm
-
+      
+          # Load environment written by --update-shell
+          source ~/.bashrc || true
+          source ~/.profile || true
+      
           echo "PWD=$PWD"
           echo "PATH=$PATH"
-          ls -l ./asgsh || true
-          ls -l ./cloud/general/t/build-all-adcirc.sh || true
-          command -v perl || true
           command -v init-adcirc.sh || true
-
-          ./asgsh -A "echo INSIDE_ASGSH; pwd; echo PATH=\$PATH; command -v init-adcirc.sh || true; command -v perl || true; verify perl || true; env | sort"
-        timeout-minutes: 120
+      
+          ./asgsh -A "echo INSIDE_ASGSH; pwd; echo PATH=\$PATH; command -v init-adcirc.sh || true; verify perl || true; env | sort"
 
       - name: Build All Supported ADCIRCs
         run: |
           set -euxo pipefail
           export TERM=xterm
+      
+          source ~/.bashrc || true
+          source ~/.profile || true
+      
           ./asgsh -A "bash ./cloud/general/t/build-all-adcirc.sh"
-        timeout-minutes: 120
