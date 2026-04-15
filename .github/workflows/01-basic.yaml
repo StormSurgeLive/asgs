@@ -42,7 +42,7 @@ jobs:
           set -e
           export TERM=xterm
 
-          if [ -d ./tmp/openmpi-builddir ]; then
+          if [ -f ./tmp/openmpi-builddir/Makefile ]; then
             echo "Using cached OpenMPI build directory"
             cd ./tmp/openmpi-builddir
             make install
@@ -54,6 +54,54 @@ jobs:
           fi
         timeout-minutes: 120
 
+      - name: Cache HDF5 build directory
+        id: cache-hdf5
+        uses: actions/cache@v4
+        with:
+          path: ./tmp/hdf5-builddir
+          key: ${{ runner.os }}-hdf5-builddir-${{ hashFiles('cloud/general/init-hdf5.sh') }}
+
+      - name: Build or install HDF5
+        run: |
+          set -e
+          export TERM=xterm
+
+          if [ -f ./tmp/hdf5-builddir/Makefile ]; then
+            echo "Using cached HDF5 build directory"
+            cd ./tmp/hdf5-builddir
+            make install
+          else
+            echo "No cached HDF5 build directory found; building HDF5"
+            cd "$GITHUB_WORKSPACE"
+            export ASGS_PRESERVE_HDF5_BUILD=1
+            ./init-asgs.sh -b -x "--run-steps hdf5"
+          fi
+        timeout-minutes: 120
+
+      - name: Cache netCDF4 build directory
+        id: cache-netcdf4
+        uses: actions/cache@v4
+        with:
+          path: ./tmp/netcdf4-builddir
+          key: ${{ runner.os }}-netcdf4-builddir-${{ hashFiles('cloud/general/init-netCDF4.sh') }}
+
+      - name: Build or install netCDF4
+        run: |
+          set -e
+          export TERM=xterm
+
+          if [ -f ./tmp/netcdf4-builddir/Makefile ]; then
+            echo "Using cached netCDF4 build directory"
+            cd ./tmp/netcdf4-builddir
+            make install
+          else
+            echo "No cached netCDF4 build directory found; building netCDF4"
+            cd "$GITHUB_WORKSPACE"
+            export ASGS_PRESERVE_NETCDF4_BUILD=1
+            ./init-asgs.sh -b -x "--run-steps netcdf4"
+          fi
+        timeout-minutes: 120
+
       - name: Run remaining ASGS build steps
         run: |
           set -e
@@ -61,8 +109,6 @@ jobs:
 
           steps=(
             setup-env
-            hdf5
-            netcdf4
             wgrib2
             cpra-postproc
             output
@@ -92,12 +138,12 @@ jobs:
         run: |
           set -euxo pipefail
           export TERM=xterm
-          env 
+          env
           pwd
           ls -l ./asgsh
           ls -l ./cloud/general/t/build-all-adcirc.sh
-      
+
           head -50 ./cloud/general/t/build-all-adcirc.sh || true
-      
+
           ./asgsh -A "pwd; env; stat ./cloud/general/t/build-all-adcirc.sh; ./cloud/general/t/build-all-adcirc.sh"
         timeout-minutes: 120
