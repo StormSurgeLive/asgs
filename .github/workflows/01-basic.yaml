@@ -77,7 +77,6 @@ jobs:
             nco
             pigz
             jq
-            asgs-lint
           )
 
           for step in "${steps[@]}"; do
