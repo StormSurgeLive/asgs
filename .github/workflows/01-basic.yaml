@@ -35,21 +35,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./opt
-          key: ${{ runner.os }}-asgs-opt-${{ hashFiles(
-            'cloud/general/asgs-brew.pl',
-            'cloud/general/init-gnu-units.sh',
-            'cloud/general/init-hdf5.sh',
-            'cloud/general/init-input-nodalattr.sh',
-            'cloud/general/init-jq.sh',
-            'cloud/general/init-nco.sh',
-            'cloud/general/init-netcdf4.sh',
-            'cloud/general/init-openmpi.sh',
-            'cloud/general/init-perlbrew.sh',
-            'cloud/general/init-perl-modules.sh',
-            'cloud/general/init-pigz.sh',
-            'cloud/general/init-util-output.sh',
-            'cloud/general/init-util.sh'
-          ) }}
+          key: ${{ runner.os }}-asgs-opt-${{ hashFiles( 'cloud/general/asgs-brew.pl', 'cloud/general/init-gnu-units.sh', 'cloud/general/init-hdf5.sh', 'cloud/general/init-input-nodalattr.sh', 'cloud/general/init-jq.sh', 'cloud/general/init-nco.sh', 'cloud/general/init-netcdf4.sh', 'cloud/general/init-openmpi.sh', 'cloud/general/init-perlbrew.sh', 'cloud/general/init-perl-modules.sh', 'cloud/general/init-pigz.sh', 'cloud/general/init-util-output.sh', 'cloud/general/init-util.sh') }}
 
       - name: Check cached opt validity
         id: opt-valid
