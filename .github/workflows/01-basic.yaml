@@ -13,6 +13,20 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Test SSH access to ADCIRC repo
+        run: |
+          set -euxo pipefail
+      
+          echo "== SSH identity test =="
+          ssh -T git@github.com || true
+      
+          echo "== Attempting clone =="
+          rm -rf adcirc-test
+          git clone git@github.com:adcirc/adcirc.git adcirc-test
+      
+          echo "== Clone successful =="
+          ls -l adcirc-test
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
