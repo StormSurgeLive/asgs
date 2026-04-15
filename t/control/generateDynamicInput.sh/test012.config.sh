@@ -1,9 +1,10 @@
 #!/bin/bash
 #
-#  T E S T   0 1 0
+#  T E S T   0 1 2
 #
 # Description: EGOMv20b with default parameter package
-# nowcast with GAHM forcing, wind10m layer
+# nowcast with GAHM forcing, wind10m layer, SWAN coupling
+# activated
 #
 # Initialize variables accessed from ASGS config parameters to reasonable values
 source ${SCRIPTDIR}/config/config_defaults.sh
@@ -32,7 +33,7 @@ SCENARIO=nowcast
 ADVISORY=1
 BASENWS=20
 NWS=20
-WAVES="off"
+WAVES="on"
 STORMNAME="TESTVORTEX" # <---<< FIXME: this is not populated in asgs_main.sh
 test_adcirc_version="v53.05-modified"
 createWind10mLayer="yes"

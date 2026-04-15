@@ -48,7 +48,7 @@ fi
 pass=0
 fail=0
 declare -a actualFails
-numTests=10 # number of tests
+numTests=12 # number of tests
 output=( fort.13 fort.26 tide_fac.out )
 layerOutput=( fort.15 run-control.properties control_parameters.yaml )
 for t in $(seq 1 $numTests) ; do
