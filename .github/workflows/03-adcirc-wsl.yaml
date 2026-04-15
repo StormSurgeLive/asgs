@@ -31,31 +31,28 @@ jobs:
           wsl --status
           wsl --set-default-version 2
 
-      - name: Install or select Ubuntu WSL distro
+      - name: Install Ubuntu in WSL
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-
+      
           $distros = (wsl --list --quiet) | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-          Write-Host "Installed WSL distros before install attempt:"
-          $distros | ForEach-Object { Write-Host "  $_" }
-
-          if (-not ($distros -contains $env:DISTRO_NAME)) {
-            Write-Host "No '$env:DISTRO_NAME' distro found. Installing..."
-            wsl --install --distribution $env:DISTRO_NAME --no-launch --web-download
-            Start-Sleep -Seconds 15
+      
+          if (-not ($distros -contains "Ubuntu")) {
+            Write-Host "Installing Ubuntu via WSL..."
+            wsl --install -d Ubuntu
+      
+            # Give it time to actually register
+            Start-Sleep -Seconds 20
           }
-
+      
           $distros = (wsl --list --quiet) | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-          Write-Host "Installed WSL distros after install attempt:"
-          $distros | ForEach-Object { Write-Host "  $_" }
-
-          if (-not ($distros -contains $env:DISTRO_NAME)) {
-            throw "Ubuntu was not installed successfully in WSL."
+      
+          if (-not ($distros -contains "Ubuntu")) {
+            throw "Ubuntu install failed."
           }
-
+      
           wsl --list --verbose
-
       - name: Initialize distro once
         shell: powershell
         run: |
