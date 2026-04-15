@@ -135,4 +135,4 @@ jobs:
           bash -lc 'echo "INSIDE bash -lc"; echo "PATH=$PATH"; command -v init-adcirc.sh || true; command -v verify || true'
       
           ./asgsh -A "echo INSIDE_ASGSH; pwd; echo PATH=\$PATH; command -v init-adcirc.sh || true; command -v verify || true; env | sort"
-        timeout-minutes: 120
+        timeout-minutes: 120 
