@@ -15,10 +15,11 @@ jobs:
     runs-on: windows-2022
 
     env:
-      DISTRO_NAME: Ubuntu
+      DISTRO_NAME: ASGS-Ubuntu
       WSL_USER: asgs
-      EXPORT_BASENAME: asgs-wsl2-ubuntu
+      EXPORT_BASENAME: asgs-wsl2-ubuntu-jammy
       WSL_BUILD_SCRIPT: /tmp/build-asgs-and-adcircs.sh
+      UBUNTU_ROOTFS_URL: https://cloud-images.ubuntu.com/wsl/releases/jammy/current/ubuntu-jammy-wsl-amd64-wsl.rootfs.tar.gz
 
     steps:
       - name: Checkout repository
@@ -31,40 +32,42 @@ jobs:
           wsl --status
           wsl --set-default-version 2
 
-      - name: Install Ubuntu in WSL
+      - name: Download Ubuntu WSL rootfs
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-      
-          $distros = (wsl --list --quiet) | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-      
-          if (-not ($distros -contains "Ubuntu")) {
-            Write-Host "Installing Ubuntu via WSL..."
-            wsl --install -d Ubuntu
-      
-            # Give it time to actually register
-            Start-Sleep -Seconds 20
+
+          $rootfsDir = Join-Path $env:RUNNER_TEMP "wsl-rootfs"
+          New-Item -ItemType Directory -Force -Path $rootfsDir | Out-Null
+
+          $rootfsTar = Join-Path $rootfsDir "ubuntu-jammy-wsl.rootfs.tar.gz"
+          Invoke-WebRequest -Uri $env:UBUNTU_ROOTFS_URL -OutFile $rootfsTar
+
+          "ROOTFS_TAR=$rootfsTar" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Downloaded rootfs to $rootfsTar"
+
+      - name: Import Ubuntu distro into WSL2
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $installDir = Join-Path $env:RUNNER_TEMP "wsl-distro"
+          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+
+          $existing = (wsl --list --quiet) | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          if ($existing -contains $env:DISTRO_NAME) {
+            wsl --unregister $env:DISTRO_NAME
           }
-      
-          $distros = (wsl --list --quiet) | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-      
-          if (-not ($distros -contains "Ubuntu")) {
-            throw "Ubuntu install failed."
-          }
-      
+
+          wsl --import $env:DISTRO_NAME $installDir $env:ROOTFS_TAR --version 2
           wsl --list --verbose
-      - name: Initialize distro once
+
+      - name: Initialize distro and create build user
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
 
-          # Start the distro once so first-run setup finishes.
           wsl -d $env:DISTRO_NAME -u root -- bash -lc "echo 'WSL distro is reachable'"
-
-      - name: Create build user
-        shell: powershell
-        run: |
-          $ErrorActionPreference = "Stop"
 
           wsl -d $env:DISTRO_NAME -u root -- bash -lc @"
           set -euxo pipefail
@@ -192,7 +195,6 @@ jobs:
           fi
           printf '  %s\n' "${bins[@]}"
 
-          # shrink export a bit
           apt-get clean
           rm -rf /var/lib/apt/lists/*
           rm -rf /tmp/*
