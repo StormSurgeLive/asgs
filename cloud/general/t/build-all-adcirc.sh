@@ -26,5 +26,5 @@ for v in "${versions[@]}"; do
   echo "========================================"
   echo "Building ADCIRC version: $v"
   echo "========================================"
-  init-adcirc.sh -b -N "$v"
+  bash bin/init-adcirc.sh -b -N "$v"
 done
