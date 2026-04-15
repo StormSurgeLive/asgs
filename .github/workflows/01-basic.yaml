@@ -25,12 +25,6 @@ jobs:
           sudo apt-get install -y zip flex gawk procps
           sudo apt-get install -y zlib1g-dev
 
-          # Install the older GCCs we want, set them to system defaults
-          sudo apt-get install -y gcc-9 g++-9 gfortran-9
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
-          sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 9
-
       - name: Set TERM and run install script with --update-shell
         run: |
           export TERM=xterm
