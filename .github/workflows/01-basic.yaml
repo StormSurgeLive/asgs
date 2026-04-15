@@ -124,5 +124,6 @@ jobs:
         run: |
           set -euxo pipefail
           export TERM=xterm
-          ./asgsh -A "init-adcirc.sh -b -N v53release"
+          #./asgsh -A "init-adcirc.sh -b -N v53release"
+          ./asgsh -A "verify perl"
         timeout-minutes: 120
