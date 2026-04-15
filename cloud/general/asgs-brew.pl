@@ -814,7 +814,7 @@ sub get_steps {
                 my $ok           = 1;
                 my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
 		if ($asgs_compiler =~ m/intel\-oneapi/) {
-                  @mpi_binaries = (qw/mpiifx mpiicx mpiexec mpirun/);
+                  @mpi_binaries = (qw/mpiifort mpiifx mpiicx mpiexec mpirun/);
 		}
 		elsif ($asgs_compiler =~ m/intel$/) {
                   @mpi_binaries = (qw/mpiifort mpiicc mpiexec mpirun/);
