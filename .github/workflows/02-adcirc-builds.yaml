@@ -14,6 +14,7 @@ jobs:
   build-all-adcircs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-22.04
+
     strategy:
       fail-fast: false
       matrix:
@@ -21,13 +22,12 @@ jobs:
           - name: ubuntu-22.04-gfortran
             distro: ubuntu
             compiler: gfortran
-            container: ""
           - name: rocky-9-gfortran
             distro: rocky
             compiler: gfortran
             container: rockylinux:9
 
-    container: ${{ matrix.container != '' && matrix.container || null }}
+    container: ${{ matrix.container || '' }}
 
     defaults:
       run:
@@ -36,6 +36,7 @@ jobs:
     env:
       TERM: xterm
       CI: "true"
+      FORCE_CLEAN: "1"
 
     steps:
       - name: Checkout repository
@@ -89,7 +90,7 @@ jobs:
             bc \
             bzip2 \
             ca-certificates \
-            curl \
+            curl-minimal \
             diffutils \
             file \
             findutils \
@@ -123,6 +124,14 @@ jobs:
           mkdir -p "$HOME/bin"
           mkdir -p "$GITHUB_WORKSPACE/tmp"
 
+      - name: Flush ASGS install tree
+        if: env.FORCE_CLEAN == '1'
+        run: |
+          set -euxo pipefail
+          rm -rf ./opt ./tmp ./profiles
+          rm -f ./update-asgs
+          rm -f "$HOME/bin/asgsh" "$HOME/bin/update-asgs"
+
       - name: Bootstrap ASGS dependencies with init-asgs.sh
         run: |
           set -euxo pipefail
@@ -146,7 +155,6 @@ jobs:
             echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
           else
             echo "Expected build sweep script not found at ./cloud/general/t/build-all-adcircs.sh"
-            echo "Adjust this path to the current repo location of the all-ADCIRC build script."
             exit 1
           fi
 
@@ -163,12 +171,12 @@ jobs:
             | sort)
 
           printf 'Discovered binaries:\n'
-          printf '  %s\n' "${bins[@]:-<none>}"
-
           if [ "${#bins[@]}" -eq 0 ]; then
+            echo "  <none>"
             echo "No ADCIRC binaries were found."
             exit 1
           fi
+          printf '  %s\n' "${bins[@]}"
 
       - name: Upload logs and build artifacts
         if: always()
