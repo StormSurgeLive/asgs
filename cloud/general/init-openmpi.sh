@@ -79,6 +79,7 @@ if [ ! -e ${OPENMPI_FULL_VERSION}.tar.gz ]; then
 else
   echo Found $_ASGS_TMP/${OPENMPI_FULL_VERSION}.tar.gz
   rm -rf ./${OPENMPI_FULL_VERSION} >/dev/null 2>&1
+  rm -rf ./openmpi-builddir >/dev/null 2>&1
 fi
 tar -xvf $OPENMPI_FULL_VERSION.tar.gz
 mv $OPENMPI_FULL_VERSION openmpi-builddir

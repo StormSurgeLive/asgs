@@ -91,5 +91,5 @@ jobs:
       - name: Build All Supported ADCIRCs
         run: |
           export TERM=xterm
-          ./asgsh.sh -A "bash ./cloud/general/t/build-all-adcirc.sh"
+          ./asgsh -A "bash ./cloud/general/t/build-all-adcirc.sh"
         timeout-minutes: 120
