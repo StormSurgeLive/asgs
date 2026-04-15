@@ -149,20 +149,7 @@ jobs:
       - name: Locate build-all-adcircs script
         run: |
           set -euxo pipefail
-          if [ -x "./cloud/general/t/build-all-adcircs.sh" ]; then
-            echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
-          elif [ -f "./cloud/general/t/build-all-adcircs.sh" ]; then
-            chmod +x ./cloud/general/t/build-all-adcircs.sh
-            echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
-          elif [ -x "./t/build-all-adcircs.sh" ]; then
-            echo "BUILD_ALL_SCRIPT=./t/build-all-adcircs.sh" >> "$GITHUB_ENV"
-          elif [ -f "./t/build-all-adcircs.sh" ]; then
-            chmod +x ./t/build-all-adcircs.sh
-            echo "BUILD_ALL_SCRIPT=./t/build-all-adcircs.sh" >> "$GITHUB_ENV"
-          else
-            echo "Could not find build-all-adcircs.sh"
-            exit 1
-          fi
+          echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
 
       - name: Build all ADCIRCs inside asgsh
         run: |
