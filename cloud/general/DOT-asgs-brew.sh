@@ -344,7 +344,7 @@ load() {
         if [ -e "$ASGS_CONFIG" ]; then
           # extracts info such as 'instancename' so we can derive the location of
           # the state file, then the log file path and actual run directory
-          _parse_config $ASGS_CONFIG
+          _parse_config "$ASGS_CONFIG"
         fi
       else
         echo "${W} ASGS profile, '$NAME' does not exist. Use 'list profiles' to see a which profile are available to load"
@@ -410,30 +410,49 @@ _unset_statevars() {
   unset ADVISORY
 }
 
+_get_cfg_val() {
+  local key="$1"
+  local file="$2"
+  local line
+  local rhs
+  local val
+
+  line=$(grep -E "^[[:space:]]*${key}=" "$file" | tail -n 1) || return 1
+  [ -n "$line" ] || return 1
+
+  rhs="${line#*=}"
+
+  unset val
+  eval "val=${rhs}"
+
+  val=$(printf '%s' "$val" | sed -E 's/[^A-Za-z0-9._-]/_/g')
+  printf '%s\n' "$val"
+}
+
 _parse_config() {
-  if [ ! -e "${1}" ]; then
-    echo "${W} config file is defined, but the file '${1}' does not exist!"
+  local cfg_file="$1"
+
+  if [ ! -e "$cfg_file" ]; then
+    echo "${W} config file is defined, but the file '$cfg_file' does not exist!"
     return
   fi
-  # pull out var info the old fashion way...
-  export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  GRIDNAME=$(egrep '^ *GRIDNAME=' "${1}" | sed 's/^ *GRIDNAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  TROPICALCYCLONE=$(egrep '^ *TROPICALCYCLONE=' "${1}" | sed 's/^ *TROPICALCYCLONE=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  BACKGROUNDMET=$(egrep '^ *BACKGROUNDMET=' "${1}" | sed 's/^ *BACKGROUNDMET=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  STORM=$(egrep '^ *STORM=' "${1}" | sed 's/^ *STORM=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  YEAR=$(egrep '^ *YEAR=' "${1}" | sed 's/^ *YEAR=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  # check to see if INSTANCENAME was not defined in the
-  # configuration file; if so, construct the instance name
-  # from the other characteristics of the configuration; this
-  # must follow the automated setting of the instance name in
-  # asgs_main.sh -> readConfig() function
+
+  export INSTANCENAME="$(_get_cfg_val INSTANCENAME "$cfg_file")"
+  GRIDNAME="$(_get_cfg_val GRIDNAME "$cfg_file")"
+  TROPICALCYCLONE="$(_get_cfg_val TROPICALCYCLONE "$cfg_file")"
+  BACKGROUNDMET="$(_get_cfg_val BACKGROUNDMET "$cfg_file")"
+  STORM="$(_get_cfg_val STORM "$cfg_file")"
+  YEAR="$(_get_cfg_val YEAR "$cfg_file")"
+
   if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
-    export INSTANCENAME=$(get-instancename $GRIDNAME $TROPICALCYCLONE $BACKGROUNDMET $STORM $YEAR)
+    export INSTANCENAME="$(get-instancename "$GRIDNAME" "$TROPICALCYCLONE" "$BACKGROUNDMET" "$STORM" "$YEAR")"
   fi
+
   echo "${I} config file found, instance name is '$INSTANCENAME'"
   echo
+
   export STATEFILE="$SCRATCH/${INSTANCENAME}.state"
-  _load_state_file $STATEFILE
+  _load_state_file "$STATEFILE"
 }
 
 _load_state_file() {
@@ -525,7 +544,7 @@ rebuild() {
       fi
       echo
 
-      load profile $_base_profile
+      load profile "$_base_profile"
 
       if [ -z "$_config" ]; then
         read -e -p "Path to ASGS configuration file: " _config
@@ -536,20 +555,18 @@ rebuild() {
       fi
       echo
       ABS_PATH=$(readlink -f "$_config")
-      export ASGS_CONFIG=$ABS_PATH
-      _parse_config $ASGS_CONFIG
+      export ASGS_CONFIG="$ABS_PATH"
+      _parse_config "$ASGS_CONFIG"
 
-      # default is $INSTANCENAME, grabbed from _parse_config when $ASGS_CONFIG
-      # is parsed above
       read -p "New profile name [$INSTANCENAME]? " _profile_name
       if [ -z "$_profile_name" ]; then
         _profile_name=$INSTANCENAME
       fi
       echo
 
-      save profile $_profile_name
+      save profile "$_profile_name"
       ;;
-    *) echo "'clone' only applies to 'profile'"
+    *) echo "'rebuild' only applies to 'profile'"
       ;;
   esac
 }
