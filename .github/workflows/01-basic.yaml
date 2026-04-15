@@ -13,19 +13,28 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Test SSH access to ADCIRC repo
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ADCIRC_SSH_KEY }}
+      
+      - name: Add github.com to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+      
+      - name: Debug SSH setup
         run: |
           set -euxo pipefail
+          ssh-add -l
+          ssh -vT git@github.com || true
       
-          echo "== SSH identity test =="
-          ssh -T git@github.com || true
-      
-          echo "== Attempting clone =="
+      - name: Test clone of adcirc
+        run: |
+          set -euxo pipefail
           rm -rf adcirc-test
           git clone git@github.com:adcirc/adcirc.git adcirc-test
-      
-          echo "== Clone successful =="
-          ls -l adcirc-test
+          ls -la adcirc-test
 
       - name: Checkout repository
         uses: actions/checkout@v3
