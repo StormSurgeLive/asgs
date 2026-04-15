@@ -144,6 +144,7 @@ jobs:
           test -x ./update-asgs || { echo "update-asgs wrapper was not created"; exit 1; }
           test -d ./opt || { echo "./opt was not created"; exit 1; }
           test -d ./profiles || { echo "./profiles was not created"; exit 1; }
+          test -x ./asgsh || { echo "./asgsh was not found or not executable"; exit 1; }
 
       - name: Locate build-all-adcircs script
         run: |
@@ -153,15 +154,33 @@ jobs:
           elif [ -f "./cloud/general/t/build-all-adcircs.sh" ]; then
             chmod +x ./cloud/general/t/build-all-adcircs.sh
             echo "BUILD_ALL_SCRIPT=./cloud/general/t/build-all-adcircs.sh" >> "$GITHUB_ENV"
+          elif [ -x "./t/build-all-adcircs.sh" ]; then
+            echo "BUILD_ALL_SCRIPT=./t/build-all-adcircs.sh" >> "$GITHUB_ENV"
+          elif [ -f "./t/build-all-adcircs.sh" ]; then
+            chmod +x ./t/build-all-adcircs.sh
+            echo "BUILD_ALL_SCRIPT=./t/build-all-adcircs.sh" >> "$GITHUB_ENV"
           else
-            echo "Expected build sweep script not found at ./cloud/general/t/build-all-adcircs.sh"
+            echo "Could not find build-all-adcircs.sh"
             exit 1
           fi
 
-      - name: Build all ADCIRCs
+      - name: Build all ADCIRCs inside asgsh
         run: |
           set -euxo pipefail
-          "$BUILD_ALL_SCRIPT"
+          chmod +x ./asgsh
+          ./asgsh -A "
+            set -euxo pipefail
+            bash \"$BUILD_ALL_SCRIPT\"
+          "
+
+      - name: Verify ADCIRCs inside asgsh
+        run: |
+          set -euxo pipefail
+          ./asgsh -A "
+            set -euxo pipefail
+            list adcirc
+            verify adcirc
+          "
 
       - name: Verify ADCIRC binaries were built
         run: |
