@@ -28,29 +28,46 @@ jobs:
       - name: Set TERM and run install script with --update-shell
         run: |
           export TERM=xterm
-          chmod +x ./ci/01-install-shell-only.sh
-          ./ci/01-install-shell-only.sh
+          ./init-asgs.sh -b -x "--update-shell"
 
-      - name: Run OpenMPI installation script
+      - name: Run ASGS build steps
         run: |
-          chmod +x ./ci/02-install-openmpi.sh
-          ./ci/02-install-openmpi.sh
-        timeout-minutes: 120
+          set -e
+      
+          steps=(
+            openmpi
+            hdf5
+            netcdf4
+            wgrib2
+            cpra-postproc
+            output
+            util
+            util-output
+            input-mesh
+            input-nodalattr
+            perl
+            perl-modules
+            gnuplot
+            units
+            nco
+            pigz
+            jq
+            asgs-lint
+          )
+      
+          for step in "${steps[@]}"; do
+            echo "=============================="
+            echo "Running ASGS step: $step"
+            echo "=============================="
+            ./init-asgs.sh -b -x "--run-steps $step"
+          done
+        timeout-minutes: 240
 
-      - name: Run HDF5 installation script
-        run: |
-          chmod +x ./ci/03-install-hdf5.sh
-          ./ci/03-install-hdf5.sh
-        timeout-minutes: 120
-
-      - name: Run netCDF4 installation script
-        run: |
-          chmod +x ./ci/04-install-netcdf4.sh
-          ./ci/04-install-netcdf4.sh
-        timeout-minutes: 120
 
       - name: Build All Supported ADCIRCs 
         run: |
-          chmod +x ./ci/05-build-adcircs.sh
-          ./ci/05-build-adcircs.sh
+          ./asgsh.sh -A "bash ./cloud/general/t/build-all-adcirc.sh"
         timeout-minutes: 120
+
+
+
