@@ -343,7 +343,7 @@ if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
   # if found for SELECTED_VERSION, asks user if they want to use Singularity at all
   if [[ "$singularity_supported" == "yes" ]]; then
     default_answer=yes
-    read -p "Singularity is supported her for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
+    read -p "Singularity is supported for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
     echo
     answer="${answer:-$default_answer}"
   fi
