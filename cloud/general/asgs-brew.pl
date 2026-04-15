@@ -421,61 +421,70 @@ options=\$(getopt -o "A:cdhl:p:rsvx" -- "\$@")
 eval set -- "\$options"
 while true
   do
-    case \$1 in
-      -A) # capture what's in quotes following -A
-        shift
-        export _asgsh_flag_do_cmd="\$1"
+    case "\$1" in
+      -A) # capture full quoted argument following -A
+        export _asgsh_flag_do_cmd="\$2"
         export _asgsh_flag_do=run_any
-        unset  _asgsh_splash
+        unset _asgsh_splash
+        shift 2
         ;;
       -c)
-          export _asgsh_do_startup_checks=1
+        export _asgsh_do_startup_checks=1
+        shift
         ;;
-      -d) set -x
-          export _asgs_debug_mode=1
+      -d)
+        set -x
+        export _asgs_debug_mode=1
+        shift
         ;;
       -h)
         echo "\nInteractive ASGS Shell Environment\n\nUsage:\n\tasgsh [-h] | [-d] [-l adcirc|profiles] [-p PROFILE-NAME] [-r] [-v] [-x]\n"
         exit 1
         ;;
       -l)
-        shift
         export _asgsh_flag_do=run_list
-        export _asgsh_flag_do_args=\$1
+        export _asgsh_flag_do_args="\$2"
         unset _asgsh_splash
+        shift 2
         ;;
       -p)
-        shift
-        export profile=\$1
+        export profile="\$2"
+        shift 2
         ;;
       -r)
         export _asgsh_flag_do=run_profile
+        shift
         ;;
       -s)
         export _asgsh_flag_do=run_tailf_syslog
+        shift
         ;;
       -v)
         export _asgsh_flag_do=run_verify_and_quit
+        shift
         ;;
       -x)
         export skip_platform_profiles=1
+        shift
         ;;
       --)
         shift
         break
         ;;
+      *)
+        break
+        ;;
     esac
-    shift
 done
 
 if [ -n "\$_asgsh_splash" ]; then
 clear
 echo
-echo '                █████  ███████  ██████  ███████' 
-echo '               ██   ██ ██      ██       ██     ' 
-echo '               ███████ ███████ ██   ███ ███████'
-echo '               ██   ██      ██ ██    ██      ██'
-echo '               ██   ██ ███████  ██████  ███████'
+echo '                █████  ███████  ██████  ███████' 
+echo '               ██   ██ ██      ██       ██     ' 
+echo '               ███████ ███████ ██   ███ ███████'
+echo '               ██   ██      ██ ██    ██      ██'
+echo '               ██   ██ ███████  ██████  ███████'
 echo
 echo ' :.....::.....::.....::.....:::..::.....::.....:.....:'
 echo '   ::::::::::::The ASGS Shell Environment:::::::::::::::'

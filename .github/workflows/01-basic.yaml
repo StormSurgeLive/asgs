@@ -99,5 +99,5 @@ jobs:
       
           head -50 ./cloud/general/t/build-all-adcirc.sh || true
       
-          ./asgsh -A "pwd; env; ls -l ./cloud/general/t/build-all-adcirc.sh; bash -x ./cloud/general/t/build-all-adcirc.sh"
+          ./asgsh -A "pwd; env; stat ./cloud/general/t/build-all-adcirc.sh; ./cloud/general/t/build-all-adcirc.sh"
         timeout-minutes: 120
