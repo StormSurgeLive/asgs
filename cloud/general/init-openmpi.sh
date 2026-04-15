@@ -79,19 +79,17 @@ if [ ! -e ${OPENMPI_FULL_VERSION}.tar.gz ]; then
 else
   echo Found $_ASGS_TMP/${OPENMPI_FULL_VERSION}.tar.gz
   rm -rf ./${OPENMPI_FULL_VERSION} >/dev/null 2>&1
-  rm -rf ./openmpi-builddir >/dev/null 2>&1
 fi
 tar -xvf $OPENMPI_FULL_VERSION.tar.gz
-mv $OPENMPI_FULL_VERSION openmpi-builddir
-cd openmpi-builddir
+cd $OPENMPI_FULL_VERSION
 
 ./configure --prefix=$OPT --disable-oshmem-fortran --disable-oshmem --disable-vt --disable-libompitrace --disable-io-romio --disable-debug-symbols --disable-io-ompio
 make -j $JOBS
 make -j $JOBS install
 
 # no errors, so clean up
-if [[ "$?" == 0 && -z "$ASGS_PRESERVE_OPENMPI_BUILD" ]]; then
+if [ "$?" == 0 ]; then
   echo cleaning build scripts and downloads
   cd $_ASGS_TMP
-  rm -rfv ${OPENMPI_FULL_VERSION}.tar.gz ./openmpi-builddir 
+  rm -rfv ${OPENMPI_FULL_VERSION}.tar.gz $OPENMPI_FULL_VERSION
 fi

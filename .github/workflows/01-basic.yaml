@@ -30,85 +30,53 @@ jobs:
           export TERM=xterm
           ./init-asgs.sh -b -x "--update-shell"
 
-      - name: Cache OpenMPI build directory
-        id: cache-openmpi
+      - name: Cache ASGS opt tree
+        id: cache-opt
         uses: actions/cache@v4
         with:
-          path: ./tmp/openmpi-builddir
-          key: ${{ runner.os }}-openmpi-builddir-${{ hashFiles('cloud/general/init-openmpi.sh', 'cloud/general/asgs-brew.pl') }}
+          path: ./opt
+          key: ${{ runner.os }}-asgs-opt-${{ hashFiles(
+            'cloud/general/asgs-brew.pl',
+            'cloud/general/init-gnu-units.sh',
+            'cloud/general/init-hdf5.sh',
+            'cloud/general/init-input-nodalattr.sh',
+            'cloud/general/init-jq.sh',
+            'cloud/general/init-nco.sh',
+            'cloud/general/init-netcdf4.sh',
+            'cloud/general/init-openmpi.sh',
+            'cloud/general/init-perlbrew.sh',
+            'cloud/general/init-perl-modules.sh',
+            'cloud/general/init-pigz.sh',
+            'cloud/general/init-util-output.sh',
+            'cloud/general/init-util.sh'
+          ) }}
 
-      - name: Build or install OpenMPI
+      - name: Check cached opt validity
+        id: opt-valid
         run: |
-          set -e
-          export TERM=xterm
+          set -euo pipefail
 
-          if [ -f ./tmp/openmpi-builddir/Makefile ]; then
-            echo "Using cached OpenMPI build directory"
-            cd ./tmp/openmpi-builddir
-            make install
+          if [ -f ./opt/.cache-markers/asgs-brew-complete ]; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Found ASGS success marker in cached ./opt"
           else
-            echo "No cached OpenMPI build directory found; building OpenMPI"
-            cd "$GITHUB_WORKSPACE"
-            export ASGS_PRESERVE_OPENMPI_BUILD=1
-            ./init-asgs.sh -b -x "--run-steps openmpi"
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "No ASGS success marker found in cached ./opt"
           fi
-        timeout-minutes: 120
 
-      - name: Cache HDF5 build directory
-        id: cache-hdf5
-        uses: actions/cache@v4
-        with:
-          path: ./tmp/hdf5-builddir
-          key: ${{ runner.os }}-hdf5-builddir-${{ hashFiles('cloud/general/init-hdf5.sh') }}
-
-      - name: Build or install HDF5
+      - name: Rebuild ASGS opt tree
+        if: steps.opt-valid.outputs.valid != 'true'
         run: |
-          set -e
+          set -euo pipefail
           export TERM=xterm
 
-          if [ -f ./tmp/hdf5-builddir/Makefile ]; then
-            echo "Using cached HDF5 build directory"
-            cd ./tmp/hdf5-builddir
-            make install
-          else
-            echo "No cached HDF5 build directory found; building HDF5"
-            cd "$GITHUB_WORKSPACE"
-            export ASGS_PRESERVE_HDF5_BUILD=1
-            ./init-asgs.sh -b -x "--run-steps hdf5"
-          fi
-        timeout-minutes: 120
-
-      - name: Cache netCDF4 build directory
-        id: cache-netcdf4
-        uses: actions/cache@v4
-        with:
-          path: ./tmp/netcdf4-builddir
-          key: ${{ runner.os }}-netcdf4-builddir-${{ hashFiles('cloud/general/init-netCDF4.sh') }}
-
-      - name: Build or install netCDF4
-        run: |
-          set -e
-          export TERM=xterm
-
-          if [ -f ./tmp/netcdf4-builddir/Makefile ]; then
-            echo "Using cached netCDF4 build directory"
-            cd ./tmp/netcdf4-builddir
-            make install
-          else
-            echo "No cached netCDF4 build directory found; building netCDF4"
-            cd "$GITHUB_WORKSPACE"
-            export ASGS_PRESERVE_NETCDF4_BUILD=1
-            ./init-asgs.sh -b -x "--run-steps netcdf4"
-          fi
-        timeout-minutes: 120
-
-      - name: Run remaining ASGS build steps
-        run: |
-          set -e
-          export TERM=xterm
+          rm -rf ./opt
+          mkdir -p ./opt
 
           steps=(
             setup-env
+            hdf5
+            netcdf4
             wgrib2
             cpra-postproc
             output
@@ -132,7 +100,40 @@ jobs:
             echo "=============================="
             ./init-asgs.sh -b -x "--run-steps $step"
           done
+
+          mkdir -p ./opt/.cache-markers
+          {
+            echo "status=success"
+            echo "created_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "runner_os=${RUNNER_OS}"
+            echo "hash=${{ hashFiles(
+              'cloud/general/asgs-brew.pl',
+              'cloud/general/init-gnu-units.sh',
+              'cloud/general/init-hdf5.sh',
+              'cloud/general/init-input-nodalattr.sh',
+              'cloud/general/init-jq.sh',
+              'cloud/general/init-nco.sh',
+              'cloud/general/init-netcdf4.sh',
+              'cloud/general/init-openmpi.sh',
+              'cloud/general/init-perlbrew.sh',
+              'cloud/general/init-perl-modules.sh',
+              'cloud/general/init-pigz.sh',
+              'cloud/general/init-util-output.sh',
+              'cloud/general/init-util.sh'
+            ) }}"
+          } > ./opt/.cache-markers/asgs-brew-complete
         timeout-minutes: 120
+
+      - name: Show cached opt marker
+        run: |
+          set -euo pipefail
+          if [ -f ./opt/.cache-markers/asgs-brew-complete ]; then
+            echo "ASGS cached build marker:"
+            cat ./opt/.cache-markers/asgs-brew-complete
+          else
+            echo "ASGS cached build marker is missing"
+            exit 1
+          fi
 
       - name: Build All Supported ADCIRCs
         run: |
