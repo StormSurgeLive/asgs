@@ -212,13 +212,28 @@
 
   [% IF grouped.adcirc_output.size %]
   <h3>NetCDF files</h3>
-  <div class="file-index">
-    <ul>
-    [% FOREACH f IN grouped.adcirc_output %]
-      <li><a href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">[% f.name | html %]</a></li>
+  <div class="small" style="margin-bottom:0.4rem;"><strong>NetCDF files</strong></div>
+  [% FOREACH f IN grouped.adcirc_output %]
+    [% pill_class = 'pill-link' %]
+    [% IF f.record_check == 'mismatch' %]
+      [% pill_class = pill_class _ ' pill-mismatch' %]
+    [% ELSIF f.record_check == 'unknown' %]
+      [% pill_class = pill_class _ ' pill-unknown' %]
+    [% ELSIF f.record_check == 'ok' %]
+      [% pill_class = pill_class _ ' pill-ok' %]
     [% END %]
-    </ul>
-  </div>
+
+    <a class="[% pill_class %]" href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">
+      [% f.name | html %]
+      [% IF f.record_check == 'mismatch' %]
+        ✕
+      [% ELSIF f.record_check == 'unknown' %]
+        ?
+      [% ELSIF f.record_check == 'ok' %]
+        ✓
+      [% END %]
+    </a>
+  [% END %]
   [% END %]
 </div>
 
@@ -239,30 +254,13 @@
 
   <div class="card">
     <h3>NetCDF checks</h3>
-    <div class="pill pill-ok">Checks OK: [% totals.record_check_ok_count %]</div>
-    <div class="pill pill-mismatch">Mismatches: [% totals.record_check_mismatch_count %]</div>
+    <div class="pill pill-ok">OK: [% totals.record_check_ok_count %]</div>
+    <div class="pill pill-mismatch">Mismatch: [% totals.record_check_mismatch_count %]</div>
     <div class="pill pill-unknown">Unknown: [% totals.record_check_unknown_count %]</div>
     <div class="pill">Summed records: [% totals.netcdf_record_total %]</div>
 
-    [% IF record_mismatches.size || record_unknown.size %]
+    [% IF grouped.adcirc_output.size %]
     <div class="status-strip">
-      [% IF record_mismatches.size %]
-      <div class="small" style="margin-bottom:0.4rem;"><strong>Mismatched files</strong></div>
-      [% FOREACH f IN record_mismatches %]
-        <a class="pill-link pill-mismatch" href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">
-          [% f.name | html %]
-        </a>
-      [% END %]
-      [% END %]
-
-      [% IF record_unknown.size %]
-      <div class="small" style="margin-top:0.5rem; margin-bottom:0.4rem;"><strong>Unknown-check files</strong></div>
-      [% FOREACH f IN record_unknown %]
-        <a class="pill-link pill-unknown" href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">
-          [% f.name | html %]
-        </a>
-      [% END %]
-      [% END %]
     </div>
     [% END %]
   </div>
