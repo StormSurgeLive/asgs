@@ -79,14 +79,29 @@ my $effective_base_url = normalize_base_url(
 # ------------------------------------------------------------
 
 my $remote_listing = get_remote_listing(
-    host => $opt->host,
-    path => $remote_path,
+    host    => $opt->host,
+    path    => $remote_path,
+    verbose => $opt->verbose,
 );
 
 my %present_remote = map { $_->{name} => 1 } @$remote_listing;
 
 # ------------------------------------------------------------
-# 2) Remote small metadata files
+# 2) Establish local source directory as early as possible
+# ------------------------------------------------------------
+
+my $local_dir = $opt->local_dir;
+
+if ($local_dir && -d $local_dir) {
+    warn "[localdir] using provided local_dir: $local_dir\n" if $opt->verbose;
+}
+elsif ($local_dir) {
+    warn "[localdir] provided local_dir does not exist: $local_dir\n" if $opt->verbose;
+    $local_dir = undef;
+}
+
+# ------------------------------------------------------------
+# 3) Load run.properties, preferring remote, then local fallback
 # ------------------------------------------------------------
 
 my $run_properties = {};
@@ -99,9 +114,38 @@ my $asgs_config    = {};
 if ($present_remote{'run.properties'}) {
     my $text = ssh_cat($opt->host, "$remote_path/run.properties");
     $run_properties = parse_run_properties($text);
-} else {
-    die "run.properties not found in remote directory listing for $remote_path\n";
+    warn "[run.properties] using remote copy: $remote_path/run.properties\n" if $opt->verbose;
 }
+elsif ($local_dir && -f "$local_dir/run.properties") {
+    my $text = slurp_local_text("$local_dir/run.properties", 150_000);
+    $run_properties = parse_run_properties($text);
+    warn "[run.properties] remote copy missing; using local copy: $local_dir/run.properties\n"
+        if $opt->verbose;
+}
+else {
+    die "run.properties not found remotely in $remote_path and no local fallback was found\n";
+}
+
+# ------------------------------------------------------------
+# 4) If local_dir was not provided, try to discover it now that
+#    run.properties is available
+# ------------------------------------------------------------
+
+if (!$local_dir) {
+    $local_dir = find_local_run_dir($run_properties);
+}
+
+if ($local_dir && -d $local_dir) {
+    warn "[localdir] $local_dir\n" if $opt->verbose;
+} else {
+    warn "[localdir] no valid local scenario directory found; continuing in remote-only mode\n"
+        if $opt->verbose;
+    $local_dir = undef;
+}
+
+# ------------------------------------------------------------
+# 5) Remote small metadata files
+# ------------------------------------------------------------
 
 if ($present_remote{'scenario.status.json'}) {
     my $text = ssh_cat($opt->host, "$remote_path/scenario.status.json");
@@ -131,46 +175,31 @@ if ($present_remote{$buildinfo_name}) {
 }
 
 # ------------------------------------------------------------
-# 3) Local source directory
+# 6) Local fort.14 / fort.15
 # ------------------------------------------------------------
 
-my $local_dir = $opt->local_dir;
-
-if (!$local_dir) {
-    $local_dir = find_local_run_dir($run_properties);
-}
-
-die "Could not determine a valid local scenario directory; pass --local_dir\n"
-    unless $local_dir && -d $local_dir;
-
-warn "[localdir] $local_dir\n" if $opt->verbose;
-
-# ------------------------------------------------------------
-# 4) Local fort.14 / fort.15
-# ------------------------------------------------------------
-
-if (-f "$local_dir/fort.14") {
-    my $text = slurp_local("$local_dir/fort.14", 50_000);
+if ($local_dir && -f "$local_dir/fort.14") {
+    my $text = slurp_local_text("$local_dir/fort.14", 50_000);
     $fort14 = parse_fort14($text);
 }
 
-if (-f "$local_dir/fort.15") {
-    my $text = slurp_local("$local_dir/fort.15", 250_000);
+if ($local_dir && -f "$local_dir/fort.15") {
+    my $text = slurp_local_text("$local_dir/fort.15", 250_000);
     $fort15 = parse_fort15($text);
 }
 
 # ------------------------------------------------------------
-# 5) Prefer local ASGS config if available
+# 7) Prefer local ASGS config if available
 # ------------------------------------------------------------
 
 if ($ENV{ASGS_CONFIG} && -f $ENV{ASGS_CONFIG}) {
-    my $text = slurp_local($ENV{ASGS_CONFIG}, 150_000);
+    my $text = slurp_local_text($ENV{ASGS_CONFIG}, 150_000);
     $asgs_config = parse_shell_config($text, $ENV{ASGS_CONFIG});
 }
 elsif ($run_properties->{all_keys} && $run_properties->{all_keys}{'config.file'}) {
     my $cfg_name = basename($run_properties->{all_keys}{'config.file'});
-    if (-f "$local_dir/$cfg_name") {
-        my $text = slurp_local("$local_dir/$cfg_name", 150_000);
+    if ($local_dir && -f "$local_dir/$cfg_name") {
+        my $text = slurp_local_text("$local_dir/$cfg_name", 150_000);
         $asgs_config = parse_shell_config($text, "$local_dir/$cfg_name");
     }
     elsif ($present_remote{$cfg_name}) {
@@ -180,7 +209,7 @@ elsif ($run_properties->{all_keys} && $run_properties->{all_keys}{'config.file'}
 }
 
 # ------------------------------------------------------------
-# 6) Build file objects from remote published names, local inspection
+# 8) Build file objects from remote published names, local inspection
 # ------------------------------------------------------------
 
 my $files = build_file_objects(
@@ -191,15 +220,23 @@ my $files = build_file_objects(
 );
 
 # ------------------------------------------------------------
-# 7) Expected output counts from run.properties
+# 9) Expected output data from run.properties
 # ------------------------------------------------------------
 
 my $expected_records = expected_netcdf_records_from_run_properties($run_properties);
+my $expected_outputs = expected_output_files_from_run_properties($run_properties);
+
+my %published_files = map { $_->{name} => 1 } @$files;
 
 for my $f (@$files) {
+    my $name = $f->{name};
+
+    if (exists $expected_outputs->{$name}) {
+        $f->{is_expected_output} = 1;
+    }
+
     next unless $f->{is_netcdf};
 
-    my $name = $f->{name};
     if (exists $expected_records->{$name}) {
         $f->{expected_records} = $expected_records->{$name};
 
@@ -211,8 +248,25 @@ for my $f (@$files) {
     }
 }
 
+my @missing_expected = map {
+    {
+        name             => $_,
+        expected_records => $expected_records->{$_},
+        reason           => (
+            exists $expected_records->{$_}
+            ? 'Configured in run.properties but not present in published directory; expected record count exists'
+            : 'Configured in run.properties but not present in published directory'
+        ),
+    }
+} sort grep { !$published_files{$_} } keys %$expected_outputs;
+
+my @unexpected_outputs = grep {
+       $_->{kind} eq 'adcirc_output'
+    && !$expected_outputs->{ $_->{name} }
+} @$files;
+
 # ------------------------------------------------------------
-# 8) Grouping and summaries
+# 10) Grouping and summaries
 # ------------------------------------------------------------
 
 my $grouped = group_files($files);
@@ -228,22 +282,24 @@ my @record_unknown = grep {
 } @$files;
 
 my $totals = {
-    file_count          => scalar(@$files),
-    bytes_total         => sum(map { $_->{size_bytes} || 0 } @$files),
-    bytes_total_human   => human_size(sum(map { $_->{size_bytes} || 0 } @$files)),
-    input_count         => scalar(@{ $grouped->{adcirc_input} }),
-    output_count        => scalar(@{ $grouped->{adcirc_output} }),
-    other_count         => scalar(@{ $grouped->{other} }),
-    netcdf_count        => scalar(grep { $_->{is_netcdf} } @$files),
-    netcdf_record_total => sum(
+    file_count                  => scalar(@$files),
+    bytes_total                 => sum(map { $_->{size_bytes} || 0 } @$files),
+    bytes_total_human           => human_size(sum(map { $_->{size_bytes} || 0 } @$files)),
+    input_count                 => scalar(@{ $grouped->{adcirc_input} }),
+    output_count                => scalar(@{ $grouped->{adcirc_output} }),
+    other_count                 => scalar(@{ $grouped->{other} }),
+    netcdf_count                => scalar(grep { $_->{is_netcdf} } @$files),
+    netcdf_record_total         => sum(
         map { ($_->{nc} && defined $_->{nc}{record_count}) ? $_->{nc}{record_count} : 0 }
         grep { $_->{is_netcdf} } @$files
     ),
-    record_check_ok_count => scalar(
-        grep { ($_->{record_check} // '') eq 'ok' } @$files
-    ),
+    record_check_ok_count       => scalar(grep { ($_->{record_check} // '') eq 'ok' } @$files),
     record_check_mismatch_count => scalar(@record_mismatches),
     record_check_unknown_count  => scalar(@record_unknown),
+    expected_output_count       => scalar(keys %$expected_outputs),
+    published_expected_count    => scalar(grep { $_->{is_expected_output} } @$files),
+    missing_expected_count      => scalar(@missing_expected),
+    unexpected_output_count     => scalar(@unexpected_outputs),
 };
 
 my $stash = {
@@ -256,21 +312,25 @@ my $stash = {
     source => {
         ssh_host      => anonymize_path($opt->host),
         remote_path   => anonymize_path($remote_path),
-        local_dir     => anonymize_path($local_dir),
+        local_dir     => $local_dir ? anonymize_path($local_dir) : undef,
         base_url      => $effective_base_url,
         deploy_target => anonymize_path("$remote_path/" . $opt->output),
+        mode          => ($local_dir ? 'hybrid-local-remote' : 'remote-only'),
     },
-    totals            => $totals,
-    files             => anonymize_files_for_stash($files),
-    grouped           => anonymize_grouped_for_stash($grouped),
-    run_properties    => $run_properties,
-    fort14            => $fort14,
-    fort15            => $fort15,
-    scenario_status   => anonymize_structure($scenario_json),
-    buildinfo         => anonymize_structure($buildinfo_json),
-    asgs_config       => $asgs_config,
-    record_mismatches => anonymize_files_for_stash(\@record_mismatches),
-    record_unknown    => anonymize_files_for_stash(\@record_unknown),
+    totals             => $totals,
+    files              => anonymize_files_for_stash($files),
+    grouped            => anonymize_grouped_for_stash($grouped),
+    run_properties     => $run_properties,
+    fort14             => $fort14,
+    fort15             => $fort15,
+    scenario_status    => anonymize_structure($scenario_json),
+    buildinfo          => anonymize_structure($buildinfo_json),
+    asgs_config        => $asgs_config,
+    record_mismatches  => anonymize_files_for_stash(\@record_mismatches),
+    record_unknown     => anonymize_files_for_stash(\@record_unknown),
+    missing_expected   => anonymize_structure(\@missing_expected),
+    unexpected_outputs => anonymize_files_for_stash(\@unexpected_outputs),
+    expected_outputs   => anonymize_structure([ sort keys %$expected_outputs ]),
 };
 
 my $tt = Template->new({
@@ -282,8 +342,14 @@ my $tt = Template->new({
     ENCODING => 'utf8',
 });
 
-$tt->process($opt->template, $stash, $opt->output)
+open my $out_fh, '>:encoding(UTF-8)', $opt->output
+    or die "Cannot open output '$opt->output': $!";
+
+$tt->process($opt->template, $stash, $out_fh)
     or die "Template processing failed: " . $tt->error . "\n";
+
+close $out_fh
+    or die "Cannot close output '$opt->output': $!";
 
 say "Wrote local output: " . $opt->output;
 
@@ -327,7 +393,7 @@ sub read_ini_section {
     my ($file, $want_section) = @_;
     return {} unless defined $file && -f $file;
 
-    open my $fh, '<', $file or die "Could not open config '$file': $!\n";
+    open my $fh, '<:encoding(UTF-8)', $file or die "Could not open config '$file': $!\n";
 
     my %data;
     my $section = '';
@@ -390,14 +456,12 @@ sub anonymize_path {
         SYSLOG      => ($ENV{SYSLOG}      // ''),
     );
 
-    # Replace concrete env values back to their literal placeholders
     for my $name (qw(ASGS_CONFIG STATEFILE SYSLOG RUNDIR USER)) {
         my $val = $vars{$name};
         next unless defined $val && length $val;
         $s =~ s/\Q$val\E/\$$name/g;
     }
 
-    # Extra safety: replace /work/<user>/ path segment to /work/$USER/
     if ($vars{USER}) {
         my $u = $vars{USER};
         $s =~ s{(/work/)\Q$u\E(/)}{$1\$USER$2}g;
@@ -433,11 +497,11 @@ sub anonymize_files_for_stash {
 
     for my $f (@$files) {
         my %copy = %$f;
-        $copy{local_file} = anonymize_path($copy{local_file}) if exists $copy{local_file};
+        $copy{local_file} = anonymize_path($copy{local_file}) if exists $copy{local_file} && defined $copy{local_file};
 
         if ($copy{nc} && ref($copy{nc}) eq 'HASH') {
             my %nc = %{ $copy{nc} };
-            $nc{local_file} = anonymize_path($nc{local_file}) if exists $nc{local_file};
+            $nc{local_file} = anonymize_path($nc{local_file}) if exists $nc{local_file} && defined $nc{local_file};
             $nc{error}      = anonymize_path($nc{error})      if exists $nc{error};
             $copy{nc} = \%nc;
         }
@@ -510,8 +574,9 @@ sub ssh_head {
 
 sub get_remote_listing {
     my (%args) = @_;
-    my $host = $args{host};
-    my $path = $args{path};
+    my $host    = $args{host};
+    my $path    = $args{path};
+    my $verbose = $args{verbose};
 
     my $cmd = join ' ',
         'find', shell_quote($path),
@@ -522,11 +587,14 @@ sub get_remote_listing {
 
     my $out = ssh_capture(host => $host, cmd => $cmd);
 
+    warn "[remote listing raw]\n$out\n" if $verbose;
+
     my @rows;
     for my $line (split /\n/, $out) {
         next unless length $line;
+
         my ($name, $size, $mtime_epoch, $typechar) = split /\t/, $line, 4;
-        next if !defined $name || $name eq '';
+        next unless defined $name && defined $size && defined $mtime_epoch && defined $typechar;
         next if $name eq '.' || $name eq '..';
 
         push @rows, {
@@ -555,11 +623,14 @@ sub find_local_run_dir {
     if ($ENV{RUNDIR}) {
         push @candidates, $ENV{RUNDIR};
 
-        if ($rp && $rp->{all_keys} && $rp->{all_keys}{scenario}) {
-            push @candidates, "$ENV{RUNDIR}/" . $rp->{all_keys}{scenario};
+        if ($rp && $rp->{all_keys} && $rp->{all_keys}{"scenario"}) {
+            push @candidates, "$ENV{RUNDIR}/" . $rp->{all_keys}{"scenario"};
         }
-        if ($rp && $rp->{all_keys} && $rp->{all_keys}{'asgs.enstorm'}) {
-            push @candidates, "$ENV{RUNDIR}/" . $rp->{all_keys}{'asgs.enstorm'};
+        if ($rp && $rp->{all_keys} && $rp->{all_keys}{"asgs.enstorm"}) {
+            push @candidates, "$ENV{RUNDIR}/" . $rp->{all_keys}{"asgs.enstorm"};
+        }
+        if ($rp && $rp->{all_keys} && $rp->{all_keys}{"adcirc.gridname"}) {
+            push @candidates, "$ENV{RUNDIR}/" . $rp->{all_keys}{"adcirc.gridname"};
         }
     }
 
@@ -570,18 +641,23 @@ sub find_local_run_dir {
     @candidates = grep { !$seen{$_}++ } @candidates;
 
     for my $dir (@candidates) {
-        return $dir if -d $dir && (-f "$dir/fort.15" || -f "$dir/run.properties" || scalar(glob("$dir/*.nc")));
+        next unless -d $dir;
+        return $dir if (
+               -f "$dir/fort.15"
+            || -f "$dir/run.properties"
+            || scalar(glob("$dir/*.nc"))
+            || -f "$dir/fort.14"
+        );
     }
 
     return undef;
 }
 
-sub slurp_local {
+sub slurp_local_text {
     my ($file, $max_bytes) = @_;
     $max_bytes ||= 0;
 
-    open my $fh, '<', $file or die "Could not open local file '$file': $!\n";
-    binmode($fh);
+    open my $fh, '<:encoding(UTF-8)', $file or die "Could not open local text file '$file': $!\n";
 
     my $buf = '';
     if ($max_bytes && $max_bytes > 0) {
@@ -598,7 +674,7 @@ sub slurp_local {
 sub build_file_objects {
     my (%args) = @_;
     my $remote_listing = $args{remote_listing} || [];
-    my $local_dir      = $args{local_dir}      || die "build_file_objects: missing local_dir\n";
+    my $local_dir      = $args{local_dir};
     my $base_url       = $args{base_url};
     my $verbose        = $args{verbose};
 
@@ -606,11 +682,11 @@ sub build_file_objects {
 
     for my $row (@$remote_listing) {
         my $name = $row->{name};
-        my $local_file = File::Spec->catfile($local_dir, $name);
+        my $local_file = defined($local_dir) ? File::Spec->catfile($local_dir, $name) : undef;
 
         my ($size_bytes, $mtime_epoch, $typechar, $exists_local);
 
-        if (-e $local_file) {
+        if (defined($local_file) && -e $local_file) {
             $exists_local = 1;
             my @st = stat($local_file);
             $size_bytes  = $st[7];
@@ -624,7 +700,7 @@ sub build_file_objects {
         }
 
         my $nc_summary;
-        if ($name =~ /\.nc$/i && -f $local_file) {
+        if ($name =~ /\.nc$/i && defined($local_file) && -f $local_file) {
             warn "[local ncdump] $local_file\n" if $verbose;
             $nc_summary = get_local_netcdf_summary($local_file);
             if ($nc_summary && ref($nc_summary) eq 'HASH') {
@@ -646,6 +722,7 @@ sub build_file_objects {
             ext                => file_ext($name),
             kind               => classify_file($name),
             is_netcdf          => ($name =~ /\.nc$/i ? 1 : 0),
+            is_expected_output => 0,
             nc                 => $nc_summary,
             expected_records   => undef,
             record_check       => undef,
@@ -697,9 +774,6 @@ sub parse_run_properties {
       downloadurl
       adcirc.control.physics.rnday
       adcirc.timestepsize
-      adcirc.file.output.fort.63.nc.numdatasets
-      adcirc.file.output.fort.64.nc.numdatasets
-      adcirc.file.output.fort.74.nc.numdatasets
       coupling.waves
       Model
       RunStartTime
@@ -718,12 +792,15 @@ sub parse_run_properties {
     my $config_basename = exists $p{'config.file'} ? basename($p{'config.file'}) : undef;
     my $build_basename  = exists $p{'adcirc.file.metadata.build'} ? basename($p{'adcirc.file.metadata.build'}) : undef;
 
+    my @output_keys = sort grep { /^adcirc\.file\.output\./ } keys %p;
+
     return {
         all_keys        => \%p,
         all_keys_anon   => \%anon_all,
         summary         => \%summary,
         key_count       => scalar(keys %p),
         sorted_keys     => [ sort keys %p ],
+        output_keys     => \@output_keys,
         config_basename => $config_basename,
         build_basename  => $build_basename,
     };
@@ -741,6 +818,22 @@ sub expected_netcdf_records_from_run_properties {
         my $v = $rp->{all_keys}{$k};
         next unless defined $v && $v =~ /^\d+$/;
         $expected{$fname} = $v + 0;
+    }
+
+    return \%expected;
+}
+
+sub expected_output_files_from_run_properties {
+    my ($rp) = @_;
+    my %expected;
+
+    return \%expected unless $rp && $rp->{all_keys};
+
+    for my $k (keys %{ $rp->{all_keys} }) {
+        next unless $k =~ /^adcirc\.file\.output\.(.+?)\.(?:numdatasets|enable|format|name)$/;
+        my $fname = $1;
+        next unless defined $fname && length $fname;
+        $expected{$fname} = 1;
     }
 
     return \%expected;
