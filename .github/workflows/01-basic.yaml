@@ -1,130 +1,41 @@
-name: Run Selected Install Scripts
+name: ASGS One-Shot Build
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   pull_request:
-    branches:
-      - master
+    branches: [ master ]
 
 jobs:
-  run-scripts:
+  build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Install Ubuntu packages
+      - name: Install base packages
         run: |
-          sudo apt-get -y update
-          sudo apt-get install -y build-essential checkinstall
-          sudo apt-get install -y libssl-dev libexpat1-dev
-          sudo apt-get install -y gfortran wget curl vim screen htop tmux git bc
-          sudo apt-get install -y zip flex gawk procps
-          sudo apt-get install -y zlib1g-dev
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gfortran \
+            wget curl git bc \
+            flex gawk procps \
+            zlib1g-dev \
+            libssl-dev libexpat1-dev
 
-      - name: Set TERM and run install script with --update-shell
-        run: |
-          export TERM=xterm
-          ./init-asgs.sh -b -x "--update-shell"
-
-      - name: Cache ASGS opt tree
-        id: cache-opt
-        uses: actions/cache@v4
-        with:
-          path: ./opt
-          key: ${{ runner.os }}-asgs-opt-${{ hashFiles( 'cloud/general/asgs-brew.pl', 'cloud/general/init-gnu-units.sh', 'cloud/general/init-hdf5.sh', 'cloud/general/init-input-nodalattr.sh', 'cloud/general/init-jq.sh', 'cloud/general/init-nco.sh', 'cloud/general/init-netcdf4.sh', 'cloud/general/init-openmpi.sh', 'cloud/general/init-perlbrew.sh', 'cloud/general/init-perl-modules.sh', 'cloud/general/init-pigz.sh', 'cloud/general/init-util-output.sh', 'cloud/general/init-util.sh') }}
-
-      - name: Check cached opt validity
-        id: opt-valid
-        run: |
-          set -euo pipefail
-
-          if [ -f ./opt/.cache-markers/asgs-brew-complete ]; then
-            echo "valid=true" >> "$GITHUB_OUTPUT"
-            echo "Found ASGS success marker in cached ./opt"
-          else
-            echo "valid=false" >> "$GITHUB_OUTPUT"
-            echo "No ASGS success marker found in cached ./opt"
-          fi
-
-      - name: Rebuild ASGS opt tree
-        if: steps.opt-valid.outputs.valid != 'true'
-        run: |
-          set -euo pipefail
-          export TERM=xterm
-
-          rm -rf ./opt
-          mkdir -p ./opt
-
-          steps=(
-            setup-env
-            hdf5
-            netcdf4
-            wgrib2
-            cpra-postproc
-            output
-            util
-            util-output
-            input-mesh
-            input-nodalattr
-            perl
-            perl-modules
-            gnuplot
-            units
-            nco
-            pigz
-            jq
-          )
-
-          for step in "${steps[@]}"; do
-            echo "=============================="
-            echo "Running ASGS step: $step"
-            echo "=============================="
-            ./init-asgs.sh -b -x "--run-steps $step"
-          done
-
-          mkdir -p ./opt/.cache-markers
-          {
-            echo "status=success"
-            echo "created_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo "runner_os=${RUNNER_OS}"
-            echo "hash=${{ hashFiles(
-              'cloud/general/asgs-brew.pl',
-              'cloud/general/init-gnu-units.sh',
-              'cloud/general/init-hdf5.sh',
-              'cloud/general/init-input-nodalattr.sh',
-              'cloud/general/init-jq.sh',
-              'cloud/general/init-nco.sh',
-              'cloud/general/init-netcdf4.sh',
-              'cloud/general/init-openmpi.sh',
-              'cloud/general/init-perlbrew.sh',
-              'cloud/general/init-perl-modules.sh',
-              'cloud/general/init-pigz.sh',
-              'cloud/general/init-util-output.sh',
-              'cloud/general/init-util.sh'
-            ) }}"
-          } > ./opt/.cache-markers/asgs-brew-complete
-        timeout-minutes: 120
-
-      - name: Show cached opt marker
-        run: |
-          set -euo pipefail
-          if [ -f ./opt/.cache-markers/asgs-brew-complete ]; then
-            echo "ASGS cached build marker:"
-            cat ./opt/.cache-markers/asgs-brew-complete
-          else
-            echo "ASGS cached build marker is missing"
-            exit 1
-          fi
-
-      - name: Build All Supported ADCIRCs
+      - name: Run ASGS + ADCIRC build (single shell)
         run: |
           set -euxo pipefail
           export TERM=xterm
-          echo hi hello
-          ./asgsh -A "asgs-info"
-          ./bin/guess platform
+
+          echo "=== STEP 1: init-asgs ==="
+          ./init-asgs.sh -A -b
+
+          echo "=== STEP 2: run ADCIRC builds ==="
+          ./asgsh -A "bash ./cloud/general/t/build-all-adcirc.sh"
+
+          echo "=== DONE ==="
         timeout-minutes: 120
