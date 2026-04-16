@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>[% title | html %]</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 2rem;
+      color: #1f2937;
+      background: #f8fafc;
+    }
+    a { color: #0f4c81; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3, h4 { color: #0b2540; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #dbe4ee;
+    }
+    .meta, .card, .jump-nav {
+      background: #fff;
+      border: 1px solid #dbe4ee;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+      margin-bottom: 1.5rem;
+    }
+    th, td {
+      border: 1px solid #dbe4ee;
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #eaf2fb;
+    }
+    code, pre {
+      background: #f3f6fa;
+      border-radius: 4px;
+    }
+    pre {
+      padding: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 0.95em;
+    }
+    .pill {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: #e6f0fb;
+      border: 1px solid #bfd3ea;
+      margin-right: 0.35rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.9em;
+    }
+    .pill-link {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid #bfd3ea;
+      margin-right: 0.35rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.9em;
+      text-decoration: none;
+      background: #e6f0fb;
+      color: #0f4c81;
+    }
+    .pill-link:hover {
+      text-decoration: none;
+      filter: brightness(0.98);
+    }
+    .pill-ok {
+      background: #ecfdf3;
+      border-color: #a7f3d0;
+      color: #166534;
+    }
+    .pill-mismatch {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+    .pill-unknown {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+      color: #4b5563;
+    }
+    .status-strip {
+      margin-top: 0.75rem;
+    }
+    .section-title {
+      margin-top: 2rem;
+    }
+    .ok {
+      color: #166534;
+      font-weight: bold;
+    }
+    .mismatch {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+    .unknown {
+      color: #6b7280;
+      font-weight: bold;
+    }
+    .small {
+      font-size: 0.92em;
+    }
+    details {
+      margin-top: 0.35rem;
+    }
+    summary {
+      cursor: pointer;
+      color: #0f4c81;
+    }
+    ul {
+      margin-top: 0.35rem;
+      margin-bottom: 0.5rem;
+    }
+    .jump-nav .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .jump-nav a {
+      display: inline-block;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: #e6f0fb;
+      border: 1px solid #bfd3ea;
+      font-size: 0.95em;
+      text-decoration: none;
+    }
+    .jump-nav a:hover {
+      background: #d8eafb;
+    }
+    .file-index {
+      columns: 3 260px;
+      column-gap: 1.5rem;
+      margin-top: 0.75rem;
+    }
+    .file-index ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .file-index li {
+      break-inside: avoid;
+      margin-bottom: 0.25rem;
+    }
+    .anchor-offset {
+      scroll-margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>[% title | html %]</h1>
+    <div class="muted">Generated: [% generated_at | html %]</div>
+  </div>
+  <div>
+    <a href="[% brand.link | html %]">[% brand.text | html %]</a>
+  </div>
+</div>
+
+<div class="meta">
+  <h2>Source</h2>
+  <p><strong>SSH host:</strong> <code>[% source.ssh_host | html %]</code></p>
+  <p><strong>Remote path:</strong> <code>[% source.remote_path | html %]</code></p>
+  [% IF source.local_dir %]
+  <p><strong>Local dir:</strong> <code>[% source.local_dir | html %]</code></p>
+  [% END %]
+  <p><strong>Download base:</strong> <a href="[% source.base_url | html %]">[% source.base_url | html %]</a></p>
+  <p><strong>Deploy target:</strong> <code>[% source.deploy_target | html %]</code></p>
+</div>
+
+<div class="jump-nav">
+  <h2>Jump to</h2>
+  <div class="links">
+    <a href="#run-summary">Run summary</a>
+    <a href="#fort14-summary">fort.14</a>
+    <a href="#fort15-summary">fort.15</a>
+    <a href="#asgs-config-summary">ASGS config</a>
+    <a href="#build-metadata">Build metadata</a>
+    <a href="#record-check-summary">NetCDF record checks</a>
+    <a href="#adcirc-input-files">ADCIRC input files</a>
+    <a href="#adcirc-output-files">ADCIRC output files</a>
+    <a href="#other-files">Other files</a>
+  </div>
+
+  [% IF grouped.adcirc_output.size %]
+  <h3>NetCDF files</h3>
+  <div class="file-index">
+    <ul>
+    [% FOREACH f IN grouped.adcirc_output %]
+      <li><a href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">[% f.name | html %]</a></li>
+    [% END %]
+    </ul>
+  </div>
+  [% END %]
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Inventory</h3>
+    <div class="pill">Files: [% totals.file_count %]</div>
+    <div class="pill">NetCDF: [% totals.netcdf_count %]</div>
+    <div class="pill">Total size: [% totals.bytes_total_human %]</div>
+  </div>
+
+  <div class="card">
+    <h3>Breakdown</h3>
+    <div class="pill">Input: [% totals.input_count %]</div>
+    <div class="pill">Output: [% totals.output_count %]</div>
+    <div class="pill">Other: [% totals.other_count %]</div>
+  </div>
+
+  <div class="card">
+    <h3>NetCDF checks</h3>
+    <div class="pill pill-ok">Checks OK: [% totals.record_check_ok_count %]</div>
+    <div class="pill pill-mismatch">Mismatches: [% totals.record_check_mismatch_count %]</div>
+    <div class="pill pill-unknown">Unknown: [% totals.record_check_unknown_count %]</div>
+    <div class="pill">Summed records: [% totals.netcdf_record_total %]</div>
+
+    [% IF record_mismatches.size || record_unknown.size %]
+    <div class="status-strip">
+      [% IF record_mismatches.size %]
+      <div class="small" style="margin-bottom:0.4rem;"><strong>Mismatched files</strong></div>
+      [% FOREACH f IN record_mismatches %]
+        <a class="pill-link pill-mismatch" href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">
+          [% f.name | html %]
+        </a>
+      [% END %]
+      [% END %]
+
+      [% IF record_unknown.size %]
+      <div class="small" style="margin-top:0.5rem; margin-bottom:0.4rem;"><strong>Unknown-check files</strong></div>
+      [% FOREACH f IN record_unknown %]
+        <a class="pill-link pill-unknown" href="#nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">
+          [% f.name | html %]
+        </a>
+      [% END %]
+      [% END %]
+    </div>
+    [% END %]
+  </div>
+</div>
+
+[% IF record_mismatches.size || record_unknown.size %]
+<div class="card anchor-offset" id="record-check-summary">
+  <h2>NetCDF record check summary</h2>
+
+  [% IF record_mismatches.size %]
+  <h3>Mismatches</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Actual</th>
+        <th>Expected</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody>
+    [% FOREACH f IN record_mismatches %]
+      <tr>
+        <td><code>[% f.name | html %]</code></td>
+        <td>
+          [% IF f.nc && !f.nc.error %]
+            [% f.nc.record_count || '' %]
+          [% ELSE %]
+            error
+          [% END %]
+        </td>
+        <td>[% f.expected_records || '' %]</td>
+        <td><a href="[% f.url | html %]">download</a></td>
+      </tr>
+    [% END %]
+    </tbody>
+  </table>
+  [% END %]
+
+  [% IF record_unknown.size %]
+  <h3>Unknown checks</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Reason</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody>
+    [% FOREACH f IN record_unknown %]
+      <tr>
+        <td><code>[% f.name | html %]</code></td>
+        <td>
+          [% IF f.nc && f.nc.error %]
+            <details>
+              <summary>ncdump error</summary>
+              <pre>[% f.nc.error | html %]</pre>
+            </details>
+          [% ELSE %]
+            expected count exists, actual record count unavailable
+          [% END %]
+        </td>
+        <td><a href="[% f.url | html %]">download</a></td>
+      </tr>
+    [% END %]
+    </tbody>
+  </table>
+  [% END %]
+</div>
+[% END %]
+
+[% IF run_properties.key_count %]
+<div class="card anchor-offset" id="run-summary">
+  <h2>Run summary</h2>
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+    [% FOREACH k IN run_properties.summary.keys.sort %]
+      <tr>
+        <td><code>[% k | html %]</code></td>
+        <td>[% run_properties.summary.$k | html %]</td>
+      </tr>
+    [% END %]
+    </tbody>
+  </table>
+</div>
+[% END %]
+
+[% IF fort14.title || fort14.raw_header2 %]
+<div class="card anchor-offset" id="fort14-summary">
+  <h2>fort.14 summary</h2>
+  <p><strong>Title:</strong> [% fort14.title | html %]</p>
+  <p><strong>Header line 2:</strong> <code>[% fort14.raw_header2 | html %]</code></p>
+  [% IF fort14.ne || fort14.np %]
+  <p>
+    <span class="pill">Elements: [% fort14.ne %]</span>
+    <span class="pill">Nodes: [% fort14.np %]</span>
+  </p>
+  [% END %]
+</div>
+[% END %]
+
+[% IF fort15.line_count %]
+<div class="card anchor-offset" id="fort15-summary">
+  <h2>fort.15 summary</h2>
+  <p><strong>Line count:</strong> [% fort15.line_count %]</p>
+  [% IF fort15.preview_lines.size %]
+  <h3>Preview</h3>
+  <pre>[% FOREACH line IN fort15.preview_lines %][% line | html %]
+[% END %]</pre>
+  [% END %]
+</div>
+[% END %]
+
+[% IF asgs_config.filename %]
+<div class="card anchor-offset" id="asgs-config-summary">
+  <h2>ASGS config summary</h2>
+  <p><strong>Config file:</strong> <code>[% asgs_config.filename | html %]</code></p>
+  [% IF asgs_config.summary.keys.size %]
+  <table>
+    <thead>
+      <tr><th>Variable</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+    [% FOREACH k IN asgs_config.summary.keys.sort %]
+      <tr>
+        <td><code>[% k | html %]</code></td>
+        <td>[% asgs_config.summary.$k | html %]</td>
+      </tr>
+    [% END %]
+    </tbody>
+  </table>
+  [% END %]
+  [% IF asgs_config.preview.size %]
+  <h3>Preview</h3>
+  <pre>[% FOREACH line IN asgs_config.preview %][% line | html %]
+[% END %]</pre>
+  [% END %]
+</div>
+[% END %]
+
+[% IF buildinfo && buildinfo.keys.size %]
+<div class="card anchor-offset" id="build-metadata">
+  <h2>ADCIRC build metadata</h2>
+
+  <h3>Top-level fields</h3>
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+    [% FOREACH k IN buildinfo.keys.sort %]
+      [% NEXT IF k == "adcirc.build.actualflags.info" %]
+      <tr>
+        <td><code>[% k | html %]</code></td>
+        <td>
+          [% v = buildinfo.item(k) %]
+          [% IF v.search('^(HASH|ARRAY)\\(') %]
+            <span class="muted">structured value</span>
+          [% ELSE %]
+            [% v | html %]
+          [% END %]
+        </td>
+      </tr>
+    [% END %]
+    </tbody>
+  </table>
+
+  [% build_stages = buildinfo.item('adcirc.build.actualflags.info') %]
+  [% IF build_stages && build_stages.size %]
+  <h3>Build stages</h3>
+  <table>
+    <thead>
+      <tr><th>Stage</th><th>Compiler</th><th>Datestamp</th></tr>
+    </thead>
+    <tbody>
+    [% FOREACH item IN build_stages %]
+      <tr>
+        <td>[% item.stage | html %]</td>
+        <td>[% item.compiler | html %]</td>
+        <td>[% item.datestamp | html %]</td>
+      </tr>
+    [% END %]
+    </tbody>
+  </table>
+  [% END %]
+</div>
+[% END %]
+
+<h2 class="section-title anchor-offset" id="adcirc-input-files">ADCIRC input files</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Size</th>
+      <th>Modified</th>
+      <th>Download</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH f IN grouped.adcirc_input %]
+    <tr>
+      <td><code>[% f.name | html %]</code></td>
+      <td>[% f.size_human | html %]</td>
+      <td>[% f.mtime_iso | html %]</td>
+      <td><a href="[% f.url | html %]">download</a></td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+<h2 class="section-title anchor-offset" id="adcirc-output-files">ADCIRC output files</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Size</th>
+      <th>Modified</th>
+      <th>Actual</th>
+      <th>Expected</th>
+      <th>Check</th>
+      <th>Dims</th>
+      <th>Vars</th>
+      <th>Download</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH f IN grouped.adcirc_output %]
+    <tr>
+      <td id="nc-[% f.name | replace('.', '-') | replace('/', '-') | html %]">
+        <code>[% f.name | html %]</code>
+        [% IF f.record_check == 'mismatch' %]
+          <span class="pill pill-mismatch">Mismatch</span>
+        [% ELSIF f.record_check == 'unknown' %]
+          <span class="pill pill-unknown">Unknown</span>
+        [% ELSIF f.record_check == 'ok' %]
+          <span class="pill pill-ok">OK</span>
+        [% END %]
+
+        [% IF f.nc && !f.nc.error %]
+          <details>
+            <summary>metadata</summary>
+            <div class="small">
+              [% IF f.nc.source %]
+              <p><strong>Metadata source:</strong> [% f.nc.source | html %]</p>
+              [% END %]
+              [% IF f.nc.local_file %]
+              <p><strong>Local file:</strong> <code>[% f.nc.local_file | html %]</code></p>
+              [% END %]
+              <p><strong>Time dimension:</strong> [% f.nc.time_dim | html %]</p>
+
+              <p><strong>Dimensions:</strong></p>
+              <ul>
+              [% FOREACH d IN f.nc.dimensions.keys.sort %]
+                <li>
+                  <code>[% d | html %]</code> =
+                  [% f.nc.dimensions.$d.size %]
+                  [% IF f.nc.dimensions.$d.unlimited %](unlimited)[% END %]
+                </li>
+              [% END %]
+              </ul>
+
+              <p><strong>Variables:</strong></p>
+              <ul>
+              [% FOREACH v IN f.nc.variables %]
+                <li>
+                  <code>[% v.name | html %]</code>
+                  ([% v.dims.join(', ') | html %])
+                </li>
+              [% END %]
+              </ul>
+            </div>
+          </details>
+        [% ELSIF f.nc && f.nc.error %]
+          <details>
+            <summary>metadata error</summary>
+            <pre>[% f.nc.error | html %]</pre>
+          </details>
+        [% END %]
+      </td>
+      <td>[% f.size_human | html %]</td>
+      <td>[% f.mtime_iso | html %]</td>
+      <td>
+        [% IF f.nc && !f.nc.error %]
+          [% f.nc.record_count || '' %]
+        [% ELSIF f.nc && f.nc.error %]
+          <span class="mismatch">error</span>
+        [% END %]
+      </td>
+      <td>[% f.expected_records || '' %]</td>
+      <td>
+        [% IF f.record_check == 'ok' %]
+          <span class="ok">OK</span>
+        [% ELSIF f.record_check == 'mismatch' %]
+          <span class="mismatch">Mismatch</span>
+        [% ELSIF f.record_check == 'unknown' %]
+          <span class="unknown">Unknown</span>
+        [% END %]
+      </td>
+      <td>
+        [% IF f.nc && !f.nc.error %][% f.nc.dimension_count %][% END %]
+      </td>
+      <td>
+        [% IF f.nc && !f.nc.error %][% f.nc.variable_count %][% END %]
+      </td>
+      <td><a href="[% f.url | html %]">download</a></td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% IF grouped.other.size %]
+<h2 class="section-title anchor-offset" id="other-files">Other files</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Size</th>
+      <th>Modified</th>
+      <th>Download</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH f IN grouped.other %]
+    <tr>
+      <td><code>[% f.name | html %]</code></td>
+      <td>[% f.size_human | html %]</td>
+      <td>[% f.mtime_iso | html %]</td>
+      <td><a href="[% f.url | html %]">download</a></td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+[% END %]
+
+</body>
+</html>
