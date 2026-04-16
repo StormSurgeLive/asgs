@@ -377,8 +377,7 @@ unless (open(BEST, "<", $bestATCF)) {
          if ( $line_length >= 160 ) {
             my $n = $fields[27];
             if ( $n =~ /GENESIS/ || $n =~ /INVEST/ ) {
-               ASGSUtil::stderrMessage("INFO","The storm name in '$bestATCF' on line '$bestLineNum' contains '$n' which does not indicate a closed circulation. This line will be skipped.",$test);
-               next;
+               ASGSUtil::stderrMessage("WARNING","The storm name in '$bestATCF' on line '$bestLineNum' contains '$n' which does not indicate a closed circulation.",$test);
             }
          }
          my $cp = $fields[9]; # central pressure
