@@ -1,0 +1,13 @@
+diff --git a/thirdparty/swan/macros.inc.gfortran b/thirdparty/swan/macros.inc.gfortran
+index ef13f34..2c6fbdf 100644
+--- a/thirdparty/swan/macros.inc.gfortran
++++ b/thirdparty/swan/macros.inc.gfortran
+@@ -5,7 +5,7 @@ F90_SER = gfortran
+ F90_OMP = gfortran
+ F90_MPI = mpif90
+ FLAGS_OPT = -O
+-FLAGS_MSC = -w -fno-second-underscore -ffree-line-length-none -fallow-argument-mismatch
++FLAGS_MSC = -w -fno-second-underscore -ffree-line-length-none
+ FLAGS90_MSC = $(FLAGS_MSC) -ffree-line-length-none
+ FLAGS_SER =
+ FLAGS_OMP = -fopenmp
