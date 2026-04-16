@@ -944,10 +944,9 @@ if ( $fort7172 ne "NO LINE HERE" ) {
       }
    }
 }
-my $numMetDatasets;
+my $numMetDatasets = $addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0);
 if ( $fort7374 ne "NO LINE HERE" ) {
    if ( (split(' ',$fort7374))[0] != 0 ) {
-      $numMetDatasets = $addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0);
       if ( $p->{meteorology}->{windExposure} eq "surface" ) {
          writeFileName("fort.73",(split(' ',$fort7374))[0],$numMetDatasets);
          writeFileName("fort.74",(split(' ',$fort7374))[0],$numMetDatasets);
@@ -969,16 +968,13 @@ if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}-
    # coupling interval from the time ADCIRC starts. So SWAN's total
    # run time will be one coupling interval shorter than ADCIRC's
    # total run time
-   my $metOutputTimeIncrement = (split(' ',$fort7374))[3]*$dt;
-   my $swanAddHours = (($addHours * 3600.0) - $p->{wave_coupling}->{rstiminc})/3600.0;
-   my $numSwanDatasets = $swanAddHours/($metOutputTimeIncrement/3600.0);
-   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$numSwanDatasets);
+   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_DIR_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$numSwanDatasets);
+   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_HS_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$numSwanDatasets);
+   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_TMM10_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$numSwanDatasets);
+   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_TPS_max.63",(split(' ',$fort7374))[0],1);
    writeFileName("rads.64",(split(' ',$fort7374))[0],$numMetDatasets);
 }
