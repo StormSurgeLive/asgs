@@ -74,26 +74,28 @@ netcdfVarName["swan_DIR_max.63.nc"]="swan_DIR_max"
 netcdfVarName["swan_DIR.63.nc"]="swan_DIR"
 netcdfVarName["maxwvel.63.nc"]="wind_max"
 netcdfVarName["fort.74.nc"]="windx"
+netcdfVarName["wind10m.maxwvel.63.nc"]="wind_max"
+netcdfVarName["wind10m.fort.74.nc"]="windx"
 declare -A filesNumDataSets    # number of datasets in each file
 #
 # look for numerical instability errors in the stdout/stderr files
-for file in adcirc.log scenario.log padcirc.out padcswan.out ; do
+for f in adcirc.log scenario.log padcirc.out padcswan.out ; do
 jobtype="null"
-if [ -e $file ]; then
-    if [[ $file == "padcswan.out" || $file == "padcirc.out" ]]; then
-        jobtype=${file%.*}
+if [ -e $f ]; then
+    if [[ $f == "padcswan.out" || $f == "padcirc.out" ]]; then
+        jobtype=${f%.*}
     fi
-    numMsg=$(grep WarnElev $file | wc -l)
+    numMsg=$(grep WarnElev $f | wc -l)
     if [ $numMsg -eq 0 ]; then
-        echo "cycle ${CYCLE}: ${SCENARIO}: No numerical instability detected in '$file' after completion of job '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        echo "cycle ${CYCLE}: ${SCENARIO}: No numerical instability detected in '$f' after completion of job '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
     else
         if [[ $QUALITYSETTING == "allow-nonfatal-instability" ]]; then
-            echo "cycle ${CYCLE}: ${SCENARIO}: WARNING: Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. QUALITYSETTING is set to '$QUALITYSETTING' so this will only result in a warning."
+            echo "cycle ${CYCLE}: ${SCENARIO}: WARNING: Detected '$numMsg' numerical instability messages in '$f' after completion of job '$jobID'. QUALITYSETTING is set to '$QUALITYSETTING' so this will only result in a warning."
             # write this result to run.properties for downstream notification
             echo "post.qualitycontrol.warnelev.nummessages : $numMsg" >> $RUNPROPERTIES
         else
             ERROVALUE=1
-            ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of job '$jobID'. "
+            ERROMSG+=" Detected '$numMsg' numerical instability messages in '$f' after completion of job '$jobID'. "
         fi
     fi
 fi
@@ -118,80 +120,92 @@ fi
 # meteorological output
 if [[ $SCENARIO != "hindcast" && ${properties['Wind Velocity Format']} == "netcdf" ]]; then
     fileList+=( maxwvel.63.nc fort.74.nc )
+    if [[ ${properties['forcing.meteorology.createwind10mlayer']} == "yes" ]]; then
+        fileList+=( wind10m.maxwvel.63.nc wind10m.fort.74.nc )
+    fi
 fi
 #
 # compile statistics for each file
 filesFoundList=( )
-for file in ${fileList[@]}; do
+for f in ${fileList[@]}; do
     # check that the file exists
-    if [[ ! -e $file ]]; then
-        filesNumDataSets[$file]=0
+    if [[ ! -e $f ]]; then
+        filesNumDataSets[$f]=0
         ERROVALUE=1
-        ERROMSG="$ERROMSG The '$file' file does not exist, indicating that the '$jobtype.$layer' job with ID '$jobID' did not finish successfully. "
+        ERROMSG+=" The '$f' file does not exist."
         continue
     fi
-    filesFoundList+=( $file )
+    filesFoundList+=( $f )
+    # check to see if the number of datasets in the file is as expected
+    if [[ -e scenario.status.json ]]; then
+        expected=$(jq --arg thisFile $f '.["files.status"].[$thisFile].["numdatasets"].["expected"]' < scenario.status.json)
+        found=$(jq --arg thisFile $f '.["files.status"].[$thisFile].["numdatasets"].["found"]' < scenario.status.json)
+        if [[ $expected -ne $found ]]; then
+            ERROVALUE=1
+            ERROMSG+=" The '$f' file contains '$found' datasets, but '$expected' data sets were expected. "
+        fi
+    fi
     # count the number of nodes in the mesh
-    np=$(ncks --trd -m -M $file | grep -E -i ": node, size =" | cut -f 7 -d ' ' | tr -d "," | uniq)
+    np=$(ncks --trd -m -M $f | grep -E -i ": node, size =" | cut -f 7 -d ' ' | tr -d "," | uniq)
     # find number of datasets in the file
-    filesNumDataSets[$file]=$(ncks --trd -M $file | grep -E -i "^Root record dimension 0:" | cut -f 10- -d ' ')
+    filesNumDataSets[$f]=$(ncks --trd -M $f | grep -E -i "^Root record dimension 0:" | cut -f 10- -d ' ')
     # check for zero records in the file
-    if [[ ${filesNumDataSets[$file]} -eq 0 ]]; then
+    if [[ ${filesNumDataSets[$f]} -eq 0 ]]; then
         ERROVALUE=1
-        ERROMSG="$ERROMSG The '$file' file contains no data, indicating that the '$jobtype.$layer' job with ID '$jobID' did not finish successfully. "
+        ERROMSG+=" The '$f' file contains no data. "
         continue
     fi
-    echo "cycle $CYCLE: $SCENARIO: job ID '$jobID' output file '$file' contains '${filesNumDataSets[$file]}' data set(s). Computing statistics." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
-    if [[ -e statistics_${file}.txt ]]; then
-        rm statistics_${file}.txt
+    echo "cycle $CYCLE: $SCENARIO: job ID '$jobID' output file '$f' contains '${filesNumDataSets[$f]}' data set(s). Computing statistics." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+    if [[ -e statistics_${f}.txt ]]; then
+        rm statistics_${f}.txt
     fi
-    smokeTest.x --datafile $file --varname ${netcdfVarName["$file"]} > statistics_${file}.txt 2>> smokeTest_${file}.log
+    smokeTest.x --datafile $f --varname ${netcdfVarName["$f"]} > statistics_${f}.txt 2>> smokeTest_${f}.log
 done
 echo "cycle $CYCLE: $SCENARIO: Finished computing statistics for job ID '$jobID' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
 # perform quality checks
 echo "cycle $CYCLE: $SCENARIO: Checking quality of results for job ID '$jobID' output files." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
-for file in ${filesFoundList[@]}; do
+for f in ${filesFoundList[@]}; do
     numMissing=0
     numZero=0
-    if [[ ${filesNumDataSets[$file]} -eq 0 ]]; then
+    if [[ ${filesNumDataSets[$f]} -eq 0 ]]; then
         continue   # skip checks on files now known to be empty
     fi
     # the missing and zero quality checks are slightly different for the different file types
-    case $file in
-    "maxwvel.63.nc"|"fort.74.nc")
+    case $f in
+    *"maxwvel.63.nc"|*"fort.74.nc")
         # for wind output, check for any missing values (should not occur)
-        numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 || $5>0 { print $0 }' statistics_${file}.txt | wc -l)
+        numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 || $5>0 { print $0 }' statistics_${f}.txt | wc -l)
         # also check for max, avg, or stdev are zero (min can be zero)
-        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
+        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${f}.txt | wc -l)
         ;;
     "maxele.63.nc"|"fort.63.nc")
         # count the number of nodes that would be considered dry upon cold start based only on
         # negative topobathy value
-        numLand=$(smokeTest.x --datafile $file --count-negative-topo 2>> smokeTest_${file}.log)
+        numLand=$(smokeTest.x --datafile $f --count-negative-topo 2>> smokeTest_${f}.log)
         # water level results can contain missing (dry) values, but need to check
         # to see if any of the min, max, avg, or stdev are set to the missing value or zero
-        numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999  { print $0 }' statistics_${file}.txt | wc -l)
+        numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999  { print $0 }' statistics_${f}.txt | wc -l)
         # also check to see if the number of missing values is greater than the number of coldstart dry values
-        compareDry=$(awk -v nl=$numLand '$5>nl { print $0 }' statistics_${file}.txt | wc -l)
+        compareDry=$(awk -v nl=$numLand '$5>nl { print $0 }' statistics_${f}.txt | wc -l)
         # just a warning
         if [[ $compareDry -gt 0 ]]; then
-            echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK WARNING: There are more dry values in '$compareDry' datasets in the '$file' file than the total number of negative topobathy depths ('$numLand') in the mesh for job ID '$jobID'." 2>&1 | awk -v level=WARN -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+            echo "cycle $CYCLE: $SCENARIO: QUALITY CHECK WARNING: There are more dry values in '$compareDry' datasets in the '$f' file than the total number of negative topobathy depths ('$numLand') in the mesh for job ID '$jobID'." 2>&1 | awk -v level=WARN -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         fi
         # also check for max, avg, or stdev set to zero (ok for min to be zero, although presumably unusual)
-        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
+        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${f}.txt | wc -l)
         ;;
     "swan_HS_max.63.nc"|"swan_HS.63.nc"|"swan_TPS_max.63.nc"|"swan_TPS.63.nc"|"swan_DIR_max.63.nc"|"swan_DIR.63.nc")
         # swan results can have zero or the missing value in summary statistics if it was cold
         # started, so only a warning (not an error) will be issued (min can be zero in any case)
-        numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 { print $0 }' statistics_${file}.txt | wc -l)
+        numMissing=$(awk '$1==-99999 || $2==-99999 || $3==-99999 || $4==-99999 { print $0 }' statistics_${f}.txt | wc -l)
         # issue a warning if these are found
         if [[ $numMissing -gt 0 ]]; then
-            echo "cycle $CYCLE: $SCENARIO: There were '$numMissing' missing values in the statistics for file '$file' for job ID '$jobID'. This may be ok if SWAN is cold starting." 2>&1 | awk -v level=WARNING -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+            echo "cycle $CYCLE: $SCENARIO: There were '$numMissing' missing values in the statistics for file '$f' for job ID '$jobID'. This may be ok if SWAN is cold starting." 2>&1 | awk -v level=WARNING -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         fi
         # also check for max, avg, or stdev are zero (min can be zero)
-        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${file}.txt | wc -l)
+        numZero=$(awk '$2==0.0 || $3==0.0 || $4==0.0 { print $0 }' statistics_${f}.txt | wc -l)
         if [[ $numZero -gt 0 ]]; then
-            echo "cycle $CYCLE: $SCENARIO: There were '$numZero' zero values in the statistics for file '$file' for job ID '$jobID'. This may be ok if SWAN is cold starting." 2>&1 | awk -v level=WARNING -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+            echo "cycle $CYCLE: $SCENARIO: There were '$numZero' zero values in the statistics for file '$f' for job ID '$jobID'. This may be ok if SWAN is cold starting." 2>&1 | awk -v level=WARNING -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         fi
         # SWAN results should skip the checks and associated error messages below
         if [[ $numMissing -gt 0 || $numZero -gt 0 ]]; then
@@ -203,18 +217,18 @@ for file in ${filesFoundList[@]}; do
         ;;
     esac
     if [[ $numMissing -eq 0 ]]; then
-        echo "cycle $CYCLE: $SCENARIO: PASSED QUALITY CHECK: Missing values (-99999) OK in output file '$file' for job ID '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        echo "cycle $CYCLE: $SCENARIO: PASSED QUALITY CHECK: Missing values (-99999) OK in output file '$f' for job ID '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
     else
-        echo "cycle $CYCLE: $SCENARIO: FAILED QUALITY CHECK: Missing values (-99999) NOT OK in '$numMissing' dataset(s) of output file '$file'. Failure for job ID '$jobID'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        echo "cycle $CYCLE: $SCENARIO: FAILED QUALITY CHECK: Missing values (-99999) NOT OK in '$numMissing' dataset(s) of output file '$f'. Failure for job ID '$jobID'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         ERROVALUE=1
-        ERROMSG="$ERROMSG FAILED QUALITY CHECK: Missing values (-99999) NOT OK in output file '$file'. Failure for job ID '$jobID'. "
+        ERROMSG+=" FAILED QUALITY CHECK: Missing values (-99999) NOT OK in output file '$f'. Failure for job ID '$jobID'. "
     fi
     if [[ $numZero -eq 0 ]]; then
-        echo "cycle $CYCLE: $SCENARIO: PASSED QUALITY CHECK: No zero values in summary statistics in output file '$file' for job ID '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        echo "cycle $CYCLE: $SCENARIO: PASSED QUALITY CHECK: No zero values in summary statistics in output file '$f' for job ID '$jobID'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
     else
-        echo "cycle $CYCLE: $SCENARIO: FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for job ID '$jobID'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
+        echo "cycle $CYCLE: $SCENARIO: FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$f', which should not occur. Failure for job ID '$jobID'." 2>&1 | awk -v level=ERROR -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk
         ERROVALUE=1
-        ERROMSG="$ERROMSG FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$file', which should not occur. Failure for job ID '$jobID'."
+        ERROMSG+=" FAILED QUALITY CHECK: Found '$numZero' datasets with zero values for summary statistics of output file '$f', which should not occur. Failure for job ID '$jobID'."
     fi
 done
 if [[ $ERROVALUE -ne 0 ]]; then

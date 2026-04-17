@@ -29,6 +29,7 @@
 # v55.01-5bc04d6 | v55.00-20-g5bc04d6
 # v55.02         | v55.02
 # v56.0.2        | v56.0.2
+# v56.0.4        | v56.0.4
 #--------------------------------------------------------------------------
 use strict;
 use warnings;
@@ -932,28 +933,50 @@ if ( (split(' ',$fort64))[0] != 0 ) {
 }
 if ( $fort7172 ne "NO LINE HERE" ) {
    if ( (split(' ',$fort7172))[0] != 0 ) {
-      writeFileName("fort.71",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
-      writeFileName("fort.72",(split(' ',$fort7172))[0],$addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0));
+      my $numMetStationDatasets = $addHours/(((split(' ',$fort7172))[3]*$dt)/3600.0);
+      if ( $p->{meteorology}->{windExposure} eq "surface" ) {
+         writeFileName("fort.71",(split(' ',$fort7172))[0],$numMetStationDatasets);
+         writeFileName("fort.72",(split(' ',$fort7172))[0],$numMetStationDatasets);
+      }
+      if ( $p->{meteorology}->{windExposure} eq "10m" ) {
+         writeFileName("wind10m.fort.71",(split(' ',$fort7172))[0],$numMetStationDatasets);
+         writeFileName("wind10m.fort.72",(split(' ',$fort7172))[0],$numMetStationDatasets);
+      }
    }
 }
+my $numMetDatasets = $addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0);
 if ( $fort7374 ne "NO LINE HERE" ) {
    if ( (split(' ',$fort7374))[0] != 0 ) {
-      writeFileName("fort.73",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
-      writeFileName("fort.74",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
-      writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
-      writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
+      if ( $p->{meteorology}->{windExposure} eq "surface" ) {
+         writeFileName("fort.73",(split(' ',$fort7374))[0],$numMetDatasets);
+         writeFileName("fort.74",(split(' ',$fort7374))[0],$numMetDatasets);
+         writeFileName("maxwvel.63",(split(' ',$fort7374))[0],1);
+         writeFileName("minpr.63",(split(' ',$fort7374))[0],1);
+      }
+      if ( $p->{meteorology}->{windExposure} eq "10m" ) {
+         writeFileName("wind10m.fort.73",(split(' ',$fort7374))[0],$numMetDatasets);
+         writeFileName("wind10m.fort.74",(split(' ',$fort7374))[0],$numMetDatasets);
+         writeFileName("wind10m.maxwvel.63",(split(' ',$fort7374))[0],1);
+         writeFileName("wind10m.minpr.63",(split(' ',$fort7374))[0],1);
+      }
    }
 }
 if ( $nws ne "0" && $p->{wave_coupling}->{waves} eq "on" && $p->{wave_coupling}->{wave_model} eq "SWAN" && $p->{output}->{inventory} ne "metonly" ) {
    writeFileName("maxrs.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+   # need to subtract the wave coupling interval when calculating the
+   # number of SWAN datasets because SWAN does not start until one
+   # coupling interval from the time ADCIRC starts. So SWAN's total
+   # run time will be one coupling interval shorter than ADCIRC's
+   # total run time
+   writeFileName("swan_DIR.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_DIR_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+   writeFileName("swan_HS.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_HS_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+   writeFileName("swan_TMM10.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_TMM10_max.63",(split(' ',$fort7374))[0],1);
-   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0));
+   writeFileName("swan_TPS.63",(split(' ',$fort7374))[0],$numMetDatasets);
    writeFileName("swan_TPS_max.63",(split(' ',$fort7374))[0],1);
+   writeFileName("rads.64",(split(' ',$fort7374))[0],$numMetDatasets);
 }
 if ( $p->{output}->{inundationOutputControl}->{inundationOutput} eq "yes" ) {
    writeFileName("initiallydry.63",(split(' ',$fort63))[0],1);
@@ -1037,11 +1060,20 @@ sub writeFileName {
    $ids_descs{"swan_TMM10_max.63"} = "Maximum Mean Wave Period";
    $ids_descs{"swan_TPS.63"} = "Peak Wave Period";
    $ids_descs{"swan_TPS_max.63"} = "Maximum Peak Wave Period";
+   $ids_descs{"rads.64"} = "Radiation Stress";
    $ids_descs{"initiallydry.63"} = "Initially Dry";
    $ids_descs{"inundationtime.63"} = "Inundation Time";
    $ids_descs{"maxinundepth.63"} = "Maximum Inundation Depth";
    $ids_descs{"everdried.63"} = "Ever Dried";
    $ids_descs{"endrisinginun.63"} = "End Rising Inundation";
+
+   # wind10m layer
+   $ids_descs{"wind10m.fort.71"} = "Barometric Pressure Stations 10m";
+   $ids_descs{"wind10m.fort.72"} = "Wind Velocity Stations 10m";
+   $ids_descs{"wind10m.fort.73"} = "Barometric Pressure 10m";
+   $ids_descs{"wind10m.fort.74"} = "Wind Velocity 10m";
+   $ids_descs{"wind10m.maxwvel.63"} = "Maximum Wind Speed 10m";
+   $ids_descs{"wind10m.minpr.63"} = "Minimum Barometric Pressure 10m";
 
    # format specifier
    if ( abs($sp) == 3 || abs($sp) == 5 ) {
@@ -1053,7 +1085,9 @@ sub writeFileName {
    }
    printf RUNPROPS "$ids_descs{$id} File Name : $f\n";
    printf RUNPROPS "$ids_descs{$id} Format : $format\n";
-   printf RUNPROPS "adcirc.file.output.$f.numdatasets : $nds\n";
+   # there can only be an integer number of datasets
+   my $expectedDatasets = int($nds);
+   printf RUNPROPS "adcirc.file.output.$f.numdatasets : $expectedDatasets\n";
 }
 #
 #

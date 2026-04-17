@@ -1,19 +1,13 @@
 timestamp INFO: storm_track_gen.pl: The cold start date was not specified using the --coldstartdate argument.
 timestamp INFO: storm_track_gen.pl: The starting date/time of the BEST track data is '2017082718'.
 timestamp INFO: storm_track_gen.pl: The starting date/time of the OFCL track data is ' 2017090815'.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '1' contains 'GENESIS023' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '2' contains 'GENESIS023' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '3' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '4' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '5' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '6' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '7' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '8' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '9' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '10' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '11' contains 'INVEST' which does not indicate a closed circulation. This line will be skipped.
-timestamp INFO: storm_track_gen.pl: The cold start date will be set to 2017083012 UTC.
-timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on '2017083012' UTC.
+timestamp WARNING: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '1' contains 'GENESIS023' which does not indicate a closed circulation.
+timestamp INFO: storm_track_gen.pl: The central pressure storm name in 'input007/bal112017.dat' on line '1' is '0'. This line will be skipped.
+timestamp WARNING: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '2' contains 'GENESIS023' which does not indicate a closed circulation.
+timestamp INFO: storm_track_gen.pl: The central pressure storm name in 'input007/bal112017.dat' on line '2' is '0'. This line will be skipped.
+timestamp WARNING: storm_track_gen.pl: The storm name in 'input007/bal112017.dat' on line '3' contains 'INVEST' which does not indicate a closed circulation.
+timestamp INFO: storm_track_gen.pl: The cold start date will be set to 2017082806 UTC.
+timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on '2017082806' UTC.
 timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
 timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
 timestamp INFO: storm_track_gen.pl: The forecast period tau is    0

@@ -1,0 +1,5 @@
+!*.expected.scenario.log
+!*.expected.syslog.log
+!*.expected.tide_fac.out
+!*.expected.fort.13
+

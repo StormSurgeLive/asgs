@@ -48,21 +48,29 @@ fi
 pass=0
 fail=0
 declare -a actualFails
-numTests=8 # number of tests
-output=( fort.15 run-control.properties control_parameters.yaml fort.13 fort.26 tide_fac.out )
+numTests=12 # number of tests
+output=( fort.13 fort.26 tide_fac.out )
+layerOutput=( fort.15 run-control.properties control_parameters.yaml )
 for t in $(seq 1 $numTests) ; do
    testNumber=$(printf "%03d" $t)
-   SYSLOG="test${testNumber}.actual.syslog.log"
-   SCENARIOLOG="test${testNumber}.actual.scenario.log"
    source test${testNumber}.config.sh
    # produce yaml for control_file_gen.pl and
    # properties for run.properties
+   SYSLOG="test${testNumber}.actual.syslog.log"
+   SCENARIOLOG="test${testNumber}.actual.scenario.log"
    TEST=unit
+   touch $SYSLOG
+   touch $SCENARIOLOG
    generateDynamicInput
-   rm run.properties 2> /dev/null # this is just a duplicate of run-control.properties
-   # make the test-specific $SCRIPTDIR path generic for use
-   # in comparing results
-
+   for o in ${layerOutput[@]} ; do
+      for l in nowcast wind10m ; do
+         for f in $(ls *$l.$o 2> /dev/null); do
+            if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
+               mv $f test${testNumber}.actual.$f
+            fi
+         done
+      done
+   done
    for o in ${output[@]} ; do
       for f in $(ls *$o 2> /dev/null); do
          if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
@@ -74,7 +82,6 @@ done
 for f in $(ls *actual* 2>> /dev/null); do
    sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
    sed -i "s?$HOME?\$HOME?g" $f
-   sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
 done
 # now compare results
 for f in $(ls *actual*) ; do
