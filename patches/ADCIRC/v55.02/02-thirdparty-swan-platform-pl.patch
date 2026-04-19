@@ -1,5 +1,5 @@
 diff --git a/thirdparty/swan/platform.pl b/thirdparty/swan/platform.pl
-index a56dfcc..7d19e64 100644
+index a56dfcc..d4c6caa 100644
 --- a/thirdparty/swan/platform.pl
 +++ b/thirdparty/swan/platform.pl
 @@ -39,6 +39,12 @@ if ($os =~ /IRIX64/i) {
@@ -449,36 +449,65 @@ index a56dfcc..7d19e64 100644
      print OUTFILE "OUT = -o \n";
      print OUTFILE "EXTO = o\n";
      print OUTFILE "MAKE = make\n";
-@@ -783,11 +979,27 @@ sub getcmpl {
+@@ -782,16 +978,55 @@ close(OUTFILE);
+ sub getcmpl {
  
     my $compiler = $ENV{'FC'};
++   my $cc       = $ENV{'CC'};
++
++   my $wants_oneapi =
++         (defined $cc       && $cc eq 'icx')
++      || (defined $compiler && $compiler eq 'ifx');
++
++   if ($wants_oneapi) {
++      return 'ifx'   if `command -v mpiifx >/dev/null 2>&1 && echo yes`;
++      return 'ifort' if `command -v mpiifort >/dev/null 2>&1 && echo yes`;
++      die "Neither mpiifx nor mpiifort was found in PATH\n";
++   }
++
++   if (defined $compiler && $compiler ne '') {
++      return 'ifort' if $compiler eq 'ifort' || $compiler eq 'mpiifort';
++
++      if ($compiler eq 'gfortran') {
++         my $version_str = `gfortran -dumpversion 2>/dev/null`;
++         chomp($version_str);
++         if ($version_str =~ /^(\d+)(?:\.(\d+))?/) {
++            my ($major, $minor) = ($1, $2 // 0);
++            return "gfortran10.1"
++               if ($major > 10 || ($major == 10 && $minor >= 1));
++         }
++      }
++
++      return $compiler;
++   }
  
 -   unless ( $compiler ) {
 -      foreach ('ifort','gfortran','f90','ifc','efc','pgf90','xlf90', 'lf95','g95') {
 -         $compiler = $_;
 -         my $path  = `which $compiler`;
 -         last if $path;
-+   # Try to find an available Fortran compiler if not set
-+   unless ($compiler) {
-+      foreach my $try ('ifx','ifort','f90','ifc','efc','pgf90','xlf90','lf95','gfortran','g95') {
-+         my $path = `which $try 2>/dev/null`;
-+         if ($path) {
-+            chomp($path);
-+            $compiler = $try;
-+            last;
-+         }
-+      }
-+   }
++   return 'ifx'   if `command -v mpiifx >/dev/null 2>&1 && echo yes`;
++   return 'ifort' if `command -v mpiifort >/dev/null 2>&1 && echo yes`;
 +
-+   # Check if gfortran is being used
-+   if (defined $compiler && $compiler eq 'gfortran') {
-+      my $version_str = `gfortran -dumpversion 2>/dev/null`;
-+      chomp($version_str);
-+      if ($version_str =~ /^(\d+)(\.\d+)?/) {
-+         my ($major, $minor) = ($1, $2);
-+         if ($major > 10 || ($major == 10 && $minor >= 1)) {
-+            return "gfortran10.1";
++   foreach my $try ('ifort','f90','ifc','efc','pgf90','xlf90','lf95','gfortran','g95') {
++      my $path = `which $try 2>/dev/null`;
++      next unless $path;
++
++      if ($try eq 'gfortran') {
++         my $version_str = `gfortran -dumpversion 2>/dev/null`;
++         chomp($version_str);
++         if ($version_str =~ /^(\d+)(?:\.(\d+))?/) {
++            my ($major, $minor) = ($1, $2 // 0);
++            return "gfortran10.1"
++               if ($major > 10 || ($major == 10 && $minor >= 1));
 +         }
        }
++
++      return $try;
     }
  
+-   return $compiler;
++   return undef;
+ }
+ 
+ # =============================================================================

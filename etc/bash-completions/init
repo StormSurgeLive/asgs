@@ -1,23 +1,27 @@
 # START ASGS "init" completion
 # This file is in the public domain
 
-_asgsinit_completion()  # NOTE: _init_completion will conflict with the system!!
+_asgsinit_completion()
 {
-    local cur prev files 
+    local cur prev
     COMPREPLY=()
+
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    
-    case $prev in
-      config|keys)
-        COMPREPLY=""
-        ;;
-      *)
-        COMPREPLY=( $(compgen -W "config keys" -- $cur) )
-	;;
+
+    case "$prev" in
+        config|keys)
+            # no further completion after subcommand
+            return 0
+            ;;
+        *)
+            COMPREPLY=( $(compgen -W "config keys" -- "$cur") )
+            ;;
     esac
+
     return 0
-} &&
-  complete -F _asgsinit_completion init
+}
+
+complete -o default -F _asgsinit_completion init
 
 # END init completion

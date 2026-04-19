@@ -40,3 +40,5 @@ git/
 asgs_config*
 bin/asgs-lint
 bin/adcirclive
+*.xz
+output/*.html

@@ -304,7 +304,7 @@ if [ -z "$BUILD_PARALLEL_ADCIRC" ]; then
 fi
 if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
   BUILD_PARALLEL_ADCIRC=no
-  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}-serial-only
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-serial-only
 fi
 echo
 
@@ -343,7 +343,7 @@ if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
   # if found for SELECTED_VERSION, asks user if they want to use Singularity at all
   if [[ "$singularity_supported" == "yes" ]]; then
     default_answer=yes
-    read -p "Singularity is supported her for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
+    read -p "Singularity is supported for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
     echo
     answer="${answer:-$default_answer}"
   fi
@@ -486,7 +486,7 @@ case "${ADCIRC_SRC_TYPE}" in
       if [ "$answer" != 'no' ]; then
         [[ -z "$BATCH" ]] && echo
         git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
-	pushd $ADCIRCBASE
+        pushd $ADCIRCBASE
       fi
       [[ -z "$BATCH" ]] && echo
       # always do checkout here
@@ -505,8 +505,8 @@ case "${ADCIRC_SRC_TYPE}" in
         fi
       fi
     else
-        # still cd to this directory
-	pushd $ADCIRCBASE
+      # still cd to this directory
+      pushd $ADCIRCBASE
     fi
     ;;
   *)
@@ -565,10 +565,15 @@ function dumpJSON()
     local patchJSON="$1"
     local ADCIRC_BUILD_INFO_TMP="$2"
     local BUILD_TIME=$(date +%Y-%b-%d-T%H:%M:%S%z)
-    local MODULE_LIST=$(module list 2>&1 | grep '1)');
+    local MODULE_LIST=$(module list 2>&1 | grep '1)')
 
     local _FC_VERSION=$($FC --version | head -n 1)
     local _CC_VERSION=$($CC --version | head -n 1)
+
+    local JSON_MPIF90="$MPIF90"
+    if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
+        JSON_MPIF90=
+    fi
 
     # get SHA of ADCIRC git repo before patching
     pushd $ADCIRCBASE 2> /dev/null
@@ -587,7 +592,7 @@ function dumpJSON()
     local FLAGS_OMP=$(splitMacrosInc   FLAGS_OMP   $MACROSINC)
     local FLAGS_MPI=$(splitMacrosInc   FLAGS_MPI   $MACROSINC)
 
-    # output JSON, redact $USE:
+    # output JSON, redact $USER:
     cat <<JSON | sed "s/$USER/\$USER/g" > $ADCIRC_BUILD_INFO_TMP
   {
     "adcirc.build.swan.macros-inc"             : "$MACROSINC",
@@ -600,51 +605,52 @@ function dumpJSON()
     "adcirc.build.swan.macros-inc.FLAGS_SER"   : "$FLAGS_SER",
     "adcirc.build.swan.macros-inc.FLAGS_MPI"   : "$FLAGS_MPI",
     "adcirc.build.swan.macros-inc.FLAGS_OMP"   : "$FLAGS_OMP",
-    "time.adcirc.executables.built"      : "$BUILD_TIME",
-    "adcirc.source.commit"               : "$BASE_SHA",
-    "adcirc.source.asgs.patches.set"     : "$FLAVOR_NAME",
-    "adcirc.source.asgs.adcirc.flavor"   : "$FLAVOR_NAME",
-    "adcirc.source.asgs.patches.applied" : [
+    "time.adcirc.executables.built"            : "$BUILD_TIME",
+    "adcirc.source.commit"                     : "$BASE_SHA",
+    "adcirc.source.asgs.patches.set"           : "$FLAVOR_NAME",
+    "adcirc.source.asgs.adcirc.flavor"         : "$FLAVOR_NAME",
+    "adcirc.source.asgs.patches.applied"       : [
 $patchJSON
     ],
-    "adcirc.source.branch-base"           : "$ADCIRC_GIT_BRANCH",
-    "env.adcirc.build.ASGS_HOME"          : "$ASGS_HOME",
-    "env.adcirc.build.ASGS_MACHINE_NAME"  : "$ASGS_MACHINE_NAME",
-    "env.adcirc.build.NETCDFHOME"         : "$NETCDFHOME",
-    "env.adcirc.build.ADCIRCBASE"         : "$ADCIRCBASE",
-    "env.adcirc.build.ADCIRCDIR"          : "$ADCIRCDIR",
-    "env.adcirc.build.SWANDIR"            : "$SWANDIR",
-    "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}",
-    "env.adcirc.build.ADCIRC_COMPILER"    : "${ADCIRC_COMPILER:-0}",
-    "env.adcirc.build.ADCIRC_GIT_BRANCH"  : "${ADCIRC_GIT_BRANCH:-0}",
-    "env.adcirc.build.ADCIRC_GIT_URL"     : "${ADCIRC_GIT_URL:-0}",
-    "env.adcirc.build.ADCIRC_GIT_REPO"    : "${ADCIRC_GIT_REPO:-0}",
-    "env.adcirc.build.ADCIRC_SRC_TYPE"    : "${ADCIRC_SRC_TYPE:-0}",
-    "env.adcirc.build.ADCIRC_BASE_URL"    : "${ADCIRC_BASE_URL:-0}",
-    "env.adcirc.build.ADCIRC_SRC_FILE"    : "${ADCIRC_SRC_FILE:-0}",
-    "env.adcirc.build.ADCIRC_EXTRACT_DIR" : "${ADCIRC_EXTRACT_DIR:-0}",
-    "env.adcirc.build.ADCIRC_ARCHIVE_URL" : "${ADCIRC_ARCHIVE_URL:-0}",
-    "env.adcirc.build.ASGS_MAKEJOBS"      : "$ASGS_MAKEJOBS",
-    "env.adcirc.build.ADCIRC_MAKE_CMD"    : "$ADCIRC_MAKE_CMD",
+    "adcirc.source.branch-base"                : "${ADCIRC_GIT_BRANCH:-0}",
+    "env.adcirc.build.ASGS_HOME"               : "$ASGS_HOME",
+    "env.adcirc.build.ASGS_MACHINE_NAME"       : "$ASGS_MACHINE_NAME",
+    "env.adcirc.build.NETCDFHOME"              : "$NETCDFHOME",
+    "env.adcirc.build.ADCIRCBASE"              : "$ADCIRCBASE",
+    "env.adcirc.build.ADCIRCDIR"               : "$ADCIRCDIR",
+    "env.adcirc.build.SWANDIR"                 : "$SWANDIR",
+    "env.adcirc.build.CUSTOM_SRC"              : "${CUSTOM_SRC:-0}",
+    "env.adcirc.build.ADCIRC_COMPILER"         : "${ADCIRC_COMPILER:-0}",
+    "env.adcirc.build.ADCIRC_GIT_BRANCH"       : "${ADCIRC_GIT_BRANCH:-0}",
+    "env.adcirc.build.ADCIRC_GIT_URL"          : "${ADCIRC_GIT_URL:-0}",
+    "env.adcirc.build.ADCIRC_GIT_REPO"         : "${ADCIRC_GIT_REPO:-0}",
+    "env.adcirc.build.ADCIRC_SRC_TYPE"         : "${ADCIRC_SRC_TYPE:-0}",
+    "env.adcirc.build.ADCIRC_BASE_URL"         : "${ADCIRC_BASE_URL:-0}",
+    "env.adcirc.build.ADCIRC_SRC_FILE"         : "${ADCIRC_SRC_FILE:-0}",
+    "env.adcirc.build.ADCIRC_EXTRACT_DIR"      : "${ADCIRC_EXTRACT_DIR:-0}",
+    "env.adcirc.build.ADCIRC_ARCHIVE_URL"      : "${ADCIRC_ARCHIVE_URL:-0}",
+    "env.adcirc.build.ASGS_MAKEJOBS"           : "$ASGS_MAKEJOBS",
+    "env.adcirc.build.ADCIRC_MAKE_CMD"         : "$ADCIRC_MAKE_CMD",
     "env.adcirc.build.SWAN_UTIL_BINS_MAKE_CMD" : "$SWAN_UTIL_BINS_MAKE_CMD",
     "env.adcirc.build.ADCSWAN_MAKE_CMD"        : "$ADCSWAN_MAKE_CMD",
     "env.adcirc.build.ADCIRC_PROFILE_NAME"     : "$ADCIRC_PROFILE_NAME",
-    "env.adcirc.build.ADCIRC_BINS"        : "$ADCIRC_BINS",
-    "env.adcirc.build.ADCSWAN_BINS"       : "$ADCSWAN_BINS",
-    "env.adcirc.build.SWAN_UTIL_BINS"     : "$SWAN_UTIL_BINS",
-    "env.adcirc.build.PATH"               : "$PATH",
-    "env.adcirc.build.LD_LIBRARY_PATH"    : "$LD_LIBRARY_PATH",
-    "env.adcirc.build.LD_INCLUDE_PATH"    : "$LD_INCLUDE_PATH",
-    "adcirc.build.built_parallel_adcirc"  : "$BUILD_PARALLEL_ADCIRC",
-    "adcirc.build.fortran.mpif90"         : "$MPIF90",
-    "adcirc.build.fortran.compiler"       : "$_FC",
-    "adcirc.build.c.compiler"             : "$_CC",
-    "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
-    "adcirc.build.modules.loaded"         : "$MODULE_LIST",
-    "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
-    "adcirc.build.debug"                  : "$DEBUG",
-    "adcirc.singularity.sif"              : "$ADCIRC_SINGULARITY_SIF",
-    "asgs.container.cmd"                  : "$ASGS_SINGULARITY_CMD"
+    "env.adcirc.build.ADCIRC_BINS"             : "$ADCIRC_BINS",
+    "env.adcirc.build.ADCSWAN_BINS"            : "$ADCSWAN_BINS",
+    "env.adcirc.build.SWAN_UTIL_BINS"          : "$SWAN_UTIL_BINS",
+    "env.adcirc.build.PATH"                    : "$PATH",
+    "env.adcirc.build.LD_LIBRARY_PATH"         : "$LD_LIBRARY_PATH",
+    "env.adcirc.build.LD_INCLUDE_PATH"         : "$LD_INCLUDE_PATH",
+    "adcirc.build.built_parallel_adcirc"       : "$BUILD_PARALLEL_ADCIRC",
+    "adcirc.build.fortran.mpif90"              : "$JSON_MPIF90",
+    "adcirc.build.fortran.compiler"            : "$FC",
+    "adcirc.build.c.compiler"                  : "$CC",
+    "adcirc.build.c.compiler.version"          : "$_CC_VERSION",
+    "adcirc.build.modules.loaded"              : "$MODULE_LIST",
+    "adcirc.build.fortran.compiler.version"    : "$_FC_VERSION",
+    "adcirc.build.debug"                       : "$DEBUG",
+    "adcirc.singularity.sif"                   : "${ADCIRC_SINGULARITY_SIF:-}",
+    "adcirc.singularity.manifest"              : "${ADCIRC_SINGULARITY_MANIFEST:-}",
+    "asgs.container.cmd"                       : "${ASGS_SINGULARITY_CMD:-}"
   }
 JSON
 }
@@ -724,7 +730,7 @@ patch_files() {
         echo $OUT
         echo "(fatal) error applying patch: $diff"
         echo Exiting.
-       exit $EXIT
+        exit $EXIT
       fi
       _app_date=$(date "+%D %T %Z")
       echo "# $_app_date $diff" >> $BUILDSCRIPT
