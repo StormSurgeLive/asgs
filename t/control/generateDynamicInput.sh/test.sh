@@ -48,7 +48,7 @@ fi
 pass=0
 fail=0
 declare -a actualFails
-numTests=12 # number of tests
+numTests=13 # number of tests
 output=( fort.13 fort.26 tide_fac.out )
 layerOutput=( fort.15 run-control.properties control_parameters.yaml )
 for t in $(seq 1 $numTests) ; do
@@ -63,7 +63,7 @@ for t in $(seq 1 $numTests) ; do
    touch $SCENARIOLOG
    generateDynamicInput
    for o in ${layerOutput[@]} ; do
-      for l in nowcast wind10m ; do
+      for l in hindcast nowcast wind10m ; do
          for f in $(ls *$l.$o 2> /dev/null); do
             if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
                mv $f test${testNumber}.actual.$f

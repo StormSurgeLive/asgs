@@ -1,0 +1,16 @@
+[timestamp] INFO: hindcast: asgs_main.sh>generateDynamicInput.sh: Generating input files (usually includes tide_fac.out, fort.13, and fort.15).
+[timestamp] INFO: Tide nodal factors and equilibrium arguments were written to the file '$SCRIPTDIR/t/control/generateDynamicInput.sh/tide_fac.out'.
+[timestamp] INFO: hindcast: asgs_main.sh>generateDynamicInput.sh: Generating ADCIRC Control File (hindcast.fort.15) for hindcast with parameters from the file 'hindcast.control_parameters.yaml'.
+timestamp DEBUG: control_file_gen.pl: This is a model initialization run.
+timestamp DEBUG: control_file_gen.pl: Finished setting model initialization parameters.
+timestamp INFO: control_file_gen.pl: Parsing tidal node factors and equilibrium arguments.
+timestamp INFO: control_file_gen.pl: There are 39 elevation stations in the file '$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt'.
+timestamp INFO: control_file_gen.pl: There are 39 velocity stations in the file '$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_stations.txt'.
+timestamp INFO: control_file_gen.pl: NWS is zero; meteorological stations will not be written to the fort.15 file.
+timestamp INFO: control_file_gen.pl: Filling in ADCIRC control template (fort.15).
+timestamp INFO: control_file_gen.pl: Reading nodal attributes (fort.13) template '$SCRIPTDIR/input/meshes/EGOMv20b/EGOM-RT_v20b_asgs_chk_header.13.template' and writing nodal attributes file 'fort.13'.
+timestamp INFO: control_file_gen.pl: There are '7' nodal attributes in the fort.13 file.
+timestamp INFO: control_file_gen.pl: Wrote '31' lines to the nodal attributes file 'fort.13'.
+timestamp INFO: control_file_gen.pl: Opening run-control.properties file for writing.
+timestamp INFO: control_file_gen.pl: Writing file names and formats to run-control.properties file.
+timestamp INFO: control_file_gen.pl: Wrote run-control.properties file 'run-control.properties'.

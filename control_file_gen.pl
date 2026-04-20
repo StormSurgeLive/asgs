@@ -944,8 +944,9 @@ if ( $fort7172 ne "NO LINE HERE" ) {
       }
    }
 }
-my $numMetDatasets = $addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0);
+my $numMetDatasets;
 if ( $fort7374 ne "NO LINE HERE" ) {
+   $numMetDatasets = $addHours/(((split(' ',$fort7374))[3]*$dt)/3600.0);
    if ( (split(' ',$fort7374))[0] != 0 ) {
       if ( $p->{meteorology}->{windExposure} eq "surface" ) {
          writeFileName("fort.73",(split(' ',$fort7374))[0],$numMetDatasets);
