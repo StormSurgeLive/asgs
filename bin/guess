@@ -48,7 +48,7 @@ if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/
   BL=$(tput setaf 4)
   MG=$(tput setaf 5)
   CY=$(tput setaf 6)
-  WH=$(tput setaf 6)
+  WH=$(tput setaf 7)
    R=$(tput sgr0)
    B=$(tput bold)
 else

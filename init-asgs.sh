@@ -22,7 +22,7 @@
 #
 
 # set terminal color codes
-if [ -t 1 ] && [ -n "${TERM:-}" ] && command -v tput >/dev/null 2>&1; then
+if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
   BK=$(tput setaf 0)
   RD=$(tput setaf 1)
   GR=$(tput setaf 2)
@@ -30,7 +30,7 @@ if [ -t 1 ] && [ -n "${TERM:-}" ] && command -v tput >/dev/null 2>&1; then
   BL=$(tput setaf 4)
   MG=$(tput setaf 5)
   CY=$(tput setaf 6)
-  WH=$(tput setaf 6)
+  WH=$(tput setaf 7)
    R=$(tput sgr0)
    B=$(tput bold)
 else
