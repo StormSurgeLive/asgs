@@ -1,1 +1,1 @@
-(deprecating) upstream release version v56.0.2
+upstream release version v56.0.2

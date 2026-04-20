@@ -29,20 +29,35 @@ if [ $2 == "clean" ]; then
   exit
 fi
 
-if [ $COMPILER == "intel" ]; then
+# make this consistent with the way we patch ADCIRC's work/cmplrflags.mk
+if [ "$COMPILER" = "intel" ]; then
+  echo "Compiling HDF5 with Intel classic suite"
   export CC=icc
   export FC=ifort
   export CXX=icpc
-fi
-if [ $COMPILER == "intel-oneapi" ]; then
-  export CC=icx
-  export FC=ifx
-  export CXX=icx
-fi
-if [ $COMPILER == "gfortran" ]; then
+
+elif [ "$COMPILER" = "intel-oneapi" ]; then
+  if command -v mpiifx >/dev/null 2>&1; then
+    echo "Compiling HDF5 with Intel oneAPI suite"
+    export CC=icx
+    export FC=ifx
+    export CXX=icpx
+  else
+    echo "mpiifx not found; falling back to Intel classic Fortran toolchain"
+    export CC=icc
+    export FC=ifort
+    export CXX=icpc
+  fi
+
+elif [ "$COMPILER" = "gfortran" ]; then
+  echo "Compiling HDF5 with GCC suite"
   export CC=gcc
   export FC=gfortran
   export CXX=g++
+
+else
+  echo "ERROR: Unknown COMPILER='$COMPILER'"
+  exit 1
 fi
 
 mkdir -p $_ASGS_TMP 2> /dev/null
