@@ -761,29 +761,29 @@ sub get_steps {
             # don't build if MPI tools are already available in the build environment
             skip_if => sub {
                 my ($op, $opts_ref) = @_;
-            
+
                 my $ok  = 0;
                 my $bin = qq{$asgs_install_path/$asgs_compiler/bin};
-            
+
                 my $have_in_path = sub {
                     my ($exe) = @_;
                     return system("which $exe >/dev/null 2>&1") == 0 ? 1 : 0;
                 };
-            
+
                 my $path_of = sub {
                     my ($exe) = @_;
                     my $path = qx{which $exe 2>/dev/null};
                     chomp $path;
                     return $path;
                 };
-            
+
                 if ($asgs_compiler =~ m/intel\-oneapi/) {
                     # Intel oneAPI (accept either mpiifx or mpiifort)
                     my $have_fortran = $have_in_path->('mpiifx') || $have_in_path->('mpiifort');
                     my $have_c       = $have_in_path->('mpiicc');
                     my $have_exec    = $have_in_path->('mpiexec');
                     my $have_run     = $have_in_path->('mpirun');
-            
+
                     $ok = $have_fortran && $have_c && $have_exec && $have_run;
                 }
                 elsif ($asgs_compiler =~ m/intel/) {
@@ -792,13 +792,13 @@ sub get_steps {
                     my $have_c       = $have_in_path->('mpiicc');
                     my $have_exec    = $have_in_path->('mpiexec');
                     my $have_run     = $have_in_path->('mpirun');
-            
+
                     $ok = $have_fortran && $have_c && $have_exec && $have_run;
                 }
                 elsif ($asgs_compiler =~ m/^gfortran$/) {
                     # Accept OpenMPI already in PATH, but reject Intel MPI masquerading as mpif90
                     my $mpif90_path = $path_of->('mpif90');
-            
+
                     if ($mpif90_path && $mpif90_path !~ m{/intel(?:/|$)}i && $mpif90_path !~ m{oneapi}i) {
                         $ok = 1;
                     } else {
@@ -813,7 +813,7 @@ sub get_steps {
                         $ok &&= (-x qq{$bin/$exe}) ? 1 : 0;
                     }
                 }
-            
+
                 return $ok;
             },
             precondition_check  => sub { 1 },
