@@ -27,7 +27,7 @@
 # running external scripts.
 
 # set terminal color codes
-if [ -t 1 ] && [ -n "${TERM:-}" ] && command -v tput >/dev/null 2>&1; then
+if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
   BK=$(tput setaf 0)
   RD=$(tput setaf 1)
   GR=$(tput setaf 2)
@@ -35,9 +35,13 @@ if [ -t 1 ] && [ -n "${TERM:-}" ] && command -v tput >/dev/null 2>&1; then
   BL=$(tput setaf 4)
   MG=$(tput setaf 5)
   CY=$(tput setaf 6)
-  WH=$(tput setaf 6)
+  WH=$(tput setaf 7)
    R=$(tput sgr0)
    B=$(tput bold)
+
+  : "${_asgsh_splash:=0}"
+  : "${_asgsh_do_startup_checks:=1}"
+  : "${skip_platform_profiles:=0}"
 else
   BK=
   RD=
@@ -50,10 +54,6 @@ else
    R=
    B=
 fi
-
-: "${_asgsh_splash:=0}"
-: "${_asgsh_do_startup_checks:=1}"
-: "${skip_platform_profiles:=0}"
 
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
