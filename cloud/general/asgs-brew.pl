@@ -421,61 +421,70 @@ options=\$(getopt -o "A:cdhl:p:rsvx" -- "\$@")
 eval set -- "\$options"
 while true
   do
-    case \$1 in
-      -A) # capture what's in quotes following -A
-        shift
-        export _asgsh_flag_do_cmd="\$1"
+    case "\$1" in
+      -A) # capture full quoted argument following -A
+        export _asgsh_flag_do_cmd="\$2"
         export _asgsh_flag_do=run_any
-        unset  _asgsh_splash
+        unset _asgsh_splash
+        shift 2
         ;;
       -c)
-          export _asgsh_do_startup_checks=1
+        export _asgsh_do_startup_checks=1
+        shift
         ;;
-      -d) set -x
-          export _asgs_debug_mode=1
+      -d)
+        set -x
+        export _asgs_debug_mode=1
+        shift
         ;;
       -h)
         echo "\nInteractive ASGS Shell Environment\n\nUsage:\n\tasgsh [-h] | [-d] [-l adcirc|profiles] [-p PROFILE-NAME] [-r] [-v] [-x]\n"
         exit 1
         ;;
       -l)
-        shift
         export _asgsh_flag_do=run_list
-        export _asgsh_flag_do_args=\$1
+        export _asgsh_flag_do_args="\$2"
         unset _asgsh_splash
+        shift 2
         ;;
       -p)
-        shift
-        export profile=\$1
+        export profile="\$2"
+        shift 2
         ;;
       -r)
         export _asgsh_flag_do=run_profile
+        shift
         ;;
       -s)
         export _asgsh_flag_do=run_tailf_syslog
+        shift
         ;;
       -v)
         export _asgsh_flag_do=run_verify_and_quit
+        shift
         ;;
       -x)
         export skip_platform_profiles=1
+        shift
         ;;
       --)
         shift
         break
         ;;
+      *)
+        break
+        ;;
     esac
-    shift
 done
 
 if [ -n "\$_asgsh_splash" ]; then
 clear
 echo
-echo '                █████  ███████  ██████  ███████' 
-echo '               ██   ██ ██      ██       ██     ' 
-echo '               ███████ ███████ ██   ███ ███████'
-echo '               ██   ██      ██ ██    ██      ██'
-echo '               ██   ██ ███████  ██████  ███████'
+echo '                █████  ███████  ██████  ███████' 
+echo '               ██   ██ ██      ██       ██     ' 
+echo '               ███████ ███████ ██   ███ ███████'
+echo '               ██   ██      ██ ██    ██      ██'
+echo '               ██   ██ ███████  ██████  ███████'
 echo
 echo ' :.....::.....::.....::.....:::..::.....::.....:.....:'
 echo '   ::::::::::::The ASGS Shell Environment:::::::::::::::'
@@ -495,7 +504,7 @@ export HDF5_USE_FILE_LOCKING=FALSE
 
 # denotes which environmental variables are saved with a profile - includes variables that
 # are meaningful to ASGS Shell, but not set explicitly via asgs-brew.pl
-export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT"
+export _ASGS_EXPORTED_VARS="SCRIPTDIR $exported_list _ASGS_TMP WORK SCRATCH EDITOR PROPERTIESFILE INSTANCENAME RUNDIR LASTSUBDIR SYSLOG ASGS_CONFIG ADCIRC_MAKE_CMD SWAN_UTIL_BINS_MAKE_CMD ADCSWAN_MAKE_CMD ADCIRC_BINS SWAN_UTIL_BINS ADCSWAN_BINS HINDCASTWALLTIME ADCPREPWALLTIME NOWCASTWALLTIME FORECASTWALLTIME QUEUENAME SERQUEUE ACCOUNT PPN INTENDEDAUDIENCE USERIVERFILEONLY RIVERSITE RIVERDIR RIVERUSER RIVERDATAPROTOCOL FTPSITE ADCIRC_BUILD_INFO HPCENV HPCENVSHORT ASGS_SINGULARITY_CMD ADCIRC_SINGULARITY_SIF"
 $env_summary
 
 # export opts for processing in $rcfile
@@ -706,34 +715,34 @@ sub get_steps {
 
             # augment existing %ENV (cumulative)
             export_ENV => {
-                PATH                => { value  => $_get_all_paths->(), how  => q{prepend} },                                 # prefer ASGS binaries and tools; full list managed above
-                WORK                => { value  => $ENV{WORK}    // $asgs_home // q{}, how  => q{replace} },                  # standardize across all platforms
-                SCRATCH             => { value  => $ENV{SCRATCH} // $ENV{WORK} // $asgs_home // q{}, how  => q{replace} },    # standardize across all platforms
-                LIBRARY_PATH        => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by linkers
-                LD_LIBRARY_PATH     => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by linkers
-                LD_RUN_PATH         => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by binaries
-                LD_INCLUDE_PATH     => { value  => qq{$asgs_install_path/include},             how  => q{prepend} },          # for use by compilers
-                SCRIPTDIR           => { value  => qq{$scriptdir},                             how  => q{replace} },          # base ASGS dir, used by asgs_main.sh
-                PERL5LIB            => { value  => qq{$scriptdir/PERL:$scriptdir/git/ourPerl}, how  => q{append}  },          # place for distributed Perl libraries
-                ADCIRC_META_DIR     => { value  => qq{$asgs_home/.adcirc-meta},                how  => q{replace} },          # where to track ADCIRC builds (always)
-                ADCIRC_GIT_BRANCH   => { value  => qq{$adcirc_git_branch}, how  => q{replace} },
-                ADCIRC_GIT_URL      => { value  => qq{$adcirc_git_url},    how  => q{replace} },
-                ADCIRC_GIT_REPO     => { value  => qq{$adcirc_git_repo},   how  => q{replace} },
-                ADCIRC_COMPILER     => { value  => qq{$asgs_compiler},     how  => q{replace} },
-                ADCIRCBASE          => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how  => q{replace} },
-                ADCIRCDIR           => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how  => q{replace} },
-                SWANDIR             => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how  => q{replace} },
-                ADCIRC_PROFILE_NAME => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how  => q{replace} },
-                ASGS_META_DIR       => { value  => qq{$asgs_home/profiles},                    how  => q{replace} },          # where to track ASGS profiles (always)
-                ASGS_BREW_FLAGS     => { value  => qq{$brewflags},                             how  => q{replace} },          # make brew flags available for later use
-                ASGS_HOME           => { value  => qq{$asgs_home},                             how  => q{replace} },          # used in preference of $HOME in most cases
-                ASGS_TMPDIR         => { value  => qq{$asgs_tmpdir},                           how  => q{replace} },          # used in preference of $TMPDIR in most cases
-                ASGS_MACHINE_NAME   => { value  => qq{$asgs_machine_name},                     how  => q{replace} },          # machine referred to as in platforms.sh & cmplrflags.mk
-                ASGS_COMPILER       => { value  => qq{$asgs_compiler},                         how  => q{replace} },          # compiler family designated during asgs-brew.pl build
-                ASGS_INSTALL_PATH   => { value  => qq{$asgs_install_path},                     how  => q{replace} },          # where asgs-brew.pl installs supporting bins & libs
-                ASGS_MAKEJOBS       => { value  => qq{$makejobs},                              how  => q{replace} },          # passed to make commands where Makefile supports
-                ASGS_MESH_DEFAULTS  => { value  => qq{$scriptdir/config/mesh_defaults.sh},     how  => q{replace} },          # list of supported meshes
-                ASGS_PLATFORMS      => { value  => qq{$scriptdir/platforms.sh},                how  => q{replace} },          # list of supported platforms
+                PATH                   => { value  => $_get_all_paths->(), how  => q{prepend} },                                 # prefer ASGS binaries and tools; full list managed above
+                WORK                   => { value  => $ENV{WORK}    // $asgs_home // q{}, how  => q{replace} },                  # standardize across all platforms
+                SCRATCH                => { value  => $ENV{SCRATCH} // $ENV{WORK} // $asgs_home // q{}, how  => q{replace} },    # standardize across all platforms
+                LIBRARY_PATH           => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by linkers
+                LD_LIBRARY_PATH        => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by linkers
+                LD_RUN_PATH            => { value  => qq{$asgs_install_path/lib},                 how  => q{prepend} },          # for use by binaries
+                LD_INCLUDE_PATH        => { value  => qq{$asgs_install_path/include},             how  => q{prepend} },          # for use by compilers
+                SCRIPTDIR              => { value  => qq{$scriptdir},                             how  => q{replace} },          # base ASGS dir, used by asgs_main.sh
+                PERL5LIB               => { value  => qq{$scriptdir/PERL:$scriptdir/git/ourPerl}, how  => q{append}  },          # place for distributed Perl libraries
+                ADCIRC_META_DIR        => { value  => qq{$asgs_home/.adcirc-meta},                how  => q{replace} },          # where to track ADCIRC builds (always)
+                ADCIRC_GIT_BRANCH      => { value  => qq{$adcirc_git_branch}, how  => q{replace} },
+                ADCIRC_GIT_URL         => { value  => qq{$adcirc_git_url},    how  => q{replace} },
+                ADCIRC_GIT_REPO        => { value  => qq{$adcirc_git_repo},   how  => q{replace} },
+                ADCIRC_COMPILER        => { value  => qq{$asgs_compiler},     how  => q{replace} },
+                ADCIRCBASE             => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch},      how  => q{replace} },
+                ADCIRCDIR              => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/work}, how  => q{replace} },
+                SWANDIR                => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcircdir-$adcirc_git_branch/swan}, how  => q{replace} },
+                ADCIRC_PROFILE_NAME    => { value  => ( not $opts_ref->{'build-adcirc'} ) ? undef : qq{$adcirc_git_branch-$asgs_compiler},  how  => q{replace} },
+                ASGS_META_DIR          => { value  => qq{$asgs_home/profiles},                    how  => q{replace} },          # where to track ASGS profiles (always)
+                ASGS_BREW_FLAGS        => { value  => qq{$brewflags},                             how  => q{replace} },          # make brew flags available for later use
+                ASGS_HOME              => { value  => qq{$asgs_home},                             how  => q{replace} },          # used in preference of $HOME in most cases
+                ASGS_TMPDIR            => { value  => qq{$asgs_tmpdir},                           how  => q{replace} },          # used in preference of $TMPDIR in most cases
+                ASGS_MACHINE_NAME      => { value  => qq{$asgs_machine_name},                     how  => q{replace} },          # machine referred to as in platforms.sh & cmplrflags.mk
+                ASGS_COMPILER          => { value  => qq{$asgs_compiler},                         how  => q{replace} },          # compiler family designated during asgs-brew.pl build
+                ASGS_INSTALL_PATH      => { value  => qq{$asgs_install_path},                     how  => q{replace} },          # where asgs-brew.pl installs supporting bins & libs
+                ASGS_MAKEJOBS          => { value  => qq{$makejobs},                              how  => q{replace} },          # passed to make commands where Makefile supports
+                ASGS_MESH_DEFAULTS     => { value  => qq{$scriptdir/config/mesh_defaults.sh},     how  => q{replace} },          # list of supported meshes
+                ASGS_PLATFORMS         => { value  => qq{$scriptdir/platforms.sh},                how  => q{replace} },          # list of supported platforms
             },
         },
         {
@@ -749,14 +758,76 @@ sub get_steps {
                 PATH => { value => qq{$asgs_install_path/$asgs_compiler/bin}, how => q{prepend} },
             },
 
-            # don't build if mpif90, etc are already available in the build environment
-            skip_if             => sub { return not system(qw/which mpif90/) },
+            # don't build if MPI tools are already available in the build environment
+            skip_if => sub {
+                my ($op, $opts_ref) = @_;
+
+                my $ok  = 0;
+                my $bin = qq{$asgs_install_path/$asgs_compiler/bin};
+
+                my $have_in_path = sub {
+                    my ($exe) = @_;
+                    return system("which $exe >/dev/null 2>&1") == 0 ? 1 : 0;
+                };
+
+                my $path_of = sub {
+                    my ($exe) = @_;
+                    my $path = qx{which $exe 2>/dev/null};
+                    chomp $path;
+                    return $path;
+                };
+
+                if ($asgs_compiler =~ m/intel\-oneapi/) {
+                    # Intel oneAPI (accept either mpiifx or mpiifort)
+                    my $have_fortran = $have_in_path->('mpiifx') || $have_in_path->('mpiifort');
+                    my $have_c       = $have_in_path->('mpiicc');
+                    my $have_exec    = $have_in_path->('mpiexec');
+                    my $have_run     = $have_in_path->('mpirun');
+
+                    $ok = $have_fortran && $have_c && $have_exec && $have_run;
+                }
+                elsif ($asgs_compiler =~ m/intel/) {
+                    # Intel classic
+                    my $have_fortran = $have_in_path->('mpiifort');
+                    my $have_c       = $have_in_path->('mpiicc');
+                    my $have_exec    = $have_in_path->('mpiexec');
+                    my $have_run     = $have_in_path->('mpirun');
+
+                    $ok = $have_fortran && $have_c && $have_exec && $have_run;
+                }
+                elsif ($asgs_compiler =~ m/^gfortran$/) {
+                    # Accept OpenMPI already in PATH, but reject Intel MPI masquerading as mpif90
+                    my $mpif90_path = $path_of->('mpif90');
+
+                    if ($mpif90_path && $mpif90_path !~ m{/intel(?:/|$)}i && $mpif90_path !~ m{oneapi}i) {
+                        $ok = 1;
+                    } else {
+                        $ok = 0;
+                    }
+                }
+                else {
+                    # finds OpenMPI locally after already build
+                    my @mpi_binaries = qw/mpif90 mpiexec mpirun/;
+                    $ok = 1;
+                    for my $exe (@mpi_binaries) {
+                        $ok &&= (-x qq{$bin/$exe}) ? 1 : 0;
+                    }
+                }
+
+                return $ok;
+            },
             precondition_check  => sub { 1 },
             postcondition_check => sub {
                 my ( $op, $opts_ref ) = @_;
                 my $bin          = qq{$asgs_install_path/$asgs_compiler/bin};
                 my $ok           = 1;
                 my @mpi_binaries = (qw/mpif90 mpiexec mpirun/);
+		if ($asgs_compiler =~ m/intel\-oneapi/) {
+                  @mpi_binaries = (qw/mpiifort mpiexec mpirun/);
+		}
+		elsif ($asgs_compiler =~ m/intel$/) {
+                  @mpi_binaries = (qw/mpiifort mpiexec mpirun/);
+		}
                 map { $ok = -e qq[$bin/$_] && $ok } @mpi_binaries;
                 return $ok;
             },
@@ -914,16 +985,16 @@ sub get_steps {
             clean       => qq{bash ./cloud/general/init-perlbrew.sh $asgs_install_path/perl5 clean},
 
             # augment existing %ENV (cumulative) - this assumes that perlbrew is installed in $HOME and we're
-            # using perl-5.40.1
+            # using perl-5.42.0
             export_ENV => {
-                PERLBREW_PERL    => { value => q{perl-5.40.1},                                                                  how => q{replace} },
-                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.40.1/bin}, how => q{prepend} },
+                PERLBREW_PERL    => { value => q{perl-5.42.0},                                                                  how => q{replace} },
+                PATH             => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.42.0/bin}, how => q{prepend} },
                 PERLBREW_HOME    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
                 PERL_CPANM_HOME  => { value => qq{$asgs_install_path/perl5/.cpanm},                                             how => q{replace} },
-                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.40.1/bin}, how => q{prepend} },
-                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.40.1/man},                     how => q{prepend} },
+                PERLBREW_PATH    => { value => qq{$asgs_install_path/perl5/bin:$asgs_install_path/perl5/perls/perl-5.42.0/bin}, how => q{prepend} },
+                PERLBREW_MANPATH => { value => qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.42.0/man},                     how => q{prepend} },
                 PERLBREW_ROOT    => { value => qq{$asgs_install_path/perl5/perlbrew},                                           how => q{replace} },
-                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.40.1/lib/site_perl/5.40.1/},            how => q{prepend} },
+                PERL5LIB         => { value => qq{$asgs_install_path/perl5/perls/perl-5.42.0/lib/site_perl/5.42.0/},            how => q{prepend} },
             },
             skip_if => sub {
                 my ( $op, $opts_ref ) = @_;
@@ -941,7 +1012,7 @@ sub get_steps {
             pwd                 => qq{$scriptdir},
             command             => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5},
             clean               => qq{bash ./cloud/general/init-perl-modules.sh $asgs_install_path/perl5 clean},
-            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.40.1/bin/perl} ) ? 1 : 0 },
+            precondition_check  => sub { return ( -e qq{$asgs_install_path/perl5/perlbrew/perls/perl-5.42.0/bin/perl} ) ? 1 : 0 },
             postcondition_check => sub {
                 local $?;
                 system(qq{prove ./cloud/general/t/verify-perl-modules.t 2>&1});
@@ -1045,6 +1116,31 @@ sub get_steps {
             postcondition_check => sub {
                 local $?;
                 system(qq{$asgs_install_path/bin/pigz --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
+            key         => q{jq},
+            name        => q{Step for installing jq},
+            description => q{Install jq for processing json files},
+            pwd         => qq{$scriptdir},
+            command     => qq{bash ./cloud/general/init-jq.sh $asgs_install_path},
+            clean       => qq{bash ./cloud/general/init-jq.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/jq --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/jq --version > /dev/null 2>&1});
 
                 # look for zero exit code on success
                 my $exit_code = ( $? >> 8 );

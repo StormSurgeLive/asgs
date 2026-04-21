@@ -296,15 +296,76 @@ fi
 
 _BUILD_PARALLEL_ADCIRC=yes
 if [[ -z "$BATCH" ]]; then
-   echo
-   read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC
+  echo
+  read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC
 fi
 if [ -z "$BUILD_PARALLEL_ADCIRC" ]; then
   BUILD_PARALLEL_ADCIRC=$_BUILD_PARALLEL_ADCIRC
 fi
 if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
   BUILD_PARALLEL_ADCIRC=no
-  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}-serial-only
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-serial-only
+fi
+echo
+
+#
+# S I N G U L A R I T Y  S U P P O R T
+#
+# Note:
+#   ASGS_SINGULARITY_CMD must be exported and set for 
+#   this given platform in order to get the Singularity
+#   dialog.
+#
+
+if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
+  # finds .sif associated with SELECTED_VERSION, if listed in ADCIRC_SINGULARITY_MANIFEST file
+  if [[ -e "$ADCIRC_SINGULARITY_MANIFEST" && -z "${BATCH}" ]]; then
+    # attempt to find mapping of ADCIRC version to .sif
+    # in base directory of ADCIRC_SINGULARITY_MANIFEST
+    OLDIFS=$IFS
+    IFS=$'\n'
+    default_sif="<enter> if you don't know"
+    for line in $(cat ${ADCIRC_SINGULARITY_MANIFEST} | grep -v '#'); do
+      adcirc_version=$(echo $line | awk '{print $1}')
+      adcirc_sif=$(echo $line | awk '{print $2}')
+  
+      ## *note* match on adcirc version selected, if found offer
+      #  that .sif as the default in the following dialog
+      if [[ "$SELECTED_VERSION" == "$adcirc_version" ]]; then
+        default_sif=$adcirc_sif
+        singularity_supported=yes
+        break
+      fi
+    done
+    IFS=$OLDIFS
+  fi
+
+  # if found for SELECTED_VERSION, asks user if they want to use Singularity at all
+  if [[ "$singularity_supported" == "yes" ]]; then
+    default_answer=yes
+    read -p "Singularity is supported for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
+    echo
+    answer="${answer:-$default_answer}"
+  fi
+  
+  # if they do want to use Singularity, it asks which .sif and defaults to the one
+  #   found in ADCIRC_SINGULARITY_MANIFEST
+  if [[ "$answer" == "yes" ]]; then
+    read -p "Enter full path to the .sif [$default_sif]? " _ADCIRC_SINGULARITY_SIF
+    echo
+
+    _ADCIRC_SINGULARITY_SIF="${_ADCIRC_SINGULARITY_SIF:-$default_sif}"
+
+    if [[ ! -e $_ADCIRC_SINGULARITY_SIF ]]; then
+      echo "Can't find '$_ADCIRC_SINGULARITY_SIF'! exiting ADCIRC building ..."
+      exit
+    fi
+  
+    if [ -n "${_ADCIRC_SINGULARITY_SIF}" ]; then
+      ADCIRC_SINGULARITY_SIF=$_ADCIRC_SINGULARITY_SIF
+      __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-singularity
+    fi
+  fi
 fi
 
 #
@@ -312,7 +373,6 @@ fi
 #
 
 if [[ -z "$BATCH" ]]; then
-  echo
   read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
 fi
 
@@ -426,7 +486,7 @@ case "${ADCIRC_SRC_TYPE}" in
       if [ "$answer" != 'no' ]; then
         [[ -z "$BATCH" ]] && echo
         git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
-	pushd $ADCIRCBASE
+        pushd $ADCIRCBASE
       fi
       [[ -z "$BATCH" ]] && echo
       # always do checkout here
@@ -445,8 +505,8 @@ case "${ADCIRC_SRC_TYPE}" in
         fi
       fi
     else
-        # still cd to this directory
-	pushd $ADCIRCBASE
+      # still cd to this directory
+      pushd $ADCIRCBASE
     fi
     ;;
   *)
@@ -505,10 +565,15 @@ function dumpJSON()
     local patchJSON="$1"
     local ADCIRC_BUILD_INFO_TMP="$2"
     local BUILD_TIME=$(date +%Y-%b-%d-T%H:%M:%S%z)
-    local MODULE_LIST=$(module list 2>&1 | grep '1)');
+    local MODULE_LIST=$(module list 2>&1 | grep '1)')
 
     local _FC_VERSION=$($FC --version | head -n 1)
     local _CC_VERSION=$($CC --version | head -n 1)
+
+    local JSON_MPIF90="$MPIF90"
+    if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
+        JSON_MPIF90=
+    fi
 
     # get SHA of ADCIRC git repo before patching
     pushd $ADCIRCBASE 2> /dev/null
@@ -527,7 +592,7 @@ function dumpJSON()
     local FLAGS_OMP=$(splitMacrosInc   FLAGS_OMP   $MACROSINC)
     local FLAGS_MPI=$(splitMacrosInc   FLAGS_MPI   $MACROSINC)
 
-    # output JSON, redact $USE:
+    # output JSON, redact $USER:
     cat <<JSON | sed "s/$USER/\$USER/g" > $ADCIRC_BUILD_INFO_TMP
   {
     "adcirc.build.swan.macros-inc"             : "$MACROSINC",
@@ -540,49 +605,52 @@ function dumpJSON()
     "adcirc.build.swan.macros-inc.FLAGS_SER"   : "$FLAGS_SER",
     "adcirc.build.swan.macros-inc.FLAGS_MPI"   : "$FLAGS_MPI",
     "adcirc.build.swan.macros-inc.FLAGS_OMP"   : "$FLAGS_OMP",
-    "time.adcirc.executables.built"      : "$BUILD_TIME",
-    "adcirc.source.commit"               : "$BASE_SHA",
-    "adcirc.source.asgs.patches.set"     : "$FLAVOR_NAME",
-    "adcirc.source.asgs.adcirc.flavor"   : "$FLAVOR_NAME",
-    "adcirc.source.asgs.patches.applied" : [
+    "time.adcirc.executables.built"            : "$BUILD_TIME",
+    "adcirc.source.commit"                     : "$BASE_SHA",
+    "adcirc.source.asgs.patches.set"           : "$FLAVOR_NAME",
+    "adcirc.source.asgs.adcirc.flavor"         : "$FLAVOR_NAME",
+    "adcirc.source.asgs.patches.applied"       : [
 $patchJSON
     ],
-    "adcirc.source.branch-base"           : "$ADCIRC_GIT_BRANCH",
-    "env.adcirc.build.ASGS_HOME"          : "$ASGS_HOME",
-    "env.adcirc.build.ASGS_MACHINE_NAME"  : "$ASGS_MACHINE_NAME",
-    "env.adcirc.build.NETCDFHOME"         : "$NETCDFHOME",
-    "env.adcirc.build.ADCIRCBASE"         : "$ADCIRCBASE",
-    "env.adcirc.build.ADCIRCDIR"          : "$ADCIRCDIR",
-    "env.adcirc.build.SWANDIR"            : "$SWANDIR",
-    "env.adcirc.build.CUSTOM_SRC"         : "${CUSTOM_SRC:-0}",
-    "env.adcirc.build.ADCIRC_COMPILER"    : "${ADCIRC_COMPILER:-0}",
-    "env.adcirc.build.ADCIRC_GIT_BRANCH"  : "${ADCIRC_GIT_BRANCH:-0}",
-    "env.adcirc.build.ADCIRC_GIT_URL"     : "${ADCIRC_GIT_URL:-0}",
-    "env.adcirc.build.ADCIRC_GIT_REPO"    : "${ADCIRC_GIT_REPO:-0}",
-    "env.adcirc.build.ADCIRC_SRC_TYPE"    : "${ADCIRC_SRC_TYPE:-0}",
-    "env.adcirc.build.ADCIRC_BASE_URL"    : "${ADCIRC_BASE_URL:-0}",
-    "env.adcirc.build.ADCIRC_SRC_FILE"    : "${ADCIRC_SRC_FILE:-0}",
-    "env.adcirc.build.ADCIRC_EXTRACT_DIR" : "${ADCIRC_EXTRACT_DIR:-0}",
-    "env.adcirc.build.ADCIRC_ARCHIVE_URL" : "${ADCIRC_ARCHIVE_URL:-0}",
-    "env.adcirc.build.ASGS_MAKEJOBS"      : "$ASGS_MAKEJOBS",
-    "env.adcirc.build.ADCIRC_MAKE_CMD"    : "$ADCIRC_MAKE_CMD",
+    "adcirc.source.branch-base"                : "${ADCIRC_GIT_BRANCH:-0}",
+    "env.adcirc.build.ASGS_HOME"               : "$ASGS_HOME",
+    "env.adcirc.build.ASGS_MACHINE_NAME"       : "$ASGS_MACHINE_NAME",
+    "env.adcirc.build.NETCDFHOME"              : "$NETCDFHOME",
+    "env.adcirc.build.ADCIRCBASE"              : "$ADCIRCBASE",
+    "env.adcirc.build.ADCIRCDIR"               : "$ADCIRCDIR",
+    "env.adcirc.build.SWANDIR"                 : "$SWANDIR",
+    "env.adcirc.build.CUSTOM_SRC"              : "${CUSTOM_SRC:-0}",
+    "env.adcirc.build.ADCIRC_COMPILER"         : "${ADCIRC_COMPILER:-0}",
+    "env.adcirc.build.ADCIRC_GIT_BRANCH"       : "${ADCIRC_GIT_BRANCH:-0}",
+    "env.adcirc.build.ADCIRC_GIT_URL"          : "${ADCIRC_GIT_URL:-0}",
+    "env.adcirc.build.ADCIRC_GIT_REPO"         : "${ADCIRC_GIT_REPO:-0}",
+    "env.adcirc.build.ADCIRC_SRC_TYPE"         : "${ADCIRC_SRC_TYPE:-0}",
+    "env.adcirc.build.ADCIRC_BASE_URL"         : "${ADCIRC_BASE_URL:-0}",
+    "env.adcirc.build.ADCIRC_SRC_FILE"         : "${ADCIRC_SRC_FILE:-0}",
+    "env.adcirc.build.ADCIRC_EXTRACT_DIR"      : "${ADCIRC_EXTRACT_DIR:-0}",
+    "env.adcirc.build.ADCIRC_ARCHIVE_URL"      : "${ADCIRC_ARCHIVE_URL:-0}",
+    "env.adcirc.build.ASGS_MAKEJOBS"           : "$ASGS_MAKEJOBS",
+    "env.adcirc.build.ADCIRC_MAKE_CMD"         : "$ADCIRC_MAKE_CMD",
     "env.adcirc.build.SWAN_UTIL_BINS_MAKE_CMD" : "$SWAN_UTIL_BINS_MAKE_CMD",
     "env.adcirc.build.ADCSWAN_MAKE_CMD"        : "$ADCSWAN_MAKE_CMD",
     "env.adcirc.build.ADCIRC_PROFILE_NAME"     : "$ADCIRC_PROFILE_NAME",
-    "env.adcirc.build.ADCIRC_BINS"        : "$ADCIRC_BINS",
-    "env.adcirc.build.ADCSWAN_BINS"       : "$ADCSWAN_BINS",
-    "env.adcirc.build.SWAN_UTIL_BINS"     : "$SWAN_UTIL_BINS",
-    "env.adcirc.build.PATH"               : "$PATH",
-    "env.adcirc.build.LD_LIBRARY_PATH"    : "$LD_LIBRARY_PATH",
-    "env.adcirc.build.LD_INCLUDE_PATH"    : "$LD_INCLUDE_PATH",
-    "adcirc.build.built_parallel_adcirc"  : "$BUILD_PARALLEL_ADCIRC",
-    "adcirc.build.fortran.mpif90"         : "$MPIF90",
-    "adcirc.build.fortran.compiler"       : "$_FC",
-    "adcirc.build.c.compiler"             : "$_CC",
-    "adcirc.build.c.compiler.version"     : "$_CC_VERSION",
-    "adcirc.build.modules.loaded"         : "$MODULE_LIST",
-    "adcirc.build.fortran.compiler.version" : "$_FC_VERSION",
-    "adcirc.build.debug"                  : "$DEBUG"
+    "env.adcirc.build.ADCIRC_BINS"             : "$ADCIRC_BINS",
+    "env.adcirc.build.ADCSWAN_BINS"            : "$ADCSWAN_BINS",
+    "env.adcirc.build.SWAN_UTIL_BINS"          : "$SWAN_UTIL_BINS",
+    "env.adcirc.build.PATH"                    : "$PATH",
+    "env.adcirc.build.LD_LIBRARY_PATH"         : "$LD_LIBRARY_PATH",
+    "env.adcirc.build.LD_INCLUDE_PATH"         : "$LD_INCLUDE_PATH",
+    "adcirc.build.built_parallel_adcirc"       : "$BUILD_PARALLEL_ADCIRC",
+    "adcirc.build.fortran.mpif90"              : "$JSON_MPIF90",
+    "adcirc.build.fortran.compiler"            : "$FC",
+    "adcirc.build.c.compiler"                  : "$CC",
+    "adcirc.build.c.compiler.version"          : "$_CC_VERSION",
+    "adcirc.build.modules.loaded"              : "$MODULE_LIST",
+    "adcirc.build.fortran.compiler.version"    : "$_FC_VERSION",
+    "adcirc.build.debug"                       : "$DEBUG",
+    "adcirc.singularity.sif"                   : "${ADCIRC_SINGULARITY_SIF:-}",
+    "adcirc.singularity.manifest"              : "${ADCIRC_SINGULARITY_MANIFEST:-}",
+    "asgs.container.cmd"                       : "${ASGS_SINGULARITY_CMD:-}"
   }
 JSON
 }
@@ -611,6 +679,13 @@ export ADCIRC_BINS='$ADCIRC_BINS'
 export ADCSWAN_BINS='$ADCSWAN_BINS'
 export SWAN_UTIL_BINS='$SWAN_UTIL_BINS'
 EOMETA
+  # Singularity support requires there be a SIF file
+  # defined in the ADCIRC metadata file in $SCRIPTDIR/.adcirc-meta
+  if [ -n "${ADCIRC_SINGULARITY_SIF}" ]; then
+    cat <<EOMETA >> $ADCIRC_META_FILE
+export ADCIRC_SINGULARITY_SIF='$ADCIRC_SINGULARITY_SIF'
+EOMETA
+  fi
 }
 
 #
@@ -655,7 +730,7 @@ patch_files() {
         echo $OUT
         echo "(fatal) error applying patch: $diff"
         echo Exiting.
-       exit $EXIT
+        exit $EXIT
       fi
       _app_date=$(date "+%D %T %Z")
       echo "# $_app_date $diff" >> $BUILDSCRIPT

@@ -21,16 +21,30 @@
 # See ./platforms/README
 #
 
-BK=$(tput setaf 0)
-RD=$(tput setaf 1)
-GR=$(tput setaf 2)
-YW=$(tput setaf 3)
-BL=$(tput setaf 4)
-MG=$(tput setaf 5)
-CY=$(tput setaf 6)
-WH=$(tput setaf 6)
-R=$(tput sgr0)
-B=$(tput bold)
+# set terminal color codes
+if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
+  BK=$(tput setaf 0)
+  RD=$(tput setaf 1)
+  GR=$(tput setaf 2)
+  YW=$(tput setaf 3)
+  BL=$(tput setaf 4)
+  MG=$(tput setaf 5)
+  CY=$(tput setaf 6)
+  WH=$(tput setaf 7)
+   R=$(tput sgr0)
+   B=$(tput bold)
+else
+  BK=
+  RD=
+  GR=
+  YW=
+  BL=
+  MG=
+  CY=
+  WH=
+   R=
+   B=
+fi
 
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
@@ -48,10 +62,14 @@ if [ -n "$_ASGSH_PID" ]; then
   exit 1
 fi
 
-while getopts "AbL:mp:x:" optname; do
+DEFAULT_COMPILER=intel
+while getopts "Abc:L:mp:x:" optname; do
    case $optname in
       b) BATCH=1
          ;;
+      c) # update DEFAULT_COMPILER for use with -b, really
+	 FORCE_DEFAULT_COMPILER=${OPTARG}
+	 ;;
       L|p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
       x) # add extra arbitrary options to asgs-brew.pl command
@@ -87,7 +105,6 @@ ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
 if [ -z "$BATCH" ]; then
   # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
-  echo "queenbee       - Queenbee (LONI)"     # qb2
   echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
   echo "supermic       - SuperMIC (LSU HPC)"  # smic
   echo "frontera       - Frontera (TACC)"     # frontera
@@ -163,9 +180,8 @@ export SUBMITSTRING
 
 # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
 # catch WORK and SCRATCH as early as possible
-DEFAULT_COMPILER=intel
 case "$platform" in
-  queenbee|queenbeeC|supermic)
+  queenbeeC|supermic)
     WORK=${WORK:-"/work/$USER"}
     SCRATCH=${SCRATCH:-"/scratch/$USER"}
     ;;
@@ -197,6 +213,11 @@ elif [[ -z "$platform" && -n "$default_platform" ]]; then
 fi
 
 _compiler=$DEFAULT_COMPILER
+
+# force default from -c COMPILER
+if [ -n "$FORCE_DEFAULT_COMPILER" ]; then
+  _compiler=$FORCE_DEFAULT_COMPILER
+fi
 PLATFORM_INIT_OPT=
 if [ -n "$PLATFORM_INIT" ]; then
   PLATFORM_INIT_OPT="--platform-init $PLATFORM_INIT"
@@ -439,7 +460,7 @@ if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
   echo "adcirclive verify adcirc"                                                >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "cat<<EOF"                                                                >> adcirclive/etc/initial-bashrc
-  echo "ADCIRC v55.02 and the ADCIRC Live (c) cli is now installed and ready:"   >> adcirclive/etc/initial-bashrc
+  echo "ADCIRC v56.0.2 and the ADCIRC Live (c) cli is now installed and ready:"  >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
   echo "If you have any questions, please email us at help@support.adcirc.live"  >> adcirclive/etc/initial-bashrc
   echo                                                                           >> adcirclive/etc/initial-bashrc
