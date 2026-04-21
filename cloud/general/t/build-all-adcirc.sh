@@ -13,11 +13,12 @@ if ! command -v init-adcirc.sh >/dev/null 2>&1; then
 fi
 
 versions=(
+  v53release
   v55.01-5bc04d6
   v55.02
   v56.0.2
   v56.0.4
-  v53release
+  v56.0.4.live.0
 )
 
 echo "Using init-adcirc.sh at: $(command -v init-adcirc.sh)"
