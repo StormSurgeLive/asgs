@@ -1,56 +1,182 @@
-name: Run Selected Install Scripts
+name: Init ASGS, sanity check, install deps, and build ADCIRC
 
 on:
   push:
     branches:
       - master
+      - main
+      - ci-test
   pull_request:
     branches:
       - master
+      - main
 
 jobs:
-  run-scripts:
+  build-adcirc:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Ubuntu packages
+        shell: bash
         run: |
-          sudo apt-get -y update
-          sudo apt-get install -y build-essential checkinstall
-          sudo apt-get install -y libssl-dev libexpat1-dev
-          sudo apt-get install -y gfortran wget curl vim screen htop tmux git bc
-          sudo apt-get install -y zip flex gawk procps
-          sudo apt-get install -y zlib1g-dev
+          set -eo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            curl \
+            file \
+            gfortran \
+            git \
+            jq \
+            make \
+            perl \
+            python3 \
+            rsync \
+            unzip \
+            wget
 
-          # Install the older GCCs we want, set them to system defaults
-          sudo apt-get install -y gcc-9 g++-9 gfortran-9
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
-          sudo update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-9 9
-
-      - name: Set TERM and run install script with --update-shell
+      - name: Initialize ASGS shell bootstrap
+        shell: bash
         run: |
-          export TERM=xterm
-          chmod +x ./ci/01-install-shell-only.sh
-          ./ci/01-install-shell-only.sh
+          set -eo pipefail
+          echo "=== STEP 1: init ASGS shell bootstrap ==="
+          chmod +x ./init-asgs.sh || true
+          ./init-asgs.sh -b -x "--update-shell"
 
-      - name: Run OpenMPI installation script
+      - name: Fail-fast sanity checks
+        shell: bash
         run: |
-          chmod +x ./ci/02-install-openmpi.sh
-          ./ci/02-install-openmpi.sh
+          set -eo pipefail
+
+          echo "=== STEP 2: ASGS fail-fast sanity checks ==="
+
+          test -e ./init-asgs.sh
+          test -e ./asgsh
+          test -e ./cloud/general/DOT-asgs-brew.sh
+          test -e ./profiles/default-asgs
+          test -e ./cloud/general/t/build-all-adcirc.sh
+
+          REPO_ROOT="$(pwd)"
+
+          # Minimal, necessary bootstrap to mimic asgsh startup in CI.
+          export _ASGSH_PID=$$
+          export SCRIPTDIR="$REPO_ROOT"
+          export PATH=$SCRIPTDIR:$SCRIPTDIR/bin:$PATH
+          export ASGS_INSTALL_PATH="$REPO_ROOT"
+          export WORK="${WORK:-$REPO_ROOT}"
+          export SCRATCH="${SCRATCH:-$REPO_ROOT}"
+          export ASGS_META_DIR="${ASGS_META_DIR:-$REPO_ROOT/profiles}"
+          export ADCIRC_META_DIR="${ADCIRC_META_DIR:-$REPO_ROOT/adcirc}"
+          export ASGS_MACHINE_NAME="${ASGS_MACHINE_NAME:-github-actions}"
+          export PLATFORM_INIT="${PLATFORM_INIT:-}"
+          export profile=default-asgs
+
+          # CI-safe knobs
+          export _asgsh_splash=0
+          export _asgsh_do_startup_checks=0
+
+          # Skip fragile platform init in direct-source CI mode unless you know it is safe
+          export skip_platform_profiles="${skip_platform_profiles:-1}"
+
+          echo "REPO_ROOT=$REPO_ROOT"
+          echo "SCRIPTDIR=$SCRIPTDIR"
+          echo "ASGS_INSTALL_PATH=$ASGS_INSTALL_PATH"
+          echo "WORK=$WORK"
+          echo "SCRATCH=$SCRATCH"
+          echo "ASGS_META_DIR=$ASGS_META_DIR"
+          echo "ADCIRC_META_DIR=$ADCIRC_META_DIR"
+          echo "ASGS_MACHINE_NAME=$ASGS_MACHINE_NAME"
+          echo "PLATFORM_INIT=$PLATFORM_INIT"
+          echo "profile=$profile"
+          echo "skip_platform_profiles=$skip_platform_profiles"
+
+          source ./cloud/general/DOT-asgs-brew.sh
+          source ./profiles/default-asgs
+
+          echo "--- basic checks ---"
+          test -n "$SCRIPTDIR"
+          test -n "$WORK"
+          test -n "$SCRATCH"
+          command -v perl
+          command -v make
+          bash -n ./cloud/general/t/build-all-adcirc.sh
+
+          type load >/dev/null 2>&1 || true
+          type save >/dev/null 2>&1 || true
+          type goto >/dev/null 2>&1 || true
+
+          echo "Sanity checks passed."
+
+      - name: Install netCDF4 / HDF5 and related ASGS deps
+        shell: bash
+        run: |
+          set -eo pipefail
+          echo "=== STEP 3: install dependencies (netCDF4/HDF5/etc.) ==="
+          ./init-asgs.sh -A -b
+
+      - name: Build ADCIRC
         timeout-minutes: 120
-
-      - name: Run HDF5 installation script
+        shell: bash
         run: |
-          chmod +x ./ci/03-install-hdf5.sh
-          ./ci/03-install-hdf5.sh
-        timeout-minutes: 120
+          set -eo pipefail
 
-      - name: Run netCDF4 installation script
-        run: |
-          chmod +x ./ci/04-install-netcdf4.sh
-          ./ci/04-install-netcdf4.sh
+          echo "=== STEP 4: Build ADCIRCs ==="
+
+          REPO_ROOT="$(pwd)"
+
+          export _ASGSH_PID=$$
+          export SCRIPTDIR="$REPO_ROOT"
+          export PATH=$SCRIPTDIR:$SCRIPTDIR/bin:$PATH
+          export ASGS_INSTALL_PATH="$REPO_ROOT"
+          export WORK="${WORK:-$REPO_ROOT}"
+          export SCRATCH="${SCRATCH:-$REPO_ROOT}"
+          export ASGS_META_DIR="${ASGS_META_DIR:-$REPO_ROOT/profiles}"
+          export ADCIRC_META_DIR="${ADCIRC_META_DIR:-$REPO_ROOT/adcirc}"
+          export ASGS_MACHINE_NAME="${ASGS_MACHINE_NAME:-github-actions}"
+          export PLATFORM_INIT="${PLATFORM_INIT:-}"
+          export profile=default-asgs
+
+          export _asgsh_splash=0
+          export _asgsh_do_startup_checks=0
+          export skip_platform_profiles="${skip_platform_profiles:-1}"
+
+          source ./cloud/general/DOT-asgs-brew.sh
+          source ./profiles/default-asgs
+
+          echo "--- environment ready, starting ADCIRC build ---"
+          bash ./cloud/general/t/build-all-adcirc.sh
+
+      - name: Test Running ADCIRCs (serial and parallel - 2 processes)
         timeout-minutes: 120
+        shell: bash
+        run: |
+          set -eo pipefail
+
+          echo "=== STEP 5: run ADCIRC builds ==="
+
+          REPO_ROOT="$(pwd)"
+
+          export _ASGSH_PID=$$
+          export SCRIPTDIR="$REPO_ROOT"
+          export PATH=$SCRIPTDIR:$SCRIPTDIR/bin:$PATH
+          export ASGS_INSTALL_PATH="$REPO_ROOT"
+          export WORK="${WORK:-$REPO_ROOT}"
+          export SCRATCH="${SCRATCH:-$REPO_ROOT}"
+          export ASGS_META_DIR="${ASGS_META_DIR:-$REPO_ROOT/profiles}"
+          export ADCIRC_META_DIR="${ADCIRC_META_DIR:-$REPO_ROOT/adcirc}"
+          export ASGS_MACHINE_NAME="${ASGS_MACHINE_NAME:-github-actions}"
+          export PLATFORM_INIT="${PLATFORM_INIT:-}"
+          export profile=default-asgs
+
+          export _asgsh_splash=0
+          export _asgsh_do_startup_checks=0
+          export skip_platform_profiles="${skip_platform_profiles:-1}"
+
+          source ./cloud/general/DOT-asgs-brew.sh
+          source ./profiles/default-asgs
+
+          echo "--- environment ready, starting ADCIRC build ---"
+          bash ./cloud/general/t/verify-all-adcirc.sh

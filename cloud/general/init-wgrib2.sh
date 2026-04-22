@@ -21,20 +21,31 @@ fi
 rm -rf grib2 > /dev/null 2>&1
 tar zxvf wgrib2-${VERSION}.tgz 
 
-if [ "$compiler" == "gfortran" ]; then
-  CC=gcc
-  FC=gfortran
-  COMP_SYS=gnu_linux
-fi
-if [ "$compiler" == "intel" ]; then
-  CC=icc
-  FC=ifort
-  COMP_SYS=intel_linux
-fi
-if [ "$compiler" == "intel-oneapi" ]; then
-  CC=icx
-  FC=ifx
-  COMP_SYS=oneapi_linux
+if [ "$COMPILER" = "gfortran" ]; then
+  export CC=gcc
+  export FC=gfortran
+  export COMP_SYS=gnu_linux
+
+elif [ "$COMPILER" = "intel" ]; then
+  export CC=icc
+  export FC=ifort
+  export COMP_SYS=intel_linux
+
+elif [ "$COMPILER" = "intel-oneapi" ]; then
+  if command -v mpiifx >/dev/null 2>&1; then
+    export CC=icx
+    export FC=ifx
+    export COMP_SYS=oneapi_linux
+  else
+    echo "mpiifx not found; falling back to Intel classic toolchain"
+    export CC=icc
+    export FC=ifort
+    export COMP_SYS=intel_linux
+  fi
+
+else
+  echo "ERROR: Unknown compiler '$COMPILER'"
+  exit 1
 fi
 
 make -j 1 NETCDFPATH=$OPT NETCDF=enable NETCDF4=enable NETCDF4_COMPRESSION=enable MACHINE_NAME=$ASGS_MACHINE_NAME compiler=$COMPILER

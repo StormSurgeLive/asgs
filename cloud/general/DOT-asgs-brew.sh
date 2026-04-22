@@ -26,16 +26,34 @@
 # impact can't be offloaded to the child process that is invoked when
 # running external scripts.
 
-BK=$(tput setaf 0)
-RD=$(tput setaf 1)
-GR=$(tput setaf 2)
-YW=$(tput setaf 3)
-BL=$(tput setaf 4)
-MG=$(tput setaf 5)
-CY=$(tput setaf 6)
-WH=$(tput setaf 6)
-R=$(tput sgr0)
-B=$(tput bold)
+# set terminal color codes
+if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
+  BK=$(tput setaf 0)
+  RD=$(tput setaf 1)
+  GR=$(tput setaf 2)
+  YW=$(tput setaf 3)
+  BL=$(tput setaf 4)
+  MG=$(tput setaf 5)
+  CY=$(tput setaf 6)
+  WH=$(tput setaf 7)
+   R=$(tput sgr0)
+   B=$(tput bold)
+
+  : "${_asgsh_splash:=0}"
+  : "${_asgsh_do_startup_checks:=1}"
+  : "${skip_platform_profiles:=0}"
+else
+  BK=
+  RD=
+  GR=
+  YW=
+  BL=
+  MG=
+  CY=
+  WH=
+   R=
+   B=
+fi
 
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
@@ -61,22 +79,35 @@ help() {
   echo "           replaycli       - optionally installs Perl script that interacts with StormReplay.com service"
   echo "   backup  <FILE.tgz>      - saves all files not in the ASGS GIT repository, includes all binary (compiled) artifiacts"
   echo "           <HOST:FILE.tgz> - ... sends backup TGZ to a remote host via ssh; use the 'restore' command fetch and unpack this TGZ"
-  echo "   clone   profile         - launches guided process for cloning the current profile, including copying the configuratin file"
+  echo "   clone   profile         - launches guided process for cloning the current profile, including copying the configuration file"
   echo "   define  config          - defines ASGS configuration file used by 'run', (\$ASGS_CONFIG). 'define' replaces old 'set' command"
   echo "           editor          - defines default editor, (\$EDITOR)"
-  echo "           scratch         - defines ASGS main script directory used by all underlying scripts, (\$SCRATCH)"
+  echo "           hostfile        - defines MPI hostfile path, (\$ASGS_MPI_HOSTFILE)"
+  echo "           adcircdir       - defines ADCIRC install directory, (\$ADCIRCDIR)"
+  echo "           adcircbranch    - defines ADCIRC git branch, (\$ADCIRC_GIT_BRANCH)"
+  echo "           adcircremote    - defines ADCIRC git remote, (\$ADCIRC_GIT_REMOTE)"
   echo "           scriptdir       - defines ASGS main script directory used by all underlying scripts, (\$SCRIPTDIR)"
-  echo "           workdir         - defines ASGS main script directory used by all underlying scripts, (\$WORK)"
+  echo "           scratchdir      - defines ASGS scratch directory used by all underlying scripts, (\$SCRATCH)"
+  echo "           workdir         - defines ASGS work directory used by all underlying scripts, (\$WORK)"
   echo "   DELETE                  - foricibly removes all files in \$SCRIPTDIR that is not presently in the git repository"
   echo "   delete  profile <NAME>  - deletes named profile"
   echo "           adcirc  <NAME>  - deletes named ADCIRC profile"
   echo "           config          - deletes configuration file for current profile, unsets 'config' var. Interactively confirms"
   echo "           statefile       - deletes the state file associated with a profile, effectively for restarting from the initial advisory"
   echo "   dump    <param>         - dumps (using cat) contents specified files: config, exported (variables); and if defined: statefile, syslog"
-  echo "   edit    <thing>         - adcirc <NAME>, asgs-global, asgsh-profile, config, jobs, mail-log, meshes, platforms, profile, statefile, syslog"
+  echo "   edit    <thing>         - adcirc <NAME>, asgs-global, asgsh-profile, config, hostfile, mail-log, meshes, platforms, profile <NAME>, ssh-config, statefile, syslog"
   echo "   export-adcirc           - dumps out \$PATH, \$LD_LIBRARY_PATH, and \$LD_INCLUDE_PATH needed to run the built ADCIRC outside of the ASGS Shell"
   echo "   fetch   <thing>         - tool for fetching supported external resources, e.g., git repos; 'fetch' with no parameter will list what is supported"
-  echo "   goto|g  <param>         - change CWD to a supported directory. Type 'goto options' to see the currently supported options"
+  echo "   goto|g  <param>         - change CWD to a supported directory or explicit path"
+  echo "           adcircworkdir   - \$ADCIRCDIR/work"
+  echo "           adcircdir       - \$ADCIRCDIR"
+  echo "           configdir       - directory containing \$ASGS_CONFIG"
+  echo "           installdir      - \$ASGS_INSTALL_PATH"
+  echo "           lastsubdir      - \$LASTSUBDIR"
+  echo "           rundir          - \$RUNDIR"
+  echo "           scratchdir      - \$SCRATCH"
+  echo "           scriptdir       - \$SCRIPTDIR"
+  echo "           workdir         - \$WORK"
   echo "   guess   platform        - attempts to guess the current platform as supported by platforms.sh (e.g., frontera, supermic, etc)"
   echo "   init    config          - wizard for creating a starting point for a profile's configuration file"
   echo "           keys            - wrapper around ssh-keygen that offers to send the public key to someone via asgs-sendmail"
@@ -85,8 +116,9 @@ help() {
   echo "   load    profile <NAME>  - loads a saved profile by name; use 'list profiles' to see what's available"
   echo "           adcirc  <NAME>  - loads information a version of ADCIRC into the current environment. Use 'list adcirc' to see what's available"
   echo "   move    statefile       - moves statefile out of the way, safer and more future friendly than delete"
-  echo "   purge   <param>         - deletes specified file or directory"
-  echo "           rundir          - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
+  echo "           syslog          - moves syslog out of the way"
+  echo "   purge   rundir          - deletes run directory associated with a profile, useful for cleaning up old runs and starting over for the storm"
+  echo "           scratchdir      - deletes everything in the SCRATCH directory"
   echo "   rebuild profile         - wizard for recreating an ASGS profile using an existing configuration file"
   echo "   restore <FILE.tgz>      - fetchs and restores files contained in 'FILE.tgz'"
   echo "           <HOST:FILE.tgz> - ... fetches backup TGZ from a remote host via ssh; 'backup' command creates and sends TGZ to specified location"
@@ -96,7 +128,8 @@ help() {
   echo "   show    <param>         - shows specified profile variables, to see current list type 'show help'"
   echo "           exported        - dumps all exported variables and provides a summary of what asgsh tracks"
   echo "   sq                      - shortcut for \"squeue -u \$USER\" (if squeue is available)"
-  echo "   switch  <option>        - alias to 'load' for better semantics; e.g., 'switch profile next-profile'"
+  echo "   switch  profile <NAME>  - alias to 'load profile <NAME>'"
+  echo "           adcirc  <NAME>  - alias to 'load adcirc <NAME>'"
   echo "   tailf   syslog          - executes 'tail -f' on ASGS instance's system log"
   echo "   verify  [<option>]      - verfies the ASGSH installation"
   echo "           adcirc          - (alias: va) verifies ADCIRC, if available"
@@ -344,7 +377,7 @@ load() {
         if [ -e "$ASGS_CONFIG" ]; then
           # extracts info such as 'instancename' so we can derive the location of
           # the state file, then the log file path and actual run directory
-          _parse_config $ASGS_CONFIG
+          _parse_config "$ASGS_CONFIG"
         fi
       else
         echo "${W} ASGS profile, '$NAME' does not exist. Use 'list profiles' to see a which profile are available to load"
@@ -410,30 +443,49 @@ _unset_statevars() {
   unset ADVISORY
 }
 
+_get_cfg_val() {
+  local key="$1"
+  local file="$2"
+  local line
+  local rhs
+  local val
+
+  line=$(grep -E "^[[:space:]]*${key}=" "$file" | tail -n 1) || return 1
+  [ -n "$line" ] || return 1
+
+  rhs="${line#*=}"
+
+  unset val
+  eval "val=${rhs}"
+
+  val=$(printf '%s' "$val" | sed -E 's/[^A-Za-z0-9._-]/_/g')
+  printf '%s\n' "$val"
+}
+
 _parse_config() {
-  if [ ! -e "${1}" ]; then
-    echo "${W} config file is defined, but the file '${1}' does not exist!"
+  local cfg_file="$1"
+
+  if [ ! -e "$cfg_file" ]; then
+    echo "${W} config file is defined, but the file '$cfg_file' does not exist!"
     return
   fi
-  # pull out var info the old fashion way...
-  export INSTANCENAME=$(egrep '^ *INSTANCENAME=' "${1}" | sed 's/^ *INSTANCENAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  GRIDNAME=$(egrep '^ *GRIDNAME=' "${1}" | sed 's/^ *GRIDNAME=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  TROPICALCYCLONE=$(egrep '^ *TROPICALCYCLONE=' "${1}" | sed 's/^ *TROPICALCYCLONE=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  BACKGROUNDMET=$(egrep '^ *BACKGROUNDMET=' "${1}" | sed 's/^ *BACKGROUNDMET=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  STORM=$(egrep '^ *STORM=' "${1}" | sed 's/^ *STORM=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  YEAR=$(egrep '^ *YEAR=' "${1}" | sed 's/^ *YEAR=//' | sed 's/ *#.*$//g' | sed -e 's/[^A-Za-z0-9._-]/_/g')
-  # check to see if INSTANCENAME was not defined in the
-  # configuration file; if so, construct the instance name
-  # from the other characteristics of the configuration; this
-  # must follow the automated setting of the instance name in
-  # asgs_main.sh -> readConfig() function
+
+  export INSTANCENAME="$(_get_cfg_val INSTANCENAME "$cfg_file")"
+  GRIDNAME="$(_get_cfg_val GRIDNAME "$cfg_file")"
+  TROPICALCYCLONE="$(_get_cfg_val TROPICALCYCLONE "$cfg_file")"
+  BACKGROUNDMET="$(_get_cfg_val BACKGROUNDMET "$cfg_file")"
+  STORM="$(_get_cfg_val STORM "$cfg_file")"
+  YEAR="$(_get_cfg_val YEAR "$cfg_file")"
+
   if [[ -z $INSTANCENAME || $INSTANCENAME == "auto" ]]; then
-    export INSTANCENAME=$(get-instancename $GRIDNAME $TROPICALCYCLONE $BACKGROUNDMET $STORM $YEAR)
+    export INSTANCENAME="$(get-instancename "$GRIDNAME" "$TROPICALCYCLONE" "$BACKGROUNDMET" "$STORM" "$YEAR")"
   fi
+
   echo "${I} config file found, instance name is '$INSTANCENAME'"
   echo
+
   export STATEFILE="$SCRATCH/${INSTANCENAME}.state"
-  _load_state_file $STATEFILE
+  _load_state_file "$STATEFILE"
 }
 
 _load_state_file() {
@@ -525,7 +577,7 @@ rebuild() {
       fi
       echo
 
-      load profile $_base_profile
+      load profile "$_base_profile"
 
       if [ -z "$_config" ]; then
         read -e -p "Path to ASGS configuration file: " _config
@@ -536,20 +588,18 @@ rebuild() {
       fi
       echo
       ABS_PATH=$(readlink -f "$_config")
-      export ASGS_CONFIG=$ABS_PATH
-      _parse_config $ASGS_CONFIG
+      export ASGS_CONFIG="$ABS_PATH"
+      _parse_config "$ASGS_CONFIG"
 
-      # default is $INSTANCENAME, grabbed from _parse_config when $ASGS_CONFIG
-      # is parsed above
       read -p "New profile name [$INSTANCENAME]? " _profile_name
       if [ -z "$_profile_name" ]; then
         _profile_name=$INSTANCENAME
       fi
       echo
 
-      save profile $_profile_name
+      save profile "$_profile_name"
       ;;
-    *) echo "'clone' only applies to 'profile'"
+    *) echo "'rebuild' only applies to 'profile'"
       ;;
   esac
 }
@@ -1234,7 +1284,7 @@ purge() {
   esac
 }
 
-if [ 1 = "${skip_platform_profiles}" ]; then
+if [ "${skip_platform_profiles:-0}" == 1 ]; then
   echo "(-x used) ... skipping the loading platform.sh and properties.sh ..."
 else
   if [ -n "$_asgsh_splash" ]; then
@@ -1364,9 +1414,9 @@ done
 # when started, ASGS Shell loads the 'default' profile,
 # this can be made variable at some point
 if [ -n "$_asgsh_splash" ]; then
-  load profile ${profile-default}
+  load profile ${profile:-default}
 else
-  load profile ${profile-default} > /dev/null # quiet STDOUT
+  load profile ${profile:-default} > /dev/null # quiet STDOUT
 fi
 
 if [ -n "$_asgsh_splash" ]; then
@@ -1377,7 +1427,7 @@ if [ -n "$_asgsh_splash" ]; then
   show adcirccompiler
   show asgslocaldir
   echo
-  if [ "$_asgsh_do_startup_checks" == 1 ]; then # checks can be turned off with "-S"
+  if [ ${_asgsh_do_startup_checks:-0} == 1 ]; then # checks can be turned off with "-S"
     echo "${YW}${B}Installation info*:${R}"
     echo $(guess age)
     echo -n ${I} "Checking ASGS directory health, please wait ... "

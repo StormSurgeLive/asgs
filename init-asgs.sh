@@ -21,16 +21,30 @@
 # See ./platforms/README
 #
 
-BK=$(tput setaf 0)
-RD=$(tput setaf 1)
-GR=$(tput setaf 2)
-YW=$(tput setaf 3)
-BL=$(tput setaf 4)
-MG=$(tput setaf 5)
-CY=$(tput setaf 6)
-WH=$(tput setaf 6)
-R=$(tput sgr0)
-B=$(tput bold)
+# set terminal color codes
+if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
+  BK=$(tput setaf 0)
+  RD=$(tput setaf 1)
+  GR=$(tput setaf 2)
+  YW=$(tput setaf 3)
+  BL=$(tput setaf 4)
+  MG=$(tput setaf 5)
+  CY=$(tput setaf 6)
+  WH=$(tput setaf 7)
+   R=$(tput sgr0)
+   B=$(tput bold)
+else
+  BK=
+  RD=
+  GR=
+  YW=
+  BL=
+  MG=
+  CY=
+  WH=
+   R=
+   B=
+fi
 
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
