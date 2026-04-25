@@ -67,8 +67,8 @@ readConfig()
       SCENARIOPACKAGESIZE=$ENSEMBLESIZE   # ENSEMBLESIZE is deprecated
       ENSEMBLESIZE="null"
    fi
-   if [[ $SCENARIOPACKAGESIZE -ne -1 ]]; then
-      consoleMessage "$W The SCENARIOPACKAGESIZE parameter is deprecated and may be removed from the configuration file."
+   if [[ $SCENARIOPACKAGESIZE != "auto" && $SCENARIOPACKAGESIZE -ne -1 ]]; then
+      consoleMessage "$W The SCENARIOPACKAGESIZE parameter is deprecated and may be set to 'auto' or removed from your ASGS configuration file."
    fi
    if [[ $ENSTORM != $e ]]; then
       SCENARIO=$ENSTORM                   # ENSTORM is deprecated
@@ -240,7 +240,7 @@ checkArchiveFreshness()
          logMessage "$THIS: The subdomain archive file $SCRATCH/$archiveFile does not exist."
          continue
       fi
-      # jgfdebug:: for some meshes, $NAFILE is undefined but this case is not handled
+      # for some meshes, $NAFILE is undefined
       inputFiles=( $GRIDFILE $CONTROLTEMPLATE $ELEVSTATIONS $VELSTATIONS $METSTATIONS )
       if [[ ! -z $NAFILE && $NAFILE != "null" ]]; then
          inputFiles+=( $NAFILE )
@@ -378,7 +378,6 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    #debugMessage "top of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE"
     echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
@@ -459,7 +458,7 @@ prep()
        if [[ $WAVES = on ]]; then
           cp $SWANTEMPLATEDIR/swaninit.template $ADVISDIR/$ENSTORM/swaninit 2>> ${SYSLOG}
        fi
-       # jgfdebug: TODO: FIXME: Hardcoded the time varying weirs input file
+       # TODO: FIXME: Hardcoded the time varying weirs input file
        if [ -e $INPUTDIR/time-bonnet.in ]; then
           logMessage "$ENSTORM: $THIS: Copying $INPUTDIR/time-bonnet.in to $ADVISDIR/$ENSTORM."
           cp $INPUTDIR/time-bonnet.in $ADVISDIR/$ENSTORM 2>> ${SYSLOG}
@@ -846,7 +845,6 @@ EOF
        fi
     fi
     echo "time.adcprep.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
-    debugMessage "bottom of prep() has the following values: RUNDIR=$RUNDIR ADVISDIR=$ADVISDIR ENSTORM=$ENSTORM NOTIFYSCRIPT=${OUTPUTDIR}/${NOTIFY_SCRIPT} HPCENV=$HPCENV STORMNAME=$STORMNAME YEAR=$YEAR STORMDIR=$STORMDIR ADVISORY=$ADVISORY STATEFILE=$STATEFILE GRIDFILE=$GRIDFILE EMAILNOTIFY=$EMAILNOTIFY JOBFAILEDLIST=${JOB_FAILED_LIST} ARCHIVEBASE=$ARCHIVEBASE"
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -2851,7 +2849,9 @@ while [ true ]; do
 
    logMessage "$THIS: Counting the number of scenarios in the scenario package."
    numScenarios=$(get-scenario-package-size)
-   if [[ $SCENARIOPACKAGESIZE -ne $numScenarios ]]; then
+   # if the Operator did not set the SCENARIOPACKAGESIZE in the config file,
+   # its value will be -1
+   if [[ $SCENARIOPACKAGESIZE != "auto" && $SCENARIOPACKAGESIZE -ne $numScenarios && $SCENARIOPACKAGESIZE -ne -1 ]]; then
      consoleMessage "$W There are '$numScenarios' forecast scenarios but the scenario package size was set to 'SCENARIOPACKAGESIZE=$SCENARIOPACKAGESIZE' in the ASGS configuration file '$ASGS_CONFIG'. ASGS will submit '$numScenarios' forecast scenarios."
    fi
    logMessage "$THIS: Starting '$numScenarios' forecast scenarios for advisory '$ADVISORY'."
@@ -2887,7 +2887,7 @@ while [ true ]; do
             logMessage "$ENSTORM: $THIS: BACKGROUNDMET is set to '$BACKGROUNDMET' but BACKSITE is set to '$BACKSITE'."
             logMessage "$ENSTORM: $THIS: The ASGS does not support the construction of forecast scenarios from gridded meteorology stored on the local filesystem."
             si=$[$si + 1]
-            if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
+            if [[ $si -ge $numScenarios ]]; then
                logMessage "$ENSTORM: $THIS: This is the last forecast scenario for this cycle. Proceeding to the next nowcast cycle."
             else
                logMessage "$ENSTORM: $THIS: Skipping this forecast scenario and proceeding to the next one."
@@ -2935,7 +2935,6 @@ while [ true ]; do
          continue
       fi
       subDirs=`find ${ADVISDIR} -maxdepth 1 -type d -print`
-      #debugMessage "subDirs is $subDirs" # jgfdebug
       if [[ ! -z $subDirs ]]; then  # see if we have any scenario directories
          #
          executeHookScripts "CAPACITY_WAIT"
@@ -2958,7 +2957,6 @@ while [ true ]; do
             for ensembleMemDir in $subDirs; do
                # ignore the nowcast and the advisory directory itself
                if [[ $ensembleMemDir = $ADVISDIR || $ensembleMemDir = "./nowcast" || $ensembleMemDir = "." || $ensembleMemDir = "$ADVISDIR/nowcast" ]]; then
-                  #debugMessage "ensembleMemDir $ensembleMemDir is the same as ADVISDIR $ADVISDIR" #jgfdebug
                   continue
                fi
                # parse the run.properties to see what the cpu request is for this job
@@ -2980,7 +2978,6 @@ while [ true ]; do
             done
             debugMessage "$ENSTORM: $THIS: The next scenario ('$ENSTORM') requires $NCPU compute cores and $NUMWRITERS dedicated writer cores. The number of CPUs currently engaged is $cpusEngaged. The max number of cores that can be engaged is $NCPUCAPACITY."
             if [[ $(($NCPU + $NUMWRITERS + $cpusEngaged)) -le $NCPUCAPACITY ]]; then
-               #debugMessage "Sufficient capacity exists to run the next job."
                break      # we now have the spare capacity to run this scenario
             else
                logMessage "$ENSTORM: $THIS: Insufficient capacity to submit the next job. Sleeping for 1 minute."
@@ -3101,7 +3098,7 @@ while [ true ]; do
          if [[ $runme -eq 0 ]]; then
             # increment the scenario package counter
             si=$((si + 1))
-            if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
+            if [[ $si -ge $numScenarios ]]; then
                logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to seeking the next nowcast."
             else
                logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to the next forecast scenario."
@@ -3194,7 +3191,7 @@ while [ true ]; do
       if [[ ! -d $STORMDIR ]]; then
          # increment the scenario package counter
          si=$((si + 1))
-         if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
+         if [[ $si -ge $numScenarios ]]; then
             logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to seeking the next nowcast."
          else
             logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to the next forecast scenario."
@@ -3239,7 +3236,7 @@ while [ true ]; do
       if [[ ! -d $STORMDIR ]]; then
          # increment the scenario package counter
          si=$((si + 1))
-         if [[ $si -ge $SCENARIOPACKAGESIZE ]]; then
+         if [[ $si -ge $numScenarios ]]; then
             logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to seeking the next nowcast."
          else
             logMessage "${ADVISORY}.${SCENARIO}: $THIS: This forecast will not be run. Moving on to the next forecast scenario."
