@@ -23,7 +23,7 @@
 
 # Fundamental
 
-INSTANCENAME=test001 # "name" of this ASGS process
+INSTANCENAME=test003 # "name" of this ASGS process
 
 # Input files and templates
 
@@ -83,7 +83,7 @@ LASTSUBDIR=null
 # Scenario package
 #
 PERCENT=default
-SCENARIOPACKAGESIZE=1    # <-----<< issue-1666 test001 set to wrong value b/c ASGS calculates automatically
+SCENARIOPACKAGESIZE=auto    # <-----<< issue-1666 test003 set to auto; ASGS calculates automatically
 case $si in
    -2)
        ENSTORM=hindcast
