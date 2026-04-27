@@ -47,7 +47,7 @@ STORMDIR=stormdir
 SSHKEY=null
 PPN=1
 HOTSWAN=off
-ENSTORM=hindcast
+ENSTORM=null
 CYCLETIMELIMIT="05:00:00"
 EXITONERROR="no" # or "yes" to simply exit if the nowcast fails
 # Operators should set the value of this parameter
