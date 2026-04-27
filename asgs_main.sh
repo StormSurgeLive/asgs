@@ -1654,7 +1654,8 @@ handleFailedJob()
       fi
    fi
 }
-#
+
+# import functions
 source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/platforms.sh            # this includes source $SCRIPTDIR/monitoring/logging.sh
 source $SCRIPTDIR/properties.sh           # read properties file into a hash
@@ -1737,9 +1738,10 @@ fi
 readConfig # now we have the instancename and can name the asgs log file after it
 setSyslogFileName     # set the value of SYSLOG in monitoring/logging.sh
 nullifyHooks          # in manageHooks.sh
+addDefaultHooks       # after hooks are nullified, add back defaults
 #
 consoleMessage "$I START_INIT $GRIDNAME $HPCENVSHORT"
-executeHookScripts "START_INIT"
+executeHookScripts "START_INIT" || exit $?
 #
 # set a trap for a signal to reread the ASGS config file
 trap 'echo Received SIGUSR1. Re-reading ASGS configuration file. ; readConfig' USR1

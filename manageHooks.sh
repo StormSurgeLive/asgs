@@ -21,6 +21,13 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
+
+# added default hooks - can be removed in ASGS_CONFIG
+addDefaultHooks()
+{
+    addScriptTo START_INIT "lint-checks.sh"
+}
+
 # Executed upon startup initialization
 nullifyHooks()
 {
@@ -117,7 +124,7 @@ timestampHook()
     if [[ $mypath != "null" ]]; then
         mypath=\"$mypath\"
     fi
-    json="{ \"time\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"path\" : $mypath, \"statusfile\" : $status, \"statusURL\" : $statusURL }"
+    json="{ \"time\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\" \"path\" : $mypath, \"statusfile\" : $status, \"statusURL\" : $statusURL }"
     # determine number of spaces required to get the status objects to line up
     longestHookKey=0
     for h in ${allHooks[@]} ; do
@@ -131,7 +138,7 @@ timestampHook()
         hooksTimes[$hook]="$spaces$json"   # nuke out the null entry
     else
         printf -v spaces "%*s%s" $len " "
-        hooksTimes[$hook]+=",\n$spaces$json"  # add it to the list
+        hooksTimes[$hook]+="\n$spaces$json"  # add it to the list
     fi
     latestHook=$hook  # to be written into the status file
 }
@@ -146,20 +153,20 @@ writeHookStatus()
     # write the time value(s) associated with each hook; will be null
     # if that hook has not been reached for this cycle
     echo "{" > $jsonfile # <-<< OVERWRITE
-    echo \""hpc.hpcenv\" : \"$HPCENV\"," >> $jsonfile
-    echo \""instancename\" : \"$INSTANCENAME\"," >> $jsonfile
-    echo \""path.rundir\" : \"$RUNDIR\"," >> $jsonfile
-    echo \""path.scriptdir\" : \"$SCRIPTDIR\"," >> $jsonfile
+    echo \""hpc.hpcenv\" : \"$HPCENV\"" >> $jsonfile
+    echo \""instancename\" : \"$INSTANCENAME\"" >> $jsonfile
+    echo \""path.rundir\" : \"$RUNDIR\"" >> $jsonfile
+    echo \""path.scriptdir\" : \"$SCRIPTDIR\"" >> $jsonfile
     if [[ $LASTSUBDIR != "null" ]]; then
-       echo \""path.lastsubdir\" : \"$LASTSUBDIR\"," >> $jsonfile
+       echo \""path.lastsubdir\" : \"$LASTSUBDIR\"" >> $jsonfile
     else
        echo \""path.lastsubdir\" : null," >> $jsonfile
     fi
-    echo \""monitoring.logging.file.syslog\" : \"$SYSLOG\"," >> $jsonfile
-    echo \""config.file\" : \"$CONFIG\"," >> $jsonfile
+    echo \""monitoring.logging.file.syslog\" : \"$SYSLOG\"" >> $jsonfile
+    echo \""config.file\" : \"$CONFIG\"" >> $jsonfile
     echo "\"monitoring.hook\" : {" >> $jsonfile
     for k in ${allHooks[@]} ; do
-        comma="," ; if [[ $k == "EXIT_STAGE" ]]; then comma="" ; fi
+        comma="" ; if [[ $k == "EXIT_STAGE" ]]; then comma="" ; fi
         if [[ ${hooksTimes[$k]} != "null" ]]; then
             echo -n "    \"$k\" : [ "           >> $jsonfile
             echo -e "${hooksTimes[$k]} ]$comma" >> $jsonfile
@@ -170,12 +177,12 @@ writeHookStatus()
     done
     echo "}," >> $jsonfile
     # update time stamp
-    echo "\"asgs.instance.status.file\" : \"asgs.instance.status.json\"," >> $jsonfile
-    echo "\"asgs.instance.status.url\" : \"$asgsInstanceStatusURL\","   >> $jsonfile
-    echo "\"time.hook.status.lastupdated\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"," >> $jsonfile
-    echo "\"hook.status.url\" : \"$hookStatusURL\","                    >> $jsonfile
-    echo "\"hook.status.file.previous\" : \"$previousHookStatusFile\"," >> $jsonfile
-    echo "\"hook.status.url.previous\" : \"$previousHookStatusURL\","   >> $jsonfile
+    echo "\"asgs.instance.status.file\" : \"asgs.instance.status.json\"" >> $jsonfile
+    echo "\"asgs.instance.status.url\" : \"$asgsInstanceStatusURL\""   >> $jsonfile
+    echo "\"time.hook.status.lastupdated\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" >> $jsonfile
+    echo "\"hook.status.url\" : \"$hookStatusURL\""                    >> $jsonfile
+    echo "\"hook.status.file.previous\" : \"$previousHookStatusFile\"" >> $jsonfile
+    echo "\"hook.status.url.previous\" : \"$previousHookStatusURL\""   >> $jsonfile
     echo "\"hook.status.latest\" : \"$latestHook\""                     >> $jsonfile
     echo "}"                                                            >> $jsonfile
     # redact the username for security
@@ -185,38 +192,54 @@ writeHookStatus()
 # execute hook scripts
 executeHookScripts()
 {
-    hook=$1
+    local hook="$1"
     local THIS="asgs_main->manageHooks->executeHookScripts()"
-    local STATUSLOG=$RUNDIR/status.log
-    timestampHook $hook
-    if [[ $hook != "START_INIT" ]]; then
-        echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Executing scripts for the $hook hook." >> $STATUSLOG
+    local STATUSLOG="$RUNDIR/status.log"
+    if [[ "$RUNDIR" == "null" ]]; then
+      STATUSLOG="$SCRIPTDIR/status.log"
+    fi
+    local hs
+    local rc
+
+    timestampHook "$hook"
+
+    if [[ "$hook" != "START_INIT" ]]; then
+        echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Executing scripts for the $hook hook." >> "$STATUSLOG"
         consoleMessage "$I ${hook}"
         # write status immediately, in case one of the hook scripts
         # wants to post the status file somewhere
         # (can't write status file immediately for the START_INIT script
         # b/c RUNDIR not established yet)
-        if [[ $hook == "FINISH_INIT" ]]; then
-            notifyNow=$enableStatusNotify
+        if [[ "$hook" == "FINISH_INIT" ]]; then
+            notifyNow="$enableStatusNotify"
         else
             notifyNow="no"
         fi
         writeASGSInstanceStatus
         writeHookStatus
-        if [[ $enablePostStatus == "yes" ]]; then
+        if [[ "$enablePostStatus" == "yes" ]]; then
             postStatus
         fi
     fi
+
     for hs in ${hooksScripts[$hook]} ; do
-        if [[ $hook != "START_INIT" ]]; then
-           echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Executing $hook hook script $SCRIPTDIR/$hs." >> $STATUSLOG
+        if [[ "$hook" != "START_INIT" ]]; then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Executing $hook hook script $SCRIPTDIR/$hs." >> "$STATUSLOG"
         fi
-        $SCRIPTDIR/$hs >> ${SYSLOG} 2>&1
+
+        "$SCRIPTDIR/$hs" 2>&1 | tee -a "$SYSLOG"
+        rc=${PIPESTATUS[0]}
+
+        if (( rc != 0 )); then
+            echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $THIS: Hook script $SCRIPTDIR/$hs exited with status $rc." >> "$STATUSLOG"
+            return "$rc"
+        fi
     done
-    if [[ $hook == "FINISH_FORECAST_STAGE" ]]; then
-        previousHookStatusFile=${ADVISORY}.hook.status.json
-        previousHookStatusURL=$hookStatusURL
-        mv $RUNDIR/status/hook.status.json $RUNDIR/status/$previousHookStatusFile 2>> $SYSLOG
+
+    if [[ "$hook" == "FINISH_FORECAST_STAGE" ]]; then
+        previousHookStatusFile="${ADVISORY}.hook.status.json"
+        previousHookStatusURL="$hookStatusURL"
+        mv "$RUNDIR/status/hook.status.json" "$RUNDIR/status/$previousHookStatusFile" 2>> "$SYSLOG"
         nullifyNowcastForecastHooks # clears out the timestamps and statuses of these hooks
     fi
 }
@@ -225,7 +248,7 @@ executeHookScripts()
 #
 # sample usage:
 #
-#  addHookScript FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
+#  addScriptTo FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
 #
 addScriptTo()
 {
@@ -233,22 +256,46 @@ addScriptTo()
     local hookScript="$2"
     local wasFound="false"
     local THIS="asgs_main->manageHooks->addScriptTo_${hook}()"
+    local k
+    local current_list=""
+    local target_array=""
+
+    # Figure out which array is actually in use.
+    if declare -p hookScripts >/dev/null 2>&1; then
+        target_array="hookScripts"
+        current_list="${hookScripts["$hook"]:-}"
+    elif declare -p hooksScripts >/dev/null 2>&1; then
+        target_array="hooksScripts"
+        current_list="${hooksScripts["$hook"]:-}"
+    else
+        # Neither exists yet; create one canonical associative array.
+        declare -gA hookScripts
+        target_array="hookScripts"
+        current_list=""
+    fi
+
     if [[ ! -x "$hookScript" ]]; then
         consoleMessage "$W ${THIS}: The '$hook' hook script '$hookScript' was not found or is not executable, so it will not be used."
-    else
-        # check for duplicates
-        for k in ${hookScripts["$hook"]} ; do
-            if [[ "$k" == "$hookScript" ]]; then
-                wasFound="true"
-            fi
-        done
-        if [[ $wasFound == "false" ]]; then
-            logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
-            hooksScripts["$hook"]+=" $hookScript"
-        else
-            # this script has already been added to this hook
-            logMessage "$I ${THIS}: The the '$hook' hook script '$hookScript' had already been added, and will not be added again (to avoid duplication)."
+        return 0
+    fi
+
+    for k in $current_list; do
+        if [[ "$k" == "$hookScript" ]]; then
+            wasFound="true"
+            break
         fi
+    done
+
+    if [[ "$wasFound" == "false" ]]; then
+        logMessage "$I ${THIS}: Adding the '$hook' hook script '$hookScript'."
+        current_list="${current_list:+$current_list }$hookScript"
+        if [[ "$target_array" == "hookScripts" ]]; then
+            hookScripts["$hook"]="$current_list"
+        else
+            hooksScripts["$hook"]="$current_list"
+        fi
+    else
+        logMessage "$I ${THIS}: The '$hook' hook script '$hookScript' had already been added, and will not be added again (to avoid duplication)."
     fi
 }
 #
@@ -256,27 +303,65 @@ addScriptTo()
 #
 # sample usage:
 #
-#  removeHookScript FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
+#  removeScriptFrom FINISH_NOWCAST_SCENARIO output/includeWind10m.sh
 #
 removeScriptFrom()
 {
     local hook="$1"
     local hookScript="$2"
-    local s=""          # list of scripts for this hook
+    local s=""
     local wasFound="false"
     local THIS="asgs_main->manageHooks->removeScriptFrom_${hook}()"
-    for k in ${hookScripts["$hook"]}; do
-        if [[ $k != "$hookScript" ]]; then
-            s+=" $k"
+    local k
+    local current_list=""
+    local target_array=""
+
+    # Figure out which array is actually in use.
+    if declare -p hookScripts >/dev/null 2>&1; then
+        target_array="hookScripts"
+        current_list="${hookScripts["$hook"]:-}"
+    elif declare -p hooksScripts >/dev/null 2>&1; then
+        target_array="hooksScripts"
+        current_list="${hooksScripts["$hook"]:-}"
+    else
+        # Nothing exists yet; nothing to remove.
+        declare -gA hookScripts
+        target_array="hookScripts"
+        current_list=""
+    fi
+
+    for k in $current_list; do
+        if [[ "$k" != "$hookScript" ]]; then
+            s="${s:+$s }$k"
         else
             wasFound="true"
             logMessage "$I ${THIS}: Removing the '$hook' hook script '$hookScript'."
         fi
     done
-    hookScripts["$hook"]="$s"
-    if [[ $wasFound == "false" ]]; then
+
+    if [[ "$target_array" == "hookScripts" ]]; then
+        hookScripts["$hook"]="$s"
+    else
+        hooksScripts["$hook"]="$s"
+    fi
+
+    if [[ "$wasFound" == "false" ]]; then
         logMessage "$I ${THIS}: Tried to remove the '$hook' hook script '$hookScript' but it was not found in the list of scripts for that hook."
     fi
+}
+#
+# list of hook-specific routines
+#
+# START_INIT
+addScriptTo_START_INIT()
+{
+    local hookScript="$1"
+    addScriptTo "START_INIT" "$hookScript"
+}
+removeScriptFrom_START_INIT()
+{
+    local hookScript="$1"
+    removeScriptFrom "START_INIT" "$hookScript"
 }
 #
 # hook-specific routine to add a hook script
@@ -288,7 +373,7 @@ removeScriptFrom()
 addScriptTo_FINISH_NOWCAST_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "FINISH_NOWCAST_SCENARIO", "$hookScript"
+    addScriptTo "FINISH_NOWCAST_SCENARIO" "$hookScript"
 }
 #
 # hook-specific routine to remove a hook script
@@ -300,7 +385,7 @@ addScriptTo_FINISH_NOWCAST_SCENARIO()
 removeScriptFrom_FINISH_NOWCAST_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "FINISH_NOWCAST_SCENARIO", "$hookScript"
+    removeScriptFrom "FINISH_NOWCAST_SCENARIO" "$hookScript"
 }
 #
 # list of hook-specific routines
@@ -309,219 +394,219 @@ removeScriptFrom_FINISH_NOWCAST_SCENARIO()
 addScriptTo_FINISH_INIT()
 {
     local hookScript="$1"
-    addScriptTo "FINISH_INIT", "$hookScript"
+    addScriptTo "FINISH_INIT" "$hookScript"
 }
 removeScriptFrom_FINISH_INIT()
 {
     local hookScript="$1"
-    removeScriptFrom "FINISH_INIT", "$hookScript"
+    removeScriptFrom "FINISH_INIT" "$hookScript"
 }
 # START_SPINUP_STAGE
 addScriptTo_START_SPINUP_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "START_SPINUP_STAGE", "$hookScript"
+    addScriptTo "START_SPINUP_STAGE" "$hookScript"
 }
 removeScriptFrom_START_SPINUP_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "START_SPINUP_STAGE", "$hookScript"
+    removeScriptFrom "START_SPINUP_STAGE" "$hookScript"
 }
 # HOT_SPINUP
 addScriptTo_HOT_SPINUP()
 {
     local hookScript="$1"
-    addScriptTo "HOT_SPINUP", "$hookScript"
+    addScriptTo "HOT_SPINUP" "$hookScript"
 }
 removeScriptFrom_HOT_SPINUP()
 {
     local hookScript="$1"
-    removeScriptFrom "HOT_SPINUP", "$hookScript"
+    removeScriptFrom "HOT_SPINUP" "$hookScript"
 }
 # FINISH_SPINUP_STAGE
 addScriptTo_FINISH_SPINUP_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "FINISH_SPINUP_STAGE", "$hookScript"
+    addScriptTo "FINISH_SPINUP_STAGE" "$hookScript"
 }
 removeScriptFrom_FINISH_SPINUP_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "FINISH_SPINUP_STAGE", "$hookScript"
+    removeScriptFrom "FINISH_SPINUP_STAGE" "$hookScript"
 }
 # BUILD_SPINUP
 addScriptTo_BUILD_SPINUP()
 {
     local hookScript="$1"
-    addScriptTo "BUILD_SPINUP", "$hookScript"
+    addScriptTo "BUILD_SPINUP" "$hookScript"
 }
 removeScriptFrom_BUILD_SPINUP()
 {
     local hookScript="$1"
-    removeScriptFrom "BUILD_SPINUP", "$hookScript"
+    removeScriptFrom "BUILD_SPINUP" "$hookScript"
 }
 # SUBMIT_SPINUP
 addScriptTo_SUBMIT_SPINUP()
 {
     local hookScript="$1"
-    addScriptTo "SUBMIT_SPINUP", "$hookScript"
+    addScriptTo "SUBMIT_SPINUP" "$hookScript"
 }
 removeScriptFrom_SUBMIT_SPINUP()
 {
     local hookScript="$1"
-    removeScriptFrom "SUBMIT_SPINUP", "$hookScript"
+    removeScriptFrom "SUBMIT_SPINUP" "$hookScript"
 }
 # FINISH_SPINUP_SCENARIO
 addScriptTo_FINISH_SPINUP_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "FINISH_SPINUP_SCENARIO", "$hookScript"
+    addScriptTo "FINISH_SPINUP_SCENARIO" "$hookScript"
 }
 removeScriptFrom_FINISH_SPINUP_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "FINISH_SPINUP_SCENARIO", "$hookScript"
+    removeScriptFrom "FINISH_SPINUP_SCENARIO" "$hookScript"
 }
 # START_NOWCAST_STAGE
 addScriptTo_START_NOWCAST_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "START_NOWCAST_STAGE", "$hookScript"
+    addScriptTo "START_NOWCAST_STAGE" "$hookScript"
 }
 removeScriptFrom_START_NOWCAST_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "START_NOWCAST_STAGE", "$hookScript"
+    removeScriptFrom "START_NOWCAST_STAGE" "$hookScript"
 }
 # NOWCAST_POLLING
 addScriptTo_NOWCAST_POLLING()
 {
     local hookScript="$1"
-    addScriptTo "NOWCAST_POLLING", "$hookScript"
+    addScriptTo "NOWCAST_POLLING" "$hookScript"
 }
 removeScriptFrom_NOWCAST_POLLING()
 {
     local hookScript="$1"
-    removeScriptFrom "NOWCAST_POLLING", "$hookScript"
+    removeScriptFrom "NOWCAST_POLLING" "$hookScript"
 }
 # NOWCAST_TRIGGERED
 addScriptTo_NOWCAST_TRIGGERED()
 {
     local hookScript="$1"
-    addScriptTo "NOWCAST_TRIGGERED", "$hookScript"
+    addScriptTo "NOWCAST_TRIGGERED" "$hookScript"
 }
 removeScriptFrom_NOWCAST_TRIGGERED()
 {
     local hookScript="$1"
-    removeScriptFrom "NOWCAST_TRIGGERED", "$hookScript"
+    removeScriptFrom "NOWCAST_TRIGGERED" "$hookScript"
 }
 # BUILD_NOWCAST_SCENARIO
 addScriptTo_BUILD_NOWCAST_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "BUILD_NOWCAST_SCENARIO", "$hookScript"
+    addScriptTo "BUILD_NOWCAST_SCENARIO" "$hookScript"
 }
 removeScriptFrom_BUILD_NOWCAST_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "BUILD_NOWCAST_SCENARIO", "$hookScript"
+    removeScriptFrom "BUILD_NOWCAST_SCENARIO" "$hookScript"
 }
 # SUBMIT_NOWCAST_SCENARIO
 addScriptTo_SUBMIT_NOWCAST_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "SUBMIT_NOWCAST_SCENARIO", "$hookScript"
+    addScriptTo "SUBMIT_NOWCAST_SCENARIO" "$hookScript"
 }
 removeScriptFrom_SUBMIT_NOWCAST_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "SUBMIT_NOWCAST_SCENARIO", "$hookScript"
+    removeScriptFrom "SUBMIT_NOWCAST_SCENARIO" "$hookScript"
 }
 # FINISH_NOWCAST_STAGE
 addScriptTo_FINISH_NOWCAST_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "FINISH_NOWCAST_STAGE", "$hookScript"
+    addScriptTo "FINISH_NOWCAST_STAGE" "$hookScript"
 }
 removeScriptFrom_FINISH_NOWCAST_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "FINISH_NOWCAST_STAGE", "$hookScript"
+    removeScriptFrom "FINISH_NOWCAST_STAGE" "$hookScript"
 }
 # START_FORECAST_STAGE
 addScriptTo_START_FORECAST_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "START_FORECAST_STAGE", "$hookScript"
+    addScriptTo "START_FORECAST_STAGE" "$hookScript"
 }
 removeScriptFrom_START_FORECAST_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "START_FORECAST_STAGE", "$hookScript"
+    removeScriptFrom "START_FORECAST_STAGE" "$hookScript"
 }
 # INITIALIZE_FORECAST_SCENARIO
 addScriptTo_INITIALIZE_FORECAST_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "INITIALIZE_FORECAST_SCENARIO", "$hookScript"
+    addScriptTo "INITIALIZE_FORECAST_SCENARIO" "$hookScript"
 }
 removeScriptFrom_INITIALIZE_FORECAST_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "INITIALIZE_FORECAST_SCENARIO", "$hookScript"
+    removeScriptFrom "INITIALIZE_FORECAST_SCENARIO" "$hookScript"
 }
 # CAPACITY_WAIT
 addScriptTo_CAPACITY_WAIT()
 {
     local hookScript="$1"
-    addScriptTo "CAPACITY_WAIT", "$hookScript"
+    addScriptTo "CAPACITY_WAIT" "$hookScript"
 }
 removeScriptFrom_CAPACITY_WAIT()
 {
     local hookScript="$1"
-    removeScriptFrom "CAPACITY_WAIT", "$hookScript"
+    removeScriptFrom "CAPACITY_WAIT" "$hookScript"
 }
 # BUILD_FORECAST_SCENARIO
 addScriptTo_BUILD_FORECAST_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "BUILD_FORECAST_SCENARIO", "$hookScript"
+    addScriptTo "BUILD_FORECAST_SCENARIO" "$hookScript"
 }
 removeScriptFrom_BUILD_FORECAST_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "BUILD_FORECAST_SCENARIO", "$hookScript"
+    removeScriptFrom "BUILD_FORECAST_SCENARIO" "$hookScript"
 }
 # SUBMIT_FORECAST_SCENARIO
 addScriptTo_SUBMIT_FORECAST_SCENARIO()
 {
     local hookScript="$1"
-    addScriptTo "SUBMIT_FORECAST_SCENARIO", "$hookScript"
+    addScriptTo "SUBMIT_FORECAST_SCENARIO" "$hookScript"
 }
 removeScriptFrom_SUBMIT_FORECAST_SCENARIO()
 {
     local hookScript="$1"
-    removeScriptFrom "SUBMIT_FORECAST_SCENARIO", "$hookScript"
+    removeScriptFrom "SUBMIT_FORECAST_SCENARIO" "$hookScript"
 }
 # FINISH_FORECAST_STAGE
 addScriptTo_FINISH_FORECAST_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "FINISH_NOWCAST_SCENARIO", "$hookScript"
+    addScriptTo "FINISH_NOWCAST_SCENARIO" "$hookScript"
 }
 removeScriptFrom_FINISH_FORECAST_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "FINISH_FORECAST_STAGE", "$hookScript"
+    removeScriptFrom "FINISH_FORECAST_STAGE" "$hookScript"
 }
 # EXIT_STAGE
 addScriptTo_EXIT_STAGE()
 {
     local hookScript="$1"
-    addScriptTo "EXIT_STAGE", "$hookScript"
+    addScriptTo "EXIT_STAGE" "$hookScript"
 }
 removeScriptFrom_EXIT_STAGE()
 {
     local hookScript="$1"
-    removeScriptFrom "EXIT_STAGE", "$hookScript"
+    removeScriptFrom "EXIT_STAGE" "$hookScript"
 }
