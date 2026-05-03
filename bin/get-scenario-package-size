@@ -35,7 +35,7 @@ _getScenarioPackageSize() {
     # maintain backward compatibility with old config files
     SCENARIOPACKAGESIZE=-1
     ENSEMBLESIZE=-1
-    source $ASGS_CONFIG
+    source $ASGS_CONFIG > /dev/null 2>&1  # suppress chatter from the config file
     if [[ $ENSEMBLESIZE -ne -1 ]]; then
       SCENARIOPACKAGESIZE=$ENSEMBLESIZE   # ENSEMBLESIZE is deprecated
     fi

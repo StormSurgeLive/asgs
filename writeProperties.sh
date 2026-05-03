@@ -207,9 +207,6 @@ writeProperties()
    echo "instance : $INSTANCENAME" >> $STORMDIR_RUN_PROPERTIES
    echo "pseudostorm : $PSEUDOSTORM" >> $STORMDIR_RUN_PROPERTIES
    echo "intendedAudience : $INTENDEDAUDIENCE" >> $STORMDIR_RUN_PROPERTIES
-   if [[ $NWS -eq 0 ]]; then
-      echo "WindModel : none" >> $STORMDIR_RUN_PROPERTIES
-   fi
 }
 #
 # write properties that depend on the scenario but are not known

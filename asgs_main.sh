@@ -378,7 +378,6 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then
@@ -1641,6 +1640,13 @@ handleFailedJob()
    JOB_FAILED_LIST="${13}"
    ARCHIVEBASE=${14}
    THIS="asgs_main.sh>handleFailedJob()"
+   # check for duplicate properties in the run.properties file
+   numDuplicateProperties=$(awk 'BEGIN { FS=":" } a[$1]++ {dup++} END { printf "%d", dup}' run.properties)
+   if [[ $numDuplicateProperties -ne 0 ]]; then
+      warn "There are '$numDuplicateProperties' duplicate properties in the '$ADVISDIR/$ENSTORM/run.properties' file."
+      duplicateProperties=$(awk 'BEGIN { FS=":" } {count[$1]++} END {for (item in count) if (count[item] > 1) print item, count[item]}' run.properties)
+      logMessage "The duplicate properties and the number of times they were each duplicated are as follows: '$duplicateProperties'."
+   fi
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "$ENSTORM: $THIS: The job has failed."
@@ -3255,7 +3261,6 @@ while [ true ]; do
       fi
       # then submit the job
       logMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
-      writeJobResourceRequestProperties $SCENARIODIR
 
       echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
       #
