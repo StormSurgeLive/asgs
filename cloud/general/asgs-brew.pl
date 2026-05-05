@@ -744,7 +744,7 @@ sub get_steps {
                 ASGS_MESH_DEFAULTS     => { value  => qq{$scriptdir/config/mesh_defaults.sh},     how  => q{replace} },          # list of supported meshes
                 ASGS_PLATFORMS         => { value  => qq{$scriptdir/platforms.sh},                how  => q{replace} },          # list of supported platforms
                 QUALITYSETTING         => { value  => q{strict},                                  how  => q{replace} },          # default quality check level
-                LINTSETTING            => { value  => q{warn},                                  how  => q{replace} },          # defaultasgs-lint level
+                LINTSETTING            => { value  => q{warn},                                    how  => q{replace} },          # defaultasgs-lint level
             },
         },
         {
