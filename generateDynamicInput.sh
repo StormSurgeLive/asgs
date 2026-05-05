@@ -319,9 +319,10 @@ generateDynamicInput()
     cat $SCENARIODIR/${SCENARIO}.run-control.properties >> $SCENARIODIR/run.properties 2>> $SYSLOG
     # copy properties that are specific to a certain
     # layer to the general run.properties file
-    for l in ${layers[@]}; do
-        if [[ -e $SCENARIODIR/${l}.run-control.properties ]]; then
-            cat $SCENARIODIR/${l}.run-control.properties | grep $l >> $SCENARIODIR/run.properties 2>> $SYSLOG
+    for l in "${layers[@]}"; do
+        if [[ -f "$SCENARIODIR/${l}.run-control.properties" ]]; then
+            grep "$l" "$SCENARIODIR/${l}.run-control.properties" \
+                >> "$SCENARIODIR/run.properties" 2>> "$SYSLOG"
         fi
     done
 }
