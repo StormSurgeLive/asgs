@@ -2855,7 +2855,7 @@ while [ true ]; do
    THIS="asgs_main.sh"
 
    logMessage "$THIS: Counting the number of scenarios in the scenario package."
-   numScenarios=$(get-scenario-package-size)
+   numScenarios=$(get-scenario-package-size $SYSLOG)
    # if the Operator did not set the SCENARIOPACKAGESIZE in the config file,
    # its value will be -1
    if [[ $SCENARIOPACKAGESIZE != "auto" && $SCENARIOPACKAGESIZE -ne $numScenarios && $SCENARIOPACKAGESIZE -ne -1 ]]; then

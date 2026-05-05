@@ -28,6 +28,9 @@ if [ -z "$_ASGSH_PID" ]; then
 fi
 
 _getScenarioPackageSize() {
+  # need to be able to call logMessage()
+  SYSLOG=$1
+  source $SCRIPTDIR/monitoring/logging.sh
   si=0
   while [ 1 ]; do
     SCENARIO="null"
@@ -35,7 +38,8 @@ _getScenarioPackageSize() {
     # maintain backward compatibility with old config files
     SCENARIOPACKAGESIZE=-1
     ENSEMBLESIZE=-1
-    source $ASGS_CONFIG > /dev/null 2>&1  # suppress chatter from the config file
+    # redirect chatter from the config file
+    source $ASGS_CONFIG > scenariomsg 2>&1
     if [[ $ENSEMBLESIZE -ne -1 ]]; then
       SCENARIOPACKAGESIZE=$ENSEMBLESIZE   # ENSEMBLESIZE is deprecated
     fi
@@ -43,7 +47,10 @@ _getScenarioPackageSize() {
       SCENARIO=$ENSTORM                   # ENSTORM is deprecated
     fi
     if [[ $SCENARIO == "null" ]]; then
-      logMessage "$THIS: There are '$si' scenarios in the scenario package."
+      if [[ $(<scenariomsg) != "" ]]; then
+         logMessage "$THIS: Success in finding the end of the forecast scenario list is indicated by the following scenario message: '$(<scenariomsg)'."
+      fi
+      logMessage "$THIS: There are '$si' scenario(s) in the scenario package."
       break
     fi
     ((si++))
