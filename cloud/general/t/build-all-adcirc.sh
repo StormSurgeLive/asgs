@@ -19,6 +19,7 @@ versions=(
   v56.0.2
   v56.0.4
   v56.0.4.live.0
+  v56.2.1
 )
 
 echo "Using init-adcirc.sh at: $(command -v init-adcirc.sh)"
