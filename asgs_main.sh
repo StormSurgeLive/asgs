@@ -1641,11 +1641,12 @@ handleFailedJob()
    ARCHIVEBASE=${14}
    THIS="asgs_main.sh>handleFailedJob()"
    # check for duplicate properties in the run.properties file
-   numDuplicateProperties=$(awk 'BEGIN { FS=":" } a[$1]++ {dup++} END { printf "%d", dup}' run.properties)
+   # check for duplicate property keys in the run.properties file (trimmed keys)
+   numDuplicateProperties=$(awk -f $SCRIPTDIR/util/output/countDuplicatePropertyKeys.awk run.properties)
    if [[ $numDuplicateProperties -ne 0 ]]; then
-      warn "There are '$numDuplicateProperties' duplicate properties in the '$ADVISDIR/$ENSTORM/run.properties' file."
-      duplicateProperties=$(awk 'BEGIN { FS=":" } {count[$1]++} END {for (item in count) if (count[item] > 1) print item, count[item]}' run.properties)
-      logMessage "The duplicate properties and the number of times they were each duplicated are as follows: '$duplicateProperties'."
+      warn "There are '$numDuplicateProperties' duplicate property key occurrences in the '$ADVISDIR/$ENSTORM/run.properties' file."
+      duplicateProperties=$(awk -f $SCRIPTDIR/util/output/itemizeDuplicatePropertyKeys.awk run.properties)
+      logMessage "The duplicated property keys and the number of times they were found are as follows: '$duplicateProperties'."
    fi
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
