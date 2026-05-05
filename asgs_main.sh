@@ -378,7 +378,6 @@ prep()
     NAFILE=${17}  # full domain nodal attributes file
     #
     THIS="asgs_main.sh>prep()"
-    echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
     if [[ $START = coldstart ]]; then
@@ -1641,6 +1640,14 @@ handleFailedJob()
    JOB_FAILED_LIST="${13}"
    ARCHIVEBASE=${14}
    THIS="asgs_main.sh>handleFailedJob()"
+   # check for duplicate properties in the run.properties file
+   # check for duplicate property keys in the run.properties file (trimmed keys)
+   numDuplicateProperties=$(awk -f $SCRIPTDIR/util/output/countDuplicatePropertyKeys.awk run.properties)
+   if [[ $numDuplicateProperties -ne 0 ]]; then
+      warn "There are '$numDuplicateProperties' duplicate property key occurrences in the '$ADVISDIR/$ENSTORM/run.properties' file."
+      duplicateProperties=$(awk -f $SCRIPTDIR/util/output/itemizeDuplicatePropertyKeys.awk run.properties)
+      logMessage "The duplicated property keys and the number of times they were found are as follows: '$duplicateProperties'."
+   fi
    # check to see that the job did not conspicuously fail
    if [[ -e $ADVISDIR/${ENSTORM}/jobFailed ]]; then
       warn "$ENSTORM: $THIS: The job has failed."
@@ -2848,7 +2855,7 @@ while [ true ]; do
    THIS="asgs_main.sh"
 
    logMessage "$THIS: Counting the number of scenarios in the scenario package."
-   numScenarios=$(get-scenario-package-size)
+   numScenarios=$(get-scenario-package-size $SYSLOG)
    # if the Operator did not set the SCENARIOPACKAGESIZE in the config file,
    # its value will be -1
    if [[ $SCENARIOPACKAGESIZE != "auto" && $SCENARIOPACKAGESIZE -ne $numScenarios && $SCENARIOPACKAGESIZE -ne -1 ]]; then
@@ -3255,7 +3262,6 @@ while [ true ]; do
       fi
       # then submit the job
       logMessage "$ENSTORM: $THIS: Submitting scenario package member ${ENSTORM}."
-      writeJobResourceRequestProperties $SCENARIODIR
 
       echo "hpc.job.${JOBTYPE}.limit.walltime : $FORECASTWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
       #
