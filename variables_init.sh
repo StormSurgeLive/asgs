@@ -29,7 +29,8 @@ variables_init()
    HPCENV=${HPCENV:-null}
    BACKGROUNDMET=on
    QUALITYCONTROL=$SCRIPTDIR/util/output/quality.sh
-   QUALITYSETTING=strict
+   QUALITYSETTING=${QUALITYSETTING:-strict}
+   LINTSETTING=${LINTSETTING:-warn}
    NWS=0
    BASENWS=0
    # tides
