@@ -1150,6 +1150,31 @@ sub get_steps {
             },
         },
         {
+            key         => q{bc},
+            name        => q{Step for installing bc and dc},
+            description => q{Install bc for shell-based floating point calculations},
+            pwd         => qq{$scriptdir},
+            command     => qq{bash ./cloud/general/init-bc.sh $asgs_install_path},
+            clean       => qq{bash ./cloud/general/init-bc.sh $asgs_install_path clean},
+            skip_if     => sub {
+                local $?;
+                system(qq{bc --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+            precondition_check  => sub { 1 },
+            postcondition_check => sub {
+                local $?;
+                system(qq{$asgs_install_path/bin/bc --version > /dev/null 2>&1});
+
+                # look for zero exit code on success
+                my $exit_code = ( $? >> 8 );
+                return ( defined $exit_code and $exit_code == 0 ) ? 1 : 0;
+            },
+        },
+        {
             key         => q{asgs-lint},
             name        => q{Step for installing asgs-lint},
             description => q{Install asgs-lint, linter for ASGS configuration files},
