@@ -64,9 +64,9 @@ run_asgslint()
         exit $lint_err
       ;;
       *)
-       echo "${W} '${LINTSETTING}' is not a valid option for 'LINTSETTING'."
+        echo "${W} '${LINTSETTING}' is not a valid option for 'LINTSETTING'."
         echo "${I} ... to halt use 'strict', pause use 'prompt', to notify use 'warn' or 'info'; to silence use 'off'"
-       exit 1
+        exit 1
       ;;
     esac
   fi
