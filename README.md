@@ -13,3 +13,5 @@ To reach out via Chat, visit our Discord server: https://discord.gg/jFbacxrUf9
 For a **Quick Start**, see:
 
 https://github.com/StormSurgeLive/asgs/wiki/ASGS-Cheat-Sheet
+
+Or have a look at our [current roadmap](https://github.com/StormSurgeLive/asgs/wiki/Roadmap).
