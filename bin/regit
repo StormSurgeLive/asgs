@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+if [ -z "$_ASGSH_PID" ]; then
+  SCRIPTDIR=$2
+  if [ -z "$SCRIPTDIR" ]; then
+    echo "If this script is not run inside of the ASGS Shell Environment, asgsh."
+    echo "the path of the SCRIPTDIR must be provided as the second argument ..."
+    exit 1
+  fi
+fi
+
+VERSION_REF=$(tr -d '[:space:]' < ./VERSION)
+
+# refuse to reinitialize an existing git repo
+if [[ -e .git ]]; then
+  echo "ERROR: Git repository metadata already exists; refusing to reinitialize repository."
+  exit 1
+fi
+
+echo "Reconnecting extracted release tree to git ref '$VERSION_REF' ..."
+
+git init 2> /dev/null || exit 1
+
+git remote add origin git@github.com:StormSurgeLive/asgs.git || exit 1
+
+git fetch origin --tags || exit 1
+
+# determine whether VERSION refers to a branch or tag
+if git rev-parse --verify --quiet "origin/$VERSION_REF" >/dev/null; then
+  TARGET_REF="origin/$VERSION_REF"
+  LOCAL_BRANCH="$VERSION_REF"
+
+elif git rev-parse --verify --quiet "refs/tags/$VERSION_REF" >/dev/null; then
+  TARGET_REF="$VERSION_REF"
+  LOCAL_BRANCH="release-$VERSION_REF"
+
+else
+  echo "ERROR: VERSION ref '$VERSION_REF' not found on origin"
+  exit 1
+fi
+
+git checkout -B "$LOCAL_BRANCH" "$TARGET_REF" --force || exit 1
+
+git reset --hard "$TARGET_REF" || exit 1
+
+echo "Repository successfully reconnected to '$TARGET_REF'."
