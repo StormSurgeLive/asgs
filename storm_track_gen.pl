@@ -755,6 +755,10 @@ if ( -e $forecastATCF ) {
       # the cone of uncertainty
       # +100% will create a track that lies along the right edge of the cone
       # of uncertainty
+      if (($veerPercent ne "null") && ($tau == 0)) {
+         $old_lat = substr($_,34,4)/10.0; # from tenths of degs to degs
+         $old_lon = substr($_,41,4)/10.0; # from tenths of degs to degs
+      }
       if (($veerPercent ne "null") && ($tau != 0)) {
          my $radius;                 # radius of uncertainty
          $radius=interpolateUncertaintyRadius($tau);

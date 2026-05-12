@@ -30,6 +30,7 @@ fi
 # 2. Fix tests to reflect new expectations:
 #   a. for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   b. for f in $(ls single???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   c. for f in $(ls track??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 # 3. Collect run.properties into a single file for bulk inspection:
@@ -71,7 +72,6 @@ numArgSets=4     # number of sets of command line arguments
 ADVISDIR=$PWD
 SCENARIODIR=$PWD
 #
-
 pass=0
 fail=0
 declare -a actualFails
@@ -104,8 +104,36 @@ for a in $(seq 1 $numArgSets) ; do
 done
 # now run one-off tests for individual cases to
 # prevent regression
-numSingleTests=1
+numSingleTests=18
 argSets['s001']="--dir ./single001 --storm 07 --year 2010 --name nowcast --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2010073000 --strengthPercent null --test"
+#
+# set up branching ensemble tracks
+v=-100 # veer amount
+for s in $(seq 2 18); do
+    argSetNum=$(printf "%03d" $s)
+    trackNum=$(printf "%02d" $((s - 1)) )
+    trackPrefix=
+    case ${v:0:1} in
+    "-")
+        trackPrefix=Left
+        ;;
+    "0")
+        trackPrefix=nhcTrack
+        ;;
+     *)
+        trackPrefix=Right
+        ;;
+    esac
+    trackNamePercent=$(echo "$v" | sed 's/-//')
+    trackName="${trackNum}.veer$trackPrefix$trackNamePercent"
+    if (( $(echo "$v == 0.0" | bc -l) )); then
+        trackName="${trackNum}.nhcTrack"
+    fi
+    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds 86400.0 --coldstartdate 2020082300 --percent $v --test"
+    v=$(echo "scale=1; $v + 12.5" | bc)
+done
+# generate track with interpolated data every 12 hours to support branching ensemble tracks
+#argSets['s002']="--dir ./single002 --storm 13 --year 2020 --name cooperative17 --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2020092818 --strengthPercent null --test"
 for t in $(seq 1 $numSingleTests) ; do
     testNumber=$(printf "%03d" $t)
     SYSLOG="single${testNumber}.actual.syslog.log"
@@ -124,11 +152,28 @@ for t in $(seq 1 $numSingleTests) ; do
     for o in ${output[@]} ; do
         for f in $(ls *$o 2> /dev/null); do
             if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
-                mv $f single${testNumber}.actual.$f
+                if [[ $t -lt 2 ]]; then
+                    mv $f single${testNumber}.actual.$f
+                else
+                    trackNum=$(printf "%02d" $((t - 1)) )
+                    mv $f track${trackNum}.actual.$f
+                fi
             fi
         done
     done
 done
+# collect track files together into a single .vtp file
+# for visualization and quality checking
+trackFiles=
+for t in $(seq 1 17); do
+    trackNum=$(printf "%02d" $t)
+    trackFile="track${trackNum}.actual.fort.22"
+    trackFiles+="${trackFile},"
+done
+SYSLOG="tracks.actual.syslog.log"
+perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
+mv tracks.vtp tracks.actual.vtp
+#
 # now compare results
 for f in $(ls *actual*) ; do
    g=${f//actual/expected}

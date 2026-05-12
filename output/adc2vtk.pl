@@ -27,6 +27,7 @@
 use strict;
 $^W++;
 use Getopt::Long;
+use ASGSUtil;
 #
 my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "maxwvel.63", "MaximumWindSpeed",
@@ -106,6 +107,7 @@ my @adcircfiles;    # fulldomain adcirc output file names, comma separated
                     # with no spaces
 my @trackfiles;     # storm track files (fort.22)
 my $excludeNonLeveeFluxBoundaries; # if only levee geometry should be generated
+my $test;    # true if this is being executed as a unit test
 #
 GetOptions(
            "jitter" => \$jitter,
@@ -121,7 +123,8 @@ GetOptions(
            "getElementIndices" => \$getElementIndices,
            "excludeNonLeveeFluxBoundaries" => \$excludeNonLeveeFluxBoundaries,
            "trackfiles=s" => \@trackfiles,
-           "adcircfiles=s" => \@adcircfiles
+           "adcircfiles=s" => \@adcircfiles,
+           "test" => \$test
          );
 #
 #
@@ -134,7 +137,7 @@ if ( !  @trackfiles ) {
    my $outfile = "tracks.vtp";
    # start writing vtk-formatted file
    unless (open(OUT,">$outfile")) {
-      stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.",$test);
       die;
    }
    # write header for VTP (track line file)
@@ -142,11 +145,11 @@ if ( !  @trackfiles ) {
    printf OUT "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
    printf OUT "   <PolyData>\n";
    foreach my $file (@trackfiles) {
-      stderrMessage("INFO","Processing $file.");
+      ASGSUtil::stderrMessage("INFO","Processing $file.",$test);
       # make sure we can actually open the adcirc file before going further
       unless (open(ADCIRCFILE,"<$file")) {
-         stderrMessage("ERROR",
-          "Failed to open ADCIRC file $file for reading: $!.");
+         ASGSUtil::stderrMessage("ERROR",
+          "Failed to open ADCIRC file $file for reading: $!.",$test);
          next;
       }
       my $z = 0.0;
@@ -252,15 +255,15 @@ unless ( @adcircfiles ) {
 }
 #
 if ( $meshfile eq "null" ) {
-   stderrMessage("INFO","Mesh file name was not provided or the file was not found. adc2vtk.pl is finished.");
+   ASGSUtil::stderrMessage("INFO","Mesh file name was not provided or the file was not found. adc2vtk.pl is finished.",$test);
    exit;
 }
 unless (open(MESH,"<$meshfile")) {
-   stderrMessage("ERROR","Failed to open mesh file $meshfile for reading: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open mesh file $meshfile for reading: $!.", $test);
    die;
 }
 # read number of nodes and number of elements from adcirc mesh file
-stderrMessage("INFO","Reading mesh file '$meshfile'.");
+ASGSUtil::stderrMessage("INFO","Reading mesh file '$meshfile'.",$test);
 my $agrid = <MESH>;     # read AGRID (comment line in mesh file)
 my $line = <MESH>;        # read number of elements and number of points line
 my @fields = split(' ',$line);
@@ -308,7 +311,7 @@ if ( defined $arcMapCSV ) {
    my $arcMapCSVMeshFileName = $meshfile . "_meshNodes.csv";
    my $ARCMAPMESHNODES;
    if (not open($ARCMAPMESHNODES,">","$arcMapCSVMeshFileName")) {
-      stderrMessage("ERROR","Failed to open $arcMapCSVMeshFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $arcMapCSVMeshFileName for writing: $!.",$test);
       die;
    }
    # node number , x , y, internal barrier height (m), bathymetric depth (m)
@@ -336,7 +339,7 @@ for (my $i=0; $i<$ne; $i++) {
 # Now read the elevation-specified boundary tables and write out as vtkPoints
 my $vtkElevationBoundaryFileName = $meshfile . "_elevBoundaries.vtp";
 unless (open(VTKELEVBOUNDARY,">$vtkElevationBoundaryFileName")) {
-   stderrMessage("ERROR","Failed to open $vtkElevationBoundaryFileName for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open $vtkElevationBoundaryFileName for writing: $!.",$test);
    die;
 }
 $line = <MESH>;
@@ -444,7 +447,7 @@ close(VTKELEVBOUNDARY);
 my $haveFort19 = "null";
 foreach my $file (@adcircfiles) {
    if ($file eq "fort.19" ) {
-      stderrMessage("INFO","Writing time varying aperiodic elevation boundary position.");
+      ASGSUtil::stderrMessage("INFO","Writing time varying aperiodic elevation boundary position.",$test);
       $haveFort19 = $file;
       #TODO: remove this file from the list so the script can continue
       # after writing the time varying elev boundary pts
@@ -453,7 +456,7 @@ foreach my $file (@adcircfiles) {
 if ($haveFort19 ne "null") {
    my $fort19BoundaryFileName = $meshfile . "_timeVaryingElevBoundaries.xmf";
    unless (open(FORT19BOUNDARY,">$fort19BoundaryFileName")) {
-      stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.",$test);
       die;
    }
    printf FORT19BOUNDARY "<?xml version=\"1.0\"?>\n";
@@ -464,7 +467,7 @@ if ($haveFort19 ne "null") {
    printf FORT19BOUNDARY "      <Grid Name=\"TimeSeries\" GridType=\"Collection\" CollectionType=\"Temporal\">\n";
    # open and start reading fort.19 file
    unless (open(FORT19DATA,"<fort.19")) {
-      stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.",$test);
       die;
    }
    my $timeinc19 = <FORT19DATA>; # time step for fort.19 data in seconds
@@ -507,7 +510,7 @@ if ($haveFort19 ne "null") {
 # echo the flux boundary file data for troubleshooting
 my $vtkEchoFluxBoundaryFileName = $meshfile . "_echoFluxBoundaries.txt";
 unless (open(VTKECHOFLUXBOUNDARY,">$vtkEchoFluxBoundaryFileName")) {
-   stderrMessage("ERROR","Failed to open $vtkEchoFluxBoundaryFileName for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open $vtkEchoFluxBoundaryFileName for writing: $!.",$test);
    die;
 }
 #
@@ -515,7 +518,7 @@ unless (open(VTKECHOFLUXBOUNDARY,">$vtkEchoFluxBoundaryFileName")) {
 # show boundary node location and height (if applicable)
 my $vtkFluxBoundaryFileName = $meshfile . "_fluxBoundaries.vtp";
 unless (open(VTKFLUXBOUNDARY,">$vtkFluxBoundaryFileName")) {
-   stderrMessage("ERROR","Failed to open $vtkFluxBoundaryFileName for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open $vtkFluxBoundaryFileName for writing: $!.",$test);
    die;
 }
 # write header for boundary points file
@@ -527,7 +530,7 @@ printf VTKFLUXBOUNDARY "   <PolyData>\n";
 # to show boundary height
 my $xdmfFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.xmf";
 unless (open(XDMFFLUXBOUNDARY,">$xdmfFluxBoundaryGeometryFileName")) {
-   stderrMessage("ERROR","Failed to open $xdmfFluxBoundaryGeometryFileName for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open $xdmfFluxBoundaryGeometryFileName for writing: $!.",$test);
    die;
 }
 # write header for boundary geometry file
@@ -551,14 +554,14 @@ if ( defined $fluxBoundaries2dm ) {
    $twodmFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nd";
    $TWODMNODEFLUXBOUNDARY;
    if (not open($TWODMNODEFLUXBOUNDARY,">","$twodmFluxBoundaryGeometryNodeFileName")) {
-      stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryNodeFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryNodeFileName for writing: $!.",$test);
       die;
    }
    # write out the flux-specified element tables as 2DM mesh geometry
    $twodmFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.e4q";
    $TWODMELEMENTFLUXBOUNDARY;
    if (not open($TWODMELEMENTFLUXBOUNDARY,">","$twodmFluxBoundaryGeometryElementFileName")) {
-      stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryElementFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryElementFileName for writing: $!.",$test);
       die;
    }
    $fullDomainElementID = 1;
@@ -572,14 +575,14 @@ if ( defined $fluxBoundaries2dm ) {
 my $adcFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nod";
 my $ADCNODFLUXBOUNDARY;
 if (not open($ADCNODFLUXBOUNDARY,">$adcFluxBoundaryGeometryNodeFileName")) {
-   stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryNodeFileName' for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryNodeFileName' for writing: $!.",$test);
    die;
 }
 my $adcNodeID = 1;
 my $adcFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.ele";
 my $ADCELEFLUXBOUNDARY;
 unless (open($ADCELEFLUXBOUNDARY,">$adcFluxBoundaryGeometryElementFileName")) {
-   stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryElementFileName' for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryElementFileName' for writing: $!.",$test);
    die;
 }
 my $adcElementID = 1;
@@ -591,7 +594,7 @@ if ( defined $arcMapCSV ) {
    # write out the flux-specified node tables as ArcMap CSV
    $arcMapCSVFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.csv";
    if (not open($ARCMAPFLUXBOUNDARY,">","$arcMapCSVFluxBoundaryGeometryNodeFileName")) {
-      stderrMessage("ERROR","Failed to open $arcMapCSVFluxBoundaryGeometryNodeFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $arcMapCSVFluxBoundaryGeometryNodeFileName for writing: $!.",$test);
       die;
    }
 }
@@ -681,7 +684,7 @@ for (my $i=0; $i<$nbou; $i++) {
       $fluxBoundaryFullDomainBoundaryIndices[$fluxBoundaryCount] = $fluxBoundaryCount; # 1-based index into the total external boundary array
       $fluxBoundaryLocalBoundaryIndices[$fluxBoundaryCount] = $j+1; # 1-based index into the total external boundary array
       if ( $fluxBoundaryNodeElevs[$j] eq "null" ) {
-         stderrMessage("ERROR","The flux boundary type '$ibtype' was not recognized.");
+         ASGSUtil::stderrMessage("ERROR","The flux boundary type '$ibtype' was not recognized.",$test);
       }
    }
    #
@@ -850,7 +853,7 @@ for (my $i=0; $i<$nbou; $i++) {
       my $twodmFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry_$boundaryNumber.2dm";
       my $TWODMFLUXBOUNDARY;
       if (not open($TWODMFLUXBOUNDARY,">","$twodmFluxBoundaryGeometryFileName")) {
-         stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.");
+         ASGSUtil::stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.",$test);
          die;
       }
       # write header for boundary geometry file
@@ -1013,19 +1016,19 @@ if ( defined $arcMapCSV  ) {
 my $adcFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.14";
 my $ADCFLUXBOUNDARY;
 if (not open($ADCFLUXBOUNDARY,">","$adcFluxBoundaryGeometryFileName")) {
-   stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryFileName' for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryFileName' for writing: $!.",$test);
    die;
 }
 my $adcFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nod";
 my $ADCNODFLUXBOUNDARY;
 if (not open($ADCNODFLUXBOUNDARY,"<","$adcFluxBoundaryGeometryNodeFileName")) {
-   stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryNodeFileName' for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryNodeFileName' for writing: $!.",$test);
    die;
 }
 my $adcFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.ele";
 my $ADCELEFLUXBOUNDARY;
 if (not open($ADCELEFLUXBOUNDARY,"<","$adcFluxBoundaryGeometryElementFileName")) {
-   stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryElementFileName' for writing: $!.");
+   ASGSUtil::stderrMessage("ERROR","Failed to open '$adcFluxBoundaryGeometryElementFileName' for writing: $!.",$test);
    die;
 }
 printf $ADCFLUXBOUNDARY "# ASGS adc2vtk.pl '$meshfile' flux boundary geometry as adcirc mesh\n";
@@ -1049,7 +1052,7 @@ if ( defined $fluxBoundaries2dm ) {
    my $twodmFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.2dm";
    my $TWODMFLUXBOUNDARY;
    if (not open($TWODMFLUXBOUNDARY,">","$twodmFluxBoundaryGeometryFileName")) {
-      stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open $twodmFluxBoundaryGeometryFileName for writing: $!.",$test);
       die;
    }
    printf $TWODMFLUXBOUNDARY "MESH2D\n";
@@ -1057,7 +1060,7 @@ if ( defined $fluxBoundaries2dm ) {
    my $adcFluxBoundaryGeometryNodeFileName = $meshfile . "_fluxBoundaryGeometry.nd";
    my $TWODMNODEFLUXBOUNDARY;
    if (not open($TWODMNODEFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryNodeFileName")) {
-      stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryNodeFileName' for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryNodeFileName' for reading: $!.",$test);
       die;
    }
    my $file_content = do { local $/; <$TWODMNODEFLUXBOUNDARY> };
@@ -1067,7 +1070,7 @@ if ( defined $fluxBoundaries2dm ) {
    my $adcFluxBoundaryGeometryElementFileName = $meshfile . "_fluxBoundaryGeometry.e4q";
    my $TWODMELEMENTFLUXBOUNDARY;
    if (not open($TWODMELEMENTFLUXBOUNDARY,"<","$twodmFluxBoundaryGeometryElementFileName")) {
-      stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryElementFileName' for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR","Failed to open '$twodmFluxBoundaryGeometryElementFileName' for reading: $!.",$test);
       die;
    }
    my $file_content = do { local $/; <$TWODMELEMENTFLUXBOUNDARY> };
@@ -1078,7 +1081,7 @@ if ( defined $fluxBoundaries2dm ) {
 #
 # write data from adcirc file(s)
 foreach my $file (@adcircfiles) {
-   stderrMessage("INFO","Processing $file.");
+   ASGSUtil::stderrMessage("INFO","Processing $file.",$test);
    my $num_components = 0; # 1 if scalar, 2 if 2D vector, 3 if 3D vector
    my $num_datasets = 0;   # 0 if unknown
    my $scalars_name = "";
@@ -1087,7 +1090,7 @@ foreach my $file (@adcircfiles) {
       my $outfile = $meshfile . ".vtu";
       # start writing vtk-formatted file
       if (not open(OUT,">","$outfile")) {
-         stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+         ASGSUtil::stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
       &writeHeader($ne, $np);
@@ -1163,8 +1166,8 @@ foreach my $file (@adcircfiles) {
    }
    # make sure we can actually open the adcirc file before going further
    unless (open(ADCIRCFILE,"<$file")) {
-      stderrMessage("ERROR",
-          "Failed to open ADCIRC file $file for reading: $!.");
+      ASGSUtil::stderrMessage("ERROR",
+          "Failed to open ADCIRC file $file for reading: $!.",$test);
          next;
    }
    #
@@ -1173,7 +1176,7 @@ foreach my $file (@adcircfiles) {
    if ( $file eq "fort.13" ) {
       my $outfile = $file . ".vtu";
       if (not open(OUT,">$outfile")) {
-         stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+         ASGSUtil::stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
       &writeHeader($ne, $np);
@@ -1214,7 +1217,7 @@ foreach my $file (@adcircfiles) {
                chomp($line);
                @fields = split(' ',$line);
             } else {
-               stderrMessage("ERROR","Ran out of data: $!.");
+               ASGSUtil::stderrMessage("ERROR","Ran out of data: $!.",$test);
                die;
             }
             $attrValues[$fields[0]-1] = $fields[1];
@@ -1243,8 +1246,8 @@ foreach my $file (@adcircfiles) {
       # the data files in the collection
       my $outfile = $file . ".pvd";
       unless (open(PVD,">$outfile")) {
-         stderrMessage("ERROR",
-            "Failed to open vtk file $outfile for writing: $!.");
+         ASGSUtil::stderrMessage("ERROR",
+            "Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
       printf PVD "<?xml version=\"1.0\"?>\n";
@@ -1257,7 +1260,7 @@ foreach my $file (@adcircfiles) {
       @fields = split(' ',$_);
       $time[$dataset] = $fields[0];
       $timestep[$dataset] = $fields[1];
-      #stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
+      #ASGSUtil::stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
       my @mag; # for holding vector magnitudes
       my $io_success = "true";
       my $lim=$np; # nodal values are the default
@@ -1271,7 +1274,7 @@ foreach my $file (@adcircfiles) {
          if ( defined $line ) {
             @fields = split(' ',$line);
          } else {
-            stderrMessage("ERROR","Ran out of data: $!.");
+            ASGSUtil::stderrMessage("ERROR","Ran out of data: $!.",$test);
             die;
          }
          # get rid of the node/element index or node/element ID
@@ -1300,7 +1303,7 @@ foreach my $file (@adcircfiles) {
       $outfile .= ".vtu";
       # start writing vtk-formatted file
       unless (open(OUT,">$outfile")) {
-         stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.");
+         ASGSUtil::stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
       if ( $num_datasets == 0 ) {
@@ -1420,15 +1423,4 @@ sub writeMesh () {
    }
    printf OUT "            </DataArray>\n";
    printf OUT "         </Cells>\n";
-}
-
-sub stderrMessage () {
-   my $level = shift;
-   my $message = shift;
-   my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-   (my $second, my $minute, my $hour, my $dayOfMonth, my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
-   my $year = 1900 + $yearOffset;
-   my $hms = sprintf("%02d:%02d:%02d",$hour, $minute, $second);
-   my $theTime = "[$year-$months[$month]-$dayOfMonth-T$hms]";
-   printf STDERR "$theTime $level: adc2vtk.pl: $message\n";
 }
