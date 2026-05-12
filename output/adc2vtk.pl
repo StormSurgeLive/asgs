@@ -105,7 +105,7 @@ my $datacentered = "PointData";
 my $jitter;
 my @adcircfiles;    # fulldomain adcirc output file names, comma separated
                     # with no spaces
-my @trackfiles;     # storm track files (fort.22)
+my @trackfiles;     # storm track files (fort.22),comma separated with no spaces
 my $excludeNonLeveeFluxBoundaries; # if only levee geometry should be generated
 my $test;    # true if this is being executed as a unit test
 #
