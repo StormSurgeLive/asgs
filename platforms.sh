@@ -94,7 +94,7 @@ init_queenbeeC()
   export PPN=48
   export JOBLAUNCHER='srun '
   export SUBMITSTRING=sbatch
-  export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/scratch,/project '
+  export ASGS_SINGULARITY_CMD='singularity run -B /ddnB/work,/work,/scratch,/project,/ddnB/project/cera '
   export ADCIRC_SINGULARITY_MANIFEST='/project/cera/adcirc/containers/MANIFEST.txt'
   export QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
   export QSCRIPTGEN=qscript.pl
