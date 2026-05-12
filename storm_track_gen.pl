@@ -569,6 +569,9 @@ my $lastForecastTime;
 my $fyear; my $fmon; my $fday; my $fhour;     # time at which forecast is valid
 my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
 my $ftmin; my $ftsec;                         # not used
+my @forecastTimes;                            # array of unique forecast hours (tau)
+my @forecastIsotachs;                         # number of isotachs at each forecast time
+my $uniqueTimes = 0;                          # count the number of unique times
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E
 #---------------------------------------------------------------------
@@ -598,6 +601,18 @@ if ( -e $forecastATCF ) {
       # forecast datetime that the forecast applies to
       my $tau=substr($_,29,4);
       ASGSUtil::stderrMessage("INFO","The forecast period tau is $tau",$test);
+      # save the tau and number of isotachs for use in track interpolations
+      # to support branching ensemble
+      if ( $uniqueTimes == 0 ) {
+         push(@forecastTimes,$tau);
+         push(@forecastIsotachs,1);
+      } else {
+         # see if this is a new tau
+         if ( $tau == $forecastTimes[-1] ) {
+            # increment the number of isotachs at this tau
+            $forecastIsotachs[$uniqueTimes]++;
+         }
+      }
       # determine the date and time that the forecast applies to
       ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
       Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0);
@@ -786,7 +801,7 @@ if ( -e $forecastATCF ) {
          my $veer_xoff = 0;
          my $veer_yoff = 0;
          my $perpendicular;
-         if ($veerPercent > 1) {
+         if ($veerPercent > 0) {
             $perpendicular = - ($pi/2); # veer right
          } else {
             $perpendicular = $pi/2;     # veer left
@@ -826,6 +841,10 @@ if ( -e $forecastATCF ) {
    $runProp{'forcing.tropicalcyclone.fcst.time.end'} = $lastForecastTime;
    $runProp{'stormname'} = $nhcName;
    $runProp{'forcing.tropicalcyclone.stormname'} = $nhcName;
+   #
+   # interpolate track data for use in cooperative bifurcated
+   # forecast enesmble
+
 } else {
    ASGSUtil::stderrMessage("INFO","The forecast ATCF file '$forecastATCF' for scenario '$name' was not found and will not be processed.",$test);
 }
@@ -951,29 +970,29 @@ sub interpolateUncertaintyRadius($) {
     my @nhc_radii = (9.5, 16, 25, 39, 49,  62,  77,  95, 134, 200);  # 2026 from https://www.nhc.noaa.gov/pdf/2026NHCNewProductsAndServices.pdf
 
     if ( $tau<$nhc_tau[0] ) {
-	ASGSUtil::stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].",$test);
-	return $nhc_radii[0];
+      ASGSUtil::stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].",$test);
+      return $nhc_radii[0];
     } elsif ( $tau>$nhc_tau[-1] ) {
-	# if the forecast period is longer than our last available data,
-	# extrapolate the radius
-	ASGSUtil::stderrMessage("WARNING","Forecast period of $tau hours in fort.22 is farther in the future than NHC publishes uncertainty statistics. Extrapolating radius of uncertainty from published data at $nhc_tau[-2] and $nhc_tau[-1] hours.",$test);
-	$radius=($nhc_radii[-1]-$nhc_radii[-2])/($nhc_tau[-1]-$nhc_tau[-2])
-	    *($tau-$nhc_tau[-1])+$nhc_radii[-1];
-	return $radius;
+      # if the forecast period is longer than our last available data,
+      # extrapolate the radius
+      ASGSUtil::stderrMessage("WARNING","Forecast period of $tau hours in fort.22 is farther in the future than NHC publishes uncertainty statistics. Extrapolating radius of uncertainty from published data at $nhc_tau[-2] and $nhc_tau[-1] hours.",$test);
+      $radius=($nhc_radii[-1]-$nhc_radii[-2])/($nhc_tau[-1]-$nhc_tau[-2])
+         *($tau-$nhc_tau[-1])+$nhc_radii[-1];
+      return $radius;
     } elsif ( $tau>=$nhc_tau[0] && $tau<=$nhc_tau[-1]) {
-	# forecast period is within our data, find the values that bracket
-	# it an perform linear interpolation
-	my $npoints=@nhc_tau;
-	for ( $i=0; $i<=($npoints-2); ++$i ) {
-	    if ( $tau>=$nhc_tau[$i] && $tau<=$nhc_tau[$i+1] ) {
-		$radius=(($tau-$nhc_tau[$i])/($nhc_tau[$i+1]-$nhc_tau[$i]))
-		    *($nhc_radii[$i+1]-$nhc_radii[$i])
-		    +$nhc_radii[$i];
-		return $radius;
-	    }
-	}
+      # forecast period is within our data, find the values that bracket
+      # it an perform linear interpolation
+      my $npoints=@nhc_tau;
+      for ( $i=0; $i<=($npoints-2); ++$i ) {
+         if ( $tau>=$nhc_tau[$i] && $tau<=$nhc_tau[$i+1] ) {
+         $radius=(($tau-$nhc_tau[$i])/($nhc_tau[$i+1]-$nhc_tau[$i]))
+            *($nhc_radii[$i+1]-$nhc_radii[$i])
+            +$nhc_radii[$i];
+         return $radius;
+         }
+      }
     } else {
-   	ASGSUtil::stderrMessage("ERROR","Failed to interpolate radius of uncertainty at $tau hours.",$test);
+      	ASGSUtil::stderrMessage("ERROR","Failed to interpolate radius of uncertainty at $tau hours.",$test);
     }
 }
 
