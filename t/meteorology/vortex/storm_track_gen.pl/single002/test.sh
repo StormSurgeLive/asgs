@@ -30,7 +30,6 @@ fi
 # 2. Fix tests to reflect new expectations:
 #   a. for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   b. for f in $(ls single???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
-#   c. for f in $(ls track??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 # 3. Collect run.properties into a single file for bulk inspection:
@@ -72,6 +71,7 @@ numArgSets=4     # number of sets of command line arguments
 ADVISDIR=$PWD
 SCENARIODIR=$PWD
 #
+
 pass=0
 fail=0
 declare -a actualFails
@@ -170,10 +170,7 @@ for t in $(seq 1 17); do
     trackFile="track${trackNum}.actual.fort.22"
     trackFiles+="${trackFile},"
 done
-SYSLOG="tracks.actual.syslog.log"
-perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
-mv tracks.vtp tracks.actual.vtp
-#
+perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,}
 # now compare results
 for f in $(ls *actual*) ; do
    g=${f//actual/expected}

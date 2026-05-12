@@ -1,0 +1,20 @@
+timestamp INFO: storm_track_gen.pl: The option '--percent' was specified at '0', but the scenario '09.nhcTrack' does not contain a match for any perturbations (either maxWindSpeed, overlandSpeed, or veer). The percent value will be ignored.
+timestamp INFO: storm_track_gen.pl: The fort.22 will be configured to start on '2020082400' UTC.
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    9
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    9
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   21
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   21
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   33
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   33
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   33
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   45
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   45
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   45
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   57
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   57
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   69
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   69
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   93
+timestamp INFO: storm_track_gen.pl: The forecast period tau is  117
