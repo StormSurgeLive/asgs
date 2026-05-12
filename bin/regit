@@ -11,7 +11,7 @@ fi
 
 VERSION_REF=$(tr -d '[:space:]' < ./VERSION)
 
-if [[ "$VERSION_REF" == "development"]]; then
+if [[ "$VERSION_REF" == "development" ]]; then
   VERSION_REF=master
 fi
 
