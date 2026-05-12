@@ -11,6 +11,10 @@ fi
 
 VERSION_REF=$(tr -d '[:space:]' < ./VERSION)
 
+if [[ "$VERSION_REF" == "development"]]; then
+  VERSION_REF=master
+fi
+
 # refuse to reinitialize an existing git repo
 if [[ -e .git ]]; then
   echo "ERROR: Git repository metadata already exists; refusing to reinitialize repository."
