@@ -1,14 +1,5 @@
 #!/usr/bin/env bash
 
-if [ -z "$_ASGSH_PID" ]; then
-  SCRIPTDIR=$2
-  if [ -z "$SCRIPTDIR" ]; then
-    echo "If this script is not run inside of the ASGS Shell Environment, asgsh."
-    echo "the path of the SCRIPTDIR must be provided as the second argument ..."
-    exit 1
-  fi
-fi
-
 VERSION_REF=$(tr -d '[:space:]' < ./VERSION)
 
 if [[ "$VERSION_REF" == "development" ]]; then
