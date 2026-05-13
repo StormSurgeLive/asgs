@@ -1,5 +1,32 @@
 #!/usr/bin/env bash
 
+ITEM=${1}
+
+shift
+
+FORCE_SSH=0
+FORCE_HTTPS=0
+
+# parse remaining optional flags
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --force-ssh)
+      FORCE_SSH=1
+      ;;
+    --force-https)
+      FORCE_HTTPS=1
+      ;;
+    *)
+      ;;
+  esac
+  shift
+done
+
+if [[ $FORCE_SSH -eq 1 && $FORCE_HTTPS -eq 1 ]]; then
+  echo "--force-ssh and --force-https are mutually exclusive"
+  exit 1
+fi
+
 if [ -z "$_ASGSH_PID" ]; then
   SCRIPTDIR=$2
   if [ -z "$SCRIPTDIR" ]; then
@@ -13,12 +40,30 @@ fi
 # for all "git clone" calls here - solves issue of there being not
 # key set up prior to adcirclive installation
 set_gitprotocol_repo() {
-  BASEURL="https://github.com/" # terminal character (/) matters 
+
+  # force git/ssh
+  if [[ $FORCE_SSH -eq 1 ]]; then
+    BASEURL="git@github.com:" # terminal character (:) matters
+    echo "forcing git@github.com protocol ..."
+    return
+  fi
+
+  # force https
+  if [[ $FORCE_HTTPS -eq 1 ]]; then
+    BASEURL="https://github.com/" # terminal character (/) matters
+    echo "forcing https://github.com protocol ..."
+    return
+  fi
+
+  # auto detect
+  BASEURL="https://github.com/" # terminal character (/) matters
+
   local check=$(git remote -v 2> /dev/null | grep -c "git@github")
+
   if [ "$check" -gt 0 ]; then
     BASEURL="git@github.com:" # terminal character (:) matters
   else
-    echo using default https to clone or update repo ...
+    echo "using default https to clone or update repo ..."
   fi
 }
 
@@ -26,8 +71,6 @@ set_gitprotocol_repo() {
 # point
 
 set_gitprotocol_repo
-
-ITEM=${1}
 
 case "${ITEM}" in
   all)
