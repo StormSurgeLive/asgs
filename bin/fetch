@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-ITEM=${1}
+ITEM="${1}"
+SCRIPTDIR_ARG="${2}"
 
-shift
+shift 2
 
 FORCE_SSH=0
 FORCE_HTTPS=0
@@ -27,12 +28,13 @@ if [[ $FORCE_SSH -eq 1 && $FORCE_HTTPS -eq 1 ]]; then
   exit 1
 fi
 
-if [ -z "$_ASGSH_PID" ]; then
-  SCRIPTDIR=$2
-  if [ -z "$SCRIPTDIR" ]; then
-    echo "If this script is not run inside of the ASGS Shell Environment, asgsh."
-    echo "the path of the SCRIPTDIR must be provided as the second argument ..."
-    exit 1;
+if [[ -z "$_ASGSH_PID" ]]; then
+  SCRIPTDIR="$SCRIPTDIR_ARG"
+
+  if [[ -z "$SCRIPTDIR" ]]; then
+    echo "If this script is not run inside of the ASGS Shell Environment (asgsh),"
+    echo "the path to SCRIPTDIR must be provided as the second argument."
+    exit 1
   fi
 fi
 
