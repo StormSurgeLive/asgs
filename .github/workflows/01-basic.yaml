@@ -115,7 +115,7 @@ jobs:
         run: |
           set -eo pipefail
           echo "=== STEP 3: install dependencies (netCDF4/HDF5/etc.) ==="
-          ./init-asgs.sh -A -b
+          ./init-asgs.sh -b
 
       - name: Build ADCIRC
         timeout-minutes: 120
