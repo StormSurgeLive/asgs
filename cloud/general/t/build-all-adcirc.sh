@@ -13,6 +13,7 @@ if ! command -v init-adcirc.sh >/dev/null 2>&1; then
 fi
 
 versions=(
+  v53.05.live.0
   v53release
   v55.01-5bc04d6
   v55.02

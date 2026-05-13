@@ -1,1 +1,1 @@
-(default) latest upstream v53.05 + adcprep "--prep13" fix
+upstream v53.05 + adcprep "--prep13" fix
