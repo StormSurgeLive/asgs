@@ -104,10 +104,10 @@ for a in $(seq 1 $numArgSets) ; do
 done
 # now run one-off tests for individual cases to
 # prevent regression
-numSingleTests=18
+numSingleTests=36
 argSets['s001']="--dir ./single001 --storm 07 --year 2010 --name nowcast --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2010073000 --strengthPercent null --test"
 #
-# set up branching ensemble tracks
+# set up fan ensemble tracks
 v=-100 # veer amount
 for s in $(seq 2 18); do
     argSetNum=$(printf "%03d" $s)
@@ -132,8 +132,18 @@ for s in $(seq 2 18); do
     argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds 86400.0 --coldstartdate 2020082300 --percent $v --test"
     v=$(echo "scale=1; $v + 12.5" | bc)
 done
-# generate track with interpolated data every 12 hours to support branching ensemble tracks
-#argSets['s002']="--dir ./single002 --storm 13 --year 2020 --name cooperative17 --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2020092818 --strengthPercent null --test"
+#
+# set up branching ensemble tracks
+b=1   # branch number
+for s in $(seq 19 36); do
+    argSetNum=$(printf "%03d" $s)
+    branchNum=$(printf "%02d" $b)
+    trackName="branching$branchNum"
+    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds 86400.0 --coldstartdate 2020082300 --test"
+    ((b++))
+done
+#
+# generate fan and branching tracks
 for t in $(seq 1 $numSingleTests) ; do
     testNumber=$(printf "%03d" $t)
     SYSLOG="single${testNumber}.actual.syslog.log"
@@ -173,6 +183,10 @@ done
 SYSLOG="tracks.actual.syslog.log"
 perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
 mv tracks.vtp tracks.actual.vtp
+# track with interpolated data every 12 hours to support branching ensemble tracks
+
+
+
 #
 # now compare results
 for f in $(ls *actual*) ; do

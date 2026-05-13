@@ -84,8 +84,28 @@ my $strengthPercent = "null";
 my $overlandSpeedPercent = "null";
 my $sizePercent = 20.0;
 my $veerPercent = "null";
+my $branching = 0;                 # 1 if the forecast is in a branching ensemble
+# define veer percentages for branching tracks
+my %branchesVeers;
+my $v = 100.0;                     # veer percentage for track 17
+my $branchName;                    # "01", "02" ... "17"
+for (my $b = 17; $b > 0; $b--) {
+    $branchName = sprintf("%02d",$b);
+    $branchesVeers{$branchName} = $v;
+    $v -= 12.5;
+}
+# define forecast start times for each branching track
+my %branchesTaus;
+my @branches;
+for (my $b = 1; $b < 18; $b++) {
+    push(@branches,sprintf("%02d",$b));
+}
+# branch:   01  02 03  04  05  06  07  08 09  10  11  12  13  14 15  16  17
+my @tau = ( 45, 57, 0, 57, 45, 33, 45, 57, 0, 57, 45, 33, 45, 57, 0, 57, 45 );
+@branchesTaus{@branches} = @tau;
+#
 my $pi=3.141592653589793;
-my $method="twoslope";              # algorithm for predicting central pressure
+my $method="twoslope";             # algorithm for predicting central pressure
 # if the NHC issues a special advisory, there may be incomplete lines in the
 # BEST track file. This hash will save the most recent complete lines, to fill
 # in any missing data.
@@ -237,6 +257,10 @@ if ( $name =~ /overlandSpeed/ ) {
 if ( $name =~ /veer/ ) {
    $match++;
 }
+if ( $name =~ /branching/ ) {
+   $match++;
+   $branching = 1;
+}
 if ( $match > 1 ) {
    ASGSUtil::stderrMessage("ERROR","The scenario name '$name' contains more than one match to perturbed scenario names (maxWindSpeed, overlandSpeed, and veer).",$test);
    die;
@@ -244,7 +268,7 @@ if ( $match > 1 ) {
 #
 # jgf20160105: If the scenario name matches the name of a
 # perturbation, but the percent was not specified, this is an error.
-if ( $percent eq "null" && $match == 1 ) {
+if ( $percent eq "null" && $match == 1 && $branching == 0 ) {
    ASGSUtil::stderrMessage("ERROR","The scenario name '$name' contains a match to a perturbed member name (either maxWindSpeed, overlandSpeed, or veer) but the percent variation was not specified on the command line.",$test);
    die;
 }
@@ -296,6 +320,10 @@ if ( $name =~ /rMax/ ) {
       # the rmax variation is controlled by the aswip program for asym models
       ASGSUtil::stderrMessage("INFO","The rMax variation is handled by the aswip program for the asymmetric models, and is therefore ignored by storm_track_gen.pl.",$test);
    }
+}
+if ( $name =~ /branching([0-9][0-9])/ ) {
+   ASGSUtil::stderrMessage("INFO","The branch name is $1 and the forecast track starts on/after $branchesTaus{$1}.",$test);
+   $branchName = $1;
 }
 if ( $match == 0 && $percent ne "null" ) {
    ASGSUtil::stderrMessage("INFO","The option '--percent' was specified at '$percent', but the scenario '$name' does not contain a match for any perturbations (either maxWindSpeed, overlandSpeed, or veer). The percent value will be ignored.",$test);
@@ -569,9 +597,7 @@ my $lastForecastTime;
 my $fyear; my $fmon; my $fday; my $fhour;     # time at which forecast is valid
 my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
 my $ftmin; my $ftsec;                         # not used
-my @forecastTimes;                            # array of unique forecast hours (tau)
-my @forecastIsotachs;                         # number of isotachs at each forecast time
-my $uniqueTimes = 0;                          # count the number of unique times
+#
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E
 #---------------------------------------------------------------------
@@ -601,18 +627,6 @@ if ( -e $forecastATCF ) {
       # forecast datetime that the forecast applies to
       my $tau=substr($_,29,4);
       ASGSUtil::stderrMessage("INFO","The forecast period tau is $tau",$test);
-      # save the tau and number of isotachs for use in track interpolations
-      # to support branching ensemble
-      if ( $uniqueTimes == 0 ) {
-         push(@forecastTimes,$tau);
-         push(@forecastIsotachs,1);
-      } else {
-         # see if this is a new tau
-         if ( $tau == $forecastTimes[-1] ) {
-            # increment the number of isotachs at this tau
-            $forecastIsotachs[$uniqueTimes]++;
-         }
-      }
       # determine the date and time that the forecast applies to
       ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
       Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0);
@@ -763,6 +777,11 @@ if ( -e $forecastATCF ) {
          # fill in the date and time for metadata purposes
          substr($line,8,10)=sprintf("%10d",$forecastedDate);
          $lastForecastTime = $forecastedDate;
+      }
+      # if this is a branching track, remove lines that are earlier
+      # than the base of this branch
+      if ( $tau < $branchesTaus{$branchName} ) {
+         continue;
       }
       # if the requested variation is veer, modify the track so that it veers
       # as a percent of the cone of uncertainty
