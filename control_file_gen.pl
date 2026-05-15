@@ -165,6 +165,8 @@ if ( $p->{output}->{inventory} eq "full" ) {
       if ( $p->{hotstart}->{output_format} eq "binary" ) {
          $NHSTAR = 1;
       }
+   } elsif ( $p->{scenario} =~ /branching/ ) {
+      $NHSTAR = -1;  # write time stamped binary hotstart files
    }
 }
 #
@@ -227,6 +229,14 @@ if ( $p->{hotstart}->{time} != 0.0 ) {
    }
    if ( $p->{hotstart}->{input_format} eq "binary" ) {
       $ihot = 68;
+   }
+   # if this is a branching track that starts from another
+   # branching track (i.e., it does not start from the nowcast)
+   # then read a binary hotstart file
+   if ( $p->{scenario} =~ /branching([0-9][0-9])/ ) {
+      if ( $1 ne "03" && $1 ne "09" && $1 ne "15" ) {
+         $ihot = 68;
+      }
    }
 } else {
    $ihot = 0;
@@ -1411,8 +1421,13 @@ sub vortexModelParameters {
    #
    # if this is an update from model initialization to nowcast, calculate the hotstart
    # increment so that we only write a single hotstart file at the end of
-   # the run. If this is a forecast, don't write a hotstart file at all.
+   # the run. If this is a conventional forecast, don't write a hotstart file at all.
    $NHSINC = int(($RNDAY*86400.0)/$dt);
+   # if this is a branching forecast ensemble, write a timestamped binary
+   # hotstart file every 12 hours
+   if ( $p->{scenario} =~ /branching/ ) {
+      $NHSINC = int(43200.0/$dt);
+   }
    #
    # If we have swan coupling, we may need to add some run time, after
    # the adcirc hotstart file was written, to give swan a chance to write
