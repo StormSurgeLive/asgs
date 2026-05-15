@@ -1424,9 +1424,10 @@ sub vortexModelParameters {
    # the run. If this is a conventional forecast, don't write a hotstart file at all.
    $NHSINC = int(($RNDAY*86400.0)/$dt);
    # if this is a branching forecast ensemble, write a timestamped binary
-   # hotstart file every 12 hours
+   # hotstart file every 6 hours (we only need them every 12 hours, but the
+   # time step increment is measured from coldstart, not hotstart)
    if ( $p->{scenario} =~ /branching/ ) {
-      $NHSINC = int(43200.0/$dt);
+      $NHSINC = int(21600.0/$dt);
    }
    #
    # If we have swan coupling, we may need to add some run time, after
