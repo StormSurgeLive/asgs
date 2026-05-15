@@ -359,7 +359,7 @@ checkHotstart()
          branchAddHours=60
          ;;
       esac
-      it=$(printf "$09d" $(echo "scale=0; (($HSTIME + ( $branchAddHours * 3600 ))/$TIMESTEPSIZE" | bc))
+      it=$(printf "%09d" $(echo "scale=0; ($HSTIME + ( $branchAddHours * 3600 ))/$TIMESTEPSIZE" | bc))
       branchHOTSTARTFILE="$branchFROMDIR/PE0000/fort.68_$it"
       if [[ ! -f $branchHOTSTARTFILE ]]; then
          fatal "$THIS: The branch hotstart file '$branchHOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
@@ -695,17 +695,18 @@ prep()
           fi
        fi
        # bring in hotstart file(s)
-       branchLength="partial"
+       branchLength=null
        if [[ $SCENARIO == "branching"* ]]; then
           branchName=${SCENARIO: -2}
           if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
              logMessage "$ENSTORM: $THIS: Copying binary hotstart file '$branchHOTSTARTFILE' to '$ADVISDIR/$ENSTORM'."
              cp $branchHOTSTARTFILE $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
+             branchLength=partial
           else
              branchLength=full
           fi
        fi
-       if [[ $HOTSTARTCOMP == "fulldomain" && $branchLength == "full" ]]; then
+       if [[ $HOTSTARTCOMP == "fulldomain" && $branchLength != "partial" ]]; then
           if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
@@ -714,7 +715,7 @@ prep()
              cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
-       if [[ $HOTSTARTCOMP == subdomain && $branchLength == "full" ]]; then
+       if [[ $HOTSTARTCOMP == subdomain && $branchLength != "partial" ]]; then
           logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
           # subdomain hotstart files are always binary formatted
