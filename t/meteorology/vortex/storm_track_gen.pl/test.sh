@@ -36,6 +36,10 @@ fi
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 # 4. Collect run.properties into a single file for bulk inspection:
 # for f in $(ls *actual*.run.properties); do echo $f ; cat $f ; done > runproperties
+# 5. Add up total hours of simulation time for forecast ensemble tracks
+#   a. fan ensemble: s=0; h=$(tail -n 1 track??.actual*.22 | awk 'BEGIN { FS="," } $1=="AL" { print $6 }' | sed 's/ //') ; for v in ${h[@]}; do s=$(($v + $s)) ; echo $s ; done
+#   b. branching ensemble: s=0; h=$(tail -n 1 branch*.22 | awk 'BEGIN { FS="," } $1=="AL" { print $6 }' | sed 's/ //') ; for v in ${h[@]}; do s=$(($v + $s)) ; echo $s ; done
+# For a 72 hour forecast period, a fan ensemble needs 1224 hours of simulation time but branching ensemble only needs 504 hours
 #----------------------------------------------------------------
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
 #
