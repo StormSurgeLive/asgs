@@ -189,13 +189,25 @@ writeProperties()
    # runtime
    echo "path.rundir : $RUNDIR" >> $STORMDIR_RUN_PROPERTIES
    # each scenario
-   echo "path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES
+   if [[ $SCENARIO != "branching"* ]]; then
+      echo "path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES
+      echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES  # legacy property
+   else
+      branchName=${SCENARIO: -2}
+      if [[ $branchName == "03" && $branchName == "09" && $branchName == "15" ]]; then
+         echo "path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES
+         echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES        # legacy property
+      else
+         # these are set in checkHotstart
+         echo "path.fromdir : $branchFROMDIR" >> $STORMDIR_RUN_PROPERTIES
+         echo "asgs.path.fromdir : $branchFROMDIR" >> $STORMDIR_RUN_PROPERTIES  # legacy property
+      fi
+   fi
    echo "path.lastsubdir : $LASTSUBDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "scenario : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
    # FIXME: the following are legacy properties from 2014stable
    # and should not be carried forward
    echo "forecast.ensemblesize : $SCENARIOPACKAGESIZE" >> $STORMDIR_RUN_PROPERTIES
-   echo "asgs.path.fromdir : $FROMDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.path.lastsubdir : $LASTSUBDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "asgs.enstorm : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES
    echo "enstorm : $ENSTORM" >> $STORMDIR_RUN_PROPERTIES

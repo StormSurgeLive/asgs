@@ -75,6 +75,7 @@ my $storm;                         # number, e.g., 05 or 12
 my $year;                          # YYYY
 my $coldstartdate;                 # YYYYMMDDHH24
 my $hotstartseconds = 0.0;         # default is not hotstart
+my $forecastend = 999;             # specified forecast period, tau (hours)
 my $runstartDate;                  # coldstartdate + hotstartseconds yyyymmddhh24
 my $rsFound = 0;                   # set to 1 if/when we find the run start date in the file
 my $nws = 20;                      # the ADCIRC wind model to target
@@ -85,27 +86,31 @@ my $overlandSpeedPercent = "null";
 my $sizePercent = 20.0;
 my $veerPercent = "null";
 my $branching = 0;                 # 1 if the forecast is in a branching ensemble
-# define veer percentages for branching tracks
-my %branchesVeers;
-my $v = 100.0;                     # veer percentage for track 17
-my $branchName;                    # "01", "02" ... "17"
-for (my $b = 17; $b > 0; $b--) {
-    $branchName = sprintf("%02d",$b);
-    $branchesVeers{$branchName} = $v;
-    $v -= 12.5;
-}
-# define forecast start times for each branching track
-my %branchesTaus;
-my @branches;
+my $branchName;                    # the value parsed from the scenario name
+my @branches;                      # branch "name" array "01", "02" ... "17"
 for (my $b = 1; $b < 18; $b++) {
     push(@branches,sprintf("%02d",$b));
 }
+# define veer percentages for branching tracks
+my %branchesVeers;
+my $v = -100.0;                    # veer percentage for branch 01
+foreach my $b (@branches) {
+    $branchesVeers{$b} = $v;
+    $v += 12.5;
+}
+# define starting veer percentages for branching tracks
+my %branchesBaseveers;
+# branch:          01   02   03   04   05 06 07 08 09 10 11 12  13  14  15  16  17
+my @baseVeers = ( -75, -75, -75, -75, -75, 0, 0, 0, 0, 0, 0, 0, 75, 75, 75, 75, 75 );
+@branchesBaseveers{@branches} = @baseVeers;
+# define forecast start times for each branching track
+my %branchesTaus;
 # branch:   01  02 03  04  05  06  07  08 09  10  11  12  13  14 15  16  17
 my @tau = ( 45, 57, 0, 57, 45, 33, 45, 57, 0, 57, 45, 33, 45, 57, 0, 57, 45 );
 @branchesTaus{@branches} = @tau;
 #
 my $pi=3.141592653589793;
-my $method="twoslope";             # algorithm for predicting central pressure
+my $central_pressure_formula="twoslope"; # algorithm for predicting central pressure
 # if the NHC issues a special advisory, there may be incomplete lines in the
 # BEST track file. This hash will save the most recent complete lines, to fill
 # in any missing data.
@@ -124,9 +129,10 @@ GetOptions(
            "year=s" => \$year,
            "coldstartdate=s" => \$coldstartdate,
            "hotstartseconds=s" => \$hotstartseconds,
+           "forecastend=s" => \$forecastend,
            "nws=s" => \$nws,
            "name=s" => \$name,
-           "method=s" => \$method,
+           "central_pressure_formula=s" => \$central_pressure_formula,
            "strengthPercent=s" => \$strengthPercent,
            "overlandSpeedPercent=s" => \$overlandSpeedPercent,
            "veerPercent=s" => \$veerPercent,
@@ -324,6 +330,11 @@ if ( $name =~ /rMax/ ) {
 if ( $name =~ /branching([0-9][0-9])/ ) {
    ASGSUtil::stderrMessage("INFO","The branch name is $1 and the forecast track starts on/after $branchesTaus{$1}.",$test);
    $branchName = $1;
+   $runProp{'variation branching'} = $branchName;
+   if ( $central_pressure_formula eq "twoslope" ) {
+      $central_pressure_formula = "dvorak";
+      ASGSUtil::stderrMessage("INFO","The central pressure formula has been reset to '$central_pressure_formula' to support a branching ensemble.",$test);
+   }
 }
 if ( $match == 0 && $percent ne "null" ) {
    ASGSUtil::stderrMessage("INFO","The option '--percent' was specified at '$percent', but the scenario '$name' does not contain a match for any perturbations (either maxWindSpeed, overlandSpeed, or veer). The percent value will be ignored.",$test);
@@ -587,10 +598,17 @@ my $old_consensus_angle=0;  # previous direction of NHC track
 # if the starting time of the run was not set
 # then start the run at the beginning of the forecast
 unless ( $runstartDate ) {
-   $runstartDate = $firstOFCLDate;
-   $rsFound = 1;
+   ASGSUtil::stderrMessage("INFO","The runstartDate has not been set yet.",$test);
+   if ( $branching == 0 ||
+         ( $branching == 1 &&
+            ( $branchName eq "03" || $branchName eq "09" || $branchName eq "15" )
+         )
+      ) {
+      $runstartDate = $firstOFCLDate;
+      $rsFound = 1;
+      ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on '$runstartDate' UTC.",$test);
+   }
 }
-ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on '$runstartDate' UTC.",$test);
 #
 my $firstForecastTime;
 my $lastForecastTime;
@@ -627,19 +645,29 @@ if ( -e $forecastATCF ) {
       # forecast datetime that the forecast applies to
       my $tau=substr($_,29,4);
       ASGSUtil::stderrMessage("INFO","The forecast period tau is $tau",$test);
+      # if the tau is longer than the specified tau, don't process it
+      if ( $tau > $forecastend ) {
+         next;
+      }
       # determine the date and time that the forecast applies to
       ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
       Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0);
       my $forecastedDate = sprintf("%4d%02d%02d%02d",$ftyear,$ftmon,$ftday,$fthour);
+      #ASGSUtil::stderrMessage("INFO","The time and date the forecast is valid is $forecastedDate",$test);
       unless ($firstForecastTime) {
          $firstForecastTime = $forecastedDate;
       }
       $lastForecastTime = $forecastedDate;
       #
       # check to see if the forecast line is prior to the hotstart date,
-      # if it is, then it will not be placed in the fort.22 file
-      if ( $forecastedDate < $runstartDate ) {
-         next;
+      # and this is not a branching ensemble;
+      # if it is a fan ensemble, go to the next line;
+      # a branching ensemble needs the track angle calculations
+      # even if this particular line will not be written to the fort.22 file
+      unless ( $branching == 1 ) {
+         if ( $forecastedDate < $runstartDate ) {
+            next;
+         }
       }
       # if we have found the hotstart time in the forecast file
       if ( $forecastedDate == $runstartDate ) {
@@ -733,12 +761,12 @@ if ( -e $forecastATCF ) {
             }
          }
          # slower windspeeds can be strange
-         if ( $method eq "twoslope" ) {
+         if ( $central_pressure_formula eq "twoslope" ) {
             # just use the last pressure
             if ( $vmax <= 30 ) {
                $forecast_pressure = sprintf("%4d",$last_pressure);
             }
-         } elsif ( $method eq "asgs2012" ) {
+         } elsif ( $central_pressure_formula eq "asgs2012" ) {
             # slower windspeeds can be strange ... use Dvorak if the storm is
             # early in its history, or use ah77 if it is late in its history
             if ( $vmax <= 35 ) {
@@ -751,6 +779,12 @@ if ( -e $forecastATCF ) {
                }
                $forecast_pressure = sprintf("%4d",$forecast_pressure);
             }
+         } elsif ( $central_pressure_formula eq "dvorak" ) {
+            $forecast_pressure = 1015 - ($vmax/3.92*0.51444444)**(1.0/0.644);
+            $forecast_pressure = sprintf("%4d",$forecast_pressure);
+         } elsif ( $central_pressure_formula eq "ah77" ) {
+            $forecast_pressure = 1010 - ($vmax/3.4*0.51444444)**(1.0/0.644);
+            $forecast_pressure = sprintf("%4d",$forecast_pressure);
          }
          # fill in the forecast central pressure value
          substr($line,53,4) = $forecast_pressure;
@@ -778,10 +812,14 @@ if ( -e $forecastATCF ) {
          substr($line,8,10)=sprintf("%10d",$forecastedDate);
          $lastForecastTime = $forecastedDate;
       }
-      # if this is a branching track, remove lines that are earlier
-      # than the base of this branch
-      if ( $tau < $branchesTaus{$branchName} ) {
-         continue;
+      # set veer percent for branching tracks
+      if ( $branching == 1 ) {
+         $veerPercent = $branchesVeers{$branchName};
+         # set the veer percentage to the value used by the
+         # branch we are hotstarting from
+         if ( $tau <= $branchesTaus{$branchName} ) {
+            $veerPercent = $branchesBaseveers{$branchName};
+         }
       }
       # if the requested variation is veer, modify the track so that it veers
       # as a percent of the cone of uncertainty
@@ -847,6 +885,13 @@ if ( -e $forecastATCF ) {
             $rmax *= $sizePercent;
          }
          substr($line,109,3)=sprintf("%3d",$rmax);
+      }
+      # goto next line if this forecast period is before the
+      # branching track is supposed to start
+      if ( $branching == 1 ) {
+         if ( $tau < $branchesTaus{$branchName} ) {
+            next;
+         }
       }
       # write the line to the file, writing an eol if the line does not have one
       if ( /\n/ ) {
