@@ -295,9 +295,8 @@ checkHotstart()
    fi
    # set name and specific file location based on format (netcdf or binary)
    HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
-      if [[ $HOTSTARTFORMAT == binary ]]; then
-         HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
-      fi
+   if [[ $HOTSTARTFORMAT == binary ]]; then
+      HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
@@ -333,7 +332,7 @@ checkHotstart()
    if [[ $SCENARIO == "branching"* ]]; then
       branchName=${SCENARIO: -2}
    fi
-   if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+   if [[ $SCENARIO == "branching"* && $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
       branchHOTSTARTFORMAT=binary  # written by one of the 3 full length forecast jobs
       # set the directory that contains the hotstart file for this branch
       case $branchName in
@@ -377,7 +376,6 @@ checkHotstart()
       # that with backticks and tee to the log file
       HSTIME=''
       HSTIME=$($ADCIRCDIR/hstime -f $branchHOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
-      fi
       failureOccurred=$?
       errorOccurred=$(expr index "$HSTIME" ERROR)
       if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
