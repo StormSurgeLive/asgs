@@ -148,8 +148,10 @@ rm errmsg ; touch errmsg
 # a fulldomain hotstart file instead of just turning
 # off the deletion of the PE* subdirectories
 if [[ $hotstartcomp != "subdomain" ]]; then
-   for dir in `ls -d PE*`; do
-      if [[ $hotStartFormat == "binary" && $dir == "PE0000" ]]; then
+   for dir in $(ls -d PE*); do
+      # leave the PE0000 dir in place in any case; this will leave
+      # the time stamped hotstart files in place for branching ensemble members
+      if [[ $dir == "PE0000" ]]; then
          continue
       fi
       $REMOVALCMD $dir 2>> errmsg | tee -a $LOGFILE >> $SCENARIOLOG

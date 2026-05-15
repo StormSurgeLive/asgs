@@ -295,39 +295,97 @@ checkHotstart()
    fi
    # set name and specific file location based on format (netcdf or binary)
    HOTSTARTFILE=$FROMDIR/fort.$LUN.nc # netcdf format is the default
-   if [[ $HOTSTARTFORMAT == binary ]]; then
-      HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
+      if [[ $HOTSTARTFORMAT == binary ]]; then
+         HOTSTARTFILE=$FROMDIR/PE0000/fort.$LUN # could be either fulldomain or subdomain
+      fi
    fi
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
       fatal "$THIS: The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
-   # if it exists, check size to be sure its nonzero
+   fi
+   # it exists, check size to be sure its nonzero
+   hotstartSize=$(stat -c %s $HOTSTARTFILE)
+   if [ $hotstartSize == "0" ]; then
+      fatal "$THIS: The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
+   fi
+   logMessage "$THIS: The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
+   # check time in hotstart file to be sure it can be found and that
+   # it is nonzero
+   # jgf20170131: hstime reports errors to stderr so we must capture
+   # that with backticks and tee to the log file
+   HSTIME=''
+   if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
+      HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG})
    else
-      hotstartSize=`stat -c %s $HOTSTARTFILE`
+      HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
+   fi
+   failureOccurred=$?
+   errorOccurred=$(expr index "$HSTIME" ERROR)
+   if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
+      fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$HOTSTARTFORMAT' format file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+   fi
+   if float_cond '$HSTIME == 0.0'; then
+      THIS="asgs_main.sh>checkHotstart()"
+      fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
+   fi
+   # if this is a branching forecast scenario that starts from another
+   # forecast scenario, set the FROMDIR and HOTSTARTFILE accordingly
+   if [[ $SCENARIO == "branching"* ]]; then
+      branchName=${SCENARIO: -2}
+   fi
+   if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+      branchHOTSTARTFORMAT=binary  # written by one of the 3 full length forecast jobs
+      # set the directory that contains the hotstart file for this branch
+      case $branchName in
+      "01"|"02"|"04"|"05")
+         branchFROMDIR=$CYCLEDIR/branching03
+         ;;
+      "06"|"07"|"08"|"10"|"11"|"12")
+         branchFROMDIR=$CYCLEDIR/branching09
+         ;;
+      "13"|"14"|"16"|"17")
+         branchFROMDIR=$CYCLEDIR/branching15
+         ;;
+      esac
+      # set the basis for computing the time stesp number which
+      # appears in the filename of the hotstart file for this scenario
+      case $branchName in
+      "06"|"12")
+         branchAddHours=36
+         ;;
+      "01"|"05"|"07"|"11"|"13"|"17")
+         branchAddHours=48
+         ;;
+      "02"|"04"|"08"|"10"|"14"|"16")
+         branchAddHours=60
+         ;;
+      esac
+      it=$(printf "$09d" $(echo "scale=0; (($HSTIME + ( $branchAddHours * 3600 ))/$TIMESTEPSIZE" | bc))
+      branchHOTSTARTFILE="$branchFROMDIR/PE0000/fort.68_$it"
+      if [[ ! -f $branchHOTSTARTFILE ]]; then
+         fatal "$THIS: The branch hotstart file '$branchHOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
+      fi
+      # it exists, check size to be sure its nonzero
+      hotstartSize=$(stat -c %s $branchHOTSTARTFILE)
       if [ $hotstartSize == "0" ]; then
-         fatal "$THIS: The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
-      else
-         logMessage "$THIS: The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
-         # check time in hotstart file to be sure it can be found and that
-         # it is nonzero
-         # jgf20170131: hstime reports errors to stderr so we must capture
-         # that with backticks and tee to the log file
-         HSTIME=''
-         if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
-            HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG})
-         else
-            HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
-         fi
-         failureOccurred=$?
-         errorOccurred=$(expr index "$HSTIME" ERROR)
-         if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
-            fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$HOTSTARTFORMAT' format file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
-         else
-            if float_cond '$HSTIME == 0.0'; then
-               THIS="asgs_main.sh>checkHotstart()"
-               fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
-            fi
-         fi
+         fatal "$THIS: The branch hotstart file '$branchHOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
+      fi
+      logMessage "$THIS: The branch hotstart file '$branchHOTSTARTFILE' was found and it contains $hotstartSize bytes."
+      # check time in hotstart file to be sure it can be found and that
+      # it is nonzero
+      # jgf20170131: hstime reports errors to stderr so we must capture
+      # that with backticks and tee to the log file
+      HSTIME=''
+      HSTIME=$($ADCIRCDIR/hstime -f $branchHOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
+      fi
+      failureOccurred=$?
+      errorOccurred=$(expr index "$HSTIME" ERROR)
+      if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
+         fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$branchHOTSTARTFORMAT' format file '$branchHOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+      fi
+      if float_cond '$HSTIME == 0.0'; then
+         THIS="asgs_main.sh>checkHotstart()"
+         fatal "$THIS: The time in the hotstart file '$branchHOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
       fi
    fi
 }
@@ -429,6 +487,16 @@ prep()
        fi
     fi
     if [[ $START == "hotstart" ]]; then
+       # save the value of FROMDIR if this is a branching
+       # ensemble (which will have different FROMDIRs depending
+       # on the branch)
+       nowcastFROMDIR=$FROMDIR
+       if [[ $SCENARIO == "branching"* ]]; then
+          branchName=${SCENARIO: -2}
+          if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+             FROMDIR=$branchFROMDIR # set in checkHotstart
+          fi
+       fi
        # hotstart
        #
        # TODO: Autodetect the format of the hotstart files to read (the
@@ -503,7 +571,7 @@ prep()
           done
        done
        # bring in hotstart file(s)
-       if [[ $QUEUESYS = serial ]]; then
+       if [[ $QUEUESYS == serial ]]; then
           if [[ $HOTSTARTFORMAT == netcdf || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
@@ -523,6 +591,7 @@ prep()
     #
     # adcprep is not required if the job is to run in serial
     if [[ $QUEUESYS = "serial" ]]; then
+       FROMDIR=$nowcastFROMDIR
        return
     fi
     #
@@ -532,7 +601,7 @@ prep()
     echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
-    if [[ $START = coldstart ]]; then
+    if [[ $START == coldstart ]]; then
        PREPPED=$HINDCASTARCHIVE
     fi
     # determine if there is an archive of preprocessed input files
@@ -540,7 +609,7 @@ prep()
     if [[ ! -e ${SCRATCH}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
-    if [[ $HAVEARCHIVE = yes ]]; then
+    if [[ $HAVEARCHIVE == yes ]]; then
         # copy in the files that have already been preprocessed
         logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
         cp ${SCRATCH}/${PREPPED} . 2>> ${SYSLOG}
@@ -596,7 +665,7 @@ prep()
        #   P A R A L L E L   H O T S T A R T
        #
        # run adcprep to decompose the new files
-       if [[ $HAVEARCHIVE = no ]]; then
+       if [[ $HAVEARCHIVE == no ]]; then
           logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
           prepFile partmesh $NCPU $ACCOUNT $WALLTIME
           THIS="asgs_main.sh>prep()"
@@ -617,7 +686,7 @@ prep()
              prepFile prep13 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
-          if [[ $WAVES = on ]]; then
+          if [[ $WAVES == on ]]; then
              PE=0
              format="%04d"
              while [[ $PE -lt $NCPU ]]; do
@@ -628,7 +697,17 @@ prep()
           fi
        fi
        # bring in hotstart file(s)
-       if [[ $HOTSTARTCOMP == "fulldomain" ]]; then
+       branchLength="partial"
+       if [[ $SCENARIO == "branching"* ]]; then
+          branchName=${SCENARIO: -2}
+          if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+             logMessage "$ENSTORM: $THIS: Copying binary hotstart file '$branchHOTSTARTFILE' to '$ADVISDIR/$ENSTORM'."
+             cp $branchHOTSTARTFILE $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
+          else
+             branchLength=full
+          fi
+       fi
+       if [[ $HOTSTARTCOMP == "fulldomain" && $branchLength == "full" ]]; then
           if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
@@ -637,7 +716,7 @@ prep()
              cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
-       if [[ $HOTSTARTCOMP = subdomain ]]; then
+       if [[ $HOTSTARTCOMP == subdomain && $branchLength == "full" ]]; then
           logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
           # subdomain hotstart files are always binary formatted
@@ -645,7 +724,7 @@ prep()
           format="%04d"
           while [ $PE -lt $NCPU ]; do
              PESTRING=`printf "$format" $PE`
-             if [[ $HOTSTARTCOMP = subdomain ]]; then
+             if [[ $HOTSTARTCOMP == subdomain ]]; then
                 cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
              fi
              PE=$(($PE + 1))
@@ -844,6 +923,9 @@ EOF
        fi
     fi
     echo "time.adcprep.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
+    if [[ $START == "hotstart" && $SCENARIO == "branching"* ]]; then
+       FROMDIR=$nowcastFROMDIR  # restore the dir to start from
+    fi
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -2858,14 +2940,6 @@ while [ true ]; do
      consoleMessage "$W There are '$numScenarios' forecast scenarios but the scenario package size was set to 'SCENARIOPACKAGESIZE=$SCENARIOPACKAGESIZE' in the ASGS configuration file '$ASGS_CONFIG'. ASGS will submit '$numScenarios' forecast scenarios."
    fi
    logMessage "$THIS: Starting '$numScenarios' forecast scenarios for advisory '$ADVISORY'."
-   #
-   # we may be forecasting from a cold start if this mesh doesn't require
-   # initialization and the nowcast was skipped
-   if [[ $START == "hotstart" ]]; then
-      checkHotstart $FROMDIR $HOTSTARTFORMAT 67
-      THIS="asgs_main.sh"
-   fi
-   logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
    while [ $si -lt $numScenarios ]; do
       # source config file to pick up any configuration changes, or any
@@ -2878,6 +2952,14 @@ while [ true ]; do
       executeHookScripts "INITIALIZE_FORECAST_SCENARIO" # now that we know the name of the scenario
       consoleMessage "$I Scenario '$SCENARIO'"
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
+      #
+      # we may be forecasting from a cold start if this mesh doesn't require
+      # initialization and the nowcast was skipped
+      if [[ $START == "hotstart" ]]; then
+         checkHotstart $FROMDIR $HOTSTARTFORMAT 67
+         THIS="asgs_main.sh"
+      fi
+      logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file

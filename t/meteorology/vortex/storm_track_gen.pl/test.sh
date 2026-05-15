@@ -31,9 +31,10 @@ fi
 #   a. for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   b. for f in $(ls single???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   c. for f in $(ls track??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   d. for f in $(ls branch??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
-# 3. Collect run.properties into a single file for bulk inspection:
+# 4. Collect run.properties into a single file for bulk inspection:
 # for f in $(ls *actual*.run.properties); do echo $f ; cat $f ; done > runproperties
 #----------------------------------------------------------------
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
@@ -104,11 +105,13 @@ for a in $(seq 1 $numArgSets) ; do
 done
 # now run one-off tests for individual cases to
 # prevent regression
-numSingleTests=36
+numSingleTests=35
 argSets['s001']="--dir ./single001 --storm 07 --year 2010 --name nowcast --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2010073000 --strengthPercent null --test"
 #
 # set up fan ensemble tracks
 v=-100 # veer amount
+# calculate forecast hotstart time including 6 hour nowcast
+hstime=$(( 86400 + ( 6 * 3600 ) ))
 for s in $(seq 2 18); do
     argSetNum=$(printf "%03d" $s)
     trackNum=$(printf "%02d" $((s - 1)) )
@@ -129,17 +132,21 @@ for s in $(seq 2 18); do
     if (( $(echo "$v == 0.0" | bc -l) )); then
         trackName="${trackNum}.nhcTrack"
     fi
-    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds 86400.0 --coldstartdate 2020082300 --percent $v --test"
+    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds $hstime --coldstartdate 2020082300 --forecastend 72 --percent $v --test"
     v=$(echo "scale=1; $v + 12.5" | bc)
 done
 #
 # set up branching ensemble tracks
 b=1   # branch number
-for s in $(seq 19 36); do
+#       01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17   # branch
+tau=( 0 48 60  0 60 48 36 48 60  0 60 48 36 48 60  0 60 48 ) # hotstart time (hours beyond base forecast)
+for s in $(seq 19 35); do
     argSetNum=$(printf "%03d" $s)
     branchNum=$(printf "%02d" $b)
+    # calculate forecast hotstart time including 6 hour nowcast
+    hstime=$(( 86400 + ( ${tau[$b]} * 3600 ) + ( 6 * 3600 )))
     trackName="branching$branchNum"
-    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds 86400.0 --coldstartdate 2020082300 --test"
+    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds $hstime --coldstartdate 2020082300 --forecastend 72 --test"
     ((b++))
 done
 #
@@ -164,15 +171,21 @@ for t in $(seq 1 $numSingleTests) ; do
             if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
                 if [[ $t -lt 2 ]]; then
                     mv $f single${testNumber}.actual.$f
-                else
+                fi
+                if [[ $t -ge 2 && $t -le 18 ]]; then
                     trackNum=$(printf "%02d" $((t - 1)) )
                     mv $f track${trackNum}.actual.$f
+                fi
+                if [[ $t -gt 18 ]]; then
+                    trackNum=$(printf "%02d" $((t - 18)) )
+                    mv $f branch${trackNum}.actual.$f
                 fi
             fi
         done
     done
 done
-# collect track files together into a single .vtp file
+#
+# collect fan ensemble track files together into a single .vtp file
 # for visualization and quality checking
 trackFiles=
 for t in $(seq 1 17); do
@@ -183,10 +196,18 @@ done
 SYSLOG="tracks.actual.syslog.log"
 perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
 mv tracks.vtp tracks.actual.vtp
-# track with interpolated data every 12 hours to support branching ensemble tracks
-
-
-
+#
+# collect branching ensemble track files together into a single .vtp file
+# for visualization and quality checking
+trackFiles=
+for t in $(seq 1 17); do
+    trackNum=$(printf "%02d" $t)
+    trackFile="branch${trackNum}.actual.fort.22"
+    trackFiles+="${trackFile},"
+done
+SYSLOG="branch.tracks.actual.syslog.log"
+perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
+mv tracks.vtp branch.tracks.actual.vtp
 #
 # now compare results
 for f in $(ls *actual*) ; do
