@@ -33,11 +33,11 @@
 #
 ADVISORY=$1
 MAXADVISORY=$2
-STORMNUMBER=$3
+STORMNUMBER=$3    # does not expect a leading 0
 YEAR=$4
 BASIN=$5 # e.g. lowercase al for Atlantic basin
 #
-FSTORMNUMBER=`printf "%02d" $STORMNUMBER`
+FSTORMNUMBER=$(printf "%02d" $STORMNUMBER)
 #
 while [[ $ADVISORY -le $MAXADVISORY ]]; do 
    urlRoot=https://www.nhc.noaa.gov/archive/$YEAR
@@ -48,7 +48,7 @@ while [[ $ADVISORY -le $MAXADVISORY ]]; do
    if [[ $YEAR -ge 2006 ]]; then
       urlRoot="$urlRoot/$BASIN$FSTORMNUMBER"
    fi
-   echo "curl -s $urlRoot/$file > $file"
-   curl -s $urlRoot/$file > $file
-   ADVISORY=`expr $ADVISORY + 1`
+   echo "curl -O $urlRoot/$file"
+   curl -O $urlRoot/$file
+   ADVISORY=$(expr $ADVISORY + 1)
 done
