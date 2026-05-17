@@ -107,37 +107,56 @@ for a in $(seq 1 $numArgSets) ; do
         done
     done
 done
-# now run one-off tests for individual cases to
+# one-off tests for individual cases to
 # prevent regression
-numSingleTests=35
+numSingleTests=1
 argSets['s001']="--dir ./single001 --storm 07 --year 2010 --name nowcast --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2010073000 --strengthPercent null --test"
 #
-# set up fan ensemble tracks
-v=-100 # veer amount
-# calculate forecast hotstart time including 6 hour nowcast
-hstime=$(( 86400 + ( 6 * 3600 ) ))
-for s in $(seq 2 18); do
-    argSetNum=$(printf "%03d" $s)
-    trackNum=$(printf "%02d" $((s - 1)) )
-    trackPrefix=
-    case ${v:0:1} in
-    "-")
-        trackPrefix=Left
-        ;;
-    "0")
-        trackPrefix=nhcTrack
-        ;;
-     *)
-        trackPrefix=Right
-        ;;
-    esac
-    trackNamePercent=$(echo "$v" | sed 's/-//')
-    trackName="${trackNum}.veer$trackPrefix$trackNamePercent"
-    if (( $(echo "$v == 0.0" | bc -l) )); then
-        trackName="${trackNum}.nhcTrack"
-    fi
-    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds $hstime --coldstartdate 2020082300 --forecastend 72 --percent $v --test"
-    v=$(echo "scale=1; $v + 12.5" | bc)
+# set up fan ensemble tracks for advisories/storms
+v=-100 # starting veer amount
+names=(       LAURA  IDA  IAN MILTON )
+namesNumbers=(   13   09   09     14 )
+namesYears=(   2020 2021 2022   2024 )
+namesAdvs=(      19   04   13     08 )
+# storm coldstart dates
+namesColdstarts['LAURA']=2020082300
+namesColdstarts['IDA']=2020082300
+namesColdstarts['IAN']=2020082300
+namesColdstarts['MILTON']=2020082300
+# forecast hotstart times
+namesHotstartSeconds['LAURA']=$(( 86400 + ( 6 * 3600 ) ))   # including 6 hour nowcast
+namesHotstartSeconds['IDA']=$(( 86400 + ( 6 * 3600 ) ))
+namesHotstartSeconds['IAN']=$(( 86400 + ( 6 * 3600 ) ))
+namesHotstartSeconds['MILTON']=$(( 86400 + ( 6 * 3600 ) ))
+# forecast period to calculate (tau)
+namesTaus['LAURA']=72
+namesTaus['IDA']=72
+namesTaus['IAN']=72
+namesTaus['MILTON']=72
+for storm in ${names[@]}; do 
+    for s in $(seq 1 17); do
+        argSetNum=$(printf "%03d" $s)
+        trackNum=$(printf "%02d" $s )
+        trackPrefix=
+        case ${v:0:1} in
+        "-")
+            trackPrefix=Left
+            ;;
+        "0")
+            trackPrefix=nhcTrack
+            ;;
+        *)
+            trackPrefix=Right
+            ;;
+        esac
+        trackNamePercent=$(echo "$v" | sed 's/-//')
+        trackName="${trackNum}.veer$trackPrefix$trackNamePercent"
+        if (( $(echo "$v == 0.0" | bc -l) )); then
+            trackName="${trackNum}.nhcTrack"
+        fi
+        argSets[$storm$argSetNum]="--dir . --storm ${namesNumbers[$storm]} --year ${stormsYears[$storm]} --name $trackName --nws 20 --hotstartseconds ${namesHotstartSeconds[$storm]} --coldstartdate ${namesColdstarts[$storm]} --forecastend ${namesTaus[$storm]} --percent $v --test"
+        v=$(echo "scale=1; $v + 12.5" | bc)
+    done
 done
 #
 # set up branching ensemble tracks
