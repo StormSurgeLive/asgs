@@ -7,7 +7,7 @@
 # 2. cd in the $YEAR
 # 3. run this script, for example to capture all of the advisories for Dorian (Storm 05, year 2019):
 #   cd 2019
-#   ../get_all.sh 05 2019 1 64
+#   ../get_all.sh 5 2019 1 64
 # NOTE: there is an attempt to guess the storm name using some imperfect sed/awk magic, but you will
 #       get a chance to correct this right before it moves all fetched files into the storm directory
 
@@ -16,24 +16,28 @@ if [ -z "$4" ]; then
   exit 1
 fi
 
-storm=$1
+storm=$1        # does not expect a leading 0 for single digit storm numbers
 year=$2
 advisoryMin=$3
 advisoryMax=$4
 
 # get all advisories for $storm
+
 ../get_advisories.sh $advisoryMin $advisoryMax $storm $year al
 
-# get "best track"
-echo "wget -q https://ftp.nhc.noaa.gov/atcf/btk/bal${storm}${year}.dat"
-wget -q https://ftp.nhc.noaa.gov/atcf/btk/bal${storm}${year}.dat
+# get BEST track (this URL is for storms from previous years, not the current year)
+fstorm=$(printf "%02d" $storm)
+bestName=bal${fstorm}${year}.dat
+echo "wget https://ftp.nhc.noaa.gov/atcf/archive/${year}/${bestName}.gz"
+wget https://ftp.nhc.noaa.gov/atcf/archive/${year}/${bestName}.gz
+gunzip ${bestName}.gz
 
 advisory=$advisoryMin
 while [[ $advisory -le $advisoryMax ]]; do
-    advisoryNum=`printf "%03d\n" $advisory`
-    echo "perl ../advisory_xml_filler.pl --input al${storm}${year}.fstadv.$advisoryNum.shtml --template ../template.index.xml --best bal${storm}${year}.dat"
-    perl ../advisory_xml_filler.pl --input al${storm}${year}.fstadv.$advisoryNum.shtml --template ../template.index.xml --best bal${storm}${year}.dat 2> /dev/null
-    advisory=`expr $advisory + 1`
+    advisoryNum=$(printf "%03d\n" $advisory)
+    echo "perl ../advisory_xml_filler.pl --input al${fstorm}${year}.fstadv.$advisoryNum.shtml --template ../template.index.xml --best bal${fstorm}${year}.dat"
+    perl ../advisory_xml_filler.pl --input al${fstorm}${year}.fstadv.$advisoryNum.shtml --template ../template.index.xml --best bal${fstorm}${year}.dat 2> /dev/null
+    advisory=$(expr $advisory + 1)
 done
 
 tmpName=$(grep --no-filename "Forecast\/Advisory Number" *.xml | sed 's/<title>//g' | sed 's/<\/title>//g' | awk '{for(i=NF;i>0;--i)printf "%s%s",$i,(i>1?OFS:ORS)}' | awk '{print $4}' | tail -n 1)
