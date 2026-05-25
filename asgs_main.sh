@@ -890,7 +890,6 @@ prepFile()
    forncpu=$NCPU
    wind10mlayer="no"
    if [[                $createWind10mLayer == "yes"       && \
-                                       $NWS != "0"         && \
                                   $SCENARIO != *"Wind10m"  && \
            ${#nodal_attribute_activate[@]} -ne 0           && \
                                     $NAFILE != *"null"     && \
@@ -1446,7 +1445,6 @@ submitJob()
    fi
    wind10mlayer="no"
    if [[                $createWind10mLayer == "yes"       && \
-                                       $NWS != "0"         && \
                                   $SCENARIO != *"Wind10m"  && \
            ${#nodal_attribute_activate[@]} -ne 0           && \
                                     $NAFILE != *"null"     && \
