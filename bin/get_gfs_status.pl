@@ -55,7 +55,7 @@ GetOptions(
 
     sub http_ls {
         my $dir = shift;
-        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s/ls-l}, $dir );
+        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s/ls-l}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
         my @files       = ( $raw_listing =~ m/ +(gfs.+)\n/g );
@@ -67,7 +67,7 @@ GetOptions(
 
     sub http_dir {
         my $dir = shift;
-        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov/%s}, $dir );
+        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s/}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
         # Welcome to the perils of parsing HTML, the following match is set up
