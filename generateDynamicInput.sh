@@ -69,10 +69,7 @@ generateDynamicInput()
     local exposure=$windExposure
     layers=( $SCENARIO )
     if [[               $createWind10mLayer == "yes"       && \
-                                  $SCENARIO != *"Wind10m"  && \
-           ${#nodal_attribute_activate[@]} -ne 0           && \
-                                    $NAFILE != *"null"     && \
-                                    $NAFILE != *"notset"   ]]; then
+                                  $SCENARIO != *"Wind10m" ]]; then
         layers+=( "wind10m" )
     fi
     for layer in ${layers[@]}; do
