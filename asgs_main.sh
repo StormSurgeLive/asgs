@@ -891,10 +891,7 @@ prepFile()
    wind10mlayer="no"
    if [[                $createWind10mLayer == "yes"       && \
                                        $NWS != "0"         && \
-                                  $SCENARIO != *"Wind10m"  && \
-           ${#nodal_attribute_activate[@]} -ne 0           && \
-                                    $NAFILE != *"null"     && \
-                                    $NAFILE != *"notset"   ]]; then
+                                  $SCENARIO != *"Wind10m" ]]; then
       wind10mlayer="yes"
    fi
    #
@@ -1447,10 +1444,7 @@ submitJob()
    wind10mlayer="no"
    if [[                $createWind10mLayer == "yes"       && \
                                        $NWS != "0"         && \
-                                  $SCENARIO != *"Wind10m"  && \
-           ${#nodal_attribute_activate[@]} -ne 0           && \
-                                    $NAFILE != *"null"     && \
-                                    $NAFILE != *"notset"   ]]; then
+                                  $SCENARIO != *"Wind10m" ]]; then
       wind10mlayer="yes"
    fi
    #
