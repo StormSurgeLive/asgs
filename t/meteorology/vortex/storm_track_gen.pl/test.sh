@@ -147,8 +147,8 @@ tau=( 0 48 60  0 60 48 36 48 60  0 60 48 36 48 60  0 60 48 ) # hotstart time (ho
 for s in $(seq 19 35); do
     argSetNum=$(printf "%03d" $s)
     branchNum=$(printf "%02d" $b)
-    # calculate forecast hotstart time including 6 hour nowcast
-    hstime=$(( 86400 + ( ${tau[$b]} * 3600 ) + ( 6 * 3600 )))
+    # calculate forecast hotstart time including 12 hour nowcast
+    hstime=$(( 86400 + ( ${tau[$b]} * 3600 ) + ( 12 * 3600 )))  # al132020 LAURA advisory 19
     trackName="branching$branchNum"
     argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds $hstime --coldstartdate 2020082300 --forecastend 72 --test"
     ((b++))
