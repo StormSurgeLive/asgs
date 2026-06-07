@@ -1,0 +1,1 @@
+Seahorse Ubuntu 22.04 LTS on Windows 10 WSL2 with Intel i5-10600K 6 Core at 4.1GHz using NQ
