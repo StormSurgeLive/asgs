@@ -1048,21 +1048,17 @@ prepFile()
    # update the run.properties file
    echo "hpc.job.$JOBTYPE.file.qscript : $qscript" >> run.properties
    #
+   queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
+   local jobSubmitInterval=60
    case $QUEUESYS in
-   "SLURM" | "PBS" | "SGE" | "nq" )
-      queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
+   "SLURM" | "PBS" | "SGE")
       # submit adcprep job, check to make sure queue script submission
       # succeeded, and if not, retry
-      local jobSubmitInterval=60
       while [ true ];  do
          echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
          # submit job , capture stdout from sbatch and direct it
          # to scenario.log; capture stderr and send to all logs
-         if [[ $QUEUESYS == "nq" ]]; then
-            NQDIR=/tmp/$SERQUEUE $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
-         else
-            $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
-         fi
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
          if [[ $? == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
@@ -1079,12 +1075,26 @@ prepFile()
       THIS="asgs_main.sh>prepFile()"
       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
       ;;
+
+   "nq")
+      echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
+      chmod +x $SCENARIODIR/${JOBTYPE}.${queuesyslc} >> $SCENARIODIR/scenario.log 2>&1
+      # submit job to nq queue for serial jobs
+      NQDIR=/tmp/$SERQUEUE $SUBMITSTRING $SCENARIODIR/${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
+      joblog=$(<jobID) # file name that is capturing stdout/stderr
+      ln -s /tmp/$SERQUEUE/$joblog ${JOBTYPE}.out 2>> $SYSLOG
+      ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+      monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$WALLTIME"
+      THIS="asgs_main.sh>prepFile()"
+      logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
+      ;;
    *)
       # just run the adcprep job on the command line of localhost
       echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       # make the queue script executable and execute it
       chmod +x ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
-      ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+      (echo $BASHPID > jobID ; exec ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1)
       ;;
    esac
 }
@@ -1462,6 +1472,12 @@ monitorJobs()
    if [[ $QUEUESYS == "SLURM" ]]; then
       echo "hpc.job.${JOBTYPE}.$(<jobID).sacct.maxrss.bytes : $(sacct -j $(<jobID).batch --format=MaxRSS --noconvert --noheader)" >> run.properties
    fi
+   # for jobs using nq, move the stdout/stderr of the job to the scenario directory
+   if [[ $QUEUESYS == "nq" ]]; then
+      joblog=$(readlink -n ${JOBTYPE}.out) 2>> $SYSLOG # full path
+      rm ${JOBTYPE}.out 2>> $SYSLOG          # remove the symbolic link
+      mv $joblog ${JOBTYPE}.out 2>> $SYSLOG  # move the stdout/stderr file from the job to the scenario directory
+   fi
    #
    # final messages
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
@@ -1600,6 +1616,7 @@ submitJob()
    # update the run.properties file
    echo "hpc.job.$JOBTYPE.file.qscript : $qscript" >> run.properties
    #
+   queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
    # start the job in a queueing system-dependent way
    case $QUEUESYS in
    #
@@ -1609,8 +1626,7 @@ submitJob()
          cp "$ADCIRCDIR/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
          echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
       fi
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
-      echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
+      echo "time.${JOBTYPE}.start : $(date +'%Y-%h-%d-T%H:%M:%S'%z)" >> run.properties
       logMessage "$ENSTORM: $THIS: Submitting ${JOBTYPE}.${ENSTORM} job in $PWD via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the serial job in a subshell
       (
@@ -1640,8 +1656,7 @@ submitJob()
       echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$subshellPID\", \"start\" : \"$DATETIME\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    #
-   "SLURM" | "PBS" | "nq" )
-      queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
+   "SLURM" | "PBS" )
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
       local jobSubmitInterval=60
@@ -1649,12 +1664,7 @@ submitJob()
       # submit job, check to make sure qsub succeeded, and if not, retry (forever)
       while [ true ];  do
          echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
-         if [[ $QUEUESYS == "nq" ]]; then
-            NQDIR=/tmp/$QUEUENAME $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
-         else
-            # SLURM and PBS
-            $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
-         fi
+         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
          if [[ $? == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
@@ -1679,7 +1689,6 @@ submitJob()
    # No queueing system, just mpiexec (used on standalone computers
    # and small clusters)
    "mpiexec")
-      DATETIME=
       echo "time.${JOBTYPE}.start : $(date +'%Y-%h-%d-T%H:%M:%S'%z)" >> run.properties
       CPUREQUEST=$(($NCPU + $NUMWRITERS))
       # submit the parallel job in a subshell
@@ -1692,10 +1701,22 @@ submitJob()
          sleep 3 # give buffers a chance to flush to the filesystem
       ) &
       local pid=$!
+      echo $pid > jobID
       spinner 0 $pid
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
-      echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      echo "mpiexec subshell pid : $pid" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      ;;
+   "nq")
+      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
+      echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
+      chmod +x $SCENARIODIR/${JOBTYPE}.${queuesyslc} >> $SCENARIODIR/scenario.log 2>&1
+      # submit the job to the parallel queue on the local machine
+      NQDIR=/tmp/$QUEUENAME $SUBMITSTRING $SCENARIODIR/${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
+      joblog=$(<jobID)  # this is the name of the file capturing stdout/stderr
+      ln -s /tmp/$QUEUENAME/$joblog ${JOBTYPE}.out 2>> $SYSLOG
+      ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    *)
       fatal "$ENSTORM: $THIS: Queueing system $QUEUESYS unrecognized."
