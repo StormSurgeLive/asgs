@@ -46,7 +46,7 @@ _getScenarioPackageSize() {
     if [[ $ENSTORM != "null" ]]; then
       SCENARIO=$ENSTORM                   # ENSTORM is deprecated
     fi
-    if [[ $SCENARIO == "null" ]]; then
+    if [[ $SCENARIO == "null" && $ENSTORM == "null" ]]; then
       if [[ $(<scenariomsg) != "" ]]; then
          logMessage "$THIS: Success in finding the end of the forecast scenario list is indicated by the following scenario message: '$(<scenariomsg)'."
       fi
