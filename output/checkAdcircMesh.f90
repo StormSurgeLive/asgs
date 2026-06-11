@@ -30,7 +30,9 @@
 ! You should have received a copy of the GNU General Public License
 ! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------
-
+! One Liners:
+! a: Count the number of mesh nodes with negative depths:
+! awk 'BEGIN { np=99999 } NR==2 { np=$2 } NR>2 && NR<(np+2) && $4<0 { print $4 }' mesh.14 | wc -l
 !-----+---------+---------+---------+---------+---------+---------+
 !
 !   P R O G R A M    C H E C K   A D C I R C   M E S H
@@ -198,6 +200,7 @@ writeElementAreas = .false.
 writeElementAreaGradients = .false.
 writeElementEdgeLengthGradients = .false.
 writeIntermediateMeshes = .false.
+removeLowConnectedNodes = .false.
 computeMaxTimestepSizes = .false.
 computeImplicitDiagonalCoefficient = .false.
 inundationAboveLocalGround = .false.
@@ -950,7 +953,6 @@ if (computeMaxTimestepSizes.eqv..true.) then
    ! write header info
    write(11,'(a)') trim(m%agrid)
    write(11,1010) 1, m%np, 0.d0, 1, 1
-   write(11,2120) 0.d0, 0
    do while(inundationDepth.le.maxInundationDepth)
       do i=1,m%np
          ! at each node, determine min connected edge length

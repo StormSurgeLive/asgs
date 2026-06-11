@@ -59,7 +59,8 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "psubdomains.63","SubdomainsFromPartmesh",
                    "minedgelengths.63","MinimumEdgeLengthAtNode",
                    "edgelengthgradients.63","EdgeLengthGradientAtNode",
-                   "elementareas.100","ElementArea"
+                   "elementareas.100","ElementArea",
+                   "maxtimestepsizes.63","MaxTimeStepSizes"
                    );
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
