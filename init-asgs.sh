@@ -70,7 +70,13 @@ while getopts "Abc:L:mp:x:" optname; do
       c) # update DEFAULT_COMPILER for use with -b, really
 	 FORCE_DEFAULT_COMPILER=${OPTARG}
 	 ;;
-      L|p) export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
+      L|p)
+         # Fail early so a typo in -L/-p does not silently fall back to repo assets.
+         if [[ ! -d "${OPTARG}" ]]; then
+           echo "${W} Local assets directory specified with -L/-p does not exist: ${OPTARG}" >&2
+           exit 1
+         fi
+         export ASGS_LOCAL_DIR=$(readlink -f "${OPTARG}") # get full path
          ;;
       x) # add extra arbitrary options to asgs-brew.pl command
          if [ -z "${EXTRA_ASGSBREW_OPTS}" ]; then
