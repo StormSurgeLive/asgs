@@ -76,6 +76,8 @@ RUN cd /home/asgsuser/asgs      && \
 # stage in turn
 
 RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps setup-env"       || echo setup-env       - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps openmpi"         || echo openmpi         - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps hdf5"            || echo hdf5            - something went wonky but preserving docker image
@@ -89,6 +91,8 @@ RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps output"          || echo output          - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps util"            || echo util            - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps util-output"     || echo util-output     - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps input-mesh"      || echo input-mesh      - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
@@ -104,6 +108,10 @@ RUN   cd /home/asgsuser/asgs      && \
 RUN   cd /home/asgsuser/asgs      && \
       ./init-asgs.sh -b -x "--run-steps nco"             || echo nco             - something went wonky but preserving docker image
 RUN   cd /home/asgsuser/asgs      && \
-      ./init-asgs.sh -b -x "--run-steps pigz"             || echo pigz             - something went wonky but preserving docker image
+      ./init-asgs.sh -b -x "--run-steps pigz"            || echo pigz             - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps jq"              || echo jq               - something went wonky but preserving docker image
+RUN   cd /home/asgsuser/asgs      && \
+      ./init-asgs.sh -b -x "--run-steps bc"              || echo bc               - something went wonky but preserving docker image
 
 ENTRYPOINT ["/home/asgsuser/bin/docker-entrypoint.sh"]
