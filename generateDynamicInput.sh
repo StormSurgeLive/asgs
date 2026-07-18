@@ -129,6 +129,7 @@ generateDynamicInput()
         -e "s/%NWS%/$NWS/" \
         -e "s/%BASENWS%/$BASENWS/" \
         -e "s/%TIMESTEPSIZE%/$TIMESTEPSIZE/" \
+        -e "s/%TAU0%/$TAU0/" \
         -e "s/%IM_ETC%/$solver_time_integration/" \
         -e "s/%HINDCASTLENGTH%/$HINDCASTLENGTH/" \
         -e "s/%A00B00C00%/$time_weighting_coefficients/" \

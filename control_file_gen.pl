@@ -583,6 +583,8 @@ while(<TEMPLATE>) {
     # IM=0 is the same as IM=111111
     s/%IM%/$im/;
     # set time weighting coefficients
+    s/%TAU0%/$p->{tau0}/;
+    # set time weighting coefficients
     s/%A00B00C00%/$a00b00c00/;
     # if we are looking at the DT line, fill in the time step (seconds)
     s/%DT%/$dt/;

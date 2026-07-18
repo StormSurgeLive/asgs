@@ -30,6 +30,7 @@
   velmin: %VELMIN%
   bottom_friction_limit: %FFACTOR%
   advection: "%advection%"
+  tau0: %TAU0%
   hotstart:
     input_format: "%HOTSTARTINPUTFORMAT%"
     output_format: "%HOTSTARTOUTPUTFORMAT%"
