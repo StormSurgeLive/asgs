@@ -30,6 +30,7 @@ trap 'echo && exit 1' SIGINT
 # Batch mode must never prompt. Keep BATCH as a compatibility input, but use
 # one consistently named, numeric flag throughout this script.
 BATCHMODE=${BATCHMODE:-${BATCH:-0}}
+BUILD_ALL=${BUILD_ALL:-0}
 
 _usage()
 {
@@ -40,6 +41,8 @@ Build a supported ADCIRC version for the active ASGS environment.
 
 Options:
   -b, --batch                 Run noninteractively using defaults.
+  -A, --build-all             Build all supported ADCIRC versions without
+                              confirmation; implies --batch.
   -N, --version VERSION       Select an ADCIRC version by name.
       --adcirc-version VERSION
                               Alias for --version.
@@ -65,16 +68,27 @@ local patch directory, each lexicographically. Menu ordering does not change
 which marked version wins. For otherwise identical main and local entries, the
 local patchset is listed last and therefore wins named-selection resolution.
 
-Batch mode never prompts. For a custom batch build, CUSTOM_SRC must be set.
+The interactive menu also provides a build-all option and asks for explicit
+confirmation before invoking:
+
+  ./cloud/general/t/build-all-adcirc.sh
+
+Batch mode never prompts. -A invokes that script without confirmation. For a
+custom batch build, CUSTOM_SRC must be set.
 EOF
 }
 
 # Parse both short and long options without requiring the external getopt
 # command. Options may appear before or after the supported/clean command.
 COMMAND=
+VERSION_OPTION_SET=0
 while (( $# )); do
   case "$1" in
     -b|--batch)
+      BATCHMODE=1
+      ;;
+    -A|--build-all)
+      BUILD_ALL=1
       BATCHMODE=1
       ;;
     -N|--version|--adcirc-version)
@@ -84,13 +98,16 @@ while (( $# )); do
         exit 2
       fi
       SELECTED_VERSION=$2
+      VERSION_OPTION_SET=1
       shift
       ;;
     -N?*)
       SELECTED_VERSION=${1#-N}
+      VERSION_OPTION_SET=1
       ;;
     --version=*|--adcirc-version=*)
       SELECTED_VERSION=${1#*=}
+      VERSION_OPTION_SET=1
       if [[ -z "$SELECTED_VERSION" ]]; then
         echo "(fatal) $1 requires a nonempty ADCIRC version." >&2
         exit 2
@@ -128,6 +145,20 @@ while (( $# )); do
   esac
   shift
 done
+
+if (( BUILD_ALL && VERSION_OPTION_SET )); then
+  echo "(fatal) -A/--build-all cannot be combined with -N/--version." >&2
+  exit 2
+fi
+
+if (( BUILD_ALL )) && [[ -n "$COMMAND" ]]; then
+  echo "(fatal) -A/--build-all cannot be combined with the '$COMMAND' command." >&2
+  exit 2
+fi
+
+if (( BUILD_ALL )); then
+  SELECTED_VERSION=build-all
+fi
 
 if [[ "$COMMAND" == "clean" ]]; then
   echo "'clean' not implemented for optional ADCIRC/SWAN step at this time, clean up for ADCIRC and SWAN must be done manually."
@@ -305,6 +336,37 @@ _info_version_order()
   return 2
 }
 
+# Invoke the existing build-all driver from the ASGS source root so its
+# documented relative path and any relative paths it uses remain valid.
+_run_build_all_adcirc()
+{
+  local relative_script="./cloud/general/t/build-all-adcirc.sh"
+  local script_path="${SCRIPTDIR}/cloud/general/t/build-all-adcirc.sh"
+  local exit_status
+
+  if [[ ! -f "$script_path" ]]; then
+    echo "(fatal) ADCIRC build-all script not found:" >&2
+    echo "  $script_path" >&2
+    exit 1
+  fi
+
+  echo "Invoking ADCIRC build-all script:"
+  echo "  $relative_script"
+  echo
+
+  (
+    cd "$SCRIPTDIR" || exit 1
+    bash "$relative_script"
+  )
+  exit_status=$?
+
+  if (( exit_status != 0 )); then
+    echo "(fatal) ADCIRC build-all script failed with exit status $exit_status." >&2
+  fi
+
+  exit "$exit_status"
+}
+
 # Discover and optionally display supported versions. Ordered versions are
 # sorted numerically by ADCIRC_VERSION_ORDER and then lexicographically by
 # version name. Versions without a valid order value are sorted last, also
@@ -455,9 +517,11 @@ _show_supported_versions()
         "$((index + 1))" "$display_version" "${ADCIRC_ABOUTS[$index]}"
     done
 
-    printf "%2s. %-33s | %-66s\n" "$((max_supported + 1))" custom \
+    printf "%2s. %-33s | %-66s\n" "$((max_supported + 1))" build-all \
+      "build every supported ADCIRC version"
+    printf "%2s. %-33s | %-66s\n" "$((max_supported + 2))" custom \
       "select this option for custom directory *,**"
-    printf "%2s. %-33s | %-66s\n" "$((max_supported + 2))" quit \
+    printf "%2s. %-33s | %-66s\n" "$((max_supported + 3))" quit \
       "type 'quit', 'q', or 'ctrl-c' to quit"
     echo "--"
     echo "* Contact <help@support.adcirc.live> if privately patched ADCIRC support is required."
@@ -465,9 +529,9 @@ _show_supported_versions()
     echo
   fi
 
-  ADCIRCS+=(custom quit)
-  ADCIRC_PATCHSET_BASES+=("" "")
-  ADCIRC_VERSION_ORDERS+=("" "")
+  ADCIRCS+=(build-all custom quit)
+  ADCIRC_PATCHSET_BASES+=("" "" "")
+  ADCIRC_VERSION_ORDERS+=("" "" "")
   NUM_ADC=${#ADCIRCS[@]}
 
   if [[ "$mode" == "exit" ]]; then
@@ -485,6 +549,11 @@ _resolve_version_selection()
   local numeric index
 
   case "${selection,,}" in
+    all|build-all|"build all")
+      printf -v "$result_var" '%s' build-all
+      RESOLVED_VERSION_INDEX=$((${#ADCIRCS[@]} - 3))
+      return 0
+      ;;
     q|quit)
       printf -v "$result_var" '%s' quit
       RESOLVED_VERSION_INDEX=$((${#ADCIRCS[@]} - 1))
@@ -539,7 +608,7 @@ if [[ -z "$SELECTED_VERSION" ]]; then
 
   while true; do
     _prompt_value _SELECTED_VERSION \
-      "Select an ADCIRC version by number or name (q to quit)" \
+      "Select an ADCIRC version, build-all, or q to quit" \
       "$__SELECTED_VERSION"
 
     if _resolve_version_selection "$_SELECTED_VERSION" SELECTED_VERSION; then
@@ -551,7 +620,7 @@ if [[ -z "$SELECTED_VERSION" ]]; then
       exit 1
     fi
 
-    echo "Invalid selection. Enter a number from 1-${NUM_ADC}, a displayed name, or 'q'."
+    echo "Invalid selection. Enter a number from 1-${NUM_ADC}, a displayed name, 'all', or 'q'."
     echo
   done
 else
@@ -564,7 +633,23 @@ else
 fi
 
 case "${SELECTED_VERSION,,}" in
-  q|quit) exit 0 ;;
+  q|quit)
+    exit 0
+    ;;
+  build-all)
+    if (( ! BATCHMODE )); then
+      _prompt_yes_no BUILD_ALL_CONFIRMED \
+        "Build all supported ADCIRC versions using ./cloud/general/t/build-all-adcirc.sh?" \
+        no
+
+      if [[ "$BUILD_ALL_CONFIRMED" != "yes" ]]; then
+        echo "Build-all cancelled."
+        exit 0
+      fi
+    fi
+
+    _run_build_all_adcirc
+    ;;
 esac
 
 SELECTED_PATCHSET_BASE=${ADCIRC_PATCHSET_BASES[$RESOLVED_VERSION_INDEX]}
