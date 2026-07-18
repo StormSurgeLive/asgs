@@ -3,3 +3,5 @@ export ADCIRC_GIT_URL=https://github.com/StormSurgeLive
 export ADCIRC_GIT_REPO=adcirc
 export ADCIRC_GIT_BRANCH=v56.0.4.live.1
 export SWANDIR=thirdparty/swan
+ADCIRC_VERSION_ORDER=5
+ADCIRC_VERSION_DEFAULT=yes
