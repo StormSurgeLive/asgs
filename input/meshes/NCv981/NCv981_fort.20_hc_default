@@ -1,0 +1,19 @@
+31536000.0 ! flux time increment (sec); 4 12 = Number of nodes for land boundary 12 ; 5 12 = Number of nodes for land boundary 13 there are 9 river flux nodes in the mesh
+ 0.0                   ! r1 n1
+ 0.14336611770105378   ! r1 n2
+ 0.14336611770105378   ! r1 n3
+ 0.0                   ! r1_n4__
+ 0.0                   ! r2 n1
+ 0.0                   ! r2 n2
+ 0.11733865979039966   ! r2 n3
+ 0.11733865979039966   ! r2 n4
+ 0.0                   ! r2 n5
+ 0.0
+ 0.14336611770105378
+ 0.14336611770105378
+ 0.0
+ 0.0
+ 0.0
+ 0.11733865979039966
+ 0.11733865979039966
+ 0.0

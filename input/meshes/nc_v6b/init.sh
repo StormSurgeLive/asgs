@@ -34,7 +34,7 @@ ADCPREPWALLTIME="02:00:00"  # adcprep wall clock time, including partmesh
 NOWCASTWALLTIME="07:00:00"  # longest nowcast wall clock time
 FORECASTWALLTIME="07:00:00" # forecast wall clock time
 case $parameterPackage in
-"hardcoded"|"default"|"2025.1")
+"hardcoded"|"default")
     # we don't have a hardcoded template set up for NCv6d
     CONTROLTEMPLATE=NCv6d_2024.fort.15.template
     # tidal forcing
@@ -44,10 +44,10 @@ case $parameterPackage in
     HINDCASTRIVERFLUX=v6brivers_fort.20_hc_default
     VARFLUX=default             # mesh has aperiodic flux boundary
     # numerics/physics
-    TIMESTEPSIZE=0.5                      # adcirc time step size (seconds)
+    TIMESTEPSIZE=1.0                      # adcirc time step size (seconds)
     advection="on"                        # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
-    solver_time_integration="explicit"    # implicit|explicit|full-gravity-wave-implicit
-    time_weighting_coefficients="0.0 1.0 0.0" # A00 B00 C00 in fort.15
+    solver_time_integration="implicit"    # implicit|explicit|full-gravity-wave-implicit
+    time_weighting_coefficients="0.35 0.3 0.35" # A00 B00 C00 in fort.15
     lateral_turbulence="eddy_viscosity"   # "smagorinsky" or "eddy_viscosity"
     eddy_viscosity_coefficient="10.0"     # ESLM
     bottom_friction_limit=0.003           # min when using Manning's n (CF/FFACTOR)
@@ -55,17 +55,28 @@ case $parameterPackage in
     velmin=0.02
     # nodal attributes
     NAFILE=v6brivers_rlevel.13.template
-    nodal_attribute_activate=( surface_directional_effective_roughness_length mannings_n_at_sea_floor )
-    nodal_attribute_activate+=( surface_canopy_coefficient primitive_weighting_in_continuity_equation )
+    nodal_attribute_activate+=( primitive_weighting_in_continuity_equation )
+    nodal_attribute_activate=( surface_directional_effective_roughness_length )
     nodal_attribute_activate+=( average_horizontal_eddy_viscosity_in_sea_water_wrt_depth )
+    nodal_attribute_activate=( mannings_n_at_sea_floor )
+    nodal_attribute_activate+=( surface_canopy_coefficient )
     nodal_attribute_activate+=( initial_river_elevation )
-    nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
+    # defaults
     nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
-    nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
-    nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
     nodal_attribute_default_values["surface_directional_effective_roughness_length"]="0.0  0.0  0.0 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+    nodal_attribute_default_values["average_horizontal_eddy_viscosity_in_sea_water_wrt_depth"]="10.0"
     nodal_attribute_default_values["mannings_n_at_sea_floor"]="0.02"
+    nodal_attribute_default_values["surface_canopy_coefficient"]="1.0"
     nodal_attribute_default_values["initial_river_elevation"]="-99999"
+    if [[ $parameterSubPackage == "2026.1" ]]; then
+        NAFILE=NCv6d.2026.1.13.template
+        # look for trouble spots
+        nodal_attribute_activate+=( elemental_slope_limiter )
+        nodal_attribute_default_values["elemental_slope_limiter"]="-0.001"
+        # allow for steric adjustment
+        nodal_attribute_activate+=( sea_surface_height_above_geoid )
+        nodal_attribute_default_values["sea_surface_height_above_geoid"]="0.0"
+    fi
     ;;
 *)
     fatal "The parameter package '$parameterPackage' is not supported for the mesh '$GRIDNAME'."

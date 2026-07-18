@@ -24,16 +24,23 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #----------------------------------------------------------------
 #
+# ADCIRC mesh (fort.14) file
+meshVersion="original"
+#
 # ADCIRC parameters (fort.15) file
 parameterPackage="hardcoded"  # use old (mostly) hardcoded fort.15 template and static nodal attributes
-subvariant="null"             # most parameter packages will not have subvariants
+parameterSubPackage="none"    # most parameter packages will not have subvariants
 controlParametersTemplate=$SCRIPTDIR/control-parameters-template.yaml
 adcircVersions=( "notset" )
 CONTROLTEMPLATENOROUGH="null"
+TAU0=-3.0
 TIMESTEPSIZE="1.0"            # ADCIRC time step (DTDP) in seconds
 metOnlyTimeStepSize="300.0"   # ADCIRC time step (DTDP) for meteorology-only mode
 WTIMINC=900                   # time increment of meteorological data sets in seconds
 advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
+# nodal attributes listed in fort.15 file
+declare -g -a nodal_attribute_activate
+nodal_attribute_activate=( )
 #
 # For ADCIRC versions v55.01 and later, rotated spherical coordinate
 # systems are available that are useful for global meshes to place the
@@ -51,7 +58,7 @@ advection="on"                # on|off for advection (NOLICA=1|0/NOLICAT=1|0)
 zNorth="northpole"                          # greenland-antarctica|china-argentina|borneo-brazil
 declare -g -A coordinateSystem
 coordinateSystem["projection"]="geographic" # cartesian|geographic
-coordinateSystem["reprojection"]="CPP"      # CPP|equal-area|merator|miller|gall-stereographic
+coordinateSystem["reprojection"]="CPP"      # CPP|equal-area|mercator|miller|gall-stereographic
 coordinateSystem["earthCurvature"]="no"     # no|yes
 coordinateSystem["rotation"]=$zNorth
 #
@@ -166,9 +173,6 @@ netcdf_metadata["NCDATE"]="2010-05-01 00:00:00 UTC"   # cold start date and time
 #
 #  N O D A L   A T T R I B U T E S
 #
-# nodal attributes listed in fort.15 file
-declare -g -a nodal_attribute_activate
-nodal_attribute_activate=( )
 # possible list elements include
 #    primitive_weighting_in_continuity_equation
 #    surface_submergence_state
@@ -186,6 +190,7 @@ nodal_attribute_activate=( )
 # e.g.: nodal_attribute_activate=( "sea_surface_height_above_geoid" "mannings_n_at_sea_floor" )
 #
 # ADCIRC nodal attributes (fort.13) file
+nodalAttributesVersion="original"
 declare -g -A nodal_attribute_default_values
 nodal_attribute_default_values["primitive_weighting_in_continuity_equation"]="0.03"
 nodal_attribute_default_values["surface_submergence_state"]="1"

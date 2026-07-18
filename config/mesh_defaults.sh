@@ -87,6 +87,9 @@ case $GRIDNAME in
    "NCv6d")
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v6b
       ;;
+   "NCv981")
+      INPUTDIR=$SCRIPTDIR/input/meshes/NCv981
+      ;;
    "nc_inundation_v9.99_w_rivers"|"NCv999")
       INPUTDIR=$SCRIPTDIR/input/meshes/nc_v9.99_w_rivers
       ;;
