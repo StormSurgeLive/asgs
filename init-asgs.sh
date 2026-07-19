@@ -49,6 +49,54 @@ fi
 export I="(${CY}info${R})"
 export W="(${B}${RD}!! warning${R})"
 
+_prompt_value()
+{
+  local prompt=$1
+  local default_value=${2:-}
+  local answer
+
+  if [[ -n "$default_value" ]]; then
+    read -r -p "${prompt} [default: ${default_value}]: " answer
+    printf '%s\n' "${answer:-$default_value}"
+  else
+    read -r -p "${prompt}: " answer
+    printf '%s\n' "$answer"
+  fi
+}
+
+_prompt_yes_no()
+{
+  local prompt=$1
+  local default_answer=${2,,}
+  local choices answer
+
+  case "$default_answer" in
+    y|yes)
+      default_answer=yes
+      choices='[Y/n]'
+      ;;
+    n|no)
+      default_answer=no
+      choices='[y/N]'
+      ;;
+    *)
+      echo "(fatal) invalid default answer '$2' for prompt: $prompt" >&2
+      return 2
+      ;;
+  esac
+
+  while true; do
+    read -r -p "${prompt} ${choices}: " answer
+    answer=${answer:-$default_answer}
+
+    case "${answer,,}" in
+      y|yes) return 0 ;;
+      n|no)  return 1 ;;
+      *) echo "Please answer 'yes' or 'no'." ;;
+    esac
+  done
+}
+
 SCRIPTDIR=$(pwd)
 
 # check to see if we're installing from a .zip (no .git directory will exist)
@@ -110,10 +158,11 @@ ASGS_HOME=${ASGS_HOME:-$(pwd)}
 ASGS_TMPDIR=${TMPDIR:-$ASGS_HOME/tmp}
 
 if [ -z "$BATCH" ]; then
+  echo "Available platform environments:"
   # DO NOT ADD TO THIS LIST MANUALLY ANYMORE, See ./platforms/README
-  echo "queenbeeC      - QueenbeeC (LONI)"    # qbC
-  echo "supermic       - SuperMIC (LSU HPC)"  # smic
-  echo "frontera       - Frontera (TACC)"     # frontera
+  printf "  %-14s - %s\n" "queenbeeC" "QueenbeeC (LONI)"    # qbC
+  printf "  %-14s - %s\n" "supermic"  "SuperMIC (LSU HPC)"  # smic
+  printf "  %-14s - %s\n" "frontera"  "Frontera (TACC)"     # frontera
 fi
 
 # Preferred way to add platforms now ... load platforms from $SCRIPTDIR/platforms/
@@ -138,7 +187,7 @@ if [ -d "./platforms" ]; then
         seereadme=" (see, ./platforms/$platform/README)"
       fi
       if [ -z "$BATCH" ]; then
-        printf "% -14s - %s%s\n" "$platform" "$about" "$seereadme"
+        printf "  %-14s - %s%s\n" "$platform" "$about" "$seereadme"
       fi
     fi
   done
@@ -154,25 +203,21 @@ if [[ -n "${ASGS_LOCAL_DIR}" &&  -d "${ASGS_LOCAL_DIR}/platforms" ]]; then
   for platform in "${_PLATFORMS[@]}"; do
     if [ -e "${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh" ]; then
       _PLATFORM_INIT[$platform]="${ASGS_LOCAL_DIR}/platforms/${platform}/init.sh"
+      about=
       if [ -e ${ASGS_LOCAL_DIR}/platforms/${platform}/about.txt ]; then
         about=$(cat ${ASGS_LOCAL_DIR}/platforms/${platform}/about.txt | sed 's/\n//g')
       fi
-      printf "% -14s - %s\n" "$platform" "(custom) $about"
+      if [ -z "$BATCH" ]; then
+        printf "  %-14s - %s\n" "$platform" "(custom) $about"
+      fi
     fi
   done
 fi
 
 default_platform=$(./bin/guess platform)
-if [ -n "$default_platform" ]; then
-  _default_platform=" [$default_platform]"
-fi
-
 if [ -z "$BATCH" ]; then
   echo
-  read -p "Which platform environment would you like to use for ASGS bootstrapping?$_default_platform " platform
-  if [ -z "$platform" ]; then
-    platform=$default_platform
-  fi
+  platform=$(_prompt_value "Select a platform environment for ASGS bootstrapping" "$default_platform")
 else
   platform=$default_platform
 fi
@@ -234,22 +279,9 @@ if [ -z "$BATCH" ]; then
   # offer some tweaking of the queue system, this is the biggest
   # difference when considering environments of the same OS (e.g., RHEL or related)
   if [ "$QSYSASK" == "YES" ]; then
-    read -p "Queue system (<enter> if you don't know) [$QUEUESYS]? " _QUEUESYS
-    echo
-    if [ -n "$_QUEUESYS" ]; then
-      QUEUESYS=$_QUEUESYS
-    fi
-
-    read -p "Queue check command (<enter> if you don't know) [$QCHECKCMD]? " _QCHECKCMD
-    if [ -n "$_QCHECKCMD" ]; then
-      QCHECKCMD=$_QCHECKCMD
-    fi
-    echo
-
-    read -p "Queue submit command (<enter> if you don't know) [$SUBMITSTRING]? " _SUBMITSTRING
-    if [ -n "$_SUBMITSTRING" ]; then
-      SUBMITSTRING=$_SUBMITSTRING
-    fi
+    QUEUESYS=$(_prompt_value "Queue system" "$QUEUESYS")
+    QCHECKCMD=$(_prompt_value "Queue check command" "$QCHECKCMD")
+    SUBMITSTRING=$(_prompt_value "Queue submit command" "$SUBMITSTRING")
     echo
   fi
 
@@ -273,19 +305,15 @@ if [ -z "$BATCH" ]; then
   fi
   echo
 
-  read -p "Does the above system information look correct? [Y/n] " _looks_correct
-  if [[ -n "$_looks_correct" && "${_looks_correct^^}" != Y ]]; then
-    echo Set up aborted. Ensure platform is supported, then try again. exiting...
+  if ! _prompt_yes_no "Does the above system information look correct?" yes; then
+    echo "Set up aborted. Ensure the platform is supported, then try again."
     exit
   fi
 
   # skip if not a git repo (can't find ./.git)
   if [[ -z "$ADCIRCLIVE" ]]; then
     echo
-    read -p "If you'd like to checkout a specific branch, specify here. [<enter> if you don't know] " repo
-    if [ -z "$repo" ]; then
-      repo=current
-    fi
+    repo=$(_prompt_value "Git branch to check out ('current' leaves it unchanged)" "current")
   fi
 
   # skip if not a git repo (can't find ./.git)
@@ -293,10 +321,9 @@ if [ -z "$BATCH" ]; then
     git checkout $repo 2> /dev/null
     if [ $? -gt 0 ]; then
      echo
-     echo error checking out $repo
-     read -p "skip checkout and proceed? [y/N] " skip
-     if [[ -z "$skip" || "${skip^^}" = "N" ]]; then
-       echo exiting ...
+     echo "Error checking out '$repo'."
+     if ! _prompt_yes_no "Skip checkout and proceed?" no; then
+       echo "Exiting."
        exit
      fi
     fi
@@ -306,10 +333,7 @@ if [ -z "$BATCH" ]; then
   fi
   echo
 
-  read -p "Which compiler 'family' would you like to use, 'gfortran', 'intel', 'intel-oneapi'? [$_compiler] " compiler
-  if [ -z "$compiler" ]; then
-    compiler=$_compiler
-  fi
+  compiler=$(_prompt_value "Compiler family (gfortran, intel, or intel-oneapi)" "$_compiler")
 else
   compiler=$_compiler # BATCH is set here
 fi
@@ -323,7 +347,7 @@ fi
 _default_profile=default-$(basename "$(pwd)")
 if [[ -z "$BATCH" && -z "$ADCIRCLIVE" ]]; then
   echo
-  read -p "Name of this installation? [\"$_default_profile\"] " profile
+  profile=$(_prompt_value "Installation name" "$_default_profile")
 fi
 
 if [ -z "$profile" ]; then
@@ -333,9 +357,8 @@ fi
 if [[ -z "$BATCH" && -z "$ADCIRCLIVE" ]]; then
   if [ -e $ASGS_HOME/profiles/$profile ]; then
     echo
-    read -p "${W} it appears an '$profile' profile already exists from a previous installation. Is it okay to proceed and overwrite? [y/N] " overwrite
-    if [[ -z "$overwrite" || "${overwrite^^}" == "N" ]]; then
-      echo exiting ...
+    if ! _prompt_yes_no "${W} Profile '$profile' already exists. Proceed and overwrite it?" no; then
+      echo "Exiting."
       exit
     fi
   fi
@@ -344,7 +367,7 @@ fi
 _default_installpath=$ASGS_HOME/opt
 if [ -z "$BATCH" ]; then
   echo
-  read -p "Install base for libraries and some utilities? [$_default_installpath] " installpath
+  installpath=$(_prompt_value "Install base for libraries and utilities" "$_default_installpath")
 fi
 
 if [ -z "$installpath" ]; then
@@ -354,9 +377,8 @@ fi
 if [ -z "$BATCH" ]; then
   if [ -d "$installpath/$profile" ]; then
     echo
-    read -p "${W} '$installpath/$profile' exists. To prevent overwriting existing files, would you like to quit and do the needful? [Y/n] " quit
-    if [[ -z "$quit" || "${quit^^}" == Y ]]; then
-      echo exiting ...
+    if ! _prompt_yes_no "${W} '$installpath/$profile' exists. Continue anyway?" no; then
+      echo "Exiting."
       exit
     fi
   fi
@@ -375,10 +397,10 @@ if [ -z "$BATCH" ]; then
   echo
   echo $cmd
   echo
-  _run=y
-  read -p "Run command above, [Y/n]? " run
-  if [[ -z "$run" ]]; then
-    run=$_run
+  if _prompt_yes_no "Run the command above?" yes; then
+    run=y
+  else
+    run=n
   fi
 fi
 
@@ -389,49 +411,86 @@ rm -v $HOME/bin/update-asgs 2> /dev/null
 # command that results from the use of this guide installation
 if [[ "${run,,}" == "y" || -n "$BATCH" ]]; then
   scriptdir=$(pwd)
-  #
-  base_cmd="cloud/general/asgs-brew.pl --install-path=$installpath --asgs-profile=$profile --compiler=$compiler --machinename=$platform --home=${ASGS_HOME} --tmpdir=${ASGS_TMPDIR} ${PLATFORM_INIT_OPT}"
-  full_command=$scriptdir/$base_cmd
-  echo Writing wrapper ASGSH Shell command wrapper "'update-asgs'" for use later...
-  echo "#!/usr/bin/env bash"                             > ./update-asgs
-  echo "#---automatically generated by $0 - rename if you don't wish to lose it next tim $0 is run---#" >> ./update-asgs
-  if [ -n "$ASGS_LOCAL_DIR" ]; then
-    echo "export ASGS_LOCAL_DIR=${ASGS_LOCAL_DIR}"      >> ./update-asgs
-  fi
-  if [ -n "$PLATFORM_INIT" ]; then
-    echo "export PLATFORM_INIT=${PLATFORM_INIT}"        >> ./update-asgs
-  fi
-  if [ -n "$WORK" ]; then
-    echo "export WORK=${WORK}"        >> ./update-asgs
-  fi
-  if [ -n "$SCRATCH" ]; then
-    echo "export SCRATCH=${SCRATCH}"        >> ./update-asgs
-  fi
-  echo "if [ -n \"\$_ASGSH_PID\" ]; then"                 >> ./update-asgs
-  echo "  echo This needs to be run outside of the asgsh environment" >> ./update-asgs
-  echo "  echo exiting ..."                               >> ./update-asgs
-  echo "  exit"                                           >> ./update-asgs
-  echo "fi"                                               >> ./update-asgs
-  echo                                                    >> ./update-asgs
-  echo "if [ -z \"\$@\" ]; then"                          >> ./update-asgs
-  echo "  echo \"You didn't provide additional arguments (e.g., --update-shell)\"" >> ./update-asgs
-  echo "  echo See documentation for more information"    >> ./update-asgs
-  echo "  echo exiting ..."                               >> ./update-asgs
-  echo "exit 1"                                           >> ./update-asgs
-  echo "fi"                                               >> ./update-asgs
-  echo "echo"                                             >> ./update-asgs
-  echo "echo you are about to run the following command:" >> ./update-asgs
-  echo "echo"                                             >> ./update-asgs
-  echo "echo \"  $full_command \$@\""                     >> ./update-asgs
-  echo "echo"                                             >> ./update-asgs
-  echo "read -p \"proceed? [Y/n] \" run"                  >> ./update-asgs
-  echo "if [[ -z "\$run" || \$run == \"Y\" ]]; then"      >> ./update-asgs
-  echo "  cd $scriptdir"                                  >> ./update-asgs
-  echo "  $full_command \$@"                              >> ./update-asgs
-  echo "else"                                             >> ./update-asgs
-  echo "  echo"                                           >> ./update-asgs
-  echo "  echo exiting ..."                               >> ./update-asgs
-  echo "fi"                                               >> ./update-asgs
+  echo "Writing ASGSH shell command wrapper 'update-asgs' for later use..."
+  {
+    cat <<EOF
+#!/usr/bin/env bash
+# Automatically generated by $0.
+# Rename this file if you do not want it replaced the next time $0 is run.
+EOF
+
+    if [ -n "$ASGS_LOCAL_DIR" ]; then
+      printf 'export ASGS_LOCAL_DIR=%q\n' "$ASGS_LOCAL_DIR"
+    fi
+    if [ -n "$PLATFORM_INIT" ]; then
+      printf 'export PLATFORM_INIT=%q\n' "$PLATFORM_INIT"
+    fi
+    if [ -n "$WORK" ]; then
+      printf 'export WORK=%q\n' "$WORK"
+    fi
+    if [ -n "$SCRATCH" ]; then
+      printf 'export SCRATCH=%q\n' "$SCRATCH"
+    fi
+
+    printf '\nupdate_asgs_root=%q\n' "$scriptdir"
+    printf 'asgs_brew_cmd=(\n'
+    printf '  %q\n' "$scriptdir/cloud/general/asgs-brew.pl"
+    printf '  %q\n' "--install-path=$installpath"
+    printf '  %q\n' "--asgs-profile=$profile"
+    printf '  %q\n' "--compiler=$compiler"
+    printf '  %q\n' "--machinename=$platform"
+    printf '  %q\n' "--home=$ASGS_HOME"
+    printf '  %q\n' "--tmpdir=$ASGS_TMPDIR"
+    if [ -n "$PLATFORM_INIT" ]; then
+      printf '  %q\n' "--platform-init"
+      printf '  %q\n' "$PLATFORM_INIT"
+    fi
+
+    cat <<'EOF'
+)
+
+if [[ -n "${_ASGSH_PID:-}" ]]; then
+  echo "This needs to be run outside of the asgsh environment."
+  echo "Exiting."
+  exit 1
+fi
+
+if (( $# == 0 )); then
+  echo "You didn't provide additional arguments (e.g., --update-shell)."
+  echo "See the documentation for more information."
+  echo "Exiting."
+  exit 1
+fi
+
+echo
+echo "You are about to run the following command:"
+echo
+printf '  '
+printf '%q ' "${asgs_brew_cmd[@]}" "$@"
+printf '\n\n'
+
+while true; do
+  read -r -p "Proceed? [Y/n]: " run
+  run=${run:-yes}
+
+  case "${run,,}" in
+    y|yes)
+      cd "$update_asgs_root" || exit 1
+      "${asgs_brew_cmd[@]}" "$@"
+      exit $?
+      ;;
+    n|no)
+      echo
+      echo "Exiting."
+      exit 0
+      ;;
+    *)
+      echo "Please answer 'yes' or 'no'."
+      ;;
+  esac
+done
+EOF
+  } > ./update-asgs
   chmod 700 ./update-asgs
   # run command
   $cmd
@@ -443,40 +502,4 @@ else
   echo
   printf "\t$cmd\n"
   echo
-fi
-
-# For ADCIRC pro's who up their game with ADCIRC Live (c) #
-#   via https://tools.adcirc.live                         #
-if [[ -d $SCRIPTDIR/adcirclive/etc ]]; then
-  echo "export PATH=$SCRIPTDIR/adcirclive/bin:\$PATH"                             > adcirclive/etc/bashrc
-  echo "export ADCIRCLIVE_ROOT=$SCRIPTDIR/adcirclive"                            >> adcirclive/etc/bashrc
-  echo "export ADCIRCLIVE_DEFAULT_PROFILE=$SCRIPTDIR/profiles/$profile"          >> adcirclive/etc/bashrc
-  echo "alias adl='adcirclive'"                                                  >> adcirclive/etc/bashrc
-  echo "alias adcl='pushd \$ADCIRCLIVE_ROOT; dirs -c'"                           >> adcirclive/etc/bashrc
-  echo "alias sd='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                          >> adcirclive/etc/bashrc
-  echo "alias asgs='pushd \$ADCIRCLIVE_ROOT/..; dirs -c'"                        >> adcirclive/etc/bashrc
-
-  ln -sf $SCRIPTDIR/asgsh $SCRIPTDIR/adcirclive/bin
-  cp adcirclive/etc/bashrc adcirclive/etc/initial-bashrc
-
-  echo "adcirclive build v55.02"                                                 >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc 
-  echo "adcirclive load adcirc"                                                  >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "adcirclive verify adcirc"                                                >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "cat<<EOF"                                                                >> adcirclive/etc/initial-bashrc
-  echo "ADCIRC v56.0.2 and the ADCIRC Live (c) cli is now installed and ready:"  >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "If you have any questions, please email us at help@support.adcirc.live"  >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "The following line was added to your ~/.bashrc file:"                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "  source $SCRIPTDIR/adcirclive/adcirclive/etc/bashrc"                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "To get started, type the command                    "                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "  adcirclive help                                   "                    >> adcirclive/etc/initial-bashrc
-  echo                                                                           >> adcirclive/etc/initial-bashrc
-  echo "EOF"                                                                     >> adcirclive/etc/initial-bashrc
 fi

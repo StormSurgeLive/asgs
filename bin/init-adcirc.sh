@@ -27,19 +27,143 @@
 
 trap 'echo && exit 1' SIGINT
 
-if [ "${1}" = "clean" ]; then
+# Batch mode must never prompt. Keep BATCH as a compatibility input, but use
+# one consistently named, numeric flag throughout this script.
+BATCHMODE=${BATCHMODE:-${BATCH:-0}}
+BUILD_ALL=${BUILD_ALL:-0}
+
+_usage()
+{
+  cat <<EOF
+Usage: ${0##*/} [OPTIONS] [COMMAND]
+
+Build a supported ADCIRC version for the active ASGS environment.
+
+Options:
+  -b, --batch                 Run noninteractively using defaults.
+  -A, --build-all             Build all supported ADCIRC versions without
+                              confirmation; implies --batch.
+  -N, --version VERSION       Select an ADCIRC version by name.
+      --adcirc-version VERSION
+                              Alias for --version.
+  -h, --help                  Show this help and exit.
+
+Commands:
+  supported                   List supported ADCIRC versions and exit.
+  clean                       Report the current clean-operation status.
+
+A version can control its menu position and declare itself the preferred
+default by placing these fields in its info.sh file:
+
+  ADCIRC_VERSION_ORDER=10
+  ADCIRC_VERSION_DEFAULT=yes
+
+Lower order values are listed first. Versions with the same order value are
+sorted lexicographically by version name. Versions without an order value are
+listed last and sorted lexicographically within that final group.
+
+If multiple versions are marked as the default, the script warns and uses the
+last marked version found while scanning the main patch directory and then the
+local patch directory, each lexicographically. Menu ordering does not change
+which marked version wins. For otherwise identical main and local entries, the
+local patchset is listed last and therefore wins named-selection resolution.
+
+The interactive menu also provides a build-all option and asks for explicit
+confirmation before invoking:
+
+  ./cloud/general/t/build-all-adcirc.sh
+
+Batch mode never prompts. -A invokes that script without confirmation. For a
+custom batch build, CUSTOM_SRC must be set.
+EOF
+}
+
+# Parse both short and long options without requiring the external getopt
+# command. Options may appear before or after the supported/clean command.
+COMMAND=
+VERSION_OPTION_SET=0
+while (( $# )); do
+  case "$1" in
+    -b|--batch)
+      BATCHMODE=1
+      ;;
+    -A|--build-all)
+      BUILD_ALL=1
+      BATCHMODE=1
+      ;;
+    -N|--version|--adcirc-version)
+      if (( $# < 2 )); then
+        echo "(fatal) $1 requires an ADCIRC version argument." >&2
+        echo "Run '${0##*/} --help' for usage." >&2
+        exit 2
+      fi
+      SELECTED_VERSION=$2
+      VERSION_OPTION_SET=1
+      shift
+      ;;
+    -N?*)
+      SELECTED_VERSION=${1#-N}
+      VERSION_OPTION_SET=1
+      ;;
+    --version=*|--adcirc-version=*)
+      SELECTED_VERSION=${1#*=}
+      VERSION_OPTION_SET=1
+      if [[ -z "$SELECTED_VERSION" ]]; then
+        echo "(fatal) $1 requires a nonempty ADCIRC version." >&2
+        exit 2
+      fi
+      ;;
+    -h|--help)
+      _usage
+      exit 0
+      ;;
+    supported|clean)
+      if [[ -n "$COMMAND" ]]; then
+        echo "(fatal) only one command may be specified." >&2
+        exit 2
+      fi
+      COMMAND=$1
+      ;;
+    --)
+      shift
+      if (( $# )); then
+        echo "(fatal) unexpected argument after '--': '$1'." >&2
+        exit 2
+      fi
+      break
+      ;;
+    -* )
+      echo "(fatal) unknown option '$1'." >&2
+      echo "Run '${0##*/} --help' for usage." >&2
+      exit 2
+      ;;
+    *)
+      echo "(fatal) unexpected argument '$1'." >&2
+      echo "Run '${0##*/} --help' for usage." >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+if (( BUILD_ALL && VERSION_OPTION_SET )); then
+  echo "(fatal) -A/--build-all cannot be combined with -N/--version." >&2
+  exit 2
+fi
+
+if (( BUILD_ALL )) && [[ -n "$COMMAND" ]]; then
+  echo "(fatal) -A/--build-all cannot be combined with the '$COMMAND' command." >&2
+  exit 2
+fi
+
+if (( BUILD_ALL )); then
+  SELECTED_VERSION=build-all
+fi
+
+if [[ "$COMMAND" == "clean" ]]; then
   echo "'clean' not implemented for optional ADCIRC/SWAN step at this time, clean up for ADCIRC and SWAN must be done manually."
   exit 0
 fi
-
-while getopts "bN:" optname; do
-   case $optname in
-      b) BATCH=1
-         ;;
-      N) SELECTED_VERSION=${OPTARG}
-         ;;
-   esac
-done
 
 ADCIRCS=()
 NUM_ADC=0
@@ -50,11 +174,72 @@ _is_a_num()
 {
   re='^[1-9][0-9]?$'
   if [[ "${1}" =~ $re ]] ; then
-    echo -n $1
+    echo -n "$1"
   else
     echo -n -1
   fi
   return
+}
+
+# Read a value consistently. In batch mode, use the default without prompting.
+_prompt_value()
+{
+  local result_var="$1"
+  local prompt="$2"
+  local default_value="$3"
+  local response
+
+  if (( BATCHMODE )); then
+    printf -v "$result_var" '%s' "$default_value"
+    return
+  fi
+
+  read -r -p "$prompt [default: $default_value]: " response
+  printf -v "$result_var" '%s' "${response:-$default_value}"
+  echo
+}
+
+# Read and normalize a yes/no response. The capitalized choice is the default.
+# In batch mode, use the supplied default without prompting.
+_prompt_yes_no()
+{
+  local result_var="$1"
+  local prompt="$2"
+  local default_answer="${3,,}"
+  local choices response
+
+  case "$default_answer" in
+    y|yes) default_answer=yes; choices='Y/n' ;;
+    n|no)  default_answer=no;  choices='y/N' ;;
+    *)
+      echo "(fatal) invalid default answer '$3' for yes/no prompt."
+      exit 1
+      ;;
+  esac
+
+  if (( BATCHMODE )); then
+    printf -v "$result_var" '%s' "$default_answer"
+    return
+  fi
+
+  while true; do
+    read -r -p "$prompt [$choices]: " response
+    response="${response:-$default_answer}"
+    case "${response,,}" in
+      y|yes)
+        printf -v "$result_var" '%s' yes
+        break
+        ;;
+      n|no)
+        printf -v "$result_var" '%s' no
+        break
+        ;;
+      *)
+        echo "Please enter 'yes' or 'no'."
+        ;;
+    esac
+  done
+  echo
 }
 
 _set_compilers()
@@ -78,7 +263,11 @@ _set_compilers()
       CC=gcc
     ;;
     *)
-      echo '${W} unknown compiler is unsupported...; defaulting to "intel"'
+      echo "${W} unknown compiler '$ADCIRC_COMPILER' is unsupported; defaulting to 'intel'."
+      ADCIRC_COMPILER=intel
+      FC=ifort
+      MPIF90=mpif90
+      CC=icc
     esac
 }
 
@@ -88,54 +277,312 @@ _set_compilers
 # M E N U  D I S P L A Y  &  S E L E C T I O N  L O G I C
 #
 
-# This function is just to support the menu that comes up when the utility is run
-_show_supported_versions()
+# Read the last simple assignment to a named variable from an info.sh file.
+# This intentionally does not source the file during discovery.
+_info_assignment_value()
 {
-  echo
-  printf "/## ASGS ADCIRC Builder ##############\ \n"
-  local num=0
-  _ADCIRCS=
-  for VERSION in $(ls -1 $SCRIPTDIR/patches/ADCIRC); do
-    _ADCIRCS="$_ADCIRCS $VERSION"
-    local about="patchset for Version, $VERSION"
-    if [ -e $SCRIPTDIR/patches/ADCIRC/$VERSION/about.txt ]; then
-      about=$(cat $SCRIPTDIR/patches/ADCIRC/$VERSION/about.txt | sed 's/\n//g')
-    fi
-    num=$(($num+1))
-    printf "%2s. %-33s | %-66s\n" $num $VERSION "$about"
-  done
-  max_supported=$num
-  # local ADCIRC patch support
-  if [[ -n "$ASGS_LOCAL_DIR" && -d "$ASGS_LOCAL_DIR/patches/ADCIRC" ]]; then
-    for VERSION in $(ls -1 $ASGS_LOCAL_DIR/patches/ADCIRC); do
-      _ADCIRCS="$_ADCIRCS $VERSION"
-      local about="local patchset for Version, $VERSION"
-      if [ -e $ASGS_LOCAL_DIR/patches/ADCIRC/$VERSION/about.txt ]; then
-        about=$(cat $ASGS_LOCAL_DIR/patches/ADCIRC/$VERSION/about.txt | sed 's/\n//g')
-      fi
-      num=$(($num+1))
-      printf "%2s. %-33s | %-66s |\n" $num $VERSION "$about"
-    done
-  fi
-  # final menu entry for custom directory
-  num=$(($num+1))
-  printf "%2s. %-33s | %-66s\n" $num custom "select this option for custom directory *,**"
-  num=$(($num+1))
-  printf "%2s. %-33s | %-66s\n" $num quit "type 'quit', 'q', or 'ctrl-c' to quit"
-  echo  "--"
-  echo "* Contact <help@support.adcirc.live> if privately patched ADCIRC support is required."
-  echo "** See more about ADCIRC version support options at https://tools.adcirc.live/install"
-  echo
-  ADCIRCS=($_ADCIRCS custom)
-  if [ "${1}" != "noexit" ]; then
-    # exits on error if '1' is optionally passed, defaults to 0 (no error)
-    exit ${1:-0}
-  fi
-  NUM_ADC=$num
+  local info_file="$1"
+  local variable_name="$2"
+  local value
+
+  [[ -f "$info_file" ]] || return 1
+
+  value=$(
+    sed -nE \
+      "s/^[[:space:]]*(export[[:space:]]+)?${variable_name}[[:space:]]*=[[:space:]]*([^#[:space:]]+).*/\\2/p" \
+      "$info_file" | tail -n 1
+  )
+
+  [[ -n "$value" ]] || return 1
+
+  value=${value#\"}
+  value=${value%\"}
+  value=${value#\'}
+  value=${value%\'}
+  printf '%s\n' "$value"
 }
 
-if [ "${1}" = "supported" ]; then
-  _show_supported_versions
+# Return success when an info.sh file marks its version as the preferred
+# default. The last assignment in the file wins, just as it would if sourced.
+_info_marks_default()
+{
+  local info_file="$1"
+  local value
+
+  value=$(_info_assignment_value "$info_file" ADCIRC_VERSION_DEFAULT) || return 1
+
+  case "${value,,}" in
+    1|yes|true|on) return 0 ;;
+    *)             return 1 ;;
+  esac
+}
+
+# Print a valid numeric ordering value. A missing value returns 1; an invalid
+# value returns 2 so the caller can warn and place the version in the final,
+# unordered group.
+_info_version_order()
+{
+  local info_file="$1"
+  local value
+
+  value=$(_info_assignment_value "$info_file" ADCIRC_VERSION_ORDER) || return 1
+
+  if [[ "$value" =~ ^-?[0-9]+$ ]]; then
+    printf '%s\n' "$value"
+    return 0
+  fi
+
+  printf '%s\n' "$value"
+  return 2
+}
+
+# Invoke the existing build-all driver from the ASGS source root so its
+# documented relative path and any relative paths it uses remain valid.
+_run_build_all_adcirc()
+{
+  local relative_script="./cloud/general/t/build-all-adcirc.sh"
+  local script_path="${SCRIPTDIR}/cloud/general/t/build-all-adcirc.sh"
+  local exit_status
+
+  if [[ ! -f "$script_path" ]]; then
+    echo "(fatal) ADCIRC build-all script not found:" >&2
+    echo "  $script_path" >&2
+    exit 1
+  fi
+
+  echo "Invoking ADCIRC build-all script:"
+  echo "  $relative_script"
+  echo
+
+  (
+    cd "$SCRIPTDIR" || exit 1
+    bash "$relative_script"
+  )
+  exit_status=$?
+
+  if (( exit_status != 0 )); then
+    echo "(fatal) ADCIRC build-all script failed with exit status $exit_status." >&2
+  fi
+
+  exit "$exit_status"
+}
+
+# Discover and optionally display supported versions. Ordered versions are
+# sorted numerically by ADCIRC_VERSION_ORDER and then lexicographically by
+# version name. Versions without a valid order value are sorted last, also
+# lexicographically. Main entries precede otherwise identical local entries,
+# preserving local override behavior when the last matching name is selected.
+_show_supported_versions()
+{
+  local mode="${1:-show}"
+  local root version about info_file order_value order_status default_index
+  local candidate_index sorted_index root_number=0
+  local last_default_candidate_index=-1
+  local -a roots=()
+  local -a root_labels=()
+  local -a candidate_versions=()
+  local -a candidate_bases=()
+  local -a candidate_abouts=()
+  local -a candidate_order_groups=()
+  local -a candidate_orders=()
+  local -a candidate_root_numbers=()
+  local -a default_files=()
+
+  ADCIRCS=()
+  ADCIRC_PATCHSET_BASES=()
+  ADCIRC_ABOUTS=()
+  ADCIRC_VERSION_ORDERS=()
+
+  roots+=("$SCRIPTDIR/patches/ADCIRC")
+  root_labels+=("patchset")
+
+  if [[ -n "$ASGS_LOCAL_DIR" && -d "$ASGS_LOCAL_DIR/patches/ADCIRC" ]]; then
+    roots+=("$ASGS_LOCAL_DIR/patches/ADCIRC")
+    root_labels+=("local patchset")
+  fi
+
+  for root in "${roots[@]}"; do
+    if [[ ! -d "$root" ]]; then
+      root_number=$((root_number + 1))
+      continue
+    fi
+
+    while IFS= read -r version; do
+      [[ -n "$version" ]] || continue
+
+      info_file="$root/$version/info.sh"
+      candidate_versions+=("$version")
+      candidate_bases+=("$root")
+      candidate_root_numbers+=("$root_number")
+
+      about="${root_labels[$root_number]} for Version, $version"
+      if [[ -f "$root/$version/about.txt" ]]; then
+        about=$(tr -d '\n' < "$root/$version/about.txt")
+      fi
+      candidate_abouts+=("$about")
+
+      if _info_marks_default "$info_file"; then
+        last_default_candidate_index=$((${#candidate_versions[@]} - 1))
+        default_files+=("$info_file")
+      fi
+
+      order_value=$(_info_version_order "$info_file")
+      order_status=$?
+      case "$order_status" in
+        0)
+          candidate_order_groups+=(0)
+          candidate_orders+=("$order_value")
+          ;;
+        1)
+          candidate_order_groups+=(1)
+          candidate_orders+=(0)
+          ;;
+        2)
+          echo "(warning) ignoring invalid ADCIRC_VERSION_ORDER='$order_value' in:" >&2
+          echo "  $info_file" >&2
+          echo "(warning) expected an integer; '$version' will be sorted with unordered versions." >&2
+          candidate_order_groups+=(1)
+          candidate_orders+=(0)
+          ;;
+      esac
+    done < <(
+      find "$root" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null |
+        LC_ALL=C sort
+    )
+
+    root_number=$((root_number + 1))
+  done
+
+  if (( ${#candidate_versions[@]} == 0 )); then
+    echo "(fatal) no ADCIRC patchsets were found." >&2
+    exit 1
+  fi
+
+  # Sort only compact numeric/index records so paths and descriptions can
+  # safely contain spaces. The final root-number key keeps main before local
+  # when order and version name are otherwise identical.
+  while IFS=$'\t' read -r _ _ _ _ sorted_index; do
+    ADCIRCS+=("${candidate_versions[$sorted_index]}")
+    ADCIRC_PATCHSET_BASES+=("${candidate_bases[$sorted_index]}")
+    ADCIRC_ABOUTS+=("${candidate_abouts[$sorted_index]}")
+
+    if (( candidate_order_groups[$sorted_index] == 0 )); then
+      ADCIRC_VERSION_ORDERS+=("${candidate_orders[$sorted_index]}")
+    else
+      ADCIRC_VERSION_ORDERS+=("")
+    fi
+
+    if (( sorted_index == last_default_candidate_index )); then
+      default_index=$((${#ADCIRCS[@]} - 1))
+    fi
+  done < <(
+    for candidate_index in "${!candidate_versions[@]}"; do
+      printf '%s\t%s\t%s\t%s\t%s\n' \
+        "${candidate_order_groups[$candidate_index]}" \
+        "${candidate_orders[$candidate_index]}" \
+        "${candidate_versions[$candidate_index]}" \
+        "${candidate_root_numbers[$candidate_index]}" \
+        "$candidate_index"
+    done | LC_ALL=C sort -t $'\t' \
+      -k1,1n -k2,2n -k3,3 -k4,4n -k5,5n
+  )
+
+  if (( last_default_candidate_index < 0 )); then
+    # Compatibility fallback for repositories that do not yet use the marker.
+    default_index=0
+  fi
+
+  DEFAULT_ADCIRC_INDEX=$default_index
+  DEFAULT_ADCIRC_VERSION=${ADCIRCS[$DEFAULT_ADCIRC_INDEX]}
+
+  if (( ${#default_files[@]} > 1 )); then
+    echo "(warning) multiple ADCIRC versions set ADCIRC_VERSION_DEFAULT=yes:" >&2
+    printf '  %s\n' "${default_files[@]}" >&2
+    echo "(warning) using the last one found: '$DEFAULT_ADCIRC_VERSION'" >&2
+  fi
+
+  max_supported=${#ADCIRCS[@]}
+
+  if [[ "$mode" != "quiet" ]]; then
+    echo
+    printf '/## ASGS ADCIRC Builder ##############\\ \n'
+
+    local index display_version
+    for index in "${!ADCIRCS[@]}"; do
+      display_version=${ADCIRCS[$index]}
+      if (( index == DEFAULT_ADCIRC_INDEX )); then
+        display_version="$display_version (default)"
+      fi
+      printf "%2s. %-33s | %-66s\n" \
+        "$((index + 1))" "$display_version" "${ADCIRC_ABOUTS[$index]}"
+    done
+
+    printf "%2s. %-33s | %-66s\n" "$((max_supported + 1))" build-all \
+      "build every supported ADCIRC version"
+    printf "%2s. %-33s | %-66s\n" "$((max_supported + 2))" custom \
+      "select this option for custom directory *,**"
+    printf "%2s. %-33s | %-66s\n" "$((max_supported + 3))" quit \
+      "type 'quit', 'q', or 'ctrl-c' to quit"
+    echo "--"
+    echo "* Contact <help@support.adcirc.live> if privately patched ADCIRC support is required."
+    echo "** See more about ADCIRC version support options at https://tools.adcirc.live/install"
+    echo
+  fi
+
+  ADCIRCS+=(build-all custom quit)
+  ADCIRC_PATCHSET_BASES+=("" "" "")
+  ADCIRC_VERSION_ORDERS+=("" "" "")
+  NUM_ADC=${#ADCIRCS[@]}
+
+  if [[ "$mode" == "exit" ]]; then
+    exit 0
+  fi
+}
+
+# Normalize a numeric or named menu selection. Named duplicates resolve to the
+# last one found, matching local override and default-selection behavior.
+_resolve_version_selection()
+{
+  local selection="$1"
+  local result_var="$2"
+  local selected_index=-1
+  local numeric index
+
+  case "${selection,,}" in
+    all|build-all|"build all")
+      printf -v "$result_var" '%s' build-all
+      RESOLVED_VERSION_INDEX=$((${#ADCIRCS[@]} - 3))
+      return 0
+      ;;
+    q|quit)
+      printf -v "$result_var" '%s' quit
+      RESOLVED_VERSION_INDEX=$((${#ADCIRCS[@]} - 1))
+      return 0
+      ;;
+  esac
+
+  numeric=$(_is_a_num "$selection")
+  if (( numeric > -1 )); then
+    selected_index=$((numeric - 1))
+    if (( selected_index < 0 || selected_index >= NUM_ADC )); then
+      return 1
+    fi
+  else
+    for index in "${!ADCIRCS[@]}"; do
+      if [[ "${ADCIRCS[$index]}" == "$selection" ]]; then
+        selected_index=$index
+      fi
+    done
+    (( selected_index > -1 )) || return 1
+  fi
+
+  RESOLVED_VERSION_INDEX=$selected_index
+  printf -v "$result_var" '%s' "${ADCIRCS[$selected_index]}"
+  return 0
+}
+
+if [[ "$COMMAND" == "supported" ]]; then
+  _show_supported_versions exit
 fi
 
 # preconditions
@@ -143,56 +590,89 @@ if [ -z "$ADCIRC_META_DIR" ]; then
   echo "ADCIRC_META_DIR is not set. Run interactively through asgsh or automatically via asgs-brew.pl."
   echo
   echo "Please note that this tool is meant to be run within an ASGS environment and is not supported "
-  echo "as a general purpose too. Per the license of the code, however, anyone is free to adapt it.   "
+  echo "as a general purpose tool. Per the license of the code, however, anyone is free to adapt it."
   echo
   exit 1
 fi
 
+# Always discover the version set so command-line values can be validated and
+# the preferred default can be resolved. Show the menu only when it is useful.
+if [[ -z "$SELECTED_VERSION" && BATCHMODE -eq 0 ]]; then
+  _show_supported_versions show
+else
+  _show_supported_versions quiet
+fi
+
 if [[ -z "$SELECTED_VERSION" ]]; then
-  _show_supported_versions noexit
-  # get branch/tag/sha to checkout
-  __SELECTED_VERSION=${ADCIRCS[0]} # current preferred default
-  if [[ -z "$BATCH" ]]; then
-    read -p "What supported 'version' of the ADCIRC source do you wish to build (by name or select 1-${NUM_ADC})? [$__SELECTED_VERSION] " _SELECTED_VERSION
+  __SELECTED_VERSION=$DEFAULT_ADCIRC_VERSION
+
+  while true; do
+    _prompt_value _SELECTED_VERSION \
+      "Select an ADCIRC version, build-all, or q to quit" \
+      "$__SELECTED_VERSION"
+
+    if _resolve_version_selection "$_SELECTED_VERSION" SELECTED_VERSION; then
+      break
+    fi
+
+    if (( BATCHMODE )); then
+      echo "(fatal) invalid default ADCIRC version '$_SELECTED_VERSION'." >&2
+      exit 1
+    fi
+
+    echo "Invalid selection. Enter a number from 1-${NUM_ADC}, a displayed name, 'all', or 'q'."
     echo
-  fi
-  
-  # Handle selection by number
-  if [ -n "$_SELECTED_VERSION" ]; then
-    if [[ "$_SELECTED_VERSION" == "q" || "$_SELECTED_VERSION" == "quit" ]]; then
-      exit
-    fi
-    # check for number selection
-    _isnum=$(_is_a_num $_SELECTED_VERSION)
-    if [[ -n "$_isnum" && $_isnum -gt -1 ]]; then
-      _SELECTED_VERSION=${ADCIRCS[$(($_isnum-1))]} # zero indexed
-      if [ -z "$_SELECTED_VERSION" ]; then
-        echo "(fatal) invalid value..."
-        echo
-        exit 1
-      fi
-    fi
-    # do not export, don't affect current environment after build
-    SELECTED_VERSION=$_SELECTED_VERSION
-  else
-    SELECTED_VERSION=$__SELECTED_VERSION
+  done
+else
+  _REQUESTED_VERSION=$SELECTED_VERSION
+  if ! _resolve_version_selection "$_REQUESTED_VERSION" SELECTED_VERSION; then
+    echo "(fatal) unsupported ADCIRC version or menu selection '$_REQUESTED_VERSION'." >&2
+    echo "Run '${0##*/} supported' to list available versions." >&2
+    exit 1
   fi
 fi
 
-if [[ -z "$BATCH" ]]; then
-  echo "${I} Version Selected: '$SELECTED_VERSION'"
+case "${SELECTED_VERSION,,}" in
+  q|quit)
+    exit 0
+    ;;
+  build-all)
+    if (( ! BATCHMODE )); then
+      _prompt_yes_no BUILD_ALL_CONFIRMED \
+        "Build all supported ADCIRC versions using ./cloud/general/t/build-all-adcirc.sh?" \
+        no
+
+      if [[ "$BUILD_ALL_CONFIRMED" != "yes" ]]; then
+        echo "Build-all cancelled."
+        exit 0
+      fi
+    fi
+
+    _run_build_all_adcirc
+    ;;
+esac
+
+SELECTED_PATCHSET_BASE=${ADCIRC_PATCHSET_BASES[$RESOLVED_VERSION_INDEX]}
+
+if (( ! BATCHMODE )); then
+  echo "${I} Version selected: '$SELECTED_VERSION'"
   echo
 fi
 
-# obtain patch information for the selection
-__ADCIRC_PATCHSET_BASE=${SCRIPTDIR}/patches/ADCIRC
-if [[ $_isnum -gt $max_supported ]]; then
-  __ADCIRC_PATCHSET_BASE=${ASGS_LOCAL_DIR}/patches/ADCIRC
-fi
+# Use the exact patchset root discovered for the selected menu item. Named
+# duplicates resolve to the last one found, allowing local patchsets to override
+# main patchsets consistently.
+__ADCIRC_PATCHSET_BASE=${SELECTED_PATCHSET_BASE:-${SCRIPTDIR}/patches/ADCIRC}
 FLAVOR_NAME=${SELECTED_VERSION}
 PATCHSET_DIR=${__ADCIRC_PATCHSET_BASE}/${FLAVOR_NAME}
 SWANDIR=
-CUSTOM_SRC=
+CUSTOM_SRC=${CUSTOM_SRC:-}
+
+if [[ "$SELECTED_VERSION" != "custom" && ! -f "$PATCHSET_DIR/info.sh" ]]; then
+  echo "(fatal) supported ADCIRC version '$SELECTED_VERSION' has no info.sh file." >&2
+  echo "Expected: $PATCHSET_DIR/info.sh" >&2
+  exit 1
+fi
 
 #
 # S O U R C E  S E L E C T I O N ' S  I N F O . S H
@@ -207,12 +687,21 @@ case "$SELECTED_VERSION" in
     # handle 'custom' which assumes a local directory that is already
     # set to build properly, and has no patchsets in $SCRIPTDIR/patches/ADCIRC
     PATCHSET_DIR=
-    read -p "What directory is the custom ADCIRC source code? " _CUSTOM_SRC
-    if [[ -z "$_CUSTOM_SRC" || ! -d $(readlink -f $_CUSTOM_SRC/work) ]]; then
-      echo "For 'custom' ADCIRC, a local source code directory is currently required. Please try again."
+    if (( BATCHMODE )); then
+      _CUSTOM_SRC=$CUSTOM_SRC
+      if [[ -z "$_CUSTOM_SRC" ]]; then
+        echo "(fatal) batch mode with version 'custom' requires CUSTOM_SRC to be set."
+        exit 1
+      fi
+    else
+      read -r -p "Enter the custom ADCIRC source directory: " _CUSTOM_SRC
+      echo
+    fi
+    if [[ -z "$_CUSTOM_SRC" || ! -d "$(readlink -f "$_CUSTOM_SRC")/work" ]]; then
+      echo "For 'custom' ADCIRC, a local source directory containing work/ is required."
       exit 1
     fi
-    CUSTOM_SRC=$(readlink -f $_CUSTOM_SRC)
+    CUSTOM_SRC=$(readlink -f "$_CUSTOM_SRC")
     echo
     echo "Found: '$CUSTOM_SRC'"
     echo
@@ -240,10 +729,37 @@ esac
 # A S K  A B O U T  D E B U G  O P T I O N S  F I R S T
 #
 
+_normalize_debug_selection()
+{
+  local selection="${1,,}"
+  local result_var="$2"
+  local normalized
+
+  case "$selection" in
+    1|none)              normalized=none ;;
+    2|trace)             normalized=trace ;;
+    3|full)              normalized=full ;;
+    4|buserror)          normalized=buserror ;;
+    5|netcdf)            normalized=netcdf ;;
+    6|netcdf_trace)      normalized=netcdf_trace ;;
+    7|valgrind)          normalized=valgrind ;;
+    8|compiler-warnings) normalized=compiler-warnings ;;
+    9|full-not-fpe)      normalized=full-not-fpe ;;
+    10|full-not-warnelev) normalized=full-not-warnelev ;;
+    *) return 1 ;;
+  esac
+
+  printf -v "$result_var" '%s' "$normalized"
+  return 0
+}
+
 _DEBUG=1
-if [[ -z "$BATCH" ]]; then
+if (( BATCHMODE )) && [[ -n "${DEBUG:-}" ]]; then
+  _DEBUG=$DEBUG
+fi
+if (( ! BATCHMODE )); then
   cat <<EOF
-Please choose a debug method [1-10]:
+Please choose a debug method:
   1. none (default)
   2. trace
   3. full
@@ -256,35 +772,23 @@ Please choose a debug method [1-10]:
  10. full-not-warnelev
 EOF
   echo
-  read -p "Choose 1-10 [${_DEBUG}]: " DEBUG
-fi
-  
-if [[ -z "$DEBUG" ]]; then
-  DEBUG=$_DEBUG
 fi
 
-case "${DEBUG}" in
-  1) DEBUG=none
-    ;;
-  2) DEBUG=trace
-    ;;
-  3) DEBUG=full
-    ;;
-  4) DEBUG=buserror
-    ;;
-  5) DEBUG=netcdf
-    ;;
-  6) DEBUG=netcdf_trace
-    ;;
-  7) DEBUG=valgrind
-    ;;
-  8) DEBUG=compiler-warnings
-    ;;
-  9) DEBUG=full-not-fpe
-    ;;
- 10) DEBUG=full-not-warnelev
-    ;;
-esac
+while true; do
+  _prompt_value _DEBUG_SELECTION "Select a debug method by number or name" "$_DEBUG"
+
+  if _normalize_debug_selection "$_DEBUG_SELECTION" DEBUG; then
+    break
+  fi
+
+  if (( BATCHMODE )); then
+    echo "(fatal) invalid batch debug method '$_DEBUG_SELECTION'." >&2
+    exit 1
+  fi
+
+  echo "Invalid debug method. Enter a number from 1-10 or a displayed name."
+  echo
+done
 
 if [[ -n "${DEBUG}" && "${DEBUG}" != 'none' ]]; then
   __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-DEBUG-${DEBUG}
@@ -295,14 +799,11 @@ fi
 #
 
 _BUILD_PARALLEL_ADCIRC=yes
-if [[ -z "$BATCH" ]]; then
-  echo
-  read -p "Do you wish to build parallel ADCIRC? [${_BUILD_PARALLEL_ADCIRC}] " BUILD_PARALLEL_ADCIRC
+if (( BATCHMODE )) && [[ -n "${BUILD_PARALLEL_ADCIRC:-}" ]]; then
+  _BUILD_PARALLEL_ADCIRC=$BUILD_PARALLEL_ADCIRC
 fi
-if [ -z "$BUILD_PARALLEL_ADCIRC" ]; then
-  BUILD_PARALLEL_ADCIRC=$_BUILD_PARALLEL_ADCIRC
-fi
-if [ "$BUILD_PARALLEL_ADCIRC" != "yes" ]; then
+_prompt_yes_no BUILD_PARALLEL_ADCIRC "Build parallel ADCIRC?" "$_BUILD_PARALLEL_ADCIRC"
+if [[ "$BUILD_PARALLEL_ADCIRC" != "yes" ]]; then
   BUILD_PARALLEL_ADCIRC=no
   __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-serial-only
 fi
@@ -317,9 +818,11 @@ echo
 #   dialog.
 #
 
-if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
+if [[ -n "$ASGS_SINGULARITY_CMD" ]] && (( ! BATCHMODE )); then
+  singularity_supported=no
+  use_singularity=no
   # finds .sif associated with SELECTED_VERSION, if listed in ADCIRC_SINGULARITY_MANIFEST file
-  if [[ -e "$ADCIRC_SINGULARITY_MANIFEST" && -z "${BATCH}" ]]; then
+  if [[ -e "$ADCIRC_SINGULARITY_MANIFEST" ]]; then
     # attempt to find mapping of ADCIRC version to .sif
     # in base directory of ADCIRC_SINGULARITY_MANIFEST
     OLDIFS=$IFS
@@ -343,20 +846,19 @@ if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
   # if found for SELECTED_VERSION, asks user if they want to use Singularity at all
   if [[ "$singularity_supported" == "yes" ]]; then
     default_answer=yes
-    read -p "Singularity is supported for version $SELECTED_VERSION. Do you want to use it? [$default_answer] " answer
-    echo
-    answer="${answer:-$default_answer}"
+    _prompt_yes_no use_singularity \
+      "Singularity is supported for version $SELECTED_VERSION. Use it?" \
+      "$default_answer"
   fi
   
   # if they do want to use Singularity, it asks which .sif and defaults to the one
   #   found in ADCIRC_SINGULARITY_MANIFEST
-  if [[ "$answer" == "yes" ]]; then
-    read -p "Enter full path to the .sif [$default_sif]? " _ADCIRC_SINGULARITY_SIF
-    echo
+  if [[ "$use_singularity" == "yes" ]]; then
+    _prompt_value _ADCIRC_SINGULARITY_SIF \
+      "Enter the full path to the Singularity .sif" \
+      "$default_sif"
 
-    _ADCIRC_SINGULARITY_SIF="${_ADCIRC_SINGULARITY_SIF:-$default_sif}"
-
-    if [[ ! -e $_ADCIRC_SINGULARITY_SIF ]]; then
+    if [[ ! -e "$_ADCIRC_SINGULARITY_SIF" ]]; then
       echo "Can't find '$_ADCIRC_SINGULARITY_SIF'! exiting ADCIRC building ..."
       exit
     fi
@@ -368,20 +870,29 @@ if [[ -n "$ASGS_SINGULARITY_CMD" && -z "${BATCH}" ]]; then
   fi
 fi
 
+if (( BATCHMODE )) && [[ -n "${ADCIRC_SINGULARITY_SIF:-}" ]]; then
+  if [[ -z "$ASGS_SINGULARITY_CMD" ]]; then
+    echo "(fatal) ADCIRC_SINGULARITY_SIF is set, but ASGS_SINGULARITY_CMD is not."
+    exit 1
+  fi
+  if [[ ! -e "$ADCIRC_SINGULARITY_SIF" ]]; then
+    echo "(fatal) Singularity image not found: '$ADCIRC_SINGULARITY_SIF'."
+    exit 1
+  fi
+  __ADCIRC_PROFILE_NAME=${__ADCIRC_PROFILE_NAME}-singularity
+fi
+
 #
 # C H O O S E  A D C I R C  P R O F I L E  N A M E
 #
 
-if [[ -z "$BATCH" ]]; then
-  read -p "What would you like to name this ADCIRC build profile? [$__ADCIRC_PROFILE_NAME] " _ADCIRC_PROFILE_NAME
+_ADCIRC_PROFILE_DEFAULT=$__ADCIRC_PROFILE_NAME
+if (( BATCHMODE )) && [[ -n "${_ADCIRC_PROFILE_NAME:-}" ]]; then
+  _ADCIRC_PROFILE_DEFAULT=$_ADCIRC_PROFILE_NAME
 fi
-
-if [ -n "$_ADCIRC_PROFILE_NAME" ]; then
-  ADCIRC_PROFILE_NAME=$_ADCIRC_PROFILE_NAME
-else
-  ADCIRC_PROFILE_NAME=$__ADCIRC_PROFILE_NAME
-fi
-echo
+_prompt_value ADCIRC_PROFILE_NAME \
+  "Enter the ADCIRC build profile name" \
+  "$_ADCIRC_PROFILE_DEFAULT"
 
 #
 # C H O O S E  B U I L D  A N D  I N S T A L L  L O C A T I O N
@@ -389,43 +900,33 @@ echo
 
 # default location of the build is going to be within ASGS_INSTALL_PATH
 __ADCIRCBASE=${_ASGS_ADCIRC_BASE}/adcirc-cg-${ADCIRC_PROFILE_NAME}
-if [[ -z "$BATCH" ]]; then
-  read -p "In what directory would you like to build ADCIRC? [${__ADCIRCBASE}] " _ADCIRCBASE
+if (( BATCHMODE )) && [[ -n "${_ADCIRCBASE:-}" ]]; then
+  __ADCIRCBASE=$_ADCIRCBASE
 fi
+_prompt_value ADCIRCBASE \
+  "Enter the ADCIRC build directory" \
+  "$__ADCIRCBASE"
 
-if [ -n "${_ADCIRCBASE}" ]; then
-  ADCIRCBASE=$_ADCIRCBASE
-else
-  ADCIRCBASE=$__ADCIRCBASE
-fi
-echo
-
-# skip if $BATCH is set -b
-if [[ -d "${ADCIRCBASE}" && -z "${BATCH}" ]]; then
+# In interactive mode, existing build directories default to being preserved.
+if [[ -d "${ADCIRCBASE}" ]] && (( ! BATCHMODE )); then
   _delete=no
   echo "$W \"$ADCIRCBASE\" exists!"
-  echo $W
-  read -p "${W} Delete this directory and continue? [$_delete] " delete
-  echo
-  if [ -z "$delete" ]; then
-    delete=$_delete
-  fi
-  if [[ "${delete,,}" != "no" ]]; then
+  _prompt_yes_no delete "${W} Delete this directory and continue?" "$_delete"
+  if [[ "$delete" == "yes" ]]; then
     echo " ... deleting '$ADCIRCBASE'"
-    rm -rf $ADCIRCBASE
+    rm -rf "$ADCIRCBASE"
     echo
   else
-    echo "exiting ADCIRC building ..."
-    exit
+    echo "ADCIRC build cancelled; existing directory was not changed."
+    exit 0
   fi
 fi
 
-# if batch is set (-b) and $ADCIRCBASE exists, delete
-# and start over (could be not what you want?)
-if [[ -d "${ADCIRCBASE}" && "${BATCH}" == 1 ]]; then
+# Preserve the existing batch behavior: rebuild from a clean directory.
+if [[ -d "${ADCIRCBASE}" ]] && (( BATCHMODE )); then
   echo "$W \"$ADCIRCBASE\" exists!"
   echo " ... deleting '$ADCIRCBASE'"
-  rm -rf $ADCIRCBASE
+  rm -rf "$ADCIRCBASE"
   echo
 fi
 
@@ -477,18 +978,16 @@ case "${ADCIRC_SRC_TYPE}" in
     # $ADCIRCBASE is made by virtue of the "git clone" command in this case
     if [ ! -d ${ADCIRCBASE} ]; then
       _answer=yes
-      if [[ -z "$BATCH" ]]; then
-        read -p "Clone (download) ADCIRC git repository from GitHub? [$_answer] " answer
+      _prompt_yes_no clone_answer \
+        "Clone the ADCIRC git repository from GitHub?" \
+        "$_answer"
+      if [[ "$clone_answer" == 'yes' ]]; then
+        git clone "${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git" "$ADCIRCBASE"
+        pushd "$ADCIRCBASE"
+      else
+        echo "ADCIRC build cancelled; source repository was not cloned."
+        exit 0
       fi
-      if [ -z "$answer" ]; then
-        answer=$_answer
-      fi
-      if [ "$answer" != 'no' ]; then
-        [[ -z "$BATCH" ]] && echo
-        git clone ${ADCIRC_GIT_URL}/${ADCIRC_GIT_REPO}.git ${ADCIRCBASE}
-        pushd $ADCIRCBASE
-      fi
-      [[ -z "$BATCH" ]] && echo
       # always do checkout here
       repo=$ADCIRC_GIT_BRANCH
       do_checkout=yes
@@ -751,13 +1250,8 @@ patch_files() {
 case "${ADCIRC_SRC_TYPE}" in
   git|remote-zip)
     _answer=yes
-    if [[ -z "$BATCH" ]]; then
-      read -p "Apply patches? [$_answer]" answer
-    fi
-    if [ -z "$answer" ]; then
-      answer=$_answer
-    fi
-    if [ "$answer" == "yes" ]; then
+    _prompt_yes_no patch_answer "Apply the ASGS patch set?" "$_answer"
+    if [[ "$patch_answer" == "yes" ]]; then
       patch_files # defined above
     fi
   ;;
@@ -773,9 +1267,19 @@ echo "   $ADCIRC_MAKE_CMD && \\"         >> ${BUILDSCRIPT}
 echo "   $ADCSWAN_MAKE_CMD"              >> ${BUILDSCRIPT}
 
 echo
-cat ${BUILDSCRIPT} | grep -v '#'
+echo "Build summary:"
+printf "  %-18s %s\n" "Version:" "$SELECTED_VERSION"
+printf "  %-18s %s\n" "Debug method:" "$DEBUG"
+printf "  %-18s %s\n" "Parallel ADCIRC:" "$BUILD_PARALLEL_ADCIRC"
+printf "  %-18s %s\n" "Profile:" "$ADCIRC_PROFILE_NAME"
+printf "  %-18s %s\n" "Build directory:" "$ADCIRCBASE"
+if [[ -n "${ADCIRC_SINGULARITY_SIF:-}" ]]; then
+  printf "  %-18s %s\n" "Singularity SIF:" "$ADCIRC_SINGULARITY_SIF"
+fi
 echo
-echo Build command contained in file, ${BUILDSCRIPT}
+grep -v '#' "${BUILDSCRIPT}"
+echo
+echo "Build commands are contained in ${BUILDSCRIPT}"
 echo
 
 # dump JSON with build details into $ADCIRCBASE
@@ -786,16 +1290,10 @@ dumpJSON "$patchJSON" "$ADCIRC_BUILD_INFO_TMP"
 echo
 
 _answer=yes
-if [[ -z "$BATCH" ]]; then
-  read -p "Proceed to build? [$_answer] " answer
-  echo
-fi
-if [ -z "$answer" ]; then
-  answer=$_answer
-fi
-if [ "$answer" != 'yes' ]; then
-  echo "build stopped. Exiting."
-  exit 1
+_prompt_yes_no proceed_answer "Proceed with this build?" "$_answer"
+if [[ "$proceed_answer" != 'yes' ]]; then
+  echo "ADCIRC build cancelled."
+  exit 0
 fi
 
 # attempt to build
@@ -837,19 +1335,19 @@ echo '                        .:  .   : :   ..                         '
 echo '                                                                 '
 echo '                        S U C C E S S !                          '
 echo
-if [[ -z "$BATCH" ]]; then
-  echo ADCIRC has been build and the ADCIRC profile registered in asgsh.
+if (( ! BATCHMODE )); then
+  echo ADCIRC has been built and the ADCIRC profile registered in asgsh.
   echo To load this profile, at the asgsh prompt, enter:
   echo
   echo   load adcirc $ADCIRC_PROFILE_NAME
   echo
-  echo Once loaded, save the current asgsh profile using the the 'save' command.
+  echo Once loaded, save the current asgsh profile using the 'save' command.
   echo
   echo Information on the build itself is available in JSON format in,
   echo   $ADCIRC_BUILD_INFO
   echo
 else
-  echo "ADCIRC has been built and available under ADCIRC Live (c)"
+  echo "ADCIRC has been built and is available under ADCIRC Live."
   echo "To load this flavor of ADCIRC, use the 'adcirclive' command as follows," 
   echo
   echo    adcirclive load $ADCIRC_PROFILE_NAME

@@ -1,1 +1,1 @@
-Extended Lifecycle Support (ELS) version of ADCIRC v53.05 by ADCIRC Live
+* ADCIRC v53.05  Lifetime Support (LTS) by ADCIRC Live
