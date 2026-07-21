@@ -288,7 +288,7 @@
 -89.78275073   30.17785837   ! LAC_BC_03 ! CFIGS ! 4
 -90.28661299   30.26535431   ! AMI_BC_01 ! CFIGS ! 5
 -90.40164872   30.15884512   ! AMI_BC_02 ! CFIGS ! 6
--90.729871	   29.32986      ! 2         ! TLCD ! HNC Bubba Dove Floodgate
--90.78895	   29.415601     ! 15        ! TLCD ! Falgout Canal Floodgate
--90.563661	   29.437155     ! 8         ! TLCD ! Humble Canal Floodgate
--90.44819	   29.41805      ! 7         ! TLCD ! Pointe Aux Chenes Floodgate
+-90.728688     29.32836      ! HNCBubbaDove ! TLCD ! HNC Bubba Dove Floodgate
+-90.792213     29.412979     ! Falgout      ! TLCD ! Falgout Canal Floodgate
+-90.561319     29.434096     ! Humble       ! TLCD ! Humble Canal Floodgate
+-90.44682      29.417661      ! PointeAuxChenes ! TLCD ! Pointe Aux Chenes Floodgate
