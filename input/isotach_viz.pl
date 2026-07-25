@@ -24,11 +24,7 @@
 #---------------------------------------------------------------------
 use strict;
 use Geo::Ellipsoid;
-use Math::Trig;
-use DateTime;
-use Date::Calc;
 use XML::Writer;
-use Cwd;
 $^W++;
 #
 # load track data from stdin
