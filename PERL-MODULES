@@ -26,3 +26,5 @@ Text::CSV
 Dispatch::Fu
 Try::ALRM
 Weather::NHC::TropicalCyclone
+Geo::Ellipsoid
+XML::Writer
