@@ -1,11 +1,11 @@
 #!/bin/bash
+# Cephas ...
 #----------------------------------------------------------------------------
 #                    S L U R M   D I R E C T I V E S
 #----------------------------------------------------------------------------
 
 #SBATCH --job-name="%jobtype%.%scenario%"
 #SBATCH --time=%walltime%
-#SBATCH --nodes=%nnodes%
 #SBATCH --partition=%queuename%
 
 [% IF runinfo.parallelism == "serial" -%]
@@ -24,18 +24,22 @@
 
 # MPI rank-to-node placement is controlled by SLURM_HOSTFILE and
 # srun --distribution=arbitrary in JOBLAUNCHER.
+# --nodes not specified due to being incompatible with arbitrary distribution
 [% END -%]
 
-[% IF reservation -%]
+[% IF runinfo.reservation && runinfo.reservation != "null" -%]
 #SBATCH --reservation=%reservation%
 [% END -%]
-[% IF constraint -%]
+
+[% IF runinfo.constraint && runinfo.constraint != "null" -%]
 #SBATCH --constraint=%constraint%
 [% END -%]
-[% IF account -%]
+
+[% IF runinfo.account && runinfo.account != "null" -%]
 #SBATCH --account=%account%
 [% END -%]
-[% IF qos -%]
+
+[% IF runinfo.qos && runinfo.qos != "null" -%]
 #SBATCH --qos=%qos%
 [% END -%]
 
