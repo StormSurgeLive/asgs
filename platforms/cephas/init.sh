@@ -22,7 +22,6 @@ export ALLOCCHECKCMD=null
 export QUEUENAME=general
 export SERQUEUE=general
 export ACCOUNT=null
-# export JOBLAUNCHER='srun -N %nnodes%'  # use if cluster assigns whole nodes
-#export JOBLAUNCHER='srun -n %totalcpu%' # assuming slurm is set up to share nodes/cores
-export JOBLAUNCHER='srun --mpi=pmi2 -N %nnodes% -n %totalcpu% --ntasks-per-node=%ppn% --cpu-bind=cores --mem-bind=local --distribution=block:block --kill-on-bad-exit=1'
+export SLURM_HOSTFILE=$SCRIPTDIR/platforms/cephas/cephas.hosts
+export JOBLAUNCHER='srun --mpi=pmi2 -n %totalcpu% --ntasks-per-node=%ppn% --cpu-bind=cores --mem-bind=local --distribution=arbitrary --kill-on-bad-exit=1'
 export PPN=40

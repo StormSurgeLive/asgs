@@ -19,9 +19,11 @@
 #SBATCH --cpus-per-task=1
 
 # Cephas has 40 physical cores per node, 20 per socket, with SMT disabled.
-# Allocate one MPI process per physical core and keep rank placement contiguous.
+# Allocate one MPI rank per physical core.
 #SBATCH --hint=nomultithread
-#SBATCH --distribution=block:block
+
+# MPI rank-to-node placement is controlled by SLURM_HOSTFILE and
+# srun --distribution=arbitrary in JOBLAUNCHER.
 [% END -%]
 
 [% IF reservation -%]
