@@ -26,19 +26,15 @@
 # srun --distribution=arbitrary in JOBLAUNCHER.
 # --nodes not specified due to being incompatible with arbitrary distribution
 [% END -%]
-
 [% IF runinfo.reservation && runinfo.reservation != "null" -%]
 #SBATCH --reservation=%reservation%
 [% END -%]
-
 [% IF runinfo.constraint && runinfo.constraint != "null" -%]
 #SBATCH --constraint=%constraint%
 [% END -%]
-
 [% IF runinfo.account && runinfo.account != "null" -%]
 #SBATCH --account=%account%
 [% END -%]
-
 [% IF runinfo.qos && runinfo.qos != "null" -%]
 #SBATCH --qos=%qos%
 [% END -%]
