@@ -1375,7 +1375,9 @@ monitorJobs()
    # can be used for resource monitoring and in troubleshooting out
    # of memory issues
    if [[ $QUEUESYS == "SLURM" ]]; then
-      echo "hpc.job.${JOBTYPE}.$(<jobID).sacct.maxrss.bytes : $(sacct -j $(<jobID).batch --format=MaxRSS --noconvert --noheader)" >> run.properties
+      jobid=$(awk '{print $NF}' jobID)
+      jobid=${jobid%%;*}
+      echo "hpc.job.${JOBTYPE}.${jobid}.sacct.maxrss.bytes : $(sacct -j "${jobid}.batch" --format=MaxRSS --noconvert --noheader)" >> run.properties
    fi
    #
    # final messages
