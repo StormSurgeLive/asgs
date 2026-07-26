@@ -862,6 +862,9 @@ prepFile()
    echo "hpc.job.${JOBTYPE}.for.ncpu : ${_NCPU}" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.limit.walltime : $ADCPREPWALLTIME" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.account : $ACCOUNT" >> $ADVISDIR/$ENSTORM/run.properties
+
+   QSCRIPTTEMPLATE=${QSCRIPTTEMPLATE:-$SCRIPTDIR/qscript.template}
+
    echo "hpc.job.${JOBTYPE}.file.qscripttemplate : $QSCRIPTTEMPLATE" >> $ADVISDIR/$ENSTORM/run.properties
    echo "hpc.job.${JOBTYPE}.parallelism : serial" >> $STORMDIR/run.properties
 
@@ -885,7 +888,6 @@ prepFile()
    qScriptRequestTemplate=$SCRIPTDIR/qscript_request_template.json
    qScriptRequest=$SCENARIODIR/qscript_request_$JOBTYPE.json
    qScriptResponse=$SCENARIODIR/qscript_response_$JOBTYPE.json
-   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
    parallelism=serial
    forncpu=$NCPU
    wind10mlayer="no"
@@ -1426,7 +1428,7 @@ submitJob()
    qScriptRequestTemplate=$SCRIPTDIR/qscript_request_template.json
    qScriptRequest=$SCENARIODIR/qscript_request_$JOBTYPE.json
    qScriptResponse=$SCENARIODIR/qscript_response_$JOBTYPE.json
-   QSCRIPTTEMPLATE=$SCRIPTDIR/qscript.template
+   QSCRIPTTEMPLATE=${QSCRIPTTEMPLATE:-$SCRIPTDIR/qscript.template}
    if [[ $QUEUESYS == "serial" ]]; then
       parallelism=serial
    else

@@ -8,7 +8,6 @@ export HPCENV=cephas
 export HPCENVSHORT=cephas
 export QUEUESYS=SLURM
 export QCHECKCMD=squeue
-export QSCRIPTTEMPLATE=$SCRIPTDIR/platforms/cephas/qscript.template
 export SUBMITSTRING=sbatch
 export ARCHIVE=enstorm_pedir_removal.sh
 export ARCHIVEBASE=$SCRATCH
@@ -22,6 +21,8 @@ export ALLOCCHECKCMD=null
 export QUEUENAME=general
 export SERQUEUE=general
 export ACCOUNT=null
+
 export SLURM_HOSTFILE=$SCRIPTDIR/platforms/cephas/cephas.hosts
-export JOBLAUNCHER='srun --mpi=pmi2 -n %totalcpu% --ntasks-per-node=%ppn% --cpu-bind=cores --mem-bind=local --distribution=arbitrary --kill-on-bad-exit=1'
+export QSCRIPTTEMPLATE=$SCRIPTDIR/platforms/cephas/qscript.template.cephas
+export JOBLAUNCHER='srun --mpi=pmi2 -n %totalcpu% --distribution=arbitrary --cpu-bind=cores --mem-bind=local --kill-on-bad-exit=1'
 export PPN=40
