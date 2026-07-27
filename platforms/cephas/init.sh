@@ -20,6 +20,7 @@ export QUOTACHECKCMD=null
 export ALLOCCHECKCMD=null
 export QUEUENAME=general
 export SERQUEUE=general
+export SERQUEUE_NTASKS=1
 export ACCOUNT=null
 
 export SLURM_HOSTFILE=$SCRIPTDIR/platforms/cephas/cephas.hosts
