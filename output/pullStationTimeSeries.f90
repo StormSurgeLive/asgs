@@ -36,6 +36,8 @@ character(len=1024) :: dataSetHeaderLine
 character(len=1024) :: headerLineOne
 character(len=1024) :: stationFileName ! name of file containing list of stations
 character(len=1024) :: nodeFileName    ! name of file containing list of node numbers
+character(len=1000) :: line            ! from stationfile to parse metadata
+character(len=1000) :: lvar(3)         ! metadata strings from station file
 type(fileMetaData_t) :: ft ! full domain time series data file to pull from
 type(fileMetaData_t) :: fs ! time series data file at stations
 real(8), allocatable :: adcirc_data(:,:) ! (np,irtype)
@@ -99,6 +101,9 @@ integer :: e                    ! element loop counter
 real(8) :: tempR1, tempR2       ! placeholder real variables for i/o
 integer :: tempI1               ! placeholder integer variable for i/o
 character(len=10) :: fileExtension ! .100 for elemental quantity, .200 for peak elemental quantity
+type(fileMetaData_t) :: sf      ! netcdf fort.61 file to receive data
+integer :: specifiedFileFormat  ! format of netcdf file to create
+integer :: station_dims(2)      ! dimensions for station_name array
 !---------------------------------------------------------------------------------
 !
 ! initializations
@@ -114,6 +119,7 @@ fs%dataFileName = 'stations_timeseries.txt'
 fs%dataFileFormat = ASCIIG
 ft%dataFileName = 'null'
 ft%dataFileFormat = ASCIIG
+ft%dataFileCategory = DOMAIN ! typically fort.63
 headerLineOne = "# headerLineOne"
 dataSetHeaderLine = "-99999.0 -99999"
 zeroIndex = .false.
@@ -246,7 +252,7 @@ end if
 !
 ! read in the mesh
 if ( ft%dataFileFormat.eq.NETCDFG ) then
-   m%meshFileName = ft%dataFileName
+   m%meshFileName = ft%dataFileName(1:256)
    call findMeshDimsNetCDF(m, n)
    call readMeshNetCDF(m, n)
 else
@@ -282,6 +288,14 @@ if ( trim(adjustl(stationFileName)).ne.'null' ) then
    write(6,'(a)') 'INFO: Reading station file.'
    do i=stationStart, stationEnd
       read(sfUnit,*) stations(i)%lon, stations(i)%lat
+   end do
+   rewind(sfUnit)
+   do i=stationStart, stationEnd
+      read(sfUnit,'(a1000)') line
+      call parseStationFileLine(line, lvar)
+      stations(i)%stationID = trim(adjustl(lvar(1)))
+      stations(i)%agency = trim(adjustl(lvar(2)))
+      stations(i)%description = trim(adjustl(lvar(3)))
    end do
    close(sfUnit)
    write(6,'(a)') 'INFO: Finished reading station file.'
@@ -348,6 +362,9 @@ endif
 ! write the station weights, element indices, and element total areas to a text file in pseudo-fort.61 format
 ! for reference or troubleshooting
 ! write station values (if any) for this dataset
+ft%nSnaps = -99999
+ft%time_increment = -99999.d0
+ft%nspool = -99999
 if ( numStations.ne.0 ) then
    swUnit = availableUnitNumber()
    open(unit=swUnit,file='station_weights.61',status='replace',action='write')
@@ -731,13 +748,79 @@ case(NETCDFG)
    write(fs%fun,*) trim(adjustl(headerLineOne))
    write(fs%fun,'(i0,1x,i0,1x,f15.7,1x,i0,1x,i0)') ft%nSnaps, (numStations+numNodeStations), ft%time_increment, ft%nspool, ft%irtype
 
-   ! open the netcdf file
+   ! open the fulldomain netcdf file
    call check(nf90_open(trim(ft%dataFileName), NF90_NOWRITE, ft%nc_id))
    ! get netcdf variable IDs for the the data
    do j=1,ft%irtype
       !write(6,'(a,i0,a,a,a,i0,a)') 'DEBUG: The variable name for component ',j,' is ',trim(varname(j)),' and the variable ID is ',nc_varid(j),'.'
       call check(nf90_inq_varid(ft%nc_id, trim(adjustl(ft%ncds(j)%varNameNetCDF)), ft%ncds(j)%nc_varid))
    end do
+   !
+   ! create the fort.61.nc file to hold the station data
+   write(6,'(a,a,a)') "INFO: Creating NetCDF file 'interpolated_fort.61.nc'."
+   sf%dataFileName = "interpolated_fort.61.nc"
+   sf%ncFileType = NF90_HDF5
+   call check(nf90_create(trim(sf%dataFileName), sf%ncFileType, sf%nc_id))
+   ! Create time dimension and units attributes
+   call check(nf90_def_dim(sf%nc_id,'time',nf90_unlimited,sf%nc_dimid_time))
+   call check(nf90_def_var(sf%nc_id,'time',nf90_double,sf%nc_dimid_time,sf%nc_varid_time))
+   call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'long_name','model time'))
+   call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'standard_name','time'))
+   call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'units',sf%datenum))
+   ! create station names array
+   call check(nf90_def_dim(sf%nc_id, 'station', numStations, sf%nc_dimid_station))
+   sf%station_namelen = 50;
+   sf%station_description_length = 100;
+   call check(nf90_def_dim(sf%nc_id, 'namelen', sf%station_namelen, sf%nc_dimid_namelen))
+   call check(nf90_def_dim(sf%nc_id, 'description_length', sf%station_description_length, sf%nc_dimid_description_length))
+   station_dims(1) = sf%nc_dimid_namelen
+   station_dims(2) = sf%nc_dimid_station
+   !
+   ! define station names, agencies, and descriptions
+   call check(nf90_def_var(sf%nc_id, 'station_name', NF90_CHAR, station_dims, sf%nc_varid_station_names))
+   call check(nf90_def_var(sf%nc_id, 'station_agency', NF90_CHAR, station_dims, sf%nc_varid_station_agencies))
+   call check(nf90_def_var(sf%nc_id, 'station_description', NF90_CHAR, (/ sf%nc_dimid_description_length, sf%nc_dimid_station /) , sf%nc_varid_station_descriptions))
+   !
+   ! Define water surface elevation attributes
+   call check(nf90_def_var(sf%nc_id, 'zeta', NF90_DOUBLE, sf%nc_dimid_station, sf%nc_varid_station))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'long_name', 'water surface elevation above geoid'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'standard_name', 'sea_surface_height_above_geoid'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'units', 'm'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'_FillValue',-99999.d0))
+   !
+   ! define station locations
+   call check(nf90_def_var(sf%nc_id, 'x', NF90_DOUBLE, sf%nc_dimid_station, sf%nc_varid_station_x))
+   call check(nf90_def_var(sf%nc_id, 'y', NF90_DOUBLE, sf%nc_dimid_station, sf%nc_varid_station_y))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_x, 'long_name','longitude'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_x,'standard_name','longitude'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_x,'units', 'degrees_east'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_x, 'positive', 'east'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y, 'long_name','latitude'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y,'standard_name','latitude'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y, 'units', 'degrees_north'))
+   call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y, 'positive','north'))
+   !
+   ! end variable and attributes definitions
+   call check(nf90_enddef(sf%nc_id))
+   ! write station names, longitudes, latitudes, agencies, and descriptions
+   allocate(sf%station_x(numStations))
+   allocate(sf%station_y(numStations))
+   allocate(sf%dataFileStationIDs(numStations))
+   allocate(sf%stationAgencies(numStations))
+   allocate(sf%stationDescriptions(numStations))
+   do s=1, numStations
+      sf%station_x(s) = stations(s)%lon
+      sf%station_y(s) = stations(s)%lat
+      sf%dataFileStationIDs(s) = stations(s)%stationID(1:50)
+      sf%stationAgencies(s) = stations(s)%agency(1:50)
+      sf%stationDescriptions(s) = stations(s)%description(1:1000)
+   end do
+   call check(nf90_put_var(sf%nc_id, sf%nc_varid_station_x, sf%station_x))
+   call check(nf90_put_var(sf%nc_id, sf%nc_varid_station_y, sf%station_y))
+   call check(nf90_put_var(sf%nc_id, sf%nc_varid_station_names, sf%dataFileStationIDs))
+   call check(nf90_put_var(sf%nc_id, sf%nc_varid_station_agencies, sf%stationAgencies))
+   call check(nf90_put_var(sf%nc_id, sf%nc_varid_station_descriptions, sf%stationDescriptions))
+   !
    write(6,'(a)') 'INFO: Compiling a record of station values across all data sets.'
    ! loop over datasets
    do i=1,ft%nSnaps
@@ -764,6 +847,7 @@ case(NETCDFG)
             call writeNodalValue(adcirc_data, m%np, ft%irtype, nodeStations(k), isNodeStationInMesh(k), (k+s), useGivenNodeNumber, fs%fun)
          end do
       endif
+      ! write
    end do
    close(fs%fun)
    if (ft%dataFileCategory.eq.MINMAX) then
@@ -795,6 +879,8 @@ case(NETCDFG)
       endif
    endif
    call check(nf90_close(ft%nc_id))
+   ! finish up by closing file
+   call check(nf90_close(sf%nc_id))
 case default
    write(6,*) "ERROR: File format '",TRIM(cmdlineopt),"' was not recognized."
    stop

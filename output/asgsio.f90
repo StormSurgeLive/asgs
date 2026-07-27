@@ -116,7 +116,6 @@ type fileMetaData_t
    integer :: idefaultValue    ! missing data value for sparse integer data
    integer :: numValuesPerDataSet  ! np (number of nodes) for nodal data or ne for elemental
    integer :: nStations     ! only for station files
-   character(len=50), allocatable :: dataFileStationIDs(:) ! namelen from adcirc is 50
    integer, allocatable :: idata(:,:) ! (irtype, numValuesPerDataSet)
    real(8), allocatable :: rdata(:,:) ! (irtype, numValuesPerDataSet)
    integer, allocatable :: idata3D(:,:,:) ! (irtype, numValuesPerDataSet, nfen)
@@ -124,10 +123,22 @@ type fileMetaData_t
    integer, pointer :: mapping(:) ! used for mapping fulldomain<-->subdomain
    !
    ! netcdf adcirc files only
-   integer :: nc_dimid_station ! netcdf ID for the station dimension
-   integer :: nc_dimid_namelen ! netcdf ID for the station length dimension
-   integer :: station_namelen  ! length of netcdf station name variable
-   integer :: nc_varid_station ! netcdf ID for the station IDs
+   integer :: nc_dimid_station   ! netcdf ID for the station dimension
+   integer :: nc_dimid_namelen   ! netcdf ID for the station length dimension
+   integer :: nc_dimid_description_length   ! netcdf ID for the station description dimension
+   integer :: station_namelen    ! length of netcdf station name variable
+   integer :: station_description_length    ! length of netcdf station desciption variable
+   integer :: nc_varid_station   ! netcdf ID for the station IDs
+   integer :: nc_varid_station_x ! netcdf variable ID for station longitudes
+   integer :: nc_varid_station_y ! netcdf variable ID for station latitudes
+   real(8), allocatable :: station_x(:) ! station longitudes
+   real(8), allocatable :: station_y(:) ! station latitudes
+   integer :: nc_varid_station_names        ! names (or station IDs, e.g., "17030"
+   integer :: nc_varid_station_agencies     ! e.g., "USACE" or "NOAA"
+   integer :: nc_varid_station_descriptions ! e.g., "Caernarvon"
+   character(len=50), allocatable :: dataFileStationIDs(:) ! namelen from adcirc is 50
+   character(len=50), allocatable :: stationAgencies(:)
+   character(len=100), allocatable :: stationDescriptions(:)
    character(len=120) :: datenum ! e.g. seconds since 2008-07-31 12:00:00 +00:00
    integer, allocatable :: it(:) ! time step number associated with each dataset
    type(netCDFVar_t), allocatable :: ncds(:)
@@ -259,6 +270,7 @@ type(nodalAttrFile_t), optional, intent(inout) :: naFile
 character(len=NF90_MAX_NAME) :: thisVarName
 character(len=NF90_MAX_NAME) :: componentName
 integer :: i, j, k, p, q, idx
+integer(kind=8) :: ieight
 integer :: errorIO
 logical :: exists ! true if the file exists
 
@@ -290,6 +302,9 @@ call readMeshCommentLineNetCDF(m, f%nc_id)
 !
 ! determine the type of data stored in the file
 call check(nf90_inquire(f%nc_id, f%ndim, f%nvar, f%natt, f%nc_dimid_time, f%ncformat))
+write(scratchMessage, '(a,i0,a)') 'The data file contains ',f%nvar,' variables.'
+      write(*,'(a,i0,a,i0)') 'file id is ',f%nc_id !jgfdebug
+call allMessage(INFO,trim(scratchMessage))
 if ( (f%ncformat.eq.nf90_format_netcdf4).or. &
    (f%ncformat.eq.nf90_format_netcdf4_classic) ) then
    call allMessage(INFO,'The data file uses netcdf4 formatting.')
@@ -417,6 +432,7 @@ do i=1,f%nvar
       end do
       exit
    endif
+
    call check(nf90_inquire_variable(f%nc_id, i, thisVarName))
    select case(trim(thisVarName))
    case("u-vel3D","v-vel3D","w-vel3D")
@@ -1091,7 +1107,7 @@ implicit none
 type(fileMetaData_t), intent(inout) :: fn ! netcdf file to write metadata attributes to
 type(mesh_t), intent(inout) :: m
 type(meshNetCDF_t), intent(inout) :: n
-character(NF90_MAX_NAME) :: thisVarName
+character(len=NF90_MAX_NAME) :: thisVarName
 integer :: nc_dimid(2)
 integer :: i
 !
