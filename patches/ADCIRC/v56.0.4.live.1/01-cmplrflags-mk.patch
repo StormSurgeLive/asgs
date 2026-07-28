@@ -1,8 +1,8 @@
 diff --git a/work/cmplrflags.mk b/work/cmplrflags.mk
-index ac418b2..24c0cbc 100644
+index ac418b2..f97c4ac 100644
 --- a/work/cmplrflags.mk
 +++ b/work/cmplrflags.mk
-@@ -1,152 +1,1648 @@
+@@ -1,152 +1,1662 @@
  # SRCDIR is set in makefile or on the compile line
 -INCDIRS := -I. -I$(SRCDIR)/prep
 -FLIBS   :=
@@ -459,6 +459,17 @@ index ac418b2..24c0cbc 100644
 +      FLIBS   := $(INCDIRS)
 +    endif
 +  endif
++  ifeq ($(MACHINENAME),cephas)
++    FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132 -march=haswell
++     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132
++     CFLAGS  := $(INCDIRS) -O2 -DLINUX -Wno-implicit-function-declaration -Wno-incompatible-pointer-types
++     FLIBS   := $(INCDIRS)
++     ifeq ($(DEBUG),trace)
++        FFLAGS1 := $(INCDIRS) -g -O0 -traceback -assume byterecl -132
++        CFLAGS  := $(INCDIRS) -g -O0 -traceback -DLINUX -Wimplicit-function-declaration -Wno-incompatible-pointer-types
++        FLIBS   := $(INCDIRS)
++     endif
++  endif
 +  ifeq ($(filter debian debian+%,$(MACHINENAME)), $(MACHINENAME))
 +     FFLAGS1 := $(INCDIRS) -O2 -assume byterecl -132
 +     CFLAGS  := $(INCDIRS) -O2 -DLINUX -Wno-implicit-function-declaration -Wno-incompatible-pointer-types
@@ -554,6 +565,9 @@ index ac418b2..24c0cbc 100644
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 +     endif
 +     ifeq ($(MACHINENAME),mike)
++        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
++     endif
++     ifeq ($(MACHINENAME),cephas)
 +        FLIBS      := $(FLIBS) -L$(NETCDFHOME)/lib -lnetcdff -lnetcdf
 +     endif
 +     ifeq ($(filter debian debian+%,$(MACHINENAME)), $(MACHINENAME))
@@ -707,7 +721,9 @@ index ac418b2..24c0cbc 100644
 +  else
 +     MULTIPLE := TRUE
 +  endif
-+endif
+ endif
+-ifeq ($(DEBUG),trace)
+-   FFLAGS1       :=  $(DEBUG_FLAGS) -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
 +#
 +# Cray-XT4 (e.g. Jade@ERDC) using standard compilers, added by jgf48.4607
 +ifeq ($(compiler),cray_xt4)
@@ -787,7 +803,9 @@ index ac418b2..24c0cbc 100644
 +  else
 +     MULTIPLE := TRUE
 +  endif
-+endif
+ endif
+-ifeq ($(DEBUG),netcdf_trace)
+-   FFLAGS1       :=  $(DEBUG_FLAGS) -DNETCDF_TRACE -DFULL_STACK -DFLUSH_MESSAGES
 +#
 +# Cray-XC30/40 (e.g. armstrong@NAVO& lightning@afrl) using Intel compilers, added by TCM
 +ifeq ($(compiler),xtintel)
@@ -821,7 +839,9 @@ index ac418b2..24c0cbc 100644
 +  else
 +     MULTIPLE := TRUE
 +  endif
-+endif
+ endif
+-FFLAGS2 :=  $(FFLAGS1)
+-FFLAGS3 :=  $(FFLAGS1)
 +#
 +# Portland Group
 +ifeq ($(compiler),pgi)
@@ -921,9 +941,7 @@ index ac418b2..24c0cbc 100644
 +  else
 +     MULTIPLE := TRUE
 +  endif
- endif
--ifeq ($(DEBUG),trace)
--   FFLAGS1       :=  $(DEBUG_FLAGS) -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
++endif
 +#
 +# ERDC Diamond
 +ifeq ($(compiler),diamond)
@@ -972,9 +990,7 @@ index ac418b2..24c0cbc 100644
 +  else
 +     MULTIPLE := TRUE
 +  endif
- endif
--ifeq ($(DEBUG),netcdf_trace)
--   FFLAGS1       :=  $(DEBUG_FLAGS) -DNETCDF_TRACE -DFULL_STACK -DFLUSH_MESSAGES
++endif
 +#
 +# Cray-XE6 (e.g., Garnet at ERDC) using standard compilers, added by jgf50.29
 +ifeq ($(compiler),garnet)
@@ -1044,9 +1060,7 @@ index ac418b2..24c0cbc 100644
 +  else
 +     MULTIPLE := TRUE
 +  endif
- endif
--FFLAGS2 :=  $(FFLAGS1)
--FFLAGS3 :=  $(FFLAGS1)
++endif
 +#
  #
  # Compiler Flags for CircleCI Build Server
