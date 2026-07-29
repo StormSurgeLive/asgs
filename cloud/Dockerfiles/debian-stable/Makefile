@@ -1,8 +1,8 @@
 build:
-	docker build --build-arg _ASGS_BRANCH=master -t asgs:debian -f ./Dockerfile.debian .
+	docker build --build-arg _ASGS_BRANCH=issue-1623 -t asgs:debian -f ./Dockerfile.debian.issue-1623 .
 
 clean-build:
-	docker build --no-cache -t asgs:debian -f ./Dockerfile.debian .
+	docker build --no-cache -t asgs:debian -f ./Dockerfile.debian.issue-1623 .
 
 start:
 	docker-compose up -d asgs-debian
@@ -20,7 +20,7 @@ copykey:
 	docker exec -it asgs-debian chmod 600 /home/asgsuser/.ssh/id_rsa.pub
 
 shell:
-	docker exec -it asgs-debian bash 
+	docker exec -it asgs-debian bash
 
 asgsh:
 	docker exec -it asgs-debian asgs/asgsh
