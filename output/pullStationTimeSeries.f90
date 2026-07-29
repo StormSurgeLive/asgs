@@ -2,7 +2,7 @@
 ! pullStationTimeSeries.f90: Create ADCIRC ascii elevation station
 ! file (fort.61) from ADCIRC fort.63 file.
 !------------------------------------------------------------------
-! Copyright(C) 2015--2020 Jason Fleming
+! Copyright(C) 2015--2026 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
@@ -20,6 +20,9 @@
 ! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !------------------------------------------------------------------
 ! Compile with accompanying makefile.
+! Example of converting station csv file containing quoted fields with
+! embedded commas to ASGS-standard station file format:
+! awk 'BEGIN { FPAT = "([^,]*)|(\"([^\"]|\"\")*\")" } NR!=1 { print $19" "$20" ! "$3" ! "$1" ! "$18  }' stations_with_commas.csv > interpolation_stations.txt
 !------------------------------------------------------------------
 program pullStationTimeSeries
 use asgsio
@@ -101,9 +104,13 @@ integer :: e                    ! element loop counter
 real(8) :: tempR1, tempR2       ! placeholder real variables for i/o
 integer :: tempI1               ! placeholder integer variable for i/o
 character(len=10) :: fileExtension ! .100 for elemental quantity, .200 for peak elemental quantity
+!---------------------------------------------------------------------------------
+! netcdf station file output
 type(fileMetaData_t) :: sf      ! netcdf fort.61 file to receive data
 integer :: specifiedFileFormat  ! format of netcdf file to create
 integer :: station_dims(2)      ! dimensions for station_name array
+integer :: v                    ! irtype dimension counter
+integer :: g                    ! global attribute counter
 !---------------------------------------------------------------------------------
 !
 ! initializations
@@ -728,7 +735,7 @@ case(ASCIIG)
       ! write station values (if any) for this dataset
       if ( numStations.ne.0 ) then
          do s=stationStart, stationEnd
-            call writeStationValue(adcirc_data, m, numNodesNonDefault, ft%irtype, stations(s), s, fs%fun)
+            call writeStationValue(adcirc_data, m, numNodesNonDefault, ds, ft%irtype, stations(s), s, fs%fun)
          end do
       endif
       ! write nodal values (if any) for this dataset
@@ -743,6 +750,10 @@ case(ASCIIG)
                   ! we jump to here.
 case(NETCDFG)
    call determineNetCDFFileCharacteristics(ft, m, n)
+   ! allocate memory to store the interpolated station data
+   do s=1, numStations
+      allocate(stations(s)%d(ft%nSnaps,ft%irtype))
+   end do
    headerLineOne = trim(rundes) // ' ' // trim(runid) // ' ' // trim(m%agrid)
    snapR = ft%time_increment
    write(fs%fun,*) trim(adjustl(headerLineOne))
@@ -766,7 +777,8 @@ case(NETCDFG)
    call check(nf90_def_var(sf%nc_id,'time',nf90_double,sf%nc_dimid_time,sf%nc_varid_time))
    call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'long_name','model time'))
    call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'standard_name','time'))
-   call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'units',sf%datenum))
+   call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'units',ft%datenum))
+   call check(nf90_put_att(sf%nc_id,sf%nc_varid_time,'base_date',ft%base_date))
    ! create station names array
    call check(nf90_def_dim(sf%nc_id, 'station', numStations, sf%nc_dimid_station))
    sf%station_namelen = 50;
@@ -782,7 +794,7 @@ case(NETCDFG)
    call check(nf90_def_var(sf%nc_id, 'station_description', NF90_CHAR, (/ sf%nc_dimid_description_length, sf%nc_dimid_station /) , sf%nc_varid_station_descriptions))
    !
    ! Define water surface elevation attributes
-   call check(nf90_def_var(sf%nc_id, 'zeta', NF90_DOUBLE, sf%nc_dimid_station, sf%nc_varid_station))
+   call check(nf90_def_var(sf%nc_id, 'zeta', NF90_DOUBLE, (/ sf%nc_dimid_station, sf%nc_dimid_time /), sf%nc_varid_station))
    call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'long_name', 'water surface elevation above geoid'))
    call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'standard_name', 'sea_surface_height_above_geoid'))
    call check(nf90_put_att(sf%nc_id, sf%nc_varid_station,'units', 'm'))
@@ -799,6 +811,11 @@ case(NETCDFG)
    call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y,'standard_name','latitude'))
    call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y, 'units', 'degrees_north'))
    call check(nf90_put_att(sf%nc_id, sf%nc_varid_station_y, 'positive','north'))
+   !
+   ! copy global attributes from fulldomain file to station file
+   do g=1,ft%nc_num_global_atts
+      call check(nf90_copy_att(ft%nc_id, NF90_GLOBAL, ft%nc_globalAttNames(g), sf%nc_id, NF90_GLOBAL))
+   end do
    !
    ! end variable and attributes definitions
    call check(nf90_enddef(sf%nc_id))
@@ -838,7 +855,7 @@ case(NETCDFG)
       ! write station values (if any) for this dataset
       if ( numStations.ne.0 ) then
          do s=stationStart, stationEnd
-            call writeStationValue(adcirc_data, m, ft%numValuesPerDataSet, ft%irtype, stations(s), s, fs%fun)
+            call writeStationValue(adcirc_data, m, ft%numValuesPerDataSet, i, ft%irtype, stations(s), s, fs%fun)
          end do
       endif
       ! write nodal values (if any) for this dataset
@@ -849,6 +866,23 @@ case(NETCDFG)
       endif
       ! write
    end do
+   ! to netcdf
+   allocate(sf%rdata(numStations,ft%irtype))
+   do i=1,ft%nSnaps
+      nc_start = (/ 1, i /)
+      nc_count = (/ numStations, 1 /)
+      do s=1,numStations
+         do v=1,ft%irtype
+            sf%rdata(s,v) = stations(s)%d(i,v)
+         end do
+         call check(nf90_put_var(sf%nc_id, sf%nc_varid_station, sf%rdata(:,1), nc_start, nc_count))
+         if ( ft%irtype.eq.2 ) then
+            call check(nf90_put_var(sf%nc_id, sf%nc_varid_station, sf%rdata(:,1), nc_start, nc_count))
+         endif
+      end do
+   end do
+   ! write the time values associated with each dataset
+   call check(nf90_put_var(sf%nc_id, sf%nc_varid_time, ft%timesec, (/ 1 /), (/ ft%nSnaps /) ))
    close(fs%fun)
    if (ft%dataFileCategory.eq.MINMAX) then
       ! open the text file for writing time of occurrence data
@@ -867,7 +901,7 @@ case(NETCDFG)
       ! write station values (if any) for this dataset
       if ( numStations.ne.0 ) then
          do s=stationStart, stationEnd
-            call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, ft%irtype, stations(s), s, fs%fun)
+            call writeStationValue(adcirc_data, m, ft%numValuesPerDataset, 1, ft%irtype, stations(s), s, fs%fun)
          end do
       endif
       close(fs%fun)
@@ -897,56 +931,100 @@ end program pullStationTimeSeries
 ! Writes the interpolated time series value at the station location,
 ! or -99999 if the station is outside the mesh.
 !-----------------------------------------------------------------------
-subroutine writeStationValue(adcirc_data, m, numValuesPerDataset, irtype, station, s, slun)
+subroutine writeStationValue(adcirc_data, m, numValuesPerDataset, isnap, irtype, station, s, slun)
 use adcmesh
 implicit none
 real(8), intent(in) :: adcirc_data(numValuesPerDataSet,irtype)
 integer, intent(in) :: irtype ! number of vector components, 1 is scalar etc
 integer, intent(in) :: numValuesPerDataSet ! number of values in a sparse dataset?
+integer, intent(in) :: isnap ! dataset index in unlimited dimension
 type(mesh_t), intent(inout) :: m
-type(station_t), intent(in) :: station
+type(station_t), intent(inout) :: station
 integer, intent(in) :: s    ! station index
 integer, intent(in) :: slun ! logical unit number to write to
 character(len=100) :: note  ! alert operator that station was not found
 real(8) :: stationVal, temp1, temp2
-logical :: dryNode
-integer :: i
+real(8) :: w(3)             ! station weight considering wet/dry state
+real(8) :: extraWeight      ! interpolation weight to redistribute
+integer :: numWet           ! number of wet nodes around an element
+logical :: dryStation       ! .true. if all 3 nodes around an element are dry
+integer :: i, ip1, im1      ! element node counter, i plus one, i minus one
 !
-dryNode = .false.
 note = ''
+dryStation = .false.
+w(:) = station%w(:)  ! initialize to the weights as if all nodes wet
+numWet = 3
+!
 if (station%elementIndex.ne.0) then
    do i=1,3
       if (adcirc_data(m%nm(station%elementIndex,i),1).eq.-99999) then
-         dryNode = .true.
+         w(i) = 0.d0
+         numWet = numWet - 1
       endif
    end do
 else
    note = ' ! warning: this station is actually outside the mesh'
 endif
-
+select case(numWet)
+   case(0)
+      ! whole element is dry, so this station is dry
+      dryStation = .true.
+   case(1)
+      ! one wet node; it gets all the interpolation weight
+      do i=1,3
+         if ( w(i).ne.0 ) then
+            w(i) = 1.d0
+         endif
+      end do
+   case(2)
+      ! two wet nodes; the weight for the dry node is redistributed to them
+      do i=1,3
+         if ( w(i).eq.0 ) then
+            extraWeight = w(i) * 0.d0
+            ip1 = i + 1
+            if ( ip1.gt.3 ) then
+               ip1 = 1
+            endif
+            im1 = i - 1
+            if ( im1.lt.1 ) then
+               im1 = 3
+            endif
+            w(ip1) = w(ip1) + extraWeight
+            w(im1) = w(im1) + extraWeight
+         endif
+      end do
+   case default
+      ! most likely case, all 3 nodes wet; use default interpolation weights
+end select
+!
 if (irtype.eq.1) then
-   if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
+   if (station%elementIndex.eq.0 .or. dryStation.eqv..true.) then
       stationVal = -99999.0
    else
-      stationVal = adcirc_data(m%nm(station%elementIndex,1),1) * station%w(1) &
-                 + adcirc_data(m%nm(station%elementIndex,2),1) * station%w(2) &
-                 + adcirc_data(m%nm(station%elementIndex,3),1) * station%w(3)
+      stationVal = adcirc_data(m%nm(station%elementIndex,1),1) * w(1) &
+                 + adcirc_data(m%nm(station%elementIndex,2),1) * w(2) &
+                 + adcirc_data(m%nm(station%elementIndex,3),1) * w(3)
    endif
    write(slun,'(i10,2x,e17.10,a)') s, stationVal, trim(note)
+   station%d(isnap,1) = stationVal
 else
-   if (station%elementIndex.eq.0 .or. dryNode.eqv..true.) then
+   if (station%elementIndex.eq.0 .or. dryStation.eqv..true.) then
       temp1 = -99999.0
       temp2 = -99999.0
    else
-      temp1 = adcirc_data(m%nm(station%elementIndex,1),1) * station%w(1) &
-            + adcirc_data(m%nm(station%elementIndex,2),1) * station%w(2) &
-            + adcirc_data(m%nm(station%elementIndex,3),1) * station%w(3)
-      temp2 = adcirc_data(m%nm(station%elementIndex,1),2) * station%w(1) &
-            + adcirc_data(m%nm(station%elementIndex,2),2) * station%w(2) &
-            + adcirc_data(m%nm(station%elementIndex,3),2) * station%w(3)
+      temp1 = adcirc_data(m%nm(station%elementIndex,1),1) * w(1) &
+            + adcirc_data(m%nm(station%elementIndex,2),1) * w(2) &
+            + adcirc_data(m%nm(station%elementIndex,3),1) * w(3)
+      temp2 = adcirc_data(m%nm(station%elementIndex,1),2) * w(1) &
+            + adcirc_data(m%nm(station%elementIndex,2),2) * w(2) &
+            + adcirc_data(m%nm(station%elementIndex,3),2) * w(3)
    endif
    write(slun,'(i10,2(2x,e17.10),a)') s, temp1, temp2, trim(note)
+   station%d(isnap,1) = temp1
+   station%d(isnap,2) = temp2
 endif
+
+
 !-----------------------------------------------------------------------
 end subroutine writeStationValue
 !-----------------------------------------------------------------------

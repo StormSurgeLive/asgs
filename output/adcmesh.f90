@@ -1,13 +1,28 @@
-!-----+---------+---------+---------+---------+---------+---------+
+!--------------------------------------------------------------------------
+! adcmesh.f90: load, store, and perform calculations on ADCIRC meshes.
+!--------------------------------------------------------------------------
+! Copyright(C) 2011--2026 Jason Fleming
 !
-! adcmesh.f90
-! This is a module for storing and manipulating data for ADCIRC meshes;
-! it is based on code originally written by Corbitt Kerr.
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
-!-----+---------+---------+---------+---------+---------+---------+
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+!--------------------------------------------------------------------------
+! Based on code originally written by Corbitt Kerr.
+!--------------------------------------------------------------------------
 module adcmesh
-!-----+---------+---------+---------+---------+---------+---------+
-use netcdf, only : NF90_MAX_NAME
+!--------------------------------------------------------------------------
+   use netcdf, only : NF90_MAX_NAME
 use kdtree2_module
 
 real(8), parameter :: R = 6378206.4d0 ! radius of the earth
@@ -341,7 +356,7 @@ type station_t
    logical :: useBruteForceSearch     ! true if every element should be checked
    integer :: n(3)           ! nodes that surround the station
    real(8) :: w(3)           ! weights used to interpolate station values based on nodal values
-   real(8), allocatable :: d(:,:)     ! station data (irtype, ntime)
+   real(8), allocatable :: d(:,:)     ! station data
    integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency
    character(len=1024) :: agency      ! organization responsible for the station
