@@ -75,6 +75,13 @@ type xdmfVar_t
    character(NF90_MAX_NAME), allocatable :: ncVarName(:) ! (numComponents)
 end type xdmfVar_t
 !
+! create a derived data type to hold netcdf global attributes with values
+! of varying lengths
+type :: string_wrapper
+    character(len=:), allocatable :: str
+    integer :: length
+end type string_wrapper
+!
 ! Derived data type to represent ADCIRC-related data files.
 type fileMetaData_t
    !
@@ -184,15 +191,6 @@ type fileMetaData_t
    real(8), allocatable :: timesec(:)  ! time in seconds associated with each dataset
    logical :: allDataSetsHaveBeenRead  ! true if dataset counter exceeds number of datasets
 end type fileMetaData_t
-
-!
-! create a derived data type to hold netcdf global attributes with values
-! of varying lengths
-type :: string_wrapper
-    character(len=:), allocatable :: str
-    integer :: length
-end type string_wrapper
-
 
 type netCDFMetaDataFromExternalFile_t
    integer :: nmUnit ! i/o unit number for netcdf metadata attributes file

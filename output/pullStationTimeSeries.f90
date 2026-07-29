@@ -23,6 +23,9 @@
 ! Example of converting station csv file containing quoted fields with
 ! embedded commas to ASGS-standard station file format:
 ! awk 'BEGIN { FPAT = "([^,]*)|(\"([^\"]|\"\")*\")" } NR!=1 { print $19" "$20" ! "$3" ! "$1" ! "$18  }' stations_with_commas.csv > interpolation_stations.txt
+! example of running the pullStationTimeSeries.x in docker:
+! docker run -d -it --name issue-1623 --mount type=bind,source="/mnt/nas-storage/Operations",target=/work asgs:debian
+! docker exec -it --workdir="/work/sapphire.cct.lsu.edu/2026/al02/01/CPRA25v02a/qbc.loni.org/CPRA25v02a_al022026_qbc_jgf/nhcConsensus" issue-1623 /home/asgsuser/asgs/output/pullStationTimeSeries.x --datafile fort.63.nc --netcdf --stationfile interpolation_stations.txt
 !------------------------------------------------------------------
 program pullStationTimeSeries
 use asgsio
