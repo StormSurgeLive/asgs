@@ -109,24 +109,58 @@ fi
 #                 L O O P   O V E R   L A Y E R S
 #----------------------------------------------------------------------------
 #
-for layer in ${layers[@]}; do
-   if [[ -e "fort.15" ]]; then
-      rm fort.15 2>> $SCENARIOLOG
+# monitorJobs() treats $jobtype.$SCENARIO.run.finish as authoritative. Defer
+# that marker until layer output has been renamed and the final unprefixed
+# NetCDF links have been recreated.
+shopt -s nullglob
+
+reportLayerStatus()
+{
+   local reportLayer=$1
+   local reportErrorValue=$2
+   local reportQualityCheck=$3
+   local reportRunSuffix=$4
+   local reportErrorMsg=$5
+   local statusTime
+
+   statusTime=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   if [[ $reportErrorValue -ne 0 || $reportQualityCheck -ne 0 ]]; then
+      echo "cycle $CYCLE: $SCENARIO: $THIS: $reportErrorMsg" 2>&1 | awk -v this=$THIS -v level=ERROR -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG" | tee --append "$CYCLELOG" | tee --append "$SYSLOG"
+      echo "\"$reportRunSuffix\" : \"$statusTime\", \"message\" : \"$reportErrorMsg\"" > "$jobtype.${reportLayer}.run.${reportRunSuffix}"  # <-OVERWRITE
+      echo "\"jobtype\" : \"$jobtype.$reportLayer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$statusTime\"" >> jobs.status
+   else
+      echo "\"jobtype\" : \"$jobtype.$reportLayer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$statusTime\", \"error\" : null" >> jobs.status
+      echo "\"$reportRunSuffix\" : \"$statusTime\"" > "$jobtype.${reportLayer}.run.${reportRunSuffix}"
    fi
-   ln -s ${layer}.fort.15 fort.15 2>> $SCENARIOLOG
+   echo "time.hpc.job.$jobtype.$reportLayer.${reportRunSuffix} : $statusTime" >> "$SCENARIO.run.properties"
+}
+
+scenarioStatusPending=no
+scenarioErrorValue=0
+scenarioErrorMsg=""
+scenarioRunSuffix="finish"
+scenarioQualityCheck=0
+
+for layer in "${layers[@]}"; do
+   if [[ -e "fort.15" || -L "fort.15" ]]; then
+      rm -f -- fort.15 2>> "$SCENARIOLOG"
+   fi
+   ln -s -- "${layer}.fort.15" fort.15 2>> "$SCENARIOLOG"
    echo "Symbolically linking target '${layer}.fort.15' to name 'fort.15'."
    # if this is not a prep job, untar the corresponding fort.15 files
    # and link to the proper meteorological output files
    if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
       # unpack subdomain fort.15 files for use in generating the layer
-      tar xvf ${layer}.fort.15.tar 2>> $SCENARIOLOG 2>&1
+      tar xvf "${layer}.fort.15.tar" 2>> "$SCENARIOLOG" 2>&1
       # link to empty netcdf meteorological output files created in prep phase
-      for layerFile in $(ls ${layer}.fort.7*.nc ${layer}.maxwvel*.nc ${layer}.minpr*.nc); do
-         if [[ -e ${layerFile#$layer.} ]]; then
-            rm ${layerFile#$layer.} 2>> $SCENARIOLOG
+      layerFiles=( "${layer}".fort.7*.nc "${layer}".maxwvel*.nc "${layer}".minpr*.nc )
+      for layerFile in "${layerFiles[@]}"; do
+         linkName=${layerFile#${layer}.}
+         if [[ -e $linkName || -L $linkName ]]; then
+            rm -f -- "$linkName" 2>> "$SCENARIOLOG"
          fi
-         ln -s $layerFile ${layerFile#$layer.} 2>> $SCENARIOLOG
-         echo "Symbolically linking target '$layerFile' to name '${layerFile#$layer.}'."
+         ln -s -- "$layerFile" "$linkName" 2>> "$SCENARIOLOG"
+         echo "Symbolically linking target '$layerFile' to name '$linkName'."
       done
    fi
    #
@@ -137,8 +171,8 @@ for layer in ${layers[@]}; do
       # the met only mode should not be run with the SWAN wave coupled executable
       CMD=$(echo "$CMD" | sed 's?adcswan ?adcirc ?')
    fi
-   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
-   echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > $jobtype.${layer}.run.start # <-OVERWRITE
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG" | tee --append "$CYCLELOG" | tee --append "$SYSLOG"
+   echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > "$jobtype.${layer}.run.start" # <-OVERWRITE
    echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
    $CMD
    ERROVALUE=$?  # capture exit status
@@ -148,14 +182,14 @@ for layer in ${layers[@]}; do
    ERROMSG=""
    RUNSUFFIX="finish"
    qualityCheck=0
-   if [ $ERROVALUE -eq 0 ] ; then
+   if [[ $ERROVALUE -eq 0 ]]; then
       if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
          # look for numerical instability errors in the stdout/stderr files
-         for file in adcirc.log $SCENARIOLOG ; do
-            if [ -e $file ]; then
-               numMsg=$(grep WarnElev $file | wc -l)
-               if [ $numMsg = 0 ]; then
-                  echo "cycle $CYCLE: $SCENARIO: No numerical instability detected in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG
+         for file in adcirc.log "$SCENARIOLOG"; do
+            if [[ -e $file ]]; then
+               numMsg=$(grep WarnElev "$file" | wc -l)
+               if [[ $numMsg -eq 0 ]]; then
+                  echo "cycle $CYCLE: $SCENARIO: No numerical instability detected in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG"
                else
                   ERROVALUE=1
                   ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'. "
@@ -171,60 +205,118 @@ for layer in ${layers[@]}; do
    #
    # archive the subdomain fort.16 log files and adcirc.log file
    if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
-      tar czf ${layer}.fort.16.tar.gz ./PE*/fort.16 1> tar.log 2>> $SCENARIOLOG
-      cp adcirc.log ${layer}.adcirc.log 2>> $SCENARIOLOG
+      tar czf "${layer}.fort.16.tar.gz" ./PE*/fort.16 1> tar.log 2>> "$SCENARIOLOG"
+      cp adcirc.log "${layer}.adcirc.log" 2>> "$SCENARIOLOG"
    fi
    #
-   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG" | tee --append "$CYCLELOG" | tee --append "$SYSLOG"
    #
-   #     R E P O R T   J O B   S T A T U S
-   #
-   if [[ $ERROVALUE -ne 0 || $qualityCheck -ne 0 ]]; then
-      echo "cycle $CYCLE: $SCENARIO: $THIS: $ERROMSG" 2>&1 | awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
-      echo "\"$RUNSUFFIX\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"message\" : \"$ERROMSG\"" > $jobtype.${layer}.run.${RUNSUFFIX}  # <-OVERWRITE
-      echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" >> jobs.status
-   else
-      echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"error\" : null" >> jobs.status
-      echo "\"$RUNSUFFIX\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\"" > $jobtype.${layer}.run.$RUNSUFFIX
-   fi
-   echo "time.hpc.job.$jobtype.$layer.${RUNSUFFIX} : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> $SCENARIO.run.properties
-   echo "-----------------------------------------------------------------------"
-   #
-   # if this is a prepall or prep15 job, tar up the subdomain fort.15 files
-   # and copy the netcdf meteorological output files to their own filenames
+   # Finalize this layer's output before publishing its status marker.
    if [[ $jobtype == "prepall" || $jobtype == "prep15" ]]; then
-      tar cvf ${layer}.fort.15.tar PE*/fort.15 2>>$SYSLOG 2>&1
-      rm PE*/fort.15 2>> $SYSLOG
-      for f in $(ls fort.7*.nc maxwvel*.nc minpr*.nc); do
-         echo "Renaming '$f' to '${layer}.$f'."
-         mv $f ${layer}.$f
-      done
+      if ! tar cvf "${layer}.fort.15.tar" PE*/fort.15 2>> "$SYSLOG" 2>&1; then
+         ERROVALUE=1
+         RUNSUFFIX="error"
+         ERROMSG="$ERROMSG Failed to archive the subdomain fort.15 files for layer '$layer'. "
+      fi
+      peFort15Files=( PE*/fort.15 )
+      if [[ ${#peFort15Files[@]} -gt 0 ]]; then
+         if ! rm -f -- "${peFort15Files[@]}" 2>> "$SYSLOG"; then
+            ERROVALUE=1
+            RUNSUFFIX="error"
+            ERROMSG="$ERROMSG Failed to remove the unpacked subdomain fort.15 files for layer '$layer'. "
+         fi
+      fi
+      layerOutputFiles=( fort.7*.nc maxwvel*.nc minpr*.nc )
    else
       # this is a model run; ascii output files are created at run time
       # and must be copied to their layer-based file names
-      for f in $(ls fort.7? maxwvel.63 minpr.63); do
-         echo "Renaming '$f' to '${layer}.$f'."
-         mv $f ${layer}.$f
-      done
+      layerOutputFiles=( fort.7? maxwvel.63 minpr.63 )
+   fi
+   for f in "${layerOutputFiles[@]}"; do
+      # maxwvel.63 and minpr.63 are literal optional names rather than globs.
+      # Match the previous ls-based behavior by skipping either when absent.
+      if [[ ! -e $f && ! -L $f ]]; then
+         continue
+      fi
+      echo "Renaming '$f' to '${layer}.$f'."
+      if ! mv -- "$f" "${layer}.$f"; then
+         ERROVALUE=1
+         RUNSUFFIX="error"
+         ERROMSG="$ERROMSG Failed to rename '$f' to '${layer}.$f'. "
+      fi
+   done
+   #
+   # monitorJobs() watches the main scenario marker, so defer that layer's
+   # status until the final unprefixed links have been restored below.
+   if [[ $layer == "$SCENARIO" ]]; then
+      scenarioStatusPending=yes
+      scenarioErrorValue=$ERROVALUE
+      scenarioErrorMsg=$ERROMSG
+      scenarioRunSuffix=$RUNSUFFIX
+      scenarioQualityCheck=$qualityCheck
+   else
+      reportLayerStatus "$layer" "$ERROVALUE" "$qualityCheck" "$RUNSUFFIX" "$ERROMSG"
+   fi
+   echo "-----------------------------------------------------------------------"
+done
+#
+# Finalize by setting the symbolic links for the fort.15 file and
+# the meteorology output files to the full output
+# (i.e., those that include wind reduction).
+#
+# The $jobtype.$SCENARIO.run.finish marker is deliberately written only after
+# this section completes, so quality control cannot begin while fort.74.nc,
+# maxwvel.63.nc, or the other unprefixed links are being replaced.
+if [[ -e "fort.15" || -L "fort.15" ]]; then
+   if ! rm -f -- fort.15 2>> "$SCENARIOLOG"; then
+      scenarioErrorValue=1
+      scenarioRunSuffix="error"
+      scenarioErrorMsg="$scenarioErrorMsg Failed to remove the temporary fort.15 link. "
+   fi
+fi
+if ! ln -s -- "$SCENARIO.fort.15" fort.15 2>> "$SCENARIOLOG"; then
+   scenarioErrorValue=1
+   scenarioRunSuffix="error"
+   scenarioErrorMsg="$scenarioErrorMsg Failed to link '$SCENARIO.fort.15' to 'fort.15'. "
+else
+   echo "Symbolically linking target '$SCENARIO.fort.15' to name 'fort.15'."
+fi
+
+# Remove temporary unprefixed NetCDF symbolic links, if any.
+netcdfLinks=( fort.7*.nc maxwvel*.nc minpr*.nc )
+for file in "${netcdfLinks[@]}"; do
+   if [[ -L $file ]]; then
+      if ! rm -f -- "$file" 2>> "$SCENARIOLOG"; then
+         scenarioErrorValue=1
+         scenarioRunSuffix="error"
+         scenarioErrorMsg="$scenarioErrorMsg Failed to remove the temporary NetCDF link '$file'. "
+      fi
+   fi
+done
+
+# Link nowcast.fort.74.nc -> fort.74.nc, etc.
+scenarioMetFiles=( "${SCENARIO}".fort.7* "${SCENARIO}".maxwvel* "${SCENARIO}".minpr* )
+for file in "${scenarioMetFiles[@]}"; do
+   linkName=${file#${SCENARIO}.}
+   if [[ -e $linkName || -L $linkName ]]; then
+      scenarioErrorValue=1
+      scenarioRunSuffix="error"
+      scenarioErrorMsg="$scenarioErrorMsg Cannot create final NetCDF link '$linkName' because that path already exists. "
+      continue
+   fi
+   if ! ln -s -- "$file" "$linkName" 2>> "$SCENARIOLOG"; then
+      scenarioErrorValue=1
+      scenarioRunSuffix="error"
+      scenarioErrorMsg="$scenarioErrorMsg Failed to link '$file' to '$linkName'. "
+   else
+      echo "Symbolically linking target '$file' to name '$linkName'."
    fi
 done
 #
-# finalize by setting the symbolic links for the fort.15 file and
-# the meteorology output files to the full output
-# (i.e., those that include wind reduction)
-if [[ -e "fort.15" ]]; then
-   rm fort.15 2>> $SCENARIOLOG
+# Publish the main scenario status only after all output finalization is done.
+if [[ $scenarioStatusPending == "yes" ]]; then
+   reportLayerStatus "$SCENARIO" "$scenarioErrorValue" "$scenarioQualityCheck" "$scenarioRunSuffix" "$scenarioErrorMsg"
+else
+   reportLayerStatus "$SCENARIO" 1 0 error "The main scenario status was not recorded before output finalization."
 fi
-ln -s $SCENARIO.fort.15 fort.15 2>> $SCENARIOLOG
-echo "Symbolically linking target '$SCENARIO.fort.15' to name 'fort.15'."
-# remove netcdf symbolic links, if any
-for file in $(ls fort.7*.nc maxwvel*.nc minpr*.nc); do
-   if [[ -L $file ]]; then
-      rm $file 2>> $SCENARIOLOG
-   fi
-done
-# link nowcast.fort.74.nc -> fort.74.nc etc
-for file in $(ls ${SCENARIO}.fort.7* ${SCENARIO}.maxwvel* ${SCENARIO}.minpr*); do
-   ln -s $file ${file#$SCENARIO.} 2>> $SCENARIOLOG
-   echo "Symbolically linking target '$file' to name '${file#$SCENARIO.}'."
-done
+

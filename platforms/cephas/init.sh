@@ -23,7 +23,6 @@ export SERQUEUE=general
 export SERQUEUE_NTASKS=1
 export ACCOUNT=null
 
-export SLURM_HOSTFILE=$SCRIPTDIR/platforms/cephas/cephas.hosts
 export QSCRIPTTEMPLATE=$SCRIPTDIR/platforms/cephas/qscript.template.cephas
-export JOBLAUNCHER='srun --mpi=pmi2 -n %totalcpu% --distribution=arbitrary --cpu-bind=cores --mem-bind=local --kill-on-bad-exit=1'
+export JOBLAUNCHER='srun --mpi=pmi2 -n %totalcpu% --distribution=block:block --cpu-bind=cores --mem-bind=local --kill-on-bad-exit=1'
 export PPN=40
