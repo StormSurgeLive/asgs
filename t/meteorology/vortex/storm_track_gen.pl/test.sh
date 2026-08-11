@@ -32,6 +32,7 @@ fi
 #   b. for f in $(ls single???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   c. for f in $(ls track??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   d. for f in $(ls branch??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   e. for s in LAURA IDA IAN MILTON ; do for f in $(ls $s*actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
 # 4. Collect run.properties into a single file for bulk inspection:
@@ -44,10 +45,10 @@ fi
 #   b. ln -s 04.bal092021.dat bal092021.dat ; rm index-at.xml ; ln -s 04.092021.index-at.xml index-at.xml ;  perl $SCRIPTDIR/get_atcf.pl --storm 09 --year 2021 --ftpsite filesystem --fdir . --hdir . --rsssite filesystem --trigger rssembedded --adv 0 # extract advisory text
 #   c. perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input  al092021.fst.html --output al092021.fst --metadata forecast.properties # convert advisory text to ATCF format for use with storm_track_gen.pl
 #
-# For a 120 hour forecast period, a fan ensemble needs 2040 hours of simulation time
-# but branching ensemble only needs 1320 hours (35% reduction)
-# For a 72 hour forecast period, a fan ensemble needs 1224 hours of simulation time
-# but branching ensemble only needs 504 hours (58% reduction)
+# For a 120 hour forecast period, a 17 member fan ensemble needs 2040 hours of simulation time
+# but a 17 member branching ensemble only needs 1320 hours (35% reduction)
+# For a 72 hour forecast period, a 17 member fan ensemble needs 1224 hours of simulation time
+# but a 17 member branching ensemble only needs 504 hours (58% reduction)
 #
 #----------------------------------------------------------------
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
