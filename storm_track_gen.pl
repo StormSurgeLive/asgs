@@ -64,6 +64,9 @@ use strict;
 use Getopt::Long;
 use Date::Calc;
 use Cwd;
+use Geo::Ellipsoid;
+use Math::Trig;
+use POSIX qw(fmod);
 use ASGSUtil;
 $^W++;
 
@@ -117,6 +120,13 @@ my $central_pressure_formula="twoslope"; # algorithm for predicting central pres
 my %complete_hc_lines = ();
 my $nhcName = "STORMNAME";  # NHC's current storm name (IKE, KATRINA, INVEST, ONE, etc)
 my $stormClass = " "; # NHC's current storm classification (TD, TS, HU, IN, etc)
+# Initialize the ellipsoid model (using WGS84 or NAD27)
+my $geo = Geo::Ellipsoid->new(
+    ellipsoid           => 'WGS84',
+    angle_unit          => 'degrees',
+    distance_unit       => 'nm',    # nautical miles
+    longitude_symmetric => 1        # [-180,180)
+);
 #
 # jgf20160105: Enable direct specification of scenario variations on the
 # command line, rather than requiring the Operator to name the scenario
@@ -592,8 +602,8 @@ unless (open(BEST, "<", $bestATCF)) {
 my $forecastedDate; # as a string
 my $last_pressure = $lastBestPressure;
 my $last_windspeed = $lastBestWindspeed;
-my $consensus_angle=0;      # direction of motion of NHC track
-my $old_consensus_angle=0;  # previous direction of NHC track
+my $consensus_angle=0;      # direction of motion of NHC track, trigonometric radians
+my $old_consensus_angle=0;  # previous direction of NHC track, trigonometric radians
 #
 # if the starting time of the run was not set
 # then start the run at the beginning of the forecast
@@ -832,45 +842,47 @@ if ( -e $forecastATCF ) {
          $old_lon = substr($_,41,4)/10.0; # from tenths of degs to degs
       }
       if (($veerPercent ne "null") && ($tau != 0)) {
-         my $radius;                 # radius of uncertainty
+         my $radius = 0;  # radius of uncertainty, nautical miles
          $radius=interpolateUncertaintyRadius($tau);
          # scale to the percentage requested
          $radius *= abs($veerPercent/100.0);
-         # convert nautical miles to km
-         $radius*=1.852000003180799; # to km
-         # grab consensus forecast position
-         my $consensusLat=substr($_,34,4)/10.0; # from tenths of degs to degs
-         my $consensusLon=substr($_,41,4)/10.0; # from tenths of degs to degs
-         # find the angle that consensus storm is traveling on.
-         my $lat_change=$consensusLat-$old_lat;
-         my $lon_change=-1*($consensusLon-$old_lon); # lon increases leftward
-         unless ( $lat_change==0.0 && $lon_change==0.0 ) {
-            $consensus_angle=atan2($lat_change,$lon_change);
-            # save current direction of consensus track, in case track is
-            # stationary in the future, so we can use the direction to
-            # calculate a reasonable veer track
-            $old_consensus_angle = $consensus_angle;
+         # Grab consensus forecast position. ATCF North Atlantic longitudes
+         # are stored as positive magnitudes followed by W (e.g. 913W), while
+         # Geo::Ellipsoid uses conventional signed longitude (west < 0).
+         my $consensusLat=substr($_,34,4)/10.0; # 219N -> 21.9
+         my $consensusLon=substr($_,41,4)/10.0; # 913W -> 91.3 (ATCF magnitude)
+         my $geoConsensusLon = -$consensusLon;  # 91.3W -> -91.3 degrees
+         my $geoOldLon       = -$old_lon;
+
+         # Geo::Ellipsoid bearings are compass bearings: 0=N, 90=E,
+         # increasing clockwise. Use the ellipsoid to determine the track
+         # bearing instead of atan2() on unequal latitude/longitude degrees.
+         my $track_bearing;
+         unless ( $consensusLat == $old_lat && $consensusLon == $old_lon ) {
+            $track_bearing = $geo->bearing(
+               $old_lat, $geoOldLon,
+               $consensusLat, $geoConsensusLon
+            );
+            $old_consensus_angle = $track_bearing; # now stored in degrees
          } else {
-            $consensus_angle=$old_consensus_angle;
+            $track_bearing = $old_consensus_angle;
          }
-         # calculate position of veering track based on direction, setting
-         # the angle according to the sign of the veer percent
-         my $veer_xoff = 0;
-         my $veer_yoff = 0;
-         my $perpendicular;
-         if ($veerPercent > 0) {
-            $perpendicular = - ($pi/2); # veer right
-         } else {
-            $perpendicular = $pi/2;     # veer left
-         }
-         my $veer_angle = $consensus_angle + $perpendicular;
-         # approximate offsets in degrees (radius is in km)
-         $veer_xoff=$radius*cos($veer_angle)/100.0;
-         $veer_yoff=$radius*sin($veer_angle)/100.0;
-         # calculate lat and lon of veer track and convert to 10ths
-         # of degrees
-         my $veer_lat=($consensusLat+$veer_yoff)*10.0;
-         my $veer_lon=($consensusLon-$veer_xoff)*10.0;
+
+         # Positive veer is to the right of the track; negative is to the left.
+         my $bearing = $track_bearing + (($veerPercent > 0) ? 90.0 : -90.0);
+         $bearing = fmod($bearing, 360.0);
+         $bearing += 360.0 if $bearing < 0.0;
+
+         my ($lat_dest, $lon_dest) = $geo->at(
+            $consensusLat, $geoConsensusLon, $radius, $bearing
+         );
+
+         # Convert Geo::Ellipsoid signed west longitude back to the ATCF
+         # positive-west magnitude. This script is for North Atlantic tracks,
+         # so the existing W hemisphere character in the ATCF line is retained.
+         my $veer_lat = $lat_dest * 10.0;
+         my $veer_lon = abs($lon_dest) * 10.0;
+
          # paste in the new position
          substr($line,34,4)=sprintf("%4d",$veer_lat);
          substr($line,41,4)=sprintf("%4d",$veer_lon);
