@@ -238,7 +238,7 @@ if ( $stage eq "NOWCAST" ) {
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         if ( `$scriptdir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         if ( grib2SmokeTestOK("$localDir/$f") ) {
             ASGSUtil::stderrMessage(
                       "INFO",
                       "'$f' has already been downloaded to '$localDir'.");
@@ -267,7 +267,7 @@ if ( $stage eq "NOWCAST" ) {
          #ASGSUtil::stderrMessage("DEBUG","Now have data for $dirDate$hourString.");
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         if ( `$scriptdir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         if ( grib2SmokeTestOK("$localDir/$f") ) {
             $dl++;
             push(@files_downloaded,"$localDir/$f");
          } else {
@@ -351,7 +351,7 @@ if ( $stage eq "FORECAST" ) {
       if ( -e $localDir."/".$f ) {
          # perform a smoke test on the file we found to check that it is
          # not corrupted (not a definitive test but better than nothing)
-         if ( `$scriptdir/bin/wgrib2 $localDir/$f -match PRMSL -inv - -text /dev/null` =~ /PRMSL/ ) {
+         if ( grib2SmokeTestOK("$localDir/$f") ) {
             ASGSUtil::stderrMessage(
                       "INFO",
                       "'$f' has already been downloaded to '$localDir'.");
@@ -450,7 +450,7 @@ sub partialGribDownload {
 
    my $response = $ua->mirror($idx, "$localDir/$idxfile");
    my $err = $response->{success} ? 0 : $response->{status};
-  
+
    if ($err != 0) {
        ASGSUtil::stderrMessage(
            "INFO",
@@ -568,4 +568,20 @@ sub partialGribDownload {
       return 1;
    }
    return;
+}
+#
+# check that grib2 files contain PRMSL, UGRD:10,
+# and VGRID:10 datasets. Returns 1 if ok, 0 if data
+# are missing.
+#
+sub grib2SmokeTestOK {
+   my ( $grib2File ) = @_;
+   my @grib2Parameters = qw(PRMSL UGRD:10 VGRD:10);
+   my $smokeTestOK = 1;
+   foreach my $p (@grib2Parameters) {
+      unless ( `$scriptdir/bin/wgrib2 $grib2File -match $p -inv - -text /dev/null` =~ /$p/ ) {
+         $smokeTestOK = 0;
+      }
+   }
+   return $smokeTestOK;
 }

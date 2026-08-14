@@ -62,7 +62,7 @@ GetOptions(
 
     sub http_dir {
         my $dir = shift;
-        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s}, $dir );
+        my $url         = sprintf( qq{https://nomads.ncep.noaa.gov%s/}, $dir );
         my $res         = $ua->get($url);
         my $raw_listing = $res->{content};
         my @dirs        = ( $raw_listing =~ m/href="(nam\.\d{8}|\d\d)\/"/g );

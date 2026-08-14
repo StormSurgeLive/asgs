@@ -576,7 +576,7 @@ my $ftmin; my $ftsec;                         # not used
 # open ATCF OFCL file, if it is present
 my $forecastATCF = "$dir/al$storm$year.fst";
 if ( -e $forecastATCF ) {
-   $runProp{'track_raw_fst'} = $forecastATCF;
+   $runProp{'track_raw_fst'} = "al$storm$year.fst";
    unless (open(OFCL, "<", $forecastATCF)) {
       ASGSUtil::stderrMessage("ERROR","Failed to open forecast ATCF file '$forecastATCF' for scenario '$name': $!.",$test);
       die;
