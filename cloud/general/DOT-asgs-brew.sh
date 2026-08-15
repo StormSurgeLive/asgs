@@ -28,6 +28,8 @@
 
 # set terminal color codes
 if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
+  unset _asgsh_splash
+
   BK=$(tput setaf 0)
   RD=$(tput setaf 1)
   GR=$(tput setaf 2)
@@ -39,7 +41,6 @@ if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/
    R=$(tput sgr0)
    B=$(tput bold)
 
-  : "${_asgsh_splash:=0}"
   : "${_asgsh_do_startup_checks:=1}"
   : "${skip_platform_profiles:=0}"
 else
@@ -1366,6 +1367,7 @@ alias ls='ls --color=auto'
 
 # handy aliases for the impatient
 alias ap="alias -p"
+alias ac="goto $SCRIPTDIR/git/asgs-configs/$(date +%Y)"                    # cd in this year's directory in git/asgs-configs
 alias a="list adcirc"
 alias c="edit config"
 alias ds="delete statefile"
