@@ -28,8 +28,6 @@
 
 # set terminal color codes
 if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != "dumb" ] && command -v tput >/dev/null 2>&1; then
-  unset _asgsh_splash
-
   BK=$(tput setaf 0)
   RD=$(tput setaf 1)
   GR=$(tput setaf 2)
