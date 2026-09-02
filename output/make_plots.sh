@@ -32,7 +32,7 @@ if [[ $METHOD = "courtneyknaff2009" ]]; then
    OPTIONS="$OPTIONS --trackfiletype nws19"
 fi
 #
-OPTIONS="$OPTIONS --method $METHOD --storm $STORM --year $YEAR --forecastlength 120 --trackfile $FNAME"
+OPTIONS="$OPTIONS --central_pressure_formula $METHOD --storm $STORM --year $YEAR --forecastlength 120 --trackfile $FNAME"
 perl ${SCRIPTDIR}/doc/pressure_predict.pl $OPTIONS
 gnuplot ${DEFAULTNAME}_${METHOD}.gp
 for file in `ls pcf_all_${DEFAULTNAME}_${METHOD}_???.ps`; do

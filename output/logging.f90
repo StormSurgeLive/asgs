@@ -112,8 +112,8 @@ endif
 loglun = lun
 open(unit=loglun,file=trim(adjustl(logFileName)),action='write',status='replace',iostat=errorIO)
 if (errorIO.gt.0) then
-   write(6,'(a)') 'ERROR: Could not open log file for writing.'
-   stop
+   write(6,'(a)') 'INFO: Could not open log file for writing. The log messages will be written to stdout instead.'
+   loglun = 6
 endif
 loggingInitialized = .true.
 !--------------------------------------------------------------------
