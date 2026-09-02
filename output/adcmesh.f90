@@ -1,13 +1,28 @@
-!-----+---------+---------+---------+---------+---------+---------+
+!--------------------------------------------------------------------------
+! adcmesh.f90: load, store, and perform calculations on ADCIRC meshes.
+!--------------------------------------------------------------------------
+! Copyright(C) 2011--2026 Jason Fleming
 !
-! adcmesh.f90
-! This is a module for storing and manipulating data for ADCIRC meshes;
-! it is based on code originally written by Corbitt Kerr.
+! This file is part of the ADCIRC Surge Guidance System (ASGS).
 !
-!-----+---------+---------+---------+---------+---------+---------+
+! The ASGS is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! ASGS is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+!--------------------------------------------------------------------------
+! Based on code originally written by Corbitt Kerr.
+!--------------------------------------------------------------------------
 module adcmesh
-!-----+---------+---------+---------+---------+---------+---------+
-use netcdf, only : NF90_MAX_NAME
+!--------------------------------------------------------------------------
+   use netcdf, only : NF90_MAX_NAME
 use kdtree2_module
 
 real(8), parameter :: R = 6378206.4d0 ! radius of the earth
@@ -341,11 +356,11 @@ type station_t
    logical :: useBruteForceSearch     ! true if every element should be checked
    integer :: n(3)           ! nodes that surround the station
    real(8) :: w(3)           ! weights used to interpolate station values based on nodal values
-   real(8), allocatable :: d(:,:)     ! station data (irtype, ntime)
+   real(8), allocatable :: d(:,:)     ! station data
    integer :: iID            ! simple numerical ID
    character(len=1024) :: stationID   ! generally a number assigned by govt agency
-   character(len=1024) :: description ! human readable
    character(len=1024) :: agency      ! organization responsible for the station
+   character(len=1024) :: description ! human readable
    character(len=1024) :: datum       ! relevant vertical datum (MSL, NAVD88, etc)
 end type station_t
 
@@ -3221,6 +3236,99 @@ write(6,'("INFO: Finished computing kdtree2 search tree.")')
 
 !-----------------------------------------------------------------------
 END SUBROUTINE computeKdtree2SearchTree
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!      S U B R O U T I N E   P A R S E   S T A T I O N   F I L E
+!-----------------------------------------------------------------------
+! jgf: Read a station file in standard metadata format, e.g.:
+! -91.2069440000 30.4291670000 ! 01160 ! USACE ! Mississippi River at Baton Rouge
+!-----------------------------------------------------------------------
+subroutine parseStationFileLine(line, lvar)
+implicit none
+character(len=*), intent(in) :: line
+character(1000), intent(out) :: lvar(3)
+character(len=len_trim(line)) :: work
+character(len=1) :: ch     ! current character of interest
+integer :: bangIndices(3)  ! character string index where bangs occur
+integer :: bangCounter     ! how many have been found
+integer :: i               ! string character counter
+!
+lvar(:) = 'null'
+bangIndices(:) = 0
+bangCounter = 0
+i = 1
+!
+work = compactString(line)
+do i=1, len_trim(work)
+   ch = work(i:i)
+   if ( ch == '!' ) then
+      bangCounter = bangCounter + 1
+      bangIndices(bangCounter) = i
+      if ( bangCounter.eq.3 ) then
+         exit
+      endif
+   endif
+end do
+
+if ( bangCounter.gt.1 ) then
+   lvar(1) = compactString(work(bangIndices(1)+1:bangIndices(2)-1))
+endif
+if ( bangCounter.gt.2 ) then
+   lvar(2) = compactString(work(bangIndices(2)+1:bangIndices(3)-1))
+   lvar(3) = compactString(work(bangIndices(3)+1:))
+endif
+!-----------------------------------------------------------------------
+END SUBROUTINE parseStationFileLine
+!-----------------------------------------------------------------------
+
+!-----------------------------------------------------------------------
+!         F U N C T I O N   C O M P A C T   S T R I N G
+!-----------------------------------------------------------------------
+! jgf: Read character variable and convert multiple spaces and tabs
+! to single spaces; delete control characters; remove initial spaces.
+! Adapted from stringmod.f90 http://www.gbenthien.net/strings/index.html
+!-----------------------------------------------------------------------
+pure function compactString(str) result(outstr)
+implicit none
+character(len=*), intent(in) :: str     ! input string
+character(len=len_trim(str)) :: outstr  ! result string
+character(len=len_trim(str)) :: work    ! working string
+integer :: ich           ! ascii code of a character
+integer :: lenstr        ! length of actual characters in the string
+character(len=1) :: ch   ! current character of interest
+integer :: i             ! index for input string
+integer :: k             ! index for output string
+integer :: isp           ! indicator for multiple spaces
+!
+! remove initial spaces
+work = adjustl(str)
+lenstr = len_trim(work)
+outstr = ' '
+isp = 0
+k = 0
+!
+!
+do i=1, lenstr
+   ch = work(i:i)
+   ich = iachar(ch)
+   select case(ich)
+   case(9,32)  ! space or tab
+      ! if this is the first space after a regular character
+      if (isp.eq.0) then
+         k = k + 1
+         outstr(k:k) = ' ' ! replace a tab with a space in the result string
+      endif
+      isp = 1
+   case(33:)  ! regular ascii character, not a space, quote, or control character
+      k = k + 1
+      outstr(k:k) = ch  ! place this character in the result string
+      isp = 0
+   end select
+end do
+outstr = adjustl(outstr)
+!-----------------------------------------------------------------------
+END FUNCTION compactString
 !-----------------------------------------------------------------------
 
 !-----+---------+---------+---------+---------+---------+---------+

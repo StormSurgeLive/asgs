@@ -9,3 +9,5 @@ hatteras  compute-[0-9][0-9]?-[0-9][0-9]?.cluster  # note, regexes are supported
 stampede3 stampede3
 chcp      chcp
 queenbeeD qbd
+kitt      kitt
+windoge   windoge.localdomain

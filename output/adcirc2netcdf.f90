@@ -1,7 +1,7 @@
 !------------------------------------------------------------------
 ! adcirc2netcdf: Convert ADCIRC ascii output files to netcdf format.
 !------------------------------------------------------------------
-! Copyright(C) 2012 Patrick C. Kerr 
+! Copyright(C) 2012 Patrick C. Kerr
 ! Copyright(C) 2012--2017 Jason Fleming
 !
 ! This file is part of the ADCIRC Surge Guidance System (ASGS).
@@ -19,7 +19,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 !------------------------------------------------------------------
-! Compile with accompanying makefile. 
+! Compile with accompanying makefile.
 !------------------------------------------------------------------
 
 !-----+---------+---------+---------+---------+---------+---------+
@@ -152,7 +152,7 @@ end if
 ! mesh file
 m%readBoundaryTable = .false.
 !
-! if there were no data files specified on the command line, just 
+! if there were no data files specified on the command line, just
 ! convert the mesh
 if ( trim(aDataFileName).eq.'null' ) then
    meshonly = .true.
@@ -160,7 +160,7 @@ if ( trim(aDataFileName).eq.'null' ) then
 endif
 !
 ! trim off the full path so we just have the file name
-lastSlashPosition = index(trim(adataFileName),"/",.true.) 
+lastSlashPosition = index(trim(adataFileName),"/",.true.)
 ! now set NETCDF file name for files containing only one type of data
 if (meshonly.eqv..true.) then
    ! trim off the full path so we just have the file name
@@ -174,7 +174,7 @@ dataFileBase = trim(adataFileName(lastSlashPosition+1:))
 lastDotPosition = index(trim(dataFileBase),'.',.true.)
 dataFileExtension = trim(dataFileBase(lastDotPosition+1:))
 !
-! If the data file type was not supplied, then use the file name 
+! If the data file type was not supplied, then use the file name
 ! as the default adcirc file name.
 if ( trim(f%defaultFileName).eq.'null') then
    f%defaultFileName = dataFileBase
@@ -206,7 +206,7 @@ f%dataFileName = ndataFileName
 call check(nf90_create(trim(f%dataFileName), f%ncFileType, f%nc_id))
 !
 ! add netcdf metadata from external file (if any) as global attributes
-! if no external file was provided, dummy metadata will be added 
+! if no external file was provided, dummy metadata will be added
 call loadNetCDFMetadataFromExternalFile(a)
 do i = 1,a%nmatt
    call check(nf90_put_att(f%nc_id,nf90_global,a%matt(1,i),a%matt(2,i)))
@@ -217,7 +217,7 @@ if (f%isGridded.eqv..false.) then
    if (dataonly.eqv..true.) then
       call check(nf90_put_att(f%nc_id,nf90_global,'description',trim(JunkC)))
       call check(nf90_def_dim(f%nc_id,'node',m%np,n%NC_DimID_node))
-   else       
+   else
       call read14(m)
       call writeMeshDefinitionsToNetCDF(m, n, f%nc_id, deflate)
    endif
@@ -233,7 +233,7 @@ if (f%dataFileCategory.eq.NODALATTRIBF) then
 endif
 !
 ! Create time dimension and units attributes
-if ((meshonly.eqv..false.).and.(f%timeVarying.eqv..true.)) then      
+if ((meshonly.eqv..false.).and.(f%timeVarying.eqv..true.)) then
    call check(nf90_def_dim(f%nc_id,'time',nf90_unlimited,f%nc_dimid_time))
    call check(nf90_def_var(f%nc_id,'time',nf90_double,f%nc_dimid_time,f%nc_varid_time))
    call check(nf90_put_att(f%nc_id,f%nc_varid_time,'long_name','model time'))
@@ -245,7 +245,7 @@ endif
 if (meshonly.eqv..false.) then
    call addDataAttributesNetCDF(f, m, n)
 endif
-!      
+!
 ! create adcirc output variables and associated attributes
 #ifdef NETCDF_CAN_DEFLATE
    if (meshonly.eqv..false.) then
@@ -263,7 +263,7 @@ endif
 call check(nf90_enddef(f%nc_id))
 !----------------------------------------------------------------
 !
-! place mesh-related data into the file, unless this is a data 
+! place mesh-related data into the file, unless this is a data
 ! only file
 if ( (dataonly.eqv..false.).and.(f%isGridded.eqv..false.) ) then
    call writeMeshDataToNetCDF(m, n, f%nc_id)
@@ -279,7 +279,7 @@ endif
 ! read ascii header
 f%fun = availableUnitNumber()
 call openFileForRead(f%fun, trim(adataFileName), errorIO)
-! read and discard two header lines unless this is fort.88 initial 
+! read and discard two header lines unless this is fort.88 initial
 ! river elevation file (which has no header)
 if (f%dataFileCategory.ne.INITRIVER) then
    read(f%fun,*) line
@@ -364,7 +364,7 @@ stop
       ! We jump to this section if there was an error reading a file.
 246   write(6,'(a)') 'ERROR: Unexpectedly reached end-of-file.' ! END jumps here
 248   write(6,'(a)') 'ERROR: I/O error during file access.'     ! ERR jumps here
-write(6,'(a,i0,a,i0,a)') 'INFO: Attempted to read line ',lineNum,' in dataset ',SS,'.' ! ERR jumps here      
+write(6,'(a,i0,a,i0,a)') 'INFO: Attempted to read line ',lineNum,' in dataset ',SS,'.' ! ERR jumps here
 write(6,'(a,i0,a)') 'The numerical code of the i/o error was ',errorio,'.'
 stop
 !----------------------------------------------------------------------

@@ -41,6 +41,14 @@ case $HPCENVSHORT in
    grep 'batch job' jobID.tmp | grep -Eo [0-9]+ > jobID
    rm jobID.tmp
    ;;
+"kitt"|"windoge")
+   # these platforms use nq which returns the name of the file
+   # that it is redirecting stdout/stderr into; the file extension
+   # is the nq job ID, e.g.:
+   # ,19ea3e009f2.1772667
+   joblog=$(<jobID)
+   echo ${joblog##*.} > jobID
+   ;;
 *)
    # on queenbee2 at least, the jobID file contains only
    # the jobID, so nothing needs to be done.

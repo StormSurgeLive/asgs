@@ -1,0 +1,57 @@
+
+#------------------------------------------------------------------------------
+#
+# Development notes for attempts with various base image versions:
+# Debian stretch (10):
+#     Error building wgrib2 :
+#        CMake Error at CMakeLists.txt:1 (cmake_minimum_required):
+#        CMake 3.13...3.19 or higher is required.  You are running version 3.7.2
+#     E: Unable to locate package checkinstall
+# Debian buster (11):
+#     Error building wgrib2 :
+#        CMake Error at src/CMakeLists.txt:83 (install):
+#        install TARGETS given no ARCHIVE DESTINATION for static library target
+# Debian bullseye:
+#   Error installing :
+#       E: There were unauthenticated packages and -y was used without --allow-unauthenticated
+#   The following line failed on debian bullseye (11):
+#       RUN apt-get install -y --allow-downgrades zlib1g=1:1.2.8.dfsg-5
+#
+#------------------------------------------------------------------------------
+#
+# build the image
+#    docker build --build-arg _ASGS_BRANCH=issue-1623 -t asgs-issue-1623.debian -f ./Dockerfile.issue-1623 .
+# look at the docker log file
+#    docker buildx history logs > stuff 2>&1
+# start the container from the image
+#    docker run -d -it --name issue-1623 --mount type=bind,source="/mnt/nas-storage/Operations",target=/work asgs-issue-1623.debian:latest
+# export the docker image for deployment elsewhere:
+#    docker save -o docker.image.asgs.debian.issue-1623.tar asgs-issue-1623.debian:latest
+
+
+FROM debian:bullseye
+RUN apt-get update
+RUN apt-get install -y build-essential
+RUN apt-get install -y checkinstall
+RUN apt-get install -y libssl-dev libexpat1-dev
+RUN apt-get install -y gfortran wget curl vim screen htop tmux git sudo
+RUN apt-get install -y zip flex gawk procps
+RUN apt-get install -y zlib1g-dev
+# cmake is required for building wgrib2
+RUN apt-get install -y cmake
+RUN apt-get install -y gnuplot units pigz jq bc
+RUN ln -s /usr/bin/env /bin/env > /dev/null 2>&1 || echo /usr/bin/env already links to /bin/env
+RUN git clone https://github.com/StormSurgeLive/asgs.git && cd ./asgs && git checkout issue-1623
+# set env - required for asgs/init-asgs.sh to know it's in a docker environment
+ARG _ASGS_BRANCH=issue-1623
+RUN mkdir /work
+# build compiled ASGS utilities
+RUN cd asgs && pwd && ls && ./init-asgs.sh -b -x "--run-steps setup-env"   \
+                         && ./init-asgs.sh -b -x "--run-steps hdf5"        \
+                         && ./init-asgs.sh -b -x "--run-steps netcdf4"     \
+                         && ./init-asgs.sh -b -x "--run-steps nco"         \
+                         && ./init-asgs.sh -b -x "--run-steps output"      \
+                         && ./init-asgs.sh -b -x "--run-steps util"        \
+                         && ./init-asgs.sh -b -x "--run-steps util-output" \
+                         && ./init-asgs.sh -b -x "--run-steps input-mesh"  \
+                         && ./init-asgs.sh -b -x "--run-steps input-nodalattr"

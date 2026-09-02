@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+
+<VTKFile type="PolyData" version="0.1" byte_order="LittleEndian">
+   <PolyData>
+      <!-- from track file LAURA.b01.actual.fort.22 -->
+      <Piece NumberOfPoints="5" NumberOfLines="4">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-90.6 25.4 0  -93.2 27.1 0  -94.8 29.1 0  -94 35.9 0  -83.4 40.6 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b02.actual.fort.22 -->
+      <Piece NumberOfPoints="4" NumberOfLines="3">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-93 27.3 0  -94.6 29.2 0  -93.7 35.8 0  -83.2 40.2 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b03.actual.fort.22 -->
+      <Piece NumberOfPoints="10" NumberOfLines="9">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">25.722222 28.2944442 28.2944442 30.8666664 33.4388886 38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-77.8 20.2 0  -78.9 20.8 0  -81.6 21.4 0  -84.7 22.4 0  -87.9 23.9 0  -90.6 25.4 0  -93 27.3 0  -94.4 29.3 0  -93.4 35.7 0  -83.1 39.8 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5  5 6  6 7  7 8  8 9  9 10</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10 12 14 16 18 20</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b04.actual.fort.22 -->
+      <Piece NumberOfPoints="4" NumberOfLines="3">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-93 27.3 0  -94.2 29.3 0  -93 35.7 0  -82.9 39.4 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b05.actual.fort.22 -->
+      <Piece NumberOfPoints="5" NumberOfLines="4">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-90.6 25.4 0  -92.7 27.5 0  -94 29.4 0  -92.7 35.6 0  -82.7 39.1 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b06.actual.fort.22 -->
+      <Piece NumberOfPoints="6" NumberOfLines="5">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">33.4388886 38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-87.6 24.5 0  -90.4 25.7 0  -92.6 27.6 0  -93.8 29.5 0  -92.4 35.6 0  -82.5 38.7 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5  5 6</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10 12</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b07.actual.fort.22 -->
+      <Piece NumberOfPoints="5" NumberOfLines="4">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-90.2 26.1 0  -92.5 27.7 0  -93.6 29.6 0  -92.1 35.5 0  -82.4 38.3 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b08.actual.fort.22 -->
+      <Piece NumberOfPoints="4" NumberOfLines="3">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-92.3 27.9 0  -93.4 29.7 0  -91.8 35.4 0  -82.2 37.9 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b09.actual.fort.22 -->
+      <Piece NumberOfPoints="10" NumberOfLines="9">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">25.722222 28.2944442 28.2944442 30.8666664 33.4388886 38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-77.8 20.2 0  -78.9 20.8 0  -81.5 21.7 0  -84.6 22.8 0  -87.6 24.5 0  -90.2 26.1 0  -92.3 27.9 0  -93.3 29.8 0  -91.5 35.4 0  -82.1 37.6 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5  5 6  6 7  7 8  8 9  9 10</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10 12 14 16 18 20</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b10.actual.fort.22 -->
+      <Piece NumberOfPoints="4" NumberOfLines="3">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-92.3 27.9 0  -93.1 29.8 0  -91.1 35.3 0  -81.9 37.2 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b11.actual.fort.22 -->
+      <Piece NumberOfPoints="5" NumberOfLines="4">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-90.2 26.1 0  -92 28.2 0  -92.9 29.9 0  -90.8 35.2 0  -81.7 36.8 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b12.actual.fort.22 -->
+      <Piece NumberOfPoints="6" NumberOfLines="5">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">33.4388886 38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-87.6 24.5 0  -89.9 26.4 0  -91.9 28.3 0  -92.7 30 0  -90.5 35.1 0  -81.6 36.4 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5  5 6</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10 12</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b13.actual.fort.22 -->
+      <Piece NumberOfPoints="5" NumberOfLines="4">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-89.7 26.7 0  -91.8 28.4 0  -92.5 30.1 0  -90.2 35.1 0  -81.4 36 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b14.actual.fort.22 -->
+      <Piece NumberOfPoints="4" NumberOfLines="3">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-91.5 28.6 0  -92.3 30.2 0  -89.9 35 0  -81.3 35.7 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b15.actual.fort.22 -->
+      <Piece NumberOfPoints="10" NumberOfLines="9">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">25.722222 28.2944442 28.2944442 30.8666664 33.4388886 38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-77.8 20.2 0  -78.9 20.8 0  -81.3 21.9 0  -84.4 23.3 0  -87.2 25 0  -89.7 26.7 0  -91.5 28.6 0  -92.1 30.2 0  -89.6 34.9 0  -81.1 35.3 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5  5 6  6 7  7 8  8 9  9 10</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10 12 14 16 18 20</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b16.actual.fort.22 -->
+      <Piece NumberOfPoints="4" NumberOfLines="3">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-91.5 28.6 0  -91.9 30.3 0  -89.2 34.8 0  -80.9 34.9 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8</DataArray>
+         </Lines>
+      </Piece>
+      <!-- from track file LAURA.b17.actual.fort.22 -->
+      <Piece NumberOfPoints="5" NumberOfLines="4">
+         <PointData Scalars="vmax">
+            <DataArray type="Float64" Name="vmax" format="ascii">38.583333 43.7277774 46.2999996 18.0055554 12.861111</DataArray>
+         </PointData>
+         <Points>
+            <DataArray NumberOfComponents="3" type="Float64" Name="PointLocations" format="ascii">-89.7 26.7 0  -91.3 28.8 0  -91.7 30.4 0  -88.9 34.8 0  -80.8 34.5 0</DataArray>
+         </Points>
+         <Lines>
+            <DataArray type="Int32" Name="connectivity" format="ascii">0 1  1 2  2 3  3 4  4 5</DataArray>
+            <DataArray type="Int32" Name="offsets" format="ascii">2 4 6 8 10</DataArray>
+         </Lines>
+      </Piece>
+   </PolyData>
+</VTKFile>

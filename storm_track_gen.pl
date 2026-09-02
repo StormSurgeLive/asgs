@@ -64,6 +64,9 @@ use strict;
 use Getopt::Long;
 use Date::Calc;
 use Cwd;
+use Geo::Ellipsoid;
+use Math::Trig;
+use POSIX qw(fmod);
 use ASGSUtil;
 $^W++;
 
@@ -75,6 +78,7 @@ my $storm;                         # number, e.g., 05 or 12
 my $year;                          # YYYY
 my $coldstartdate;                 # YYYYMMDDHH24
 my $hotstartseconds = 0.0;         # default is not hotstart
+my $forecastend = 999;             # specified forecast period, tau (hours)
 my $runstartDate;                  # coldstartdate + hotstartseconds yyyymmddhh24
 my $rsFound = 0;                   # set to 1 if/when we find the run start date in the file
 my $nws = 20;                      # the ADCIRC wind model to target
@@ -84,14 +88,45 @@ my $strengthPercent = "null";
 my $overlandSpeedPercent = "null";
 my $sizePercent = 20.0;
 my $veerPercent = "null";
+my $branching = 0;                 # 1 if the forecast is in a branching ensemble
+my $branchName;                    # the value parsed from the scenario name
+my @branches;                      # branch "name" array "01", "02" ... "17"
+for (my $b = 1; $b < 18; $b++) {
+    push(@branches,sprintf("%02d",$b));
+}
+# define veer percentages for branching tracks
+my %branchesVeers;
+my $v = -100.0;                    # veer percentage for branch 01
+foreach my $b (@branches) {
+    $branchesVeers{$b} = $v;
+    $v += 12.5;
+}
+# define starting veer percentages for branching tracks
+my %branchesBaseveers;
+# branch:          01   02   03   04   05 06 07 08 09 10 11 12  13  14  15  16  17
+my @baseVeers = ( -75, -75, -75, -75, -75, 0, 0, 0, 0, 0, 0, 0, 75, 75, 75, 75, 75 );
+@branchesBaseveers{@branches} = @baseVeers;
+# define forecast start times for each branching track
+my %branchesTaus;
+# branch:   01  02 03  04  05  06  07  08 09  10  11  12  13  14 15  16  17
+my @tau = ( 45, 57, 0, 57, 45, 33, 45, 57, 0, 57, 45, 33, 45, 57, 0, 57, 45 );
+@branchesTaus{@branches} = @tau;
+#
 my $pi=3.141592653589793;
-my $method="twoslope";              # algorithm for predicting central pressure
+my $central_pressure_formula="twoslope"; # algorithm for predicting central pressure
 # if the NHC issues a special advisory, there may be incomplete lines in the
 # BEST track file. This hash will save the most recent complete lines, to fill
 # in any missing data.
 my %complete_hc_lines = ();
 my $nhcName = "STORMNAME";  # NHC's current storm name (IKE, KATRINA, INVEST, ONE, etc)
 my $stormClass = " "; # NHC's current storm classification (TD, TS, HU, IN, etc)
+# Initialize the ellipsoid model (using WGS84 or NAD27)
+my $geo = Geo::Ellipsoid->new(
+    ellipsoid           => 'WGS84',
+    angle_unit          => 'degrees',
+    distance_unit       => 'nm',    # nautical miles
+    longitude_symmetric => 1        # [-180,180)
+);
 #
 # jgf20160105: Enable direct specification of scenario variations on the
 # command line, rather than requiring the Operator to name the scenario
@@ -104,9 +139,10 @@ GetOptions(
            "year=s" => \$year,
            "coldstartdate=s" => \$coldstartdate,
            "hotstartseconds=s" => \$hotstartseconds,
+           "forecastend=s" => \$forecastend,
            "nws=s" => \$nws,
            "name=s" => \$name,
-           "method=s" => \$method,
+           "central_pressure_formula=s" => \$central_pressure_formula,
            "strengthPercent=s" => \$strengthPercent,
            "overlandSpeedPercent=s" => \$overlandSpeedPercent,
            "veerPercent=s" => \$veerPercent,
@@ -237,6 +273,10 @@ if ( $name =~ /overlandSpeed/ ) {
 if ( $name =~ /veer/ ) {
    $match++;
 }
+if ( $name =~ /branching/ ) {
+   $match++;
+   $branching = 1;
+}
 if ( $match > 1 ) {
    ASGSUtil::stderrMessage("ERROR","The scenario name '$name' contains more than one match to perturbed scenario names (maxWindSpeed, overlandSpeed, and veer).",$test);
    die;
@@ -244,7 +284,7 @@ if ( $match > 1 ) {
 #
 # jgf20160105: If the scenario name matches the name of a
 # perturbation, but the percent was not specified, this is an error.
-if ( $percent eq "null" && $match == 1 ) {
+if ( $percent eq "null" && $match == 1 && $branching == 0 ) {
    ASGSUtil::stderrMessage("ERROR","The scenario name '$name' contains a match to a perturbed member name (either maxWindSpeed, overlandSpeed, or veer) but the percent variation was not specified on the command line.",$test);
    die;
 }
@@ -295,6 +335,15 @@ if ( $name =~ /rMax/ ) {
    } else {
       # the rmax variation is controlled by the aswip program for asym models
       ASGSUtil::stderrMessage("INFO","The rMax variation is handled by the aswip program for the asymmetric models, and is therefore ignored by storm_track_gen.pl.",$test);
+   }
+}
+if ( $name =~ /branching([0-9][0-9])/ ) {
+   ASGSUtil::stderrMessage("INFO","The branch name is $1 and the forecast track starts on/after $branchesTaus{$1}.",$test);
+   $branchName = $1;
+   $runProp{'variation branching'} = $branchName;
+   if ( $central_pressure_formula eq "twoslope" ) {
+      $central_pressure_formula = "dvorak";
+      ASGSUtil::stderrMessage("INFO","The central pressure formula has been reset to '$central_pressure_formula' to support a branching ensemble.",$test);
    }
 }
 if ( $match == 0 && $percent ne "null" ) {
@@ -553,22 +602,30 @@ unless (open(BEST, "<", $bestATCF)) {
 my $forecastedDate; # as a string
 my $last_pressure = $lastBestPressure;
 my $last_windspeed = $lastBestWindspeed;
-my $consensus_angle=0;      # direction of motion of NHC track
-my $old_consensus_angle=0;  # previous direction of NHC track
+my $consensus_angle=0;      # direction of motion of NHC track, trigonometric radians
+my $old_consensus_angle=0;  # previous direction of NHC track, trigonometric radians
 #
 # if the starting time of the run was not set
 # then start the run at the beginning of the forecast
 unless ( $runstartDate ) {
-   $runstartDate = $firstOFCLDate;
-   $rsFound = 1;
+   ASGSUtil::stderrMessage("INFO","The runstartDate has not been set yet.",$test);
+   if ( $branching == 0 ||
+         ( $branching == 1 &&
+            ( $branchName eq "03" || $branchName eq "09" || $branchName eq "15" )
+         )
+      ) {
+      $runstartDate = $firstOFCLDate;
+      $rsFound = 1;
+      ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on '$runstartDate' UTC.",$test);
+   }
 }
-ASGSUtil::stderrMessage("INFO","The fort.22 will be configured to start on '$runstartDate' UTC.",$test);
 #
 my $firstForecastTime;
 my $lastForecastTime;
 my $fyear; my $fmon; my $fday; my $fhour;     # time at which forecast is valid
 my $ftyear; my $ftmon; my $ftday; my $fthour; # time to which forecast applies
 my $ftmin; my $ftsec;                         # not used
+#
 #---------------------------------------------------------------------
 # P R O C E S S I N G   F O R E C A S T   F I L E
 #---------------------------------------------------------------------
@@ -598,19 +655,29 @@ if ( -e $forecastATCF ) {
       # forecast datetime that the forecast applies to
       my $tau=substr($_,29,4);
       ASGSUtil::stderrMessage("INFO","The forecast period tau is $tau",$test);
+      # if the tau is longer than the specified tau, don't process it
+      if ( $tau > $forecastend ) {
+         next;
+      }
       # determine the date and time that the forecast applies to
       ($ftyear,$ftmon,$ftday,$fthour,$ftmin,$ftsec) =
       Date::Calc::Add_Delta_DHMS($fyear,$fmon,$fday, $fhour,0,0,0,$tau,0,0);
       my $forecastedDate = sprintf("%4d%02d%02d%02d",$ftyear,$ftmon,$ftday,$fthour);
+      #ASGSUtil::stderrMessage("INFO","The time and date the forecast is valid is $forecastedDate",$test);
       unless ($firstForecastTime) {
          $firstForecastTime = $forecastedDate;
       }
       $lastForecastTime = $forecastedDate;
       #
       # check to see if the forecast line is prior to the hotstart date,
-      # if it is, then it will not be placed in the fort.22 file
-      if ( $forecastedDate < $runstartDate ) {
-         next;
+      # and this is not a branching ensemble;
+      # if it is a fan ensemble, go to the next line;
+      # a branching ensemble needs the track angle calculations
+      # even if this particular line will not be written to the fort.22 file
+      unless ( $branching == 1 ) {
+         if ( $forecastedDate < $runstartDate ) {
+            next;
+         }
       }
       # if we have found the hotstart time in the forecast file
       if ( $forecastedDate == $runstartDate ) {
@@ -704,12 +771,12 @@ if ( -e $forecastATCF ) {
             }
          }
          # slower windspeeds can be strange
-         if ( $method eq "twoslope" ) {
+         if ( $central_pressure_formula eq "twoslope" ) {
             # just use the last pressure
             if ( $vmax <= 30 ) {
                $forecast_pressure = sprintf("%4d",$last_pressure);
             }
-         } elsif ( $method eq "asgs2012" ) {
+         } elsif ( $central_pressure_formula eq "asgs2012" ) {
             # slower windspeeds can be strange ... use Dvorak if the storm is
             # early in its history, or use ah77 if it is late in its history
             if ( $vmax <= 35 ) {
@@ -722,6 +789,12 @@ if ( -e $forecastATCF ) {
                }
                $forecast_pressure = sprintf("%4d",$forecast_pressure);
             }
+         } elsif ( $central_pressure_formula eq "dvorak" ) {
+            $forecast_pressure = 1015 - ($vmax/3.92*0.51444444)**(1.0/0.644);
+            $forecast_pressure = sprintf("%4d",$forecast_pressure);
+         } elsif ( $central_pressure_formula eq "ah77" ) {
+            $forecast_pressure = 1010 - ($vmax/3.4*0.51444444)**(1.0/0.644);
+            $forecast_pressure = sprintf("%4d",$forecast_pressure);
          }
          # fill in the forecast central pressure value
          substr($line,53,4) = $forecast_pressure;
@@ -749,6 +822,15 @@ if ( -e $forecastATCF ) {
          substr($line,8,10)=sprintf("%10d",$forecastedDate);
          $lastForecastTime = $forecastedDate;
       }
+      # set veer percent for branching tracks
+      if ( $branching == 1 ) {
+         $veerPercent = $branchesVeers{$branchName};
+         # set the veer percentage to the value used by the
+         # branch we are hotstarting from
+         if ( $tau <= $branchesTaus{$branchName} ) {
+            $veerPercent = $branchesBaseveers{$branchName};
+         }
+      }
       # if the requested variation is veer, modify the track so that it veers
       # as a percent of the cone of uncertainty
       # -100% will create a track that lies along the left edge of
@@ -760,45 +842,47 @@ if ( -e $forecastATCF ) {
          $old_lon = substr($_,41,4)/10.0; # from tenths of degs to degs
       }
       if (($veerPercent ne "null") && ($tau != 0)) {
-         my $radius;                 # radius of uncertainty
+         my $radius = 0;  # radius of uncertainty, nautical miles
          $radius=interpolateUncertaintyRadius($tau);
          # scale to the percentage requested
          $radius *= abs($veerPercent/100.0);
-         # convert nautical miles to km
-         $radius*=1.852000003180799; # to km
-         # grab consensus forecast position
-         my $consensusLat=substr($_,34,4)/10.0; # from tenths of degs to degs
-         my $consensusLon=substr($_,41,4)/10.0; # from tenths of degs to degs
-         # find the angle that consensus storm is traveling on.
-         my $lat_change=$consensusLat-$old_lat;
-         my $lon_change=-1*($consensusLon-$old_lon); # lon increases leftward
-         unless ( $lat_change==0.0 && $lon_change==0.0 ) {
-            $consensus_angle=atan2($lat_change,$lon_change);
-            # save current direction of consensus track, in case track is
-            # stationary in the future, so we can use the direction to
-            # calculate a reasonable veer track
-            $old_consensus_angle = $consensus_angle;
+         # Grab consensus forecast position. ATCF North Atlantic longitudes
+         # are stored as positive magnitudes followed by W (e.g. 913W), while
+         # Geo::Ellipsoid uses conventional signed longitude (west < 0).
+         my $consensusLat=substr($_,34,4)/10.0; # 219N -> 21.9
+         my $consensusLon=substr($_,41,4)/10.0; # 913W -> 91.3 (ATCF magnitude)
+         my $geoConsensusLon = -$consensusLon;  # 91.3W -> -91.3 degrees
+         my $geoOldLon       = -$old_lon;
+
+         # Geo::Ellipsoid bearings are compass bearings: 0=N, 90=E,
+         # increasing clockwise. Use the ellipsoid to determine the track
+         # bearing instead of atan2() on unequal latitude/longitude degrees.
+         my $track_bearing;
+         unless ( $consensusLat == $old_lat && $consensusLon == $old_lon ) {
+            $track_bearing = $geo->bearing(
+               $old_lat, $geoOldLon,
+               $consensusLat, $geoConsensusLon
+            );
+            $old_consensus_angle = $track_bearing; # now stored in degrees
          } else {
-            $consensus_angle=$old_consensus_angle;
+            $track_bearing = $old_consensus_angle;
          }
-         # calculate position of veering track based on direction, setting
-         # the angle according to the sign of the veer percent
-         my $veer_xoff = 0;
-         my $veer_yoff = 0;
-         my $perpendicular;
-         if ($veerPercent > 1) {
-            $perpendicular = - ($pi/2); # veer right
-         } else {
-            $perpendicular = $pi/2;     # veer left
-         }
-         my $veer_angle = $consensus_angle + $perpendicular;
-         # approximate offsets in degrees (radius is in km)
-         $veer_xoff=$radius*cos($veer_angle)/100.0;
-         $veer_yoff=$radius*sin($veer_angle)/100.0;
-         # calculate lat and lon of veer track and convert to 10ths
-         # of degrees
-         my $veer_lat=($consensusLat+$veer_yoff)*10.0;
-         my $veer_lon=($consensusLon-$veer_xoff)*10.0;
+
+         # Positive veer is to the right of the track; negative is to the left.
+         my $bearing = $track_bearing + (($veerPercent > 0) ? 90.0 : -90.0);
+         $bearing = fmod($bearing, 360.0);
+         $bearing += 360.0 if $bearing < 0.0;
+
+         my ($lat_dest, $lon_dest) = $geo->at(
+            $consensusLat, $geoConsensusLon, $radius, $bearing
+         );
+
+         # Convert Geo::Ellipsoid signed west longitude back to the ATCF
+         # positive-west magnitude. This script is for North Atlantic tracks,
+         # so the existing W hemisphere character in the ATCF line is retained.
+         my $veer_lat = $lat_dest * 10.0;
+         my $veer_lon = abs($lon_dest) * 10.0;
+
          # paste in the new position
          substr($line,34,4)=sprintf("%4d",$veer_lat);
          substr($line,41,4)=sprintf("%4d",$veer_lon);
@@ -814,6 +898,13 @@ if ( -e $forecastATCF ) {
          }
          substr($line,109,3)=sprintf("%3d",$rmax);
       }
+      # goto next line if this forecast period is before the
+      # branching track is supposed to start
+      if ( $branching == 1 ) {
+         if ( $tau < $branchesTaus{$branchName} ) {
+            next;
+         }
+      }
       # write the line to the file, writing an eol if the line does not have one
       if ( /\n/ ) {
          print FORT22 $line;
@@ -826,6 +917,10 @@ if ( -e $forecastATCF ) {
    $runProp{'forcing.tropicalcyclone.fcst.time.end'} = $lastForecastTime;
    $runProp{'stormname'} = $nhcName;
    $runProp{'forcing.tropicalcyclone.stormname'} = $nhcName;
+   #
+   # interpolate track data for use in cooperative bifurcated
+   # forecast enesmble
+
 } else {
    ASGSUtil::stderrMessage("INFO","The forecast ATCF file '$forecastATCF' for scenario '$name' was not found and will not be processed.",$test);
 }
@@ -951,29 +1046,29 @@ sub interpolateUncertaintyRadius($) {
     my @nhc_radii = (9.5, 16, 25, 39, 49,  62,  77,  95, 134, 200);  # 2026 from https://www.nhc.noaa.gov/pdf/2026NHCNewProductsAndServices.pdf
 
     if ( $tau<$nhc_tau[0] ) {
-	ASGSUtil::stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].",$test);
-	return $nhc_radii[0];
+      ASGSUtil::stderrMessage("WARNING","Invalid forecast period (tau) of $tau in fort.22. Setting radius of uncertainty to $nhc_radii[0].",$test);
+      return $nhc_radii[0];
     } elsif ( $tau>$nhc_tau[-1] ) {
-	# if the forecast period is longer than our last available data,
-	# extrapolate the radius
-	ASGSUtil::stderrMessage("WARNING","Forecast period of $tau hours in fort.22 is farther in the future than NHC publishes uncertainty statistics. Extrapolating radius of uncertainty from published data at $nhc_tau[-2] and $nhc_tau[-1] hours.",$test);
-	$radius=($nhc_radii[-1]-$nhc_radii[-2])/($nhc_tau[-1]-$nhc_tau[-2])
-	    *($tau-$nhc_tau[-1])+$nhc_radii[-1];
-	return $radius;
+      # if the forecast period is longer than our last available data,
+      # extrapolate the radius
+      ASGSUtil::stderrMessage("WARNING","Forecast period of $tau hours in fort.22 is farther in the future than NHC publishes uncertainty statistics. Extrapolating radius of uncertainty from published data at $nhc_tau[-2] and $nhc_tau[-1] hours.",$test);
+      $radius=($nhc_radii[-1]-$nhc_radii[-2])/($nhc_tau[-1]-$nhc_tau[-2])
+         *($tau-$nhc_tau[-1])+$nhc_radii[-1];
+      return $radius;
     } elsif ( $tau>=$nhc_tau[0] && $tau<=$nhc_tau[-1]) {
-	# forecast period is within our data, find the values that bracket
-	# it an perform linear interpolation
-	my $npoints=@nhc_tau;
-	for ( $i=0; $i<=($npoints-2); ++$i ) {
-	    if ( $tau>=$nhc_tau[$i] && $tau<=$nhc_tau[$i+1] ) {
-		$radius=(($tau-$nhc_tau[$i])/($nhc_tau[$i+1]-$nhc_tau[$i]))
-		    *($nhc_radii[$i+1]-$nhc_radii[$i])
-		    +$nhc_radii[$i];
-		return $radius;
-	    }
-	}
+      # forecast period is within our data, find the values that bracket
+      # it an perform linear interpolation
+      my $npoints=@nhc_tau;
+      for ( $i=0; $i<=($npoints-2); ++$i ) {
+         if ( $tau>=$nhc_tau[$i] && $tau<=$nhc_tau[$i+1] ) {
+         $radius=(($tau-$nhc_tau[$i])/($nhc_tau[$i+1]-$nhc_tau[$i]))
+            *($nhc_radii[$i+1]-$nhc_radii[$i])
+            +$nhc_radii[$i];
+         return $radius;
+         }
+      }
     } else {
-   	ASGSUtil::stderrMessage("ERROR","Failed to interpolate radius of uncertainty at $tau hours.",$test);
+      	ASGSUtil::stderrMessage("ERROR","Failed to interpolate radius of uncertainty at $tau hours.",$test);
     }
 }
 

@@ -31,10 +31,25 @@ fi
 #   a. for f in $(ls input???.arg???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   b. for f in $(ls single???.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
 #   c. for f in $(ls track??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   d. for f in $(ls branch??.actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done
+#   e. for s in LAURA IDA IAN MILTON ; do for f in $(ls $s*actual.*) ; do echo $f ; cp $f ${f//actual/expected} ; done ; done
 # 3. Collect logs into a single file for bulk inspection:
 # for f in $(ls *actual*.log); do echo $f ; cat $f ; done > logfiles
-# 3. Collect run.properties into a single file for bulk inspection:
+# 4. Collect run.properties into a single file for bulk inspection:
 # for f in $(ls *actual*.run.properties); do echo $f ; cat $f ; done > runproperties
+# 5. Add up total hours of simulation time for forecast ensemble tracks
+#   a. fan ensemble: s=0; h=$(tail -n 1 track??.actual*.22 | awk 'BEGIN { FS="," } $1=="AL" { print $6 }' | sed 's/ //') ; for v in ${h[@]}; do s=$(($v + $s)) ; echo $s ; done
+#   b. branching ensemble: s=0; h=$(tail -n 1 branch*.22 | awk 'BEGIN { FS="," } $1=="AL" { print $6 }' | sed 's/ //') ; for v in ${h[@]}; do s=$(($v + $s)) ; echo $s ; done
+# 6. For downloading advisories and converting to track format for testing
+#   a. cd $SCRIPTDIR/input/sample_advisories/2021 ; ../get_all.sh 9 2021 1 19 # get all advisories
+#   b. ln -s 04.bal092021.dat bal092021.dat ; rm index-at.xml ; ln -s 04.092021.index-at.xml index-at.xml ;  perl $SCRIPTDIR/get_atcf.pl --storm 09 --year 2021 --ftpsite filesystem --fdir . --hdir . --rsssite filesystem --trigger rssembedded --adv 0 # extract advisory text
+#   c. perl ${SCRIPTDIR}/nhc_advisory_bot.pl --input  al092021.fst.html --output al092021.fst --metadata forecast.properties # convert advisory text to ATCF format for use with storm_track_gen.pl
+#
+# For a 120 hour forecast period, a 17 member fan ensemble needs 2040 hours of simulation time
+# but a 17 member branching ensemble only needs 1320 hours (35% reduction)
+# For a 72 hour forecast period, a 17 member fan ensemble needs 1224 hours of simulation time
+# but a 17 member branching ensemble only needs 504 hours (58% reduction)
+#
 #----------------------------------------------------------------
 # Issue numbers are all https://github.com/StormSurgeLive/asgs
 #
@@ -102,79 +117,132 @@ for a in $(seq 1 $numArgSets) ; do
         done
     done
 done
-# now run one-off tests for individual cases to
+# one-off tests for individual cases to
 # prevent regression
-numSingleTests=18
+numSingleTests=1
 argSets['s001']="--dir ./single001 --storm 07 --year 2010 --name nowcast --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2010073000 --strengthPercent null --test"
 #
-# set up branching ensemble tracks
-v=-100 # veer amount
-for s in $(seq 2 18); do
-    argSetNum=$(printf "%03d" $s)
-    trackNum=$(printf "%02d" $((s - 1)) )
-    trackPrefix=
-    case ${v:0:1} in
-    "-")
-        trackPrefix=Left
-        ;;
-    "0")
-        trackPrefix=nhcTrack
-        ;;
-     *)
-        trackPrefix=Right
-        ;;
-    esac
-    trackNamePercent=$(echo "$v" | sed 's/-//')
-    trackName="${trackNum}.veer$trackPrefix$trackNamePercent"
-    if (( $(echo "$v == 0.0" | bc -l) )); then
-        trackName="${trackNum}.nhcTrack"
-    fi
-    argSets[s$argSetNum]="--dir ./single002 --storm 13 --year 2020 --name $trackName --nws 20 --hotstartseconds 86400.0 --coldstartdate 2020082300 --percent $v --test"
-    v=$(echo "scale=1; $v + 12.5" | bc)
-done
-# generate track with interpolated data every 12 hours to support branching ensemble tracks
-#argSets['s002']="--dir ./single002 --storm 13 --year 2020 --name cooperative17 --nws 320 --hotstartseconds 2592000.00000000 --coldstartdate 2020092818 --strengthPercent null --test"
-for t in $(seq 1 $numSingleTests) ; do
-    testNumber=$(printf "%03d" $t)
-    SYSLOG="single${testNumber}.actual.syslog.log"
-    output=( fort.22 run.properties $SYSLOG )
-    TEST=unit
-    if [[ -e "single${inputNumber}/run.properties" ]]; then
-        cp input${inputNumber}/run.properties . 2>> $SYSLOG
-    fi
-    perl $SCRIPTDIR/storm_track_gen.pl ${argSets["s$testNumber"]} 2>> $SYSLOG
-    # make the test-specific $SCRIPTDIR path generic for use
-    # in comparing results
-    for f in $(ls $SYSLOG run.properties 2>> /dev/null); do
-        sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
-        sed -i "s?$HOME?\$HOME?g" $f
+# set up fan ensemble tracks for advisories/storms
+names=( LAURA IDA IAN MILTON )
+declare -A namesNumbers
+namesNumbers['LAURA']=13
+namesNumbers['IDA']=09
+namesNumbers['IAN']=09
+namesNumbers['MILTON']=14
+declare -A namesYears
+namesYears['LAURA']=2020
+namesYears['IDA']=2021
+namesYears['IAN']=2022
+namesYears['MILTON']=2024
+declare -A namesAdvs
+namesAdvs['LAURA']=19
+namesAdvs['IDA']=04
+namesAdvs['IAN']=13
+namesAdvs['MILTON']=08
+# storm coldstart dates
+declare -A namesColdstarts
+namesColdstarts['LAURA']=2020082406
+namesColdstarts['IDA']=2021082706
+namesColdstarts['IAN']=2022092606
+namesColdstarts['MILTON']=2024100706
+# forecast hotstart times
+declare -A namesHotstartSeconds
+#namesHotstartSeconds['LAURA']=$(( 86400 + ( 6 * 3600 ) ))   # including 6 hour nowcast
+namesHotstartSeconds['LAURA']=0
+namesHotstartSeconds['IDA']=0
+namesHotstartSeconds['IAN']=0
+namesHotstartSeconds['MILTON']=0
+declare -A namesTaus
+# forecast period to calculate (tau)
+namesTaus['LAURA']=120
+namesTaus['IDA']=72
+namesTaus['IAN']=120
+namesTaus['MILTON']=72
+#
+for storm in ${names[@]}; do
+    v=-100 # starting veer amount
+    for s in $(seq 1 17); do
+        trackNum=$(printf "%02d" $s )
+        trackPrefix=
+        case ${v:0:1} in
+        "-")
+            trackPrefix=Left
+            ;;
+        "0")
+            trackPrefix=nhcTrack
+            ;;
+        *)
+            trackPrefix=Right
+            ;;
+        esac
+        trackNamePercent=$(echo "$v" | sed 's/-//')
+        trackName="${trackNum}.veer$trackPrefix$trackNamePercent"
+        if (( $(echo "$v == 0.0" | bc -l) )); then
+            trackName="${trackNum}.nhcTrack"
+        fi
+        #echo "--dir . --storm ${namesNumbers[$storm]} --year ${namesYears[$storm]} --name $trackName --nws 20 --hotstartseconds ${namesHotstartSeconds[$storm]} --coldstartdate ${namesColdstarts[$storm]} --forecastend ${namesTaus[$storm]} --percent $v --test"
+        argSets[f$storm$trackNum]="--dir . --storm ${namesNumbers[$storm]} --year ${namesYears[$storm]} --name $trackName --nws 20 --hotstartseconds ${namesHotstartSeconds[$storm]} --coldstartdate ${namesColdstarts[$storm]} --forecastend ${namesTaus[$storm]} --percent $v --test"
+        v=$(echo "scale=1; $v + 12.5" | bc)
     done
-    for o in ${output[@]} ; do
-        for f in $(ls *$o 2> /dev/null); do
-            if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
-                if [[ $t -lt 2 ]]; then
-                    mv $f single${testNumber}.actual.$f
-                else
-                    trackNum=$(printf "%02d" $((t - 1)) )
-                    mv $f track${trackNum}.actual.$f
-                fi
-            fi
+done
+#
+# set up branching ensemble tracks
+b=1   # branch number
+#       01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17   # branch
+tau=( 0 48 60  0 60 48 36 48 60  0 60 48 36 48 60  0 60 48 ) # hotstart time (hours beyond base forecast)
+for storm in ${names[@]}; do
+    for b in $(seq 1 17); do
+        branchNum=$(printf "%02d" $b)
+        hstime=$(( ${numHotstartSeconds[$storm]} + ( ${tau[$b]} * 3600 ) ))
+        trackName="branching$branchNum"
+        #echo "--dir . --storm ${namesNumbers[$storm]} --year ${namesYears[$storm]} --name $trackName --nws 20 --hotstartseconds $hstime --coldstartdate ${namesColdstarts[$storm]} --forecastend ${namesTaus[$storm]} --percent $v --test"
+        argSets[b$storm$branchNum]="--dir . --storm ${namesNumbers[$storm]} --year ${namesYears[$storm]} --name $trackName --nws 20 --hotstartseconds $hstime --coldstartdate ${namesColdstarts[$storm]} --forecastend ${namesTaus[$storm]} --percent $v --test"
+    done
+done
+#
+# generate fan and branching tracks
+for storm in ${names[@]}; do
+    for e in f b ; do  # fan and branching
+        for t in $(seq 1 17) ; do
+            trackNumber=$(printf "%02d" $t)
+            SYSLOG="$storm.$e$trackNumber.actual.syslog.log"
+            output=( fort.22 run.properties $SYSLOG )
+            TEST=unit
+            perl $SCRIPTDIR/storm_track_gen.pl ${argSets["$e$storm$trackNumber"]} 2>> $SYSLOG
+            # make the test-specific $SCRIPTDIR path generic for use
+            # in comparing results
+            for f in $(ls $SYSLOG run.properties 2>> /dev/null); do
+                sed -i "s?$SCRIPTDIR?\$SCRIPTDIR?g" $f
+                sed -i "s?$HOME?\$HOME?g" $f
+            done
+            for o in ${output[@]} ; do
+                for f in $(ls *$o 2> /dev/null); do
+                    if [[ -e $f && $f != *actual* && $f != *expected* ]]; then
+                        mv $f $storm.$e${trackNumber}.actual.$f
+                    fi
+                done
+            done
         done
     done
 done
-# collect track files together into a single .vtp file
-# for visualization and quality checking
-trackFiles=
-for t in $(seq 1 17); do
-    trackNum=$(printf "%02d" $t)
-    trackFile="track${trackNum}.actual.fort.22"
-    trackFiles+="${trackFile},"
-done
-SYSLOG="tracks.actual.syslog.log"
-perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
-mv tracks.vtp tracks.actual.vtp
 #
-# now compare results
+# collect fan and branching ensemble track files together into a single .vtp file
+# for visualization and quality checking
+for storm in ${names[@]}; do
+    for e in f b ; do  # fan and branching
+        trackFiles=
+        for t in $(seq 1 17); do
+            trackNum=$(printf "%02d" $t)
+            trackFile="$storm.$e${trackNum}.actual.fort.22"
+            trackFiles+="${trackFile},"
+        done
+        SYSLOG="$storm.$e.tracks.actual.syslog.log"
+        perl $SCRIPTDIR/output/adc2vtk.pl --trackfiles ${trackFiles%,} --test 2>> $SYSLOG
+        mv tracks.vtp $storm.$e.tracks.actual.vtp
+    done
+done
+#
+# compare results
 for f in $(ls *actual*) ; do
    g=${f//actual/expected}
    diff $g $f > /dev/null 2>&1
@@ -185,6 +253,7 @@ for f in $(ls *actual*) ; do
       ((fail++))
    fi
 done
+#
 # check to make sure that all the expected
 # files were actually produced
 for g in $(ls *expected*) ; do

@@ -6,7 +6,7 @@
 # This script reformats ADCIRC input or output files to vtk xml format for
 # visualization and/or analysis.
 #--------------------------------------------------------------------------
-# Copyright(C) 2010--2022 Jason Fleming
+# Copyright(C) 2010--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -28,6 +28,11 @@ use strict;
 $^W++;
 use Getopt::Long;
 use ASGSUtil;
+use XML::Writer;
+# XML::Writer instances are created per XML output file.
+my $outWriter;
+my $pvdWriter;
+
 #
 my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "maxwvel.63", "MaximumWindSpeed",
@@ -59,7 +64,8 @@ my %adcirctypes = ("maxele.63", "MaximumElevation",
                    "psubdomains.63","SubdomainsFromPartmesh",
                    "minedgelengths.63","MinimumEdgeLengthAtNode",
                    "edgelengthgradients.63","EdgeLengthGradientAtNode",
-                   "elementareas.100","ElementArea"
+                   "elementareas.100","ElementArea",
+                   "maxtimestepsizes.63","MaxTimeStepSizes"
                    );
 my $R = 6378206.4;           # radius of the earth
 my $pi = 3.141592653589793;
@@ -105,7 +111,7 @@ my $datacentered = "PointData";
 my $jitter;
 my @adcircfiles;    # fulldomain adcirc output file names, comma separated
                     # with no spaces
-my @trackfiles;     # storm track files (fort.22)
+my @trackfiles;     # storm track files (fort.22),comma separated with no spaces
 my $excludeNonLeveeFluxBoundaries; # if only levee geometry should be generated
 my $test;    # true if this is being executed as a unit test
 #
@@ -141,9 +147,12 @@ if ( !  @trackfiles ) {
       die;
    }
    # write header for VTP (track line file)
-   printf OUT "<?xml version=\"1.0\"?>\n";
-   printf OUT "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-   printf OUT "   <PolyData>\n";
+   $outWriter = newXMLWriter(\*OUT);
+   $outWriter->xmlDecl();
+   $outWriter->startTag("VTKFile",
+      type => "PolyData", version => "0.1", byte_order => "LittleEndian");
+   $outWriter->startTag("PolyData");
+
    foreach my $file (@trackfiles) {
       ASGSUtil::stderrMessage("INFO","Processing $file.",$test);
       # make sure we can actually open the adcirc file before going further
@@ -175,14 +184,14 @@ if ( !  @trackfiles ) {
             $cycle = $cycle + 1;
          }
          # grab coordinates of storm center
-         $fields[6] =~/(\d+)(N|S)/; # tenths of degrees plus orientation, e.g., "217N"
-         $y[$cycle] =  $1/10.0;         # convert from tenths of degrees to degrees
+         $fields[6] =~/(\d+)(N|S)/;   # tenths of degrees plus orientation, e.g., "217N"
+         $y[$cycle] =  $1/10.0;       # convert from tenths of degrees to degrees
          my $yhemisphere = $2;
          if ( $yhemisphere eq "S" ) {
             $y[$cycle] *= -1.0;
          }
-         $fields[7] =~/(\d+)(E|W)/; # tenths of degrees plus orientation, e.g., "767W"
-         $x[$cycle] =  $1/10.0;         # convert from tenths of degrees to degrees
+         $fields[7] =~/(\d+)(E|W)/;   # tenths of degrees plus orientation, e.g., "767W"
+         $x[$cycle] =  $1/10.0;       # convert from tenths of degrees to degrees
          my $xhemisphere = $2;
          if ( $xhemisphere eq "W" ) {
             $x[$cycle] *= -1.0;
@@ -198,53 +207,39 @@ if ( !  @trackfiles ) {
       close(ADCIRCFILE);
       my $numTrackPoints = $cycle+1;
       my $numLineSegments = $cycle;
-      printf OUT "      <!-- from track file $file -->\n";
-      printf OUT "      <Piece NumberOfPoints=\"$numTrackPoints\" NumberOfLines=\"$numLineSegments\">\n";
-      #
+
+      $outWriter->comment("from track file $file");
+      $outWriter->startTag("Piece",
+         NumberOfPoints => $numTrackPoints,
+         NumberOfLines => $numLineSegments);
       # vmax values at each track point
-      printf OUT "         <PointData Scalars=\"vmax\">\n";
-      printf OUT "            <DataArray type=\"Float64\" Name=\"vmax\" format=\"ascii\">\n";
-      printf OUT "               ";
-      for (my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT $vmax[$i] . " ";
-      }
-      printf OUT "\n";
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </PointData>\n";
-      #
+      $outWriter->startTag("PointData", Scalars => "vmax");
+      $outWriter->startTag("DataArray", type => "Float64", Name => "vmax", format => "ascii");
+      $outWriter->characters(join(" ", @vmax[0..$numTrackPoints-1]));
+      $outWriter->endTag("DataArray");
+      $outWriter->endTag("PointData");
       # track point locations
-      printf OUT "         <Points>\n";
-      printf OUT "            <DataArray NumberOfComponents=\"3\" type=\"Float64\" Name=\"PointLocations\" format=\"ascii\">\n";
-      printf OUT "               ";
-      for (my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT $x[$i] . " " . $y[$i] . " " . $z . "  ";
-      }
-      printf OUT "\n";
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </Points>\n";
-      #
+      $outWriter->startTag("Points");
+      $outWriter->startTag("DataArray",
+         NumberOfComponents => "3", type => "Float64", Name => "PointLocations", format => "ascii");
+      $outWriter->characters(join("  ", map { "$x[$_] $y[$_] $z" } 0..$numTrackPoints-1));
+      $outWriter->endTag("DataArray");
+      $outWriter->endTag("Points");
       # line connectivity/topology
-      printf OUT "         <Lines>\n";
-      printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
-      printf OUT "               ";
-      for ( my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT $i . " " . ($i+1) . "  ";
-      }
-      printf OUT "\n";
-      printf OUT "            </DataArray>\n";
-      printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
-      printf OUT "               ";
-      for ( my $i=0; $i<$numTrackPoints; $i++ ) {
-         printf OUT (2*($i+1)) . " ";
-      }
-      printf OUT "\n";
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </Lines>\n";
-      printf OUT "      </Piece>\n";
+      $outWriter->startTag("Lines");
+      $outWriter->startTag("DataArray", type => "Int32", Name => "connectivity", format => "ascii");
+      $outWriter->characters(join("  ", map { "$_ " . ($_+1) } 0..$numTrackPoints-1));
+      $outWriter->endTag("DataArray");
+      $outWriter->startTag("DataArray", type => "Int32", Name => "offsets", format => "ascii");
+      $outWriter->characters(join(" ", map { 2*($_+1) } 0..$numTrackPoints-1));
+      $outWriter->endTag("DataArray");
+      $outWriter->endTag("Lines");
+      $outWriter->endTag("Piece");
    }
    # write VTP track(s) file footer
-   printf OUT "   </PolyData>\n";
-   printf OUT "</VTKFile>\n";
+   $outWriter->endTag("PolyData");
+   $outWriter->endTag("VTKFile");
+   $outWriter->end();
    close(OUT);
 }
 
@@ -349,12 +344,16 @@ $line = <MESH>;
 @fields = split(' ',$line);
 my $neta = $fields[0];
 # write header for boundaries file
-printf VTKELEVBOUNDARY "<?xml version=\"1.0\"?>\n";
-printf VTKELEVBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-printf VTKELEVBOUNDARY "   <PolyData>\n";
-printf VTKELEVBOUNDARY "      <Piece NumberOfPoints=\"$neta\">\n";
-printf VTKELEVBOUNDARY "         <Points>\n";
-printf VTKELEVBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+my $elevWriter = newXMLWriter(\*VTKELEVBOUNDARY);
+$elevWriter->xmlDecl();
+$elevWriter->startTag("VTKFile",
+   type => "PolyData", version => "0.1", byte_order => "LittleEndian");
+$elevWriter->startTag("PolyData");
+$elevWriter->startTag("Piece", NumberOfPoints => $neta);
+$elevWriter->startTag("Points");
+$elevWriter->startTag("DataArray",
+   type => "Float64", NumberOfComponents => "3", format => "ascii");
+
 # read all boundary data into 1D arrays
 my @elevBoundaryTypes; # ibtypee
 my @elevBoundaryElevs; # bathytopo elevation
@@ -362,8 +361,9 @@ my @elevBoundaryLons;  # longitude (degrees E)
 my @elevBoundaryLats;  # latitude (degrees N)
 my @elevBoundaryNodes; # node number 1-indexed
 my @elevBoundaryExternalBoundaryIndices; # 1-based index into the total external boundary array
-my @elevBoundaryLocalBoundaryIndices; # 1-based index into the total external boundary array
+my @elevBoundaryLocalBoundaryIndices;    # 1-based index into the total external boundary array
 my $elevBoundaryCount = 0;
+my @elevBoundaryPoints;
 for (my $i=0; $i<$nope; $i++) {
    $line = <MESH>;
    my @fields = split(' ',$line);
@@ -380,61 +380,39 @@ for (my $i=0; $i<$nope; $i++) {
       $elevBoundaryTypes[$elevBoundaryCount] = $ibtypee;
       $elevBoundaryExternalBoundaryIndices[$elevBoundaryCount] = $elevBoundaryCount+1;
       $elevBoundaryLocalBoundaryIndices[$elevBoundaryCount] = $elevBoundaryCount+1;
+      push @elevBoundaryPoints, "$x[$nbdv-1] $y[$nbdv-1] 0.0";
       $elevBoundaryCount++;
-      printf VTKELEVBOUNDARY "$x[$nbdv-1] $y[$nbdv-1] 0.0 ";
    }
 }
-printf VTKELEVBOUNDARY "\n";
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-printf VTKELEVBOUNDARY "         </Points>\n";
-printf VTKELEVBOUNDARY "         <PointData>\n";
-# elevation boundary type
-printf VTKELEVBOUNDARY "            <DataArray Name=\"IBTYPEE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryTypes[$i]";
+$elevWriter->characters(join("\n", @elevBoundaryPoints));
+$elevWriter->endTag("DataArray");
+$elevWriter->endTag("Points");
+$elevWriter->startTag("PointData");
+
+my @elevArrays = (
+   ["IBTYPEE", "Int32", \@elevBoundaryTypes],      # elevation boundary type
+   ["Elevation", "Float64", \@elevBoundaryElevs],  # bathy/topo elevation (positive downward)
+   ["Longitude", "Float64", \@elevBoundaryLons],   # longitudes (degrees west)
+   ["Latitude", "Float64", \@elevBoundaryLats],    # latitudes (degrees north)
+   ["NodeNumber", "Int32", \@elevBoundaryNodes],   # node numbers
+   ["ExternalBoundaryIndex", "Int32", \@elevBoundaryExternalBoundaryIndices], # external boundary indices
+   ["LocalBoundaryIndex", "Int32", \@elevBoundaryLocalBoundaryIndices]        # local boundary indices
+);
+foreach my $array (@elevArrays) {
+   my ($name, $type, $vals) = @$array;
+   $elevWriter->startTag("DataArray",
+      Name => $name,
+      type => $type,
+      NumberOfComponents => "1",
+      format => "ascii");
+   $elevWriter->characters(join(" ", @$vals[0..$elevBoundaryCount-1]));
+   $elevWriter->endTag("DataArray");
 }
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-# bathy/topo elevation (positive downward)
-printf VTKELEVBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryElevs[$i]";
-}
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-# longitudes (degrees west)
-printf VTKELEVBOUNDARY "            <DataArray Name=\"Longitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryLons[$i]";
-}
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-# latitudes (degrees north)
-printf VTKELEVBOUNDARY "            <DataArray Name=\"Latitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryLats[$i]";
-}
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-# node numbers
-printf VTKELEVBOUNDARY "            <DataArray Name=\"NodeNumber\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryNodes[$i]";
-}
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-# external boundary indices
-printf VTKELEVBOUNDARY "            <DataArray Name=\"ExternalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryExternalBoundaryIndices[$i]";
-}
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-# local boundary indices
-printf VTKELEVBOUNDARY "            <DataArray Name=\"LocalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">";
-for (my $i=0; $i<$elevBoundaryCount; $i++) {
-   printf VTKELEVBOUNDARY " $elevBoundaryLocalBoundaryIndices[$i]";
-}
-printf VTKELEVBOUNDARY "            </DataArray>\n";
-#
-printf VTKELEVBOUNDARY "         </PointData>\n";
-printf VTKELEVBOUNDARY "      </Piece>\n";
-printf VTKELEVBOUNDARY "   </PolyData>\n";
-printf VTKELEVBOUNDARY "</VTKFile>\n";
+$elevWriter->endTag("PointData");
+$elevWriter->endTag("Piece");
+$elevWriter->endTag("PolyData");
+$elevWriter->endTag("VTKFile");
+$elevWriter->end();
 close(VTKELEVBOUNDARY);
 #
 #-----------------------------------------------------------------------
@@ -459,45 +437,56 @@ if ($haveFort19 ne "null") {
       ASGSUtil::stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.",$test);
       die;
    }
-   printf FORT19BOUNDARY "<?xml version=\"1.0\"?>\n";
-   printf FORT19BOUNDARY "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n";
-   printf FORT19BOUNDARY "<Xdmf Version=\"2.0\">\n";
+   my $fort19Writer = newXMLWriter(\*FORT19BOUNDARY);
+   $fort19Writer->xmlDecl();
+   $fort19Writer->doctype("Xdmf", undef, "Xdmf.dtd");
    chomp($agrid);
-   printf FORT19BOUNDARY "   <Domain Name=\"$agrid\">\n";
-   printf FORT19BOUNDARY "      <Grid Name=\"TimeSeries\" GridType=\"Collection\" CollectionType=\"Temporal\">\n";
+   $fort19Writer->startTag("Xdmf", Version => "2.0");
+   $fort19Writer->startTag("Domain", Name => $agrid);
+   $fort19Writer->startTag("Grid",
+      Name => "TimeSeries",
+      GridType => "Collection",
+      CollectionType => "Temporal");
    # open and start reading fort.19 file
    unless (open(FORT19DATA,"<fort.19")) {
       ASGSUtil::stderrMessage("ERROR","Failed to open $fort19BoundaryFileName for writing: $!.",$test);
       die;
    }
-   my $timeinc19 = <FORT19DATA>; # time step for fort.19 data in seconds
+   my $timeinc19 = <FORT19DATA>;  # time step for fort.19 data in seconds
    my $timesec = 0.0;
    my @eta19;
    while(<FORT19DATA>) {
-      # read one dataset from fort.19
       $eta19[0] = $_;
       for (my $i=1; $i<$neta; $i++ ) {
          $eta19[$i] = <FORT19DATA>;
       }
       chomp(@eta19);
-      # write one dataset to XDMF xml file
-      printf FORT19BOUNDARY "         <Grid Name=\"Time=$timesec\" GridType=\"Uniform\">\n";
-      printf FORT19BOUNDARY "            <Time Value=\"$timesec\"/>\n";
-      printf FORT19BOUNDARY "            <Topology TopologyType=\"POLYVERTEX\" NumberOfElements=\"$neta\" NodesPerElement=\"1\"/>\n";
-      printf FORT19BOUNDARY "            <Geometry GeometryType=\"XYZ\">\n";
-      printf FORT19BOUNDARY "               <DataItem ItemType=\"Uniform\" Dimensions=\"$neta 3\" Format=\"XML\">\n";
-      for (my $i=0; $i<$neta; $i++ ) {
-         printf FORT19BOUNDARY "                  $elevBoundaryLons[$i] $elevBoundaryLats[$i] $eta19[$i]\n";
-      }
-      printf FORT19BOUNDARY "               </DataItem>\n";
-      printf FORT19BOUNDARY "            </Geometry>\n";
-      printf FORT19BOUNDARY "         </Grid>\n";
+      # read one dataset from fort.19
+
+      $fort19Writer->startTag("Grid", Name => "Time=$timesec", GridType => "Uniform");
+      $fort19Writer->emptyTag("Time", Value => $timesec);
+      $fort19Writer->emptyTag("Topology",
+         TopologyType => "POLYVERTEX",
+         NumberOfElements => $neta,
+         NodesPerElement => "1");
+      $fort19Writer->startTag("Geometry", GeometryType => "XYZ");
+      $fort19Writer->startTag("DataItem",
+         ItemType => "Uniform",
+         Dimensions => "$neta 3",
+         Format => "XML");
+      $fort19Writer->characters(join("\n", map {
+         "$elevBoundaryLons[$_] $elevBoundaryLats[$_] $eta19[$_]"
+      } 0..$neta-1));
+      $fort19Writer->endTag("DataItem");
+      $fort19Writer->endTag("Geometry");
+      $fort19Writer->endTag("Grid");
       $timesec = $timesec + $timeinc19;
    }
    close(FORT19DATA);
-   printf FORT19BOUNDARY "      </Grid>\n";
-   printf FORT19BOUNDARY "   </Domain>\n";
-   printf FORT19BOUNDARY "</Xdmf>\n";
+   $fort19Writer->endTag("Grid");
+   $fort19Writer->endTag("Domain");
+   $fort19Writer->endTag("Xdmf");
+   $fort19Writer->end();
    close(FORT19BOUNDARY);
    exit;
 }
@@ -522,10 +511,12 @@ unless (open(VTKFLUXBOUNDARY,">$vtkFluxBoundaryFileName")) {
    die;
 }
 # write header for boundary points file
-printf VTKFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
-printf VTKFLUXBOUNDARY "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-printf VTKFLUXBOUNDARY "   <PolyData>\n";
-#
+my $vtkFluxWriter = newXMLWriter(\*VTKFLUXBOUNDARY);
+$vtkFluxWriter->xmlDecl();
+$vtkFluxWriter->startTag("VTKFile",
+   type => "PolyData", version => "0.1", byte_order => "LittleEndian");
+$vtkFluxWriter->startTag("PolyData");
+
 # write out the flux-specified boundary tables as XDMF 3DSMESH geometry
 # to show boundary height
 my $xdmfFluxBoundaryGeometryFileName = $meshfile . "_fluxBoundaryGeometry.xmf";
@@ -533,15 +524,18 @@ unless (open(XDMFFLUXBOUNDARY,">$xdmfFluxBoundaryGeometryFileName")) {
    ASGSUtil::stderrMessage("ERROR","Failed to open $xdmfFluxBoundaryGeometryFileName for writing: $!.",$test);
    die;
 }
-# write header for boundary geometry file
-printf XDMFFLUXBOUNDARY "<?xml version=\"1.0\"?>\n";
-printf XDMFFLUXBOUNDARY "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n";
-printf XDMFFLUXBOUNDARY "<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"3.0\">\n";
+my $xdmfFluxWriter = newXMLWriter(\*XDMFFLUXBOUNDARY);
+$xdmfFluxWriter->xmlDecl();
+$xdmfFluxWriter->doctype("Xdmf", undef, "Xdmf.dtd");
 chomp($agrid);
-printf XDMFFLUXBOUNDARY "   <Domain Name=\"$agrid\">\n";
-printf XDMFFLUXBOUNDARY "      <Grid CollectionType=\"Spatial\" GridType=\"Collection\" Name=\"Levees\">\n";
-# not needed #printf XDMFFLUXBOUNDARY "          <Geometry Type=\"None\"/>\n";
-# not needed #printf XDMFFLUXBOUNDARY "             <Topology Dimensions=\"0\" Type=\"NoTopology\"/>\n";
+$xdmfFluxWriter->startTag("Xdmf",
+   "xmlns:xi" => "http://www.w3.org/2001/XInclude",
+   Version => "3.0");
+$xdmfFluxWriter->startTag("Domain", Name => $agrid);
+$xdmfFluxWriter->startTag("Grid",
+   CollectionType => "Spatial",
+   GridType => "Collection",
+   Name => "Levees");
 #
 # support for writing levee geometry as meshes in SMS 2dm format
 my $twodmFluxBoundaryGeometryNodeFileName;
@@ -705,96 +699,106 @@ for (my $i=0; $i<$nbou; $i++) {
    #  F L U X   B O U N D A R Y   A S   V T K P O I N T S
    #
    # write the boundary point locations for this flux boundary
-   printf VTKFLUXBOUNDARY "      <!-- seg = $seg -->\n";
-   printf VTKFLUXBOUNDARY "      <Piece NumberOfPoints=\"$numPoints\">\n";
-   printf VTKFLUXBOUNDARY "         <Points>\n";
-   printf VTKFLUXBOUNDARY "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+   $vtkFluxWriter->comment("seg = $seg");
+   $vtkFluxWriter->startTag("Piece", NumberOfPoints => $numPoints);
+   $vtkFluxWriter->startTag("Points");
+   $vtkFluxWriter->startTag("DataArray",
+      type => "Float64",
+      NumberOfComponents => "3",
+      format => "ascii");
+   my @vtkFluxPoints;
    for (my $j=0; $j<$nvell; $j++) {
-      printf VTKFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] 0.0  ";
+      push @vtkFluxPoints, "$x[$nbvv[$j]-1] $y[$nbvv[$j]-1] 0.0";
       if ( $numPointsPerBoundaryNode == 2 ) {
-         printf VTKFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] 0.0 ";
+         push @vtkFluxPoints, "$x[$ibconn[$j]-1] $y[$ibconn[$j]-1] 0.0";
       }
-      printf VTKFLUXBOUNDARY "\n";
    }
+   $vtkFluxWriter->characters(join("\n", @vtkFluxPoints));
    # finish writing boundary points
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
-   printf VTKFLUXBOUNDARY "         </Points>\n";
-   printf VTKFLUXBOUNDARY "         <PointData>\n";
+   $vtkFluxWriter->endTag("DataArray");
+   $vtkFluxWriter->endTag("Points");
+   $vtkFluxWriter->startTag("PointData");
+
    # ibtype
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"IBTYPE\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-   for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $ibtype ";
-      }
-   }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "IBTYPE", type => "Int32", NumberOfComponents => "1", format => "ascii");
+   $vtkFluxWriter->characters(join(" ", map { ($ibtype) x $numPointsPerBoundaryNode } 0..$nvell-1));
+   $vtkFluxWriter->endTag("DataArray");
+
    # elevation
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"Elevation\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "Elevation", type => "Float64", NumberOfComponents => "1", format => "ascii");
+   my @fluxElevVals;
    for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $fluxBoundaryNodeElevs[$j] ";
-      }
+      push @fluxElevVals, ($fluxBoundaryNodeElevs[$j]) x $numPointsPerBoundaryNode;
    }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   $vtkFluxWriter->characters(join(" ", @fluxElevVals));
+   $vtkFluxWriter->endTag("DataArray");
+
    # latitudes
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"Latitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "Latitude", type => "Float64", NumberOfComponents => "1", format => "ascii");
+   my @fluxLatVals;
    for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $fluxBoundaryLats[$fluxBoundaryCountStart+$j] ";
-      }
+      push @fluxLatVals, ($fluxBoundaryLats[$fluxBoundaryCountStart+$j]) x $numPointsPerBoundaryNode;
    }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   $vtkFluxWriter->characters(join(" ", @fluxLatVals));
+   $vtkFluxWriter->endTag("DataArray");
+
    # longitudes
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"Longitude\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "Longitude", type => "Float64", NumberOfComponents => "1", format => "ascii");
+   my @fluxLonVals;
    for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $fluxBoundaryLons[$fluxBoundaryCountStart+$j] ";
-      }
+      push @fluxLonVals, ($fluxBoundaryLons[$fluxBoundaryCountStart+$j]) x $numPointsPerBoundaryNode;
    }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   $vtkFluxWriter->characters(join(" ", @fluxLonVals));
+   $vtkFluxWriter->endTag("DataArray");
+
    # node number
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"NodeNumber\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "NodeNumber", type => "Int32", NumberOfComponents => "1", format => "ascii");
+   my @fluxNodeVals;
    for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $fluxBoundaryNodes[$fluxBoundaryCountStart+$j] ";
-      }
+      push @fluxNodeVals, ($fluxBoundaryNodes[$fluxBoundaryCountStart+$j]) x $numPointsPerBoundaryNode;
    }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   $vtkFluxWriter->characters(join(" ", @fluxNodeVals));
+   $vtkFluxWriter->endTag("DataArray");
+
    # full domain boundary index
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"ExternalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "ExternalBoundaryIndex", type => "Int32", NumberOfComponents => "1", format => "ascii");
+   my @fluxExternalVals;
    for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $fluxBoundaryFullDomainBoundaryIndices[$fluxBoundaryCountStart+$j] ";
-      }
+      push @fluxExternalVals, ($fluxBoundaryFullDomainBoundaryIndices[$fluxBoundaryCountStart+$j]) x $numPointsPerBoundaryNode;
    }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
+   $vtkFluxWriter->characters(join(" ", @fluxExternalVals));
+   $vtkFluxWriter->endTag("DataArray");
+
    # local boundary index
-   printf VTKFLUXBOUNDARY "            <DataArray Name=\"LocalBoundaryIndex\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
+   $vtkFluxWriter->startTag("DataArray",
+      Name => "LocalBoundaryIndex", type => "Int32", NumberOfComponents => "1", format => "ascii");
+   my @fluxLocalVals;
    for (my $j=0; $j<$nvell; $j++) {
-      for ( my $n=0; $n<$numPointsPerBoundaryNode; $n++ ) {
-         printf VTKFLUXBOUNDARY " $fluxBoundaryLocalBoundaryIndices[$fluxBoundaryCountStart+$j] ";
-      }
+      push @fluxLocalVals, ($fluxBoundaryLocalBoundaryIndices[$fluxBoundaryCountStart+$j]) x $numPointsPerBoundaryNode;
    }
-   printf VTKFLUXBOUNDARY "\n";
-   printf VTKFLUXBOUNDARY "            </DataArray>\n";
-   #
-   printf VTKFLUXBOUNDARY "         </PointData>\n";
-   printf VTKFLUXBOUNDARY "      </Piece>\n";
-   #
+   $vtkFluxWriter->characters(join(" ", @fluxLocalVals));
+   $vtkFluxWriter->endTag("DataArray");
+   $vtkFluxWriter->endTag("PointData");
+   $vtkFluxWriter->endTag("Piece");
+
    #  F L U X   B O U N D A R Y   A S   X D M F   3 D S M E S H   G E O M E T R Y
-   #
    # write the boundary point geometry for this flux boundary
    my $numXYZValsPerNode = 2 * $numPointsPerBoundaryNode;
    my $numXYZVals = $nvell * $numXYZValsPerNode * 3;
-   printf XDMFFLUXBOUNDARY "               <Grid Name=\"seg = $seg\">\n";
-   printf XDMFFLUXBOUNDARY "                  <Geometry Type=\"XYZ\">\n";
-   printf XDMFFLUXBOUNDARY "                      <DataItem DataType=\"Float\" Dimensions=\"$numXYZVals\" Format=\"XML\" Precision=\"8\">\n";
+   $xdmfFluxWriter->startTag("Grid", Name => "seg = $seg");
+   $xdmfFluxWriter->startTag("Geometry", Type => "XYZ");
+   $xdmfFluxWriter->startTag("DataItem",
+      DataType => "Float",
+      Dimensions => $numXYZVals,
+      Format => "XML",
+      Precision => "8");
+
    for (my $j=0; $j<$nvell; $j++) {
       # conpute the z value of the top of the boundary geometry
       $topZ[$j] = 1.0;  # arbitrary default
@@ -810,34 +814,34 @@ for (my $i=0; $i<$nbou; $i++) {
       }
    }
    my $zrev;
-   # write the base front face boundary vertices (i.e., boundary node elevation)
+
+   my @xdmfXYZ;
+   # create the base front face boundary vertices (i.e., boundary node elevation)
    for (my $j=0; $j<$nvell; $j++) {
       $zrev = -1.0 * $z[$nbvv[$j]-1];
-      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $zrev ";
+      push @xdmfXYZ, "$x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $zrev";
    }
-   printf  XDMFFLUXBOUNDARY "\n";
-   # write the top front face boundary vertices
+   # create the top front face boundary vertices
    for (my $j=0; $j<$nvell; $j++) {
-      printf XDMFFLUXBOUNDARY " $x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j] ";
+      push @xdmfXYZ, "$x[$nbvv[$j]-1] $y[$nbvv[$j]-1] $topZ[$j]";
    }
-   printf  XDMFFLUXBOUNDARY "\n";
-   # if this is a levee boundary, write the back side geometry
+   # if this is a levee boundary, create the back side geometry
    if ( $numPointsPerBoundaryNode == 2 ) {
       for (my $j=0; $j<$nvell; $j++) {
-         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j] ";
+         push @xdmfXYZ, "$x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $topZ[$j]";
       }
-      printf  XDMFFLUXBOUNDARY "\n";
       for (my $j=0; $j<$nvell; $j++) {
          $zrev = -1.0 * $z[$ibconn[$j]-1];
-         printf XDMFFLUXBOUNDARY " $x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $zrev";
+         push @xdmfXYZ, "$x[$ibconn[$j]-1] $y[$ibconn[$j]-1] $zrev";
       }
-      printf  XDMFFLUXBOUNDARY "\n";
    }
-   printf XDMFFLUXBOUNDARY "                      </DataItem>\n";
-   printf XDMFFLUXBOUNDARY "                   </Geometry>\n";
-   printf XDMFFLUXBOUNDARY "                <Topology Dimensions=\"$numXYZValsPerNode $nvell 1\" Type=\"3DSMesh\"/>\n";
-
-   printf XDMFFLUXBOUNDARY "             </Grid>\n";
+   $xdmfFluxWriter->characters(join("\n", @xdmfXYZ));
+   $xdmfFluxWriter->endTag("DataItem");
+   $xdmfFluxWriter->endTag("Geometry");
+   $xdmfFluxWriter->emptyTag("Topology",
+      Dimensions => "$numXYZValsPerNode $nvell 1",
+      Type => "3DSMesh");
+   $xdmfFluxWriter->endTag("Grid");
    my $adcStartNodeID;
    my $numFluxBoundaryGeometryElements;
    if ( defined $fluxBoundaries2dm ) {
@@ -997,13 +1001,15 @@ close(MESH);
 # finish echo boundary table
 close(VTKECHOFLUXBOUNDARY);
 # finish writing boundary as vtk points (.vtp file)
-printf VTKFLUXBOUNDARY "   </PolyData>\n";
-printf VTKFLUXBOUNDARY "</VTKFile>\n";
+$vtkFluxWriter->endTag("PolyData");
+$vtkFluxWriter->endTag("VTKFile");
+$vtkFluxWriter->end();
 close(VTKFLUXBOUNDARY);
 # finish writing boundary as xdmf geometry (.xmf file)
-printf XDMFFLUXBOUNDARY "      </Grid>\n";
-printf XDMFFLUXBOUNDARY "   </Domain>\n";
-printf XDMFFLUXBOUNDARY "</Xdmf>\n";
+$xdmfFluxWriter->endTag("Grid");
+$xdmfFluxWriter->endTag("Domain");
+$xdmfFluxWriter->endTag("Xdmf");
+$xdmfFluxWriter->end();
 close(XDMFFLUXBOUNDARY);
 # finish writing boundary geometry as adcirc mesh (.14 file)
 close($ADCNODFLUXBOUNDARY);
@@ -1093,8 +1099,9 @@ foreach my $file (@adcircfiles) {
          ASGSUtil::stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
+      $outWriter = newXMLWriter(\*OUT);
       &writeHeader($ne, $np);
-      printf OUT "         <PointData Scalars=\"BathymetricDepth\">\n";
+      $outWriter->startTag("PointData", Scalars => "BathymetricDepth");
       &writeMesh($ne, $np);
       &writeFooter();
       close(OUT);
@@ -1168,9 +1175,9 @@ foreach my $file (@adcircfiles) {
    unless (open(ADCIRCFILE,"<$file")) {
       ASGSUtil::stderrMessage("ERROR",
           "Failed to open ADCIRC file $file for reading: $!.",$test);
-         next;
+      next;
    }
-   #
+
    # for nodal attributes, we read the file entirely differently from an
    # output file
    if ( $file eq "fort.13" ) {
@@ -1179,9 +1186,10 @@ foreach my $file (@adcircfiles) {
          ASGSUtil::stderrMessage("ERROR","Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
+      $outWriter = newXMLWriter(\*OUT);
       &writeHeader($ne, $np);
-      printf OUT "         <PointData Scalars=\"NodalAttributes\">\n";
-      #
+      $outWriter->startTag("PointData", Scalars => "NodalAttributes");
+
       # read nodal attributes file header
       $line = <ADCIRCFILE>; # read comment line (not used)
       $line = <ADCIRCFILE>; # number of nodes (not used)
@@ -1197,7 +1205,7 @@ foreach my $file (@adcircfiles) {
          $line =~ s/\s+//;
          $namesDefaultValues{$attrName} = $line;
       }
-      #
+
       # now read body of nodal attributes file
       for (my $i=0; $i<$nattr; $i++ ) {
          $attrName = <ADCIRCFILE>; # name of the nodal attribute
@@ -1225,11 +1233,13 @@ foreach my $file (@adcircfiles) {
          $scalars_name = "Scalars=\"$attrName\"";
          # write out dataset from ADCIRC file
          my $vtk_components = 1;
-         printf OUT "            <DataArray Name=\"$attrName\" type=\"Float64\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
-         for (my $i=0; $i<$np; $i++) {
-            printf OUT "$attrValues[$i]\n";
-         }
-         printf OUT "            </DataArray>\n";
+         $outWriter->startTag("DataArray",
+            Name => $attrName,
+            type => "Float64",
+            NumberOfComponents => $vtk_components,
+            format => "ascii");
+         $outWriter->characters(join("\n", @attrValues[0..$np-1]));
+         $outWriter->endTag("DataArray");
       }
       &writeMesh($ne, $np);
       &writeFooter();
@@ -1242,17 +1252,20 @@ foreach my $file (@adcircfiles) {
    print $line;
    if ( $num_datasets == 0 ) {
       # we don't know how many datasets are in this file, it is likely more
-      # than one, so we need to start a small separate pvd file that lists
-      # the data files in the collection
+      # than one, so write a separate PVD collection file
       my $outfile = $file . ".pvd";
       unless (open(PVD,">$outfile")) {
          ASGSUtil::stderrMessage("ERROR",
             "Failed to open vtk file $outfile for writing: $!.",$test);
          die;
       }
-      printf PVD "<?xml version=\"1.0\"?>\n";
-      printf PVD "<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-      printf PVD "   <Collection>\n";
+      $pvdWriter = newXMLWriter(\*PVD);
+      $pvdWriter->xmlDecl();
+      $pvdWriter->startTag("VTKFile",
+         type => "Collection",
+         version => "0.1",
+         byte_order => "LittleEndian");
+      $pvdWriter->startTag("Collection");
    }
    my $dataset = 0;
    my @comp; # components of the dataset
@@ -1260,14 +1273,13 @@ foreach my $file (@adcircfiles) {
       @fields = split(' ',$_);
       $time[$dataset] = $fields[0];
       $timestep[$dataset] = $fields[1];
-      #ASGSUtil::stderrMessage("DEBUG","time is $time[$dataset], timestep is $timestep[$dataset]");
       my @mag; # for holding vector magnitudes
       my $io_success = "true";
       my $lim=$np; # nodal values are the default
       if ( $datacentered eq "CellData" ) {
          $lim=$ne;
       }
-      #
+
       # read one dataset from adcirc data file
       for (my $i=0; $i<$lim; $i++) {
          $line = <ADCIRCFILE>;
@@ -1280,13 +1292,12 @@ foreach my $file (@adcircfiles) {
          # get rid of the node/element index or node/element ID
          shift(@fields);
          if ( $num_components == 2 ) {
-            # calculate vector magnitude
             $mag[$i] = sqrt($fields[0]**2 + $fields[1]**2);
             push(@fields,"0.0"); # vtk expects all vectors to be 3D
          }
          $comp[$i] = join(' ',@fields);
       }
-      #
+
       # create data set characteristics
       my $outfile = $file;
       my $dataset_ext = "";
@@ -1307,35 +1318,50 @@ foreach my $file (@adcircfiles) {
          die;
       }
       if ( $num_datasets == 0 ) {
-         printf PVD "         <DataSet timestep=\"$time[$dataset]\" group=\"\" part=\"0\" file=\"$outfile\"/>\n";
+         $pvdWriter->emptyTag("DataSet",
+            timestep => $time[$dataset],
+            group => "",
+            part => "0",
+            file => $outfile);
       }
+      $outWriter = newXMLWriter(\*OUT);
       &writeHeader($ne, $np);
-      printf OUT "         <$datacentered $scalars_name $vectors_name>\n";
-      # write out dataset from ADCIRC file
+      my @centerAttrs;
+      if ($scalars_name =~ /Scalars="([^"]*)"/) {
+         push @centerAttrs, Scalars => $1;
+      }
+      if ($vectors_name =~ /Vectors="([^"]*)"/) {
+         push @centerAttrs, Vectors => $1;
+      }
+      $outWriter->startTag($datacentered, @centerAttrs);
+
       my $vtk_components = $num_components;
       if ( $num_components == 2 ) {
-         $vtk_components = $num_components + 1; # for vtk all vectors are 3D
+         $vtk_components = $num_components + 1;
       }
-      printf OUT "            <DataArray Name=\"$adcirctypes{$file}\" type=\"$datatype\" NumberOfComponents=\"$vtk_components\" format=\"ascii\">\n";
-      # write out one adcirc dataset
-      for (my $i=0; $i<$lim; $i++) {
-         printf OUT "$comp[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
-      # write vector magnitude if this is a vector dataset
+      $outWriter->startTag("DataArray",
+         Name => $adcirctypes{$file},
+         type => $datatype,
+         NumberOfComponents => $vtk_components,
+         format => "ascii");
+      $outWriter->characters(join("\n", @comp[0..$lim-1]));
+      $outWriter->endTag("DataArray");
+
       if ( $num_components > 1 ) {
-         printf OUT "            <DataArray Name=\"$adcirctypes{$file}Magnitude\" type=\"$datatype\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-         for (my $i=0; $i<$lim; $i++) {
-            printf OUT "$mag[$i]\n";
-         }
-         printf OUT "            </DataArray>\n";
+         $outWriter->startTag("DataArray",
+            Name => $adcirctypes{$file} . "Magnitude",
+            type => $datatype,
+            NumberOfComponents => "1",
+            format => "ascii");
+         $outWriter->characters(join("\n", @mag[0..$lim-1]));
+         $outWriter->endTag("DataArray");
       }
       if ($datacentered eq "CellData") {
-         printf OUT "         </CellData>\n";
-         printf OUT "         <PointData>\n";
+         $outWriter->endTag("CellData");
+         $outWriter->startTag("PointData");
       }
-      &writeMesh($ne, $np);    # write out bathymetric depth as a dataset
-      &writeFooter();
+      writeMesh($ne, $np);  # write out bathymetric depth as a dataset
+      writeFooter();
       close(OUT);
       $dataset++;
       # only write the number of datasets as specified according to the filetype
@@ -1344,8 +1370,9 @@ foreach my $file (@adcircfiles) {
       }
    }
    if ( $num_datasets == 0 ) {
-      printf PVD "   </Collection>\n";
-      printf PVD "</VTKFile>\n";
+      $pvdWriter->endTag("Collection");
+      $pvdWriter->endTag("VTKFile");
+      $pvdWriter->end();
       close(PVD);
    }
    close(ADCIRCFILE);
@@ -1354,73 +1381,101 @@ foreach my $file (@adcircfiles) {
 sub writeHeader () {
    my $ne = shift;
    my $np = shift;
-   printf OUT "<?xml version=\"1.0\"?>\n";
-   printf OUT "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-   printf OUT "   <UnstructuredGrid>\n";
-   printf OUT "      <Piece NumberOfPoints=\"$np\" NumberOfCells=\"$ne\">\n";
+   $outWriter->xmlDecl();
+   $outWriter->startTag("VTKFile",
+      type => "UnstructuredGrid",
+      version => "0.1",
+      byte_order => "LittleEndian");
+   $outWriter->startTag("UnstructuredGrid");
+   $outWriter->startTag("Piece",
+      NumberOfPoints => $np,
+      NumberOfCells => $ne);
 }
 
 sub writeFooter () {
-   printf OUT "      </Piece>\n";
-   printf OUT "   </UnstructuredGrid>\n";
-   printf OUT "</VTKFile>\n";
+   $outWriter->endTag("Piece");
+   $outWriter->endTag("UnstructuredGrid");
+   $outWriter->endTag("VTKFile");
+   $outWriter->end();
 }
 
 sub writeMesh () {
    my $ne = shift;
    my $np = shift;
-   #
+
    # write node IDs if specified
    if ( defined $getNodeIndices ) {
-      printf OUT "         <DataArray Name=\"NodeArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-      for (my $i=0; $i<$np; $i++) {
-         printf OUT "$nodeIndices[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
+      $outWriter->startTag("DataArray",
+         Name => "NodeArrayIndices",
+         type => "Int32",
+         NumberOfComponents => "1",
+         format => "ascii");
+      $outWriter->characters(join("\n", @nodeIndices[0..$np-1]));
+      $outWriter->endTag("DataArray");
    }
-   #
+
    # write the BathymetricDepth
-   printf OUT "            <DataArray Name=\"BathymetricDepth\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-   for (my $i=0; $i<$np; $i++) {
-      printf OUT "$z[$i]\n";
-   }
-   printf OUT "            </DataArray>\n";
-   printf OUT "         </PointData>\n";
-   printf OUT "         <Points>\n";
-   printf OUT "            <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-   for (my $i=0; $i<$np; $i++) {
-      printf OUT "$x[$i] $y[$i] 0.0\n";
-   }
-   printf OUT "            </DataArray>\n";
-   printf OUT "         </Points>\n";
-   #
+   $outWriter->startTag("DataArray",
+      Name => "BathymetricDepth",
+      type => "Float64",
+      NumberOfComponents => "1",
+      format => "ascii");
+   $outWriter->characters(join("\n", @z[0..$np-1]));
+   $outWriter->endTag("DataArray");
+   $outWriter->endTag("PointData");
+
+   $outWriter->startTag("Points");
+   $outWriter->startTag("DataArray",
+      type => "Float64",
+      NumberOfComponents => "3",
+      format => "ascii");
+   $outWriter->characters(join("\n", map { "$x[$_] $y[$_] 0.0" } 0..$np-1));
+   $outWriter->endTag("DataArray");
+   $outWriter->endTag("Points");
+
    # write element IDs if specified
    if ( defined $getElementIndices ) {
-      printf OUT "         <CellData Scalars=\"ElementArrayIndices\">\n";
-      printf OUT "         <DataArray Name=\"ElementArrayIndices\" type=\"Int32\" NumberOfComponents=\"1\" format=\"ascii\">\n";
-      for (my $i=0; $i<$ne; $i++) {
-         printf OUT "$elementIndices[$i]\n";
-      }
-      printf OUT "            </DataArray>\n";
-      printf OUT "         </CellData>\n";
+      $outWriter->startTag("CellData", Scalars => "ElementArrayIndices");
+      $outWriter->startTag("DataArray",
+         Name => "ElementArrayIndices",
+         type => "Int32",
+         NumberOfComponents => "1",
+         format => "ascii");
+      $outWriter->characters(join("\n", @elementIndices[0..$ne-1]));
+      $outWriter->endTag("DataArray");
+      $outWriter->endTag("CellData");
    }
+
    # write element connectivity indices
-   printf OUT "         <Cells>\n";
-   printf OUT "            <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
-   for (my $i=0; $i<$ne; $i++) {
-      printf OUT "$conn[$i]\n";
-   }
-   printf OUT "            </DataArray>\n";
-   printf OUT "            <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
-   for (my $i=0; $i<$ne; $i++) {
-      my $offset = $i*3 + 3;
-      printf OUT "$offset\n";
-   }
-   printf OUT "            </DataArray>\n";
-   printf OUT "            <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
-   for (my $i=0; $i<$ne; $i++) {
-      printf OUT "5\n";   # triangles
-   }
-   printf OUT "            </DataArray>\n";
-   printf OUT "         </Cells>\n";
+   $outWriter->startTag("Cells");
+   $outWriter->startTag("DataArray",
+      type => "Int32",
+      Name => "connectivity",
+      format => "ascii");
+   $outWriter->characters(join("\n", @conn[0..$ne-1]));
+   $outWriter->endTag("DataArray");
+
+   $outWriter->startTag("DataArray",
+      type => "Int32",
+      Name => "offsets",
+      format => "ascii");
+   $outWriter->characters(join("\n", map { $_ * 3 + 3 } 0..$ne-1));
+   $outWriter->endTag("DataArray");
+
+   $outWriter->startTag("DataArray",
+      type => "UInt8",
+      Name => "types",
+      format => "ascii");
+   $outWriter->characters(join("\n", (5) x $ne)); # triangles
+   $outWriter->endTag("DataArray");
+   $outWriter->endTag("Cells");
+}
+
+sub newXMLWriter {
+   my ($fh) = @_;
+   return XML::Writer->new(
+      OUTPUT => $fh,
+      DATA_MODE => 1,
+      DATA_INDENT => "   "
+   );
 }

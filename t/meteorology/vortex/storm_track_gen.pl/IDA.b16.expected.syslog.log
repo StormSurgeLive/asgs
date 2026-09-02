@@ -1,0 +1,20 @@
+timestamp INFO: storm_track_gen.pl: The branch name is 16 and the forecast track starts on/after 57.
+timestamp INFO: storm_track_gen.pl: The central pressure formula has been reset to 'dvorak' to support a branching ensemble.
+timestamp WARNING: storm_track_gen.pl: The BEST track file does not contain any usable data.
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    0
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    9
+timestamp INFO: storm_track_gen.pl: The forecast period tau is    9
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   21
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   21
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   33
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   33
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   33
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   45
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   45
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   45
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   57
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   57
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   69
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   69
+timestamp INFO: storm_track_gen.pl: The forecast period tau is   93
+timestamp INFO: storm_track_gen.pl: The forecast period tau is  117

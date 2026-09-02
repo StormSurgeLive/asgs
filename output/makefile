@@ -52,7 +52,7 @@ ifeq ($(compiler),gfortran)
    FC := gfortran
    FFLAGS := -O2 -cpp -ffree-line-length-none
    ifeq ($(DEBUG),full)
-      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fbounds-check -ffpe-trap=zero,invalid,underflow,overflow,denormal -DDEBUGSEGFAULT
+      FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace -fcheck=all -ffpe-trap=zero,invalid,underflow,overflow,denormal -DDEBUGSEGFAULT
    endif
    ifeq ($(DEBUG),trace)
       FFLAGS := -cpp -ffree-line-length-none -g -O0 -fbacktrace

@@ -301,33 +301,89 @@ checkHotstart()
    # check for existence of hotstart file
    if [ ! -e $HOTSTARTFILE ]; then
       fatal "$THIS: The hotstart file '$HOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
-   # if it exists, check size to be sure its nonzero
+   fi
+   # it exists, check size to be sure its nonzero
+   hotstartSize=$(stat -c %s $HOTSTARTFILE)
+   if [ $hotstartSize == "0" ]; then
+      fatal "$THIS: The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
+   fi
+   logMessage "$THIS: The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
+   # check time in hotstart file to be sure it can be found and that
+   # it is nonzero
+   # jgf20170131: hstime reports errors to stderr so we must capture
+   # that with backticks and tee to the log file
+   HSTIME=''
+   if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
+      HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG})
    else
-      hotstartSize=`stat -c %s $HOTSTARTFILE`
+      HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
+   fi
+   failureOccurred=$?
+   errorOccurred=$(expr index "$HSTIME" ERROR)
+   if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
+      fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$HOTSTARTFORMAT' format file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+   fi
+   if float_cond '$HSTIME == 0.0'; then
+      THIS="asgs_main.sh>checkHotstart()"
+      fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
+   fi
+   # if this is a branching forecast scenario that starts from another
+   # forecast scenario, set the FROMDIR and HOTSTARTFILE accordingly
+   if [[ $SCENARIO == "branching"* ]]; then
+      branchName=${SCENARIO: -2}
+   fi
+   if [[ $SCENARIO == "branching"* && $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+      branchHOTSTARTFORMAT=binary  # written by one of the 3 full length forecast jobs
+      # set the directory that contains the hotstart file for this branch
+      case $branchName in
+      "01"|"02"|"04"|"05")
+         branchFROMDIR=$CYCLEDIR/branching03
+         ;;
+      "06"|"07"|"08"|"10"|"11"|"12")
+         branchFROMDIR=$CYCLEDIR/branching09
+         ;;
+      "13"|"14"|"16"|"17")
+         branchFROMDIR=$CYCLEDIR/branching15
+         ;;
+      esac
+      # set the basis for computing the time stesp number which
+      # appears in the filename of the hotstart file for this scenario
+      case $branchName in
+      "06"|"12")
+         branchAddHours=36
+         ;;
+      "01"|"05"|"07"|"11"|"13"|"17")
+         branchAddHours=48
+         ;;
+      "02"|"04"|"08"|"10"|"14"|"16")
+         branchAddHours=60
+         ;;
+      esac
+      it=$(printf "%09d" $(echo "scale=0; ($HSTIME + ( $branchAddHours * 3600 ))/$TIMESTEPSIZE" | bc))
+      branchHOTSTARTFILE="$branchFROMDIR/PE0000/fort.68_$it"
+      if [[ ! -f $branchHOTSTARTFILE ]]; then
+         fatal "$THIS: The branch hotstart file '$branchHOTSTARTFILE' was not found. The preceding simulation run must have failed to produce it."
+      fi
+      # it exists, check size to be sure its nonzero
+      hotstartSize=$(stat -c %s $branchHOTSTARTFILE)
       if [ $hotstartSize == "0" ]; then
-         fatal "$THIS: The hotstart file '$HOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
-      else
-         logMessage "$THIS: The hotstart file '$HOTSTARTFILE' was found and it contains $hotstartSize bytes."
-         # check time in hotstart file to be sure it can be found and that
-         # it is nonzero
-         # jgf20170131: hstime reports errors to stderr so we must capture
-         # that with backticks and tee to the log file
-         HSTIME=''
-         if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
-            HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE -n 2>&1 | tee --append ${SYSLOG})
-         else
-            HSTIME=$($ADCIRCDIR/hstime -f $HOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
-         fi
-         failureOccurred=$?
-         errorOccurred=$(expr index "$HSTIME" ERROR)
-         if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
-            fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$HOTSTARTFORMAT' format file '$HOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
-         else
-            if float_cond '$HSTIME == 0.0'; then
-               THIS="asgs_main.sh>checkHotstart()"
-               fatal "$THIS: The time in the hotstart file '$HOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
-            fi
-         fi
+         fatal "$THIS: The branch hotstart file '$branchHOTSTARTFILE' is of zero length. The preceding simulation run must have failed to produce it properly."
+      fi
+      logMessage "$THIS: The branch hotstart file '$branchHOTSTARTFILE' was found and it contains $hotstartSize bytes."
+      # check time in hotstart file to be sure it can be found and that
+      # it is nonzero
+      # jgf20170131: hstime reports errors to stderr so we must capture
+      # that with backticks and tee to the log file
+      HSTIME=''
+      HSTIME=$($ADCIRCDIR/hstime -f $branchHOTSTARTFILE 2>&1 | tee --append ${SYSLOG})
+      failureOccurred=$?
+      errorOccurred=$(expr index "$HSTIME" ERROR)
+      if [[ $failureOccurred != 0 || $errorOccurred != 0 || $HSTIME == *"NaN"* ]]; then
+         fatal "$THIS: The hstime utility could not read the ADCIRC time from the '$branchHOTSTARTFORMAT' format file '$branchHOTSTARTFILE'. The output from hstime was as follows: '$HSTIME'."
+      fi
+      if float_cond '$HSTIME == 0.0'; then
+         THIS="asgs_main.sh>checkHotstart()"
+         fatal "$THIS: The time in the hotstart file '$branchHOTSTARTFILE' is zero. The preceding simulation run must have failed to produce a proper hotstart file."
       fi
    fi
 }
@@ -429,6 +485,16 @@ prep()
        fi
     fi
     if [[ $START == "hotstart" ]]; then
+       # save the value of FROMDIR if this is a branching
+       # ensemble (which will have different FROMDIRs depending
+       # on the branch)
+       nowcastFROMDIR=$FROMDIR
+       if [[ $SCENARIO == "branching"* ]]; then
+          branchName=${SCENARIO: -2}
+          if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+             FROMDIR=$branchFROMDIR # set in checkHotstart
+          fi
+       fi
        # hotstart
        #
        # TODO: Autodetect the format of the hotstart files to read (the
@@ -503,7 +569,7 @@ prep()
           done
        done
        # bring in hotstart file(s)
-       if [[ $QUEUESYS = serial ]]; then
+       if [[ $QUEUESYS == serial ]]; then
           if [[ $HOTSTARTFORMAT == netcdf || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
@@ -523,6 +589,7 @@ prep()
     #
     # adcprep is not required if the job is to run in serial
     if [[ $QUEUESYS = "serial" ]]; then
+       FROMDIR=$nowcastFROMDIR
        return
     fi
     #
@@ -532,7 +599,7 @@ prep()
     echo "time.adcprep.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
     # set the name of the archive of preprocessed input files
     PREPPED=$PREPPEDARCHIVE
-    if [[ $START = coldstart ]]; then
+    if [[ $START == coldstart ]]; then
        PREPPED=$HINDCASTARCHIVE
     fi
     # determine if there is an archive of preprocessed input files
@@ -540,7 +607,7 @@ prep()
     if [[ ! -e ${SCRATCH}/${PREPPED} ]]; then
        HAVEARCHIVE=no
     fi
-    if [[ $HAVEARCHIVE = yes ]]; then
+    if [[ $HAVEARCHIVE == yes ]]; then
         # copy in the files that have already been preprocessed
         logMessage "$ENSTORM: $THIS: Copying input files that have already been decomposed."
         cp ${SCRATCH}/${PREPPED} . 2>> ${SYSLOG}
@@ -596,7 +663,7 @@ prep()
        #   P A R A L L E L   H O T S T A R T
        #
        # run adcprep to decompose the new files
-       if [[ $HAVEARCHIVE = no ]]; then
+       if [[ $HAVEARCHIVE == no ]]; then
           logMessage "$ENSTORM: $THIS: Running adcprep to partition the mesh for $NCPU compute processors."
           prepFile partmesh $NCPU $ACCOUNT $WALLTIME
           THIS="asgs_main.sh>prep()"
@@ -617,7 +684,7 @@ prep()
              prepFile prep13 $NCPU $ACCOUNT $WALLTIME
              THIS="asgs_main.sh>prep()"
           fi
-          if [[ $WAVES = on ]]; then
+          if [[ $WAVES == on ]]; then
              PE=0
              format="%04d"
              while [[ $PE -lt $NCPU ]]; do
@@ -628,7 +695,18 @@ prep()
           fi
        fi
        # bring in hotstart file(s)
-       if [[ $HOTSTARTCOMP == "fulldomain" ]]; then
+       branchLength=null
+       if [[ $SCENARIO == "branching"* ]]; then
+          branchName=${SCENARIO: -2}
+          if [[ $branchName != "03" && $branchName != "09" && $branchName != "15" ]]; then
+             logMessage "$ENSTORM: $THIS: Copying binary hotstart file '$branchHOTSTARTFILE' to '$ADVISDIR/$ENSTORM'."
+             cp $branchHOTSTARTFILE $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
+             branchLength=partial
+          else
+             branchLength=full
+          fi
+       fi
+       if [[ $HOTSTARTCOMP == "fulldomain" && $branchLength != "partial" ]]; then
           if [[ $HOTSTARTFORMAT == "netcdf" || $HOTSTARTFORMAT == "netcdf3" ]]; then
              # copy netcdf file so we overwrite the one that adcprep created
              cp --remove-destination $FROMDIR/fort.67.nc $ADVISDIR/$ENSTORM/fort.68.nc >> $SYSLOG 2>&1
@@ -637,7 +715,7 @@ prep()
              cp $FROMDIR/PE0000/fort.67 $ADVISDIR/$ENSTORM/fort.68 >> $SYSLOG 2>&1
           fi
        fi
-       if [[ $HOTSTARTCOMP = subdomain ]]; then
+       if [[ $HOTSTARTCOMP == subdomain && $branchLength != "partial" ]]; then
           logMessage "$ENSTORM: $THIS: Starting copy of subdomain hotstart files."
           # copy the subdomain hotstart files over
           # subdomain hotstart files are always binary formatted
@@ -645,7 +723,7 @@ prep()
           format="%04d"
           while [ $PE -lt $NCPU ]; do
              PESTRING=`printf "$format" $PE`
-             if [[ $HOTSTARTCOMP = subdomain ]]; then
+             if [[ $HOTSTARTCOMP == subdomain ]]; then
                 cp $FROMDIR/PE${PESTRING}/fort.67 $ADVISDIR/$ENSTORM/PE${PESTRING}/fort.68 2>> ${SYSLOG}
              fi
              PE=$(($PE + 1))
@@ -844,6 +922,9 @@ EOF
        fi
     fi
     echo "time.adcprep.finish : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
+    if [[ $START == "hotstart" && $SCENARIO == "branching"* ]]; then
+       FROMDIR=$nowcastFROMDIR  # restore the dir to start from
+    fi
 }
 #
 # function to run adcprep in a platform dependent way to decompose
@@ -967,12 +1048,12 @@ prepFile()
    # update the run.properties file
    echo "hpc.job.$JOBTYPE.file.qscript : $qscript" >> run.properties
    #
+   queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
+   local jobSubmitInterval=60
    case $QUEUESYS in
-   "SLURM" | "PBS" | "SGE" )
-      queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
+   "SLURM" | "PBS" | "SGE")
       # submit adcprep job, check to make sure queue script submission
       # succeeded, and if not, retry
-      local jobSubmitInterval=60
       while [ true ];  do
          echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
          # submit job , capture stdout from sbatch and direct it
@@ -988,18 +1069,32 @@ prepFile()
             consoleMessage "$W Submission of ${JOBTYPE}.${queuesyslc} failed. Waiting to retry."
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             spinner $jobSubmitInterval
-
          fi
       done
       monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$WALLTIME"
       THIS="asgs_main.sh>prepFile()"
       logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
       ;;
+
+   "nq")
+      echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
+      chmod +x $SCENARIODIR/${JOBTYPE}.${queuesyslc} >> $SCENARIODIR/scenario.log 2>&1
+      # submit job to nq queue for serial jobs
+      NQDIR=/tmp/$SERQUEUE $SUBMITSTRING $SCENARIODIR/${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
+      joblog=$(<jobID) # file name that is capturing stdout/stderr
+      ln -s /tmp/$SERQUEUE/$joblog ${JOBTYPE}.out 2>> $SYSLOG
+      ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+      monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$WALLTIME"
+      THIS="asgs_main.sh>prepFile()"
+      logMessage "$ENSTORM: $THIS: Finished adcprepping file ($JOBTYPE)."
+      ;;
    *)
+      # just run the adcprep job on the command line of localhost
       echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       # make the queue script executable and execute it
       chmod +x ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
-      ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1
+      (echo $BASHPID > jobID ; exec ./$qscript >> $ADVISDIR/$ENSTORM/scenario.log 2>&1)
       ;;
    esac
 }
@@ -1377,6 +1472,12 @@ monitorJobs()
    if [[ $QUEUESYS == "SLURM" ]]; then
       echo "hpc.job.${JOBTYPE}.$(<jobID).sacct.maxrss.bytes : $(sacct -j $(<jobID).batch --format=MaxRSS --noconvert --noheader)" >> run.properties
    fi
+   # for jobs using nq, move the stdout/stderr of the job to the scenario directory
+   if [[ $QUEUESYS == "nq" ]]; then
+      joblog=$(readlink -n ${JOBTYPE}.out) 2>> $SYSLOG # full path
+      rm ${JOBTYPE}.out 2>> $SYSLOG          # remove the symbolic link
+      mv $joblog ${JOBTYPE}.out 2>> $SYSLOG  # move the stdout/stderr file from the job to the scenario directory
+   fi
    #
    # final messages
    logMessage "$ENSTORM_TEMP: $THIS: Finished monitoring $ENSTORM_TEMP job."
@@ -1515,6 +1616,7 @@ submitJob()
    # update the run.properties file
    echo "hpc.job.$JOBTYPE.file.qscript : $qscript" >> run.properties
    #
+   queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
    # start the job in a queueing system-dependent way
    case $QUEUESYS in
    #
@@ -1524,8 +1626,7 @@ submitJob()
          cp "$ADCIRCDIR/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
          echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
       fi
-      DATETIME=`date +'%Y-%h-%d-T%H:%M:%S'%z`
-      echo "time.${JOBTYPE}.start : $DATETIME" >> run.properties
+      echo "time.${JOBTYPE}.start : $(date +'%Y-%h-%d-T%H:%M:%S'%z)" >> run.properties
       logMessage "$ENSTORM: $THIS: Submitting ${JOBTYPE}.${ENSTORM} job in $PWD via $ADCIRCDIR/$JOBTYPE $CLOPTIONS >> ${SYSLOG} 2>&1"
       # submit the serial job in a subshell
       (
@@ -1556,15 +1657,13 @@ submitJob()
       ;;
    #
    "SLURM" | "PBS" )
-      queuesyslc=$(echo $QUEUESYS | tr '[:upper:]' '[:lower:]')
       logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
       # initialize log files so they can be centralized
       local jobSubmitInterval=60
       #
       # submit job, check to make sure qsub succeeded, and if not, retry (forever)
       while [ true ];  do
-         DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
-         echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
+         echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
          $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
          if [[ $? == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
@@ -1590,7 +1689,6 @@ submitJob()
    # No queueing system, just mpiexec (used on standalone computers
    # and small clusters)
    "mpiexec")
-      DATETIME=
       echo "time.${JOBTYPE}.start : $(date +'%Y-%h-%d-T%H:%M:%S'%z)" >> run.properties
       CPUREQUEST=$(($NCPU + $NUMWRITERS))
       # submit the parallel job in a subshell
@@ -1603,10 +1701,22 @@ submitJob()
          sleep 3 # give buffers a chance to flush to the filesystem
       ) &
       local pid=$!
+      echo $pid > jobID
       spinner 0 $pid
       # write the process id for mpiexec to the run.properties file so that monitorJobs()
       # can kill the job if it exceeds the expected wall clock time
-      echo "mpiexec subshell pid : $!" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      echo "mpiexec subshell pid : $pid" >> ${ADVISDIR}/${ENSTORM}/run.properties 2>> ${SYSLOG}
+      ;;
+   "nq")
+      logMessage "$ENSTORM: $THIS: Submitting $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesyslc}."
+      echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> ${STORMDIR}/run.properties
+      chmod +x $SCENARIODIR/${JOBTYPE}.${queuesyslc} >> $SCENARIODIR/scenario.log 2>&1
+      # submit the job to the parallel queue on the local machine
+      NQDIR=/tmp/$QUEUENAME $SUBMITSTRING $SCENARIODIR/${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
+      joblog=$(<jobID)  # this is the name of the file capturing stdout/stderr
+      ln -s /tmp/$QUEUENAME/$joblog ${JOBTYPE}.out 2>> $SYSLOG
+      ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
+      echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
       ;;
    *)
       fatal "$ENSTORM: $THIS: Queueing system $QUEUESYS unrecognized."
@@ -2858,14 +2968,6 @@ while [ true ]; do
      consoleMessage "$W There are '$numScenarios' forecast scenarios but the scenario package size was set to 'SCENARIOPACKAGESIZE=$SCENARIOPACKAGESIZE' in the ASGS configuration file '$ASGS_CONFIG'. ASGS will submit '$numScenarios' forecast scenarios."
    fi
    logMessage "$THIS: Starting '$numScenarios' forecast scenarios for advisory '$ADVISORY'."
-   #
-   # we may be forecasting from a cold start if this mesh doesn't require
-   # initialization and the nowcast was skipped
-   if [[ $START == "hotstart" ]]; then
-      checkHotstart $FROMDIR $HOTSTARTFORMAT 67
-      THIS="asgs_main.sh"
-   fi
-   logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
    si=0
    while [ $si -lt $numScenarios ]; do
       # source config file to pick up any configuration changes, or any
@@ -2878,6 +2980,14 @@ while [ true ]; do
       executeHookScripts "INITIALIZE_FORECAST_SCENARIO" # now that we know the name of the scenario
       consoleMessage "$I Scenario '$SCENARIO'"
       nullifyFilesFirstTimeUpdated  # for monitoring the first modification time of files
+      #
+      # we may be forecasting from a cold start if this mesh doesn't require
+      # initialization and the nowcast was skipped
+      if [[ $START == "hotstart" ]]; then
+         checkHotstart $FROMDIR $HOTSTARTFORMAT 67
+         THIS="asgs_main.sh"
+      fi
+      logMessage "$ENSTORM: $THIS: The time in the hotstart file is '$HSTIME' seconds."
       THIS=asgs_main.sh
       # write the properties associated with asgs configuration to the
       # run.properties file
