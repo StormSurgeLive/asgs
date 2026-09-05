@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #--------------------------------------------------------------------------
-# slurm-queue-status
+# asgs-slurm-stat
 #
 # Report Slurm partition/node utilization for the ASGS queues configured by
 # QUEUENAME and SERQUEUE.
@@ -15,6 +15,14 @@ set -u
 
 PROGRAM=${0##*/}
 
+# Percentage utilization of QUEUENAME which triggers a warning.
+#
+# May be overridden in the ASGS environment, for example:
+#
+#   ASGS_SLURM_UTIL_WARN=90
+#
+WARN_UTIL=${ASGS_SLURM_UTIL_WARN:-95}
+
 usage()
 {
     cat <<EOF
@@ -27,39 +35,38 @@ With no arguments, partitions are taken from the ASGS environment:
   QUEUENAME
   SERQUEUE
 
-Examples:
+Warning threshold:
 
-  $PROGRAM
-  $PROGRAM workq
-  $PROGRAM workq single
+  ASGS_SLURM_UTIL_WARN=${WARN_UTIL}
+
+The default warning threshold is 95%.
+
+Only QUEUENAME triggers the utilization warning. SERQUEUE and explicitly
+requested queues are reported for informational purposes.
 
 Utilization is calculated as:
 
-  (allocated + mixed) / (allocated + mixed + idle)
+  (allocated + mixed) / (allocated + mixed + idle) * 100
 
-Down, drained, invalid, failed, and other unavailable nodes are reported
+Unavailable nodes such as down, drained, failed, and invalid are reported
 separately and are not included in the utilization denominator.
+
+Exit status:
+
+  0  status OK
+  1  QUEUENAME utilization exceeds warning threshold
+  3  unable to obtain Slurm status
 EOF
 }
 
 die()
 {
     printf '%s: %s\n' "$PROGRAM" "$*" >&2
-    exit 1
+    exit 3
 }
 
 command -v sinfo >/dev/null 2>&1 ||
     die "sinfo was not found in PATH"
-
-#
-# When used from ASGSH, refuse to pretend that a non-Slurm platform is Slurm.
-# Explicit command-line partitions are still accepted outside ASGSH.
-#
-if (( $# == 0 )); then
-    if [[ "${QUEUESYS:-}" != "SLURM" ]]; then
-        die "QUEUESYS is '${QUEUESYS:-undefined}', not SLURM"
-    fi
-fi
 
 case "${1:-}" in
     -h|--help)
@@ -68,14 +75,28 @@ case "${1:-}" in
         ;;
 esac
 
+if ! [[ "$WARN_UTIL" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    die "ASGS_SLURM_UTIL_WARN must be numeric"
+fi
+
+if ! awk -v n="$WARN_UTIL" 'BEGIN { exit !(n >= 0 && n <= 100) }'; then
+    die "ASGS_SLURM_UTIL_WARN must be between 0 and 100"
+fi
+
+if (( $# == 0 )) && [[ "${QUEUESYS:-}" != "SLURM" ]]; then
+    die "QUEUESYS is '${QUEUESYS:-undefined}', not SLURM"
+fi
+
 declare -a queues=()
 
 if (( $# > 0 )); then
     queues=( "$@" )
 else
-    [[ -n "${QUEUENAME:-}" ]] && queues+=( "$QUEUENAME" )
+    [[ -n "${QUEUENAME:-}" ]] &&
+        queues+=( "$QUEUENAME" )
 
-    if [[ -n "${SERQUEUE:-}" && "${SERQUEUE:-}" != "${QUEUENAME:-}" ]]; then
+    if [[ -n "${SERQUEUE:-}" &&
+          "${SERQUEUE:-}" != "${QUEUENAME:-}" ]]; then
         queues+=( "$SERQUEUE" )
     fi
 fi
@@ -87,19 +108,14 @@ printf '%-14s %7s %7s %7s %7s %11s %9s\n' \
     "PARTITION" "TOTAL" "ALLOC" "MIX" "IDLE" "UNAVAILABLE" "UTIL"
 
 printf '%-14s %7s %7s %7s %7s %11s %9s\n' \
-    "--------------" "-------" "-------" "-------" "-------" "-----------" "---------"
+    "--------------" "-------" "-------" "-------" "-------" \
+    "-----------" "---------"
+
+warning=0
+queue_util=""
 
 for queue in "${queues[@]}"; do
 
-    #
-    # %D = number of nodes represented by this sinfo row
-    # %t = compact node state
-    #
-    # -h suppresses the heading.
-    #
-    # Query one partition at a time because the same physical nodes may belong
-    # to QUEUENAME and SERQUEUE. Combining them would double-count capacity.
-    #
     output=$(
         sinfo \
             --partition="$queue" \
@@ -110,7 +126,7 @@ for queue in "${queues[@]}"; do
 
     if (( rc != 0 )); then
         printf '%-14s ERROR: %s\n' "$queue" "$output" >&2
-        continue
+        exit 3
     fi
 
     total=0
@@ -123,8 +139,8 @@ for queue in "${queues[@]}"; do
         [[ "$count" =~ ^[0-9]+$ ]] || continue
 
         #
-        # Slurm state flags such as '*' and '+' can be appended to the base
-        # state. Strip them for classification.
+        # Slurm compact states may contain suffix flags such as "*".
+        # Keep just the base state for classification.
         #
         state=${state%%[*+~#@%$^&!]*}
 
@@ -147,16 +163,19 @@ for queue in "${queues[@]}"; do
                 unavailable=$(( unavailable + count ))
                 ;;
         esac
-
     done <<< "$output"
 
     usable=$(( alloc + mix + idle ))
     busy=$(( alloc + mix ))
 
     if (( usable > 0 )); then
-        util=$(awk -v busy="$busy" -v usable="$usable" \
-            'BEGIN { printf "%.1f%%", (100.0 * busy / usable) }')
+        util_number=$(
+            awk -v busy="$busy" -v usable="$usable" \
+                'BEGIN { printf "%.1f", (100.0 * busy / usable) }'
+        )
+        util="${util_number}%"
     else
+        util_number=""
         util="n/a"
     fi
 
@@ -169,4 +188,32 @@ for queue in "${queues[@]}"; do
         "$unavailable" \
         "$util"
 
+    #
+    # Only the primary ASGS compute queue drives warning status.
+    #
+    if [[ -n "${QUEUENAME:-}" &&
+          "$queue" == "$QUEUENAME" &&
+          -n "$util_number" ]]; then
+
+        queue_util=$util_number
+
+        if awk \
+            -v util="$util_number" \
+            -v threshold="$WARN_UTIL" \
+            'BEGIN { exit !(util > threshold) }'
+        then
+            warning=1
+        fi
+    fi
 done
+
+if (( warning )); then
+    printf '\nWARNING: QUEUENAME=%s utilization is %s%%; threshold is %s%%\n' \
+        "$QUEUENAME" \
+        "$queue_util" \
+        "$WARN_UTIL" >&2
+
+    exit 1
+fi
+
+exit 0
