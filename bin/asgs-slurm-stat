@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+#--------------------------------------------------------------------------
+# slurm-queue-status
+#
+# Report Slurm partition/node utilization for the ASGS queues configured by
+# QUEUENAME and SERQUEUE.
+#
+# Copyright(C) 2024-present Brett Estrade
+# Copyright(C) 2024-present Jason Fleming
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#--------------------------------------------------------------------------
+
+set -u
+
+PROGRAM=${0##*/}
+
+usage()
+{
+    cat <<EOF
+Usage:
+  $PROGRAM
+  $PROGRAM QUEUE [QUEUE ...]
+
+With no arguments, partitions are taken from the ASGS environment:
+
+  QUEUENAME
+  SERQUEUE
+
+Examples:
+
+  $PROGRAM
+  $PROGRAM workq
+  $PROGRAM workq single
+
+Utilization is calculated as:
+
+  (allocated + mixed) / (allocated + mixed + idle)
+
+Down, drained, invalid, failed, and other unavailable nodes are reported
+separately and are not included in the utilization denominator.
+EOF
+}
+
+die()
+{
+    printf '%s: %s\n' "$PROGRAM" "$*" >&2
+    exit 1
+}
+
+command -v sinfo >/dev/null 2>&1 ||
+    die "sinfo was not found in PATH"
+
+#
+# When used from ASGSH, refuse to pretend that a non-Slurm platform is Slurm.
+# Explicit command-line partitions are still accepted outside ASGSH.
+#
+if (( $# == 0 )); then
+    if [[ "${QUEUESYS:-}" != "SLURM" ]]; then
+        die "QUEUESYS is '${QUEUESYS:-undefined}', not SLURM"
+    fi
+fi
+
+case "${1:-}" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+esac
+
+declare -a queues=()
+
+if (( $# > 0 )); then
+    queues=( "$@" )
+else
+    [[ -n "${QUEUENAME:-}" ]] && queues+=( "$QUEUENAME" )
+
+    if [[ -n "${SERQUEUE:-}" && "${SERQUEUE:-}" != "${QUEUENAME:-}" ]]; then
+        queues+=( "$SERQUEUE" )
+    fi
+fi
+
+(( ${#queues[@]} > 0 )) ||
+    die "no partitions supplied and neither QUEUENAME nor SERQUEUE is set"
+
+printf '%-14s %7s %7s %7s %7s %11s %9s\n' \
+    "PARTITION" "TOTAL" "ALLOC" "MIX" "IDLE" "UNAVAILABLE" "UTIL"
+
+printf '%-14s %7s %7s %7s %7s %11s %9s\n' \
+    "--------------" "-------" "-------" "-------" "-------" "-----------" "---------"
+
+for queue in "${queues[@]}"; do
+
+    #
+    # %D = number of nodes represented by this sinfo row
+    # %t = compact node state
+    #
+    # -h suppresses the heading.
+    #
+    # Query one partition at a time because the same physical nodes may belong
+    # to QUEUENAME and SERQUEUE. Combining them would double-count capacity.
+    #
+    output=$(
+        sinfo \
+            --partition="$queue" \
+            --noheader \
+            --format="%D|%t" 2>&1
+    )
+    rc=$?
+
+    if (( rc != 0 )); then
+        printf '%-14s ERROR: %s\n' "$queue" "$output" >&2
+        continue
+    fi
+
+    total=0
+    alloc=0
+    mix=0
+    idle=0
+    unavailable=0
+
+    while IFS='|' read -r count state; do
+        [[ "$count" =~ ^[0-9]+$ ]] || continue
+
+        #
+        # Slurm state flags such as '*' and '+' can be appended to the base
+        # state. Strip them for classification.
+        #
+        state=${state%%[*+~#@%$^&!]*}
+
+        total=$(( total + count ))
+
+        case "$state" in
+            alloc|allocated)
+                alloc=$(( alloc + count ))
+                ;;
+
+            mix|mixed)
+                mix=$(( mix + count ))
+                ;;
+
+            idle)
+                idle=$(( idle + count ))
+                ;;
+
+            *)
+                unavailable=$(( unavailable + count ))
+                ;;
+        esac
+
+    done <<< "$output"
+
+    usable=$(( alloc + mix + idle ))
+    busy=$(( alloc + mix ))
+
+    if (( usable > 0 )); then
+        util=$(awk -v busy="$busy" -v usable="$usable" \
+            'BEGIN { printf "%.1f%%", (100.0 * busy / usable) }')
+    else
+        util="n/a"
+    fi
+
+    printf '%-14s %7d %7d %7d %7d %11d %9s\n' \
+        "$queue" \
+        "$total" \
+        "$alloc" \
+        "$mix" \
+        "$idle" \
+        "$unavailable" \
+        "$util"
+
+done
