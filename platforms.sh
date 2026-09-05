@@ -219,24 +219,29 @@ set_hpc() {
       HPCENVSHORT=frontera
       return
    fi
-   if [ 1 -eq $(hostname --fqdn | grep -c qbc) ]; then
+
+   if hostname --fqdn | grep -Eq '^qbc[0-9]*([.]|$)'; then
       HPCENV=qbc.loni.org
       HPCENVSHORT=queenbeeC
    fi
+
    if [[ ${fqdn:0:4} == "smic" ]]; then
       HPCENV=supermic.hpc.lsu.edu
       HPCENVSHORT=supermic
    fi
+
    # this whole function will be replaced with guess, but for now ...
    if [[ $HPCENVSHORT = "null" ]]; then
       plat=$($SCRIPTDIR/bin/guess platform)
       HPCENVSHORT=$plat
       HPCENV=$plat
    fi
+
    if [[ $HPCENVSHORT == "null" ]]; then
       echo "$THIS: FATAL: Could not determine what platform the ASGS is running on."
       exit 1
    fi
+
    echo "$THIS: The value of HPCENV is ${HPCENV}."
    echo "$THIS: The value of HPCENVSHORT is ${HPCENVSHORT}."
 }
