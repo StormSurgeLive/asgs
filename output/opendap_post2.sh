@@ -2,8 +2,7 @@
 #------------------------------------------------------------------------
 # opendap_post2.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015--present Jason Fleming
-# Copyright(C) 2019--present Brett Estrade
+# Copyright(C) 2015--2019 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -30,23 +29,18 @@ MANUAL=0
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
-case $# in
-0)
-   ;;
-1)
+# Preserve the legacy ASGS calling convention. Hook execution normally
+# supplies no arguments. A single argument may name run.properties; a second
+# argument marks a manual invocation. Historically, additional arguments were
+# ignored, so do not reject them here.
+if [[ $# -eq 1 ]]; then
    RUNPROPERTIES=$1
    SCENARIODIR=$(dirname -- "$RUNPROPERTIES")
-   ;;
-2)
+elif [[ $# -eq 2 ]]; then
    RUNPROPERTIES=$1
    SCENARIODIR=$(dirname -- "$RUNPROPERTIES")
    MANUAL=1   # provide an extra command line argument to execute manually, suggest "manual" or "auto"
-   ;;
-*)
-   echo "Usage: $THIS [run.properties [manual|auto]]" >&2
-   exit $EXIT_ERROR
-   ;;
-esac
+fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
 if [[ ! -r "$RUNPROPERTIES" ]]; then
