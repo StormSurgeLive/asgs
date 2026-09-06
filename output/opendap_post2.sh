@@ -2,7 +2,8 @@
 #------------------------------------------------------------------------
 # opendap_post2.sh : Makes results available to thredds data server.
 #------------------------------------------------------------------------
-# Copyright(C) 2015--2019 Jason Fleming
+# Copyright(C) 2015--present Jason Fleming
+# Copyright(C) 2019--present Brett Estrade
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -429,27 +430,37 @@ for server in "${SERVERS[@]}"; do
       esac
    done
 
-   scenarioStatusText=""
-   cliScenarioStatusText=""
-   if [[ $postScenarioStatus == yes ]]; then
-      scenarioStatusURL="$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/scenario.status.json"
-      scenarioStatusText="The scenario status file is : $scenarioStatusURL"
+   # The authenticated THREDDS CLI endpoint mirrors fileServer/dodsC paths.
+   # Build authenticated command examples independently of scenario.status.json
+   # so run.properties always has a usable CLI download command when possible.
+   THREDDSCLIPREFIX=${DOWNLOADPREFIX/\/thredds\/fileServer/\/thredds\/cli}
+   THREDDSCLIPREFIX=${THREDDSCLIPREFIX/\/thredds\/dodsC/\/thredds\/cli}
+   THREDDSCLIKEY="${ASGS_TDS_CLI_KEY:-<ASGS_TDS_CLI_KEY>}"
 
-      # The authenticated THREDDS CLI endpoint mirrors fileServer paths.
-      THREDDSCLIPREFIX=${DOWNLOADPREFIX/\/thredds\/fileServer/\/thredds\/cli}
-      THREDDSCLIPREFIX=${THREDDSCLIPREFIX/\/thredds\/dodsC/\/thredds\/cli}
-      if [[ $THREDDSCLIPREFIX != "$DOWNLOADPREFIX" ]]; then
-         cliScenarioStatusURL="$THREDDSCLIPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/scenario.status.json"
-         # Export ASGS_TDS_CLI_KEY in ~/.asgs_profile.  Leave a visible
-         # placeholder in the notification if the variable is not set.
-         THREDDSCLIKEY="${ASGS_TDS_CLI_KEY:-<ASGS_TDS_CLI_KEY>}"
-         cliScenarioStatusText="Authenticated CLI download:
-
+   cliRunPropertiesText="COMMAND-LINE DOWNLOAD
+---------------------
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties"
+   if [[ $THREDDSCLIPREFIX != "$DOWNLOADPREFIX" ]]; then
+      cliRunPropertiesURL="$THREDDSCLIPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties"
+      cliRunPropertiesText="COMMAND-LINE DOWNLOAD
+---------------------
 curl \
   -H \"X-CLI-Key: $THREDDSCLIKEY\" \
   -H \"X-Operator-Email: $ASGSADMIN\" \
-  \"$cliScenarioStatusURL\""
-      fi
+  \"$cliRunPropertiesURL\"
+
+wget \
+  --header=\"X-CLI-Key: $THREDDSCLIKEY\" \
+  --header=\"X-Operator-Email: $ASGSADMIN\" \
+  \"$cliRunPropertiesURL\""
+   fi
+
+   scenarioStatusText=""
+   if [[ $postScenarioStatus == yes ]]; then
+      scenarioStatusURL="$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/scenario.status.json"
+      scenarioStatusText="SCENARIO STATUS
+---------------
+The scenario status file is : $scenarioStatusURL"
    fi
 
    hotstartText=""
@@ -459,12 +470,20 @@ curl \
       # OPENDAPDIR preserves an absolute remote path when it is converted
       # internally to scp syntax.
       LASTSUBDIR_URI="ssh://${OPENDAPHOST}/${OPENDAPDIR}"
-      hotstartText="The ADCIRC hotstart file is : $hotstartURL
-
+      hotstartText="HOTSTART
+--------
+The ADCIRC hotstart file is : $hotstartURL
 To hotstart ASGS directly from these posted results:
-
 HOTORCOLD=hotstart
 LASTSUBDIR=$LASTSUBDIR_URI"
+   fi
+
+   optionalNotificationText=""
+   if [[ -n $scenarioStatusText ]]; then
+      optionalNotificationText+=$'\n\n'"$scenarioStatusText"
+   fi
+   if [[ -n $hotstartText ]]; then
+      optionalNotificationText+=$'\n\n'"$hotstartText"
    fi
    if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
@@ -492,25 +511,12 @@ cat <<END > ${SCENARIODIR}/opendap_results_notify_${server}.txt
 The results for cycle $CYCLE have been posted to $POSTED_LINK
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-${scenarioStatusText:+
-$scenarioStatusText}
-${cliScenarioStatusText:+
 
-$cliScenarioStatusText}
-${hotstartText:+
+$cliRunPropertiesText$optionalNotificationText
 
-$hotstartText}
-
-or wget the file with the following command
-
-wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-
-or download over scp with the following command
-
+SSH/SCP ACCESS
+--------------
 scp $OPENDAPHOST:$OPENDAPDIR/run.properties .
-
-or list contents
-
 ssh $OPENDAPHOST "ls $OPENDAPDIR"
 END
 
