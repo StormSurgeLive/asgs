@@ -29,6 +29,17 @@ _asgs_complete_dirs()
     compopt -o filenames 2>/dev/null
 }
 
+_asgs_complete_profiles()
+{
+    local profiles=""
+
+    if [[ -d "$ASGS_META_DIR" ]]; then
+        profiles=$(command ls -1 "$ASGS_META_DIR/" 2>/dev/null | sort)
+    fi
+
+    _asgs_complete_words "$profiles"
+}
+
 # -------------------------------------------------------------------
 # build
 # -------------------------------------------------------------------
@@ -109,7 +120,10 @@ _asgs_delete_completion()
     COMPREPLY=()
 
     case "$ASGS_PREV" in
-        adcirc|config|profile|statefile)
+        profile)
+            _asgs_complete_profiles
+            ;;
+        adcirc|config|statefile)
             return 0
             ;;
         *)
@@ -207,7 +221,10 @@ _asgs_load_completion()
     COMPREPLY=()
 
     case "$ASGS_PREV" in
-        adcirc|profile)
+        profile)
+            _asgs_complete_profiles
+            ;;
+        adcirc)
             return 0
             ;;
         *)
