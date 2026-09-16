@@ -281,9 +281,9 @@ env_dispatch() {
  local THIS="platforms.sh>env_dispatch()"
  scenarioMessage "$THIS: Initializing settings for ${HPCENVSHORT}."
  # set default ways to obtain input files on this platform
- MESHURL=${MESHURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/meshes"}
- NODALATTRIBUTESURL=${NODALATTRIBUTESURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/nodal-attributes"}
- LOADTIDEURL=${LOADTIDEURL:-"https://asgs-static-assets.sfo2.digitaloceanspaces.com/tides"}
+ MESHURL=${MESHURL:-"scp://lsu_tds//data/archive/meshes"}
+ NODALATTRIBUTESURL=${NODALATTRIBUTESURL:-"scp://lsu_tds//data/archive/nodal-attributes"}
+ LOADTIDEURL=${LOADTIDEURL:-"scp://lsu_tds//data/archive/tides"}
  # water level obs assimilation
  OFFSETURL=https://asgs-static-assets.sfo2.digitaloceanspaces.com/offsets
  UNITOFFSETFILE=null
