@@ -23,7 +23,7 @@
 STDMESHNAME=$GRIDNAME
 nodes=1578814
 elements=3073019
-GRIDFILE=cpra_2026_hurricane_v03b_chk.grd
+GRIDFILE=cpra_2026_hurricane_v03b_chk.14
 MESHPROPERTIES=CPRA26.properties
 ELEVSTATIONS=combined_stations_20260605.txt
 VELSTATIONS=$ELEVSTATIONS
