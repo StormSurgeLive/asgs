@@ -46,6 +46,7 @@ case $GRIDNAME in
       ;;
    "CPRA25v02a")
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA25
+      ;;
    "CPRA26v03b")
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA26
       ;;
