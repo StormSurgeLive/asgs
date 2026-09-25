@@ -20,29 +20,43 @@
 # along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------------
 #
-THIS=$(basename -- $0)
+THIS=$(basename -- "$0")
 #
 EXIT_SUCCESS=0
 EXIT_ERROR=1
 sendEmail="no"
+MANUAL=0
 declare -A properties
 SCENARIODIR=$PWD
 RUNPROPERTIES=$SCENARIODIR/run.properties
+# Preserve the legacy ASGS calling convention. Hook execution normally
+# supplies no arguments. A single argument may name run.properties; a second
+# argument marks a manual invocation. Historically, additional arguments were
+# ignored, so do not reject them here.
 if [[ $# -eq 1 ]]; then
    RUNPROPERTIES=$1
-   SCENARIODIR=$(dirname $RUNPROPERTIES)
-fi
-if [[ $# -eq 2 ]]; then
+   SCENARIODIR=$(dirname -- "$RUNPROPERTIES")
+elif [[ $# -eq 2 ]]; then
+   RUNPROPERTIES=$1
+   SCENARIODIR=$(dirname -- "$RUNPROPERTIES")
    MANUAL=1   # provide an extra command line argument to execute manually, suggest "manual" or "auto"
 fi
 # this script can be called with just one command line option: the
 # full path to the run.properties file
+if [[ ! -r "$RUNPROPERTIES" ]]; then
+   echo "$THIS: Cannot read run.properties file '$RUNPROPERTIES'." >&2
+   exit $EXIT_ERROR
+fi
 #
 # get loadProperties function
-SCRIPTDIR=$(sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' $RUNPROPERTIES)
-source $SCRIPTDIR/properties.sh
+SCRIPTDIR=$(sed -n 's/[ ^]*$//;s/path.scriptdir\s*:\s*//p' "$RUNPROPERTIES")
+if [[ -z "$SCRIPTDIR" || ! -r "$SCRIPTDIR/properties.sh" ]]; then
+   echo "$THIS: Cannot locate properties.sh from '$RUNPROPERTIES'." >&2
+   exit $EXIT_ERROR
+fi
+source "$SCRIPTDIR/properties.sh"
 # load run.properties file into associative array
-loadProperties $RUNPROPERTIES
+loadProperties "$RUNPROPERTIES"
 # establish ssh log file
 RUNDIR=${properties['path.rundir']}
 SSHLOG=$RUNDIR/ssh.log
@@ -71,7 +85,7 @@ SYSLOG=${properties['monitoring.logging.file.syslog']}
 CYCLELOG=${properties['monitoring.logging.file.cyclelog']}
 SCENARIOLOG=${properties['monitoring.logging.file.scenariolog']}
 #
-source $SCRIPTDIR/monitoring/logging.sh
+source "$SCRIPTDIR/monitoring/logging.sh"
 #
 # the platforms.sh sources ~/.asgsh_profile which may have
 # variables set in it (e.g., OPENDAPNOTIFY) that would override
@@ -79,7 +93,7 @@ source $SCRIPTDIR/monitoring/logging.sh
 # values read from the run.properties file should take
 # precedence.
 rpOPENDAPNOTIFY=$OPENDAPNOTIFY
-source $SCRIPTDIR/platforms.sh
+source "$SCRIPTDIR/platforms.sh"
 OPENDAPNOTIFY=$rpOPENDAPNOTIFY      # restore value from run.properties to prevent override from ~/.asgsh_profile
 #
 #+ vvvvv
@@ -126,12 +140,12 @@ excludeFileList=$(echo ${properties["post.opendap.excludeFiles"]} | tr -d "()")
 IFS=' ' read -r -a FILES_Exclude <<< "$excludeFileList"
 # process excludeFileList
 declare -A excludeLookUp
-for _exclude in ${FILES_Exclude[*]}; do
+for _exclude in "${FILES_Exclude[@]}"; do
   # use md5sum to get a unique hash for the file NAME (not content!) as listed via "post.opendap.files"
   # because the special characters in file names can't be used as keys in bash associative arrays;
   # the hash is prepended with an abitrary string 'MD5' because some hashes begin with an integer,
   # and bash interprets these as array indexes
-  nameHash=MD5$(echo $_exclude | md5sum -t | awk '{print $1}')
+  nameHash=MD5$(printf '%s\n' "$_exclude" | md5sum -t | awk '{print $1}')
   excludeLookUp+=([$nameHash]="$_exclude");
 done
 
@@ -143,7 +157,7 @@ _FILES=( "${FILES_Standard[@]}" "${FILES_Additional[@]}" ) # NOTE: duplicates ar
 # now filter out any files that do not exist
 FILES=()
 sendNotification=
-for _file in ${_FILES[*]}; do
+for _file in "${_FILES[@]}"; do
   # check for 'sendNotification' tracer before `readlink -f` which requires a real file
   if [[ $_file == "sendNotification" ]]; then
     sendNotification=$_file
@@ -151,17 +165,18 @@ for _file in ${_FILES[*]}; do
     continue
   fi
   # skipping file if mdfsum of $_file (before `readlink -f`)
-  _check_md5=MD5$(echo $_file | md5sum -t | awk '{print $1}')
+  _check_md5=MD5$(printf '%s\n' "$_file" | md5sum -t | awk '{print $1}')
   if [[ ${excludeLookUp[$_check_md5]+_} ]]; then
     echo "Skipping $(readlink -f $_file) because it's in postExcludeFiles" >> $SSHLOG 2>&1
     continue
   fi
   # readlink will resolve $_file to a full path
-  _file=$(readlink -f $_file)
-  if [[ -e $_file ]]; then
-    FILES+=($_file)
+  _requested_file=$_file
+  _file=$(readlink -f -- "$_file" 2>/dev/null)
+  if [[ -n "$_file" && -e "$_file" ]]; then
+    FILES+=("$_file")
   else
-    MSG="cycle $CYCLE: $SCENARIO: $THIS: Can't find '$_file', which is listed in in $RUNPROPERTIES."
+    MSG="cycle $CYCLE: $SCENARIO: $THIS: Can't find '$_requested_file', which is listed in $RUNPROPERTIES."
     echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] WARNING: $MSG" >> $SSHLOG
     consoleMessage "$MSG"
   fi
@@ -224,7 +239,7 @@ timeoutRetryLimit=${timeoutRetryLimit:-5} # FIXME: hardcoded to 5; make this mor
 serverAliveInterval=${serverAliveInterval:-10}
 
 sendEmail_orig=$sendEmail
-for server in ${SERVERS[*]}; do
+for server in "${SERVERS[@]}"; do
    if [[ $server = "(" || $server = ")" ]]; then
       continue
    fi
@@ -393,6 +408,77 @@ for server in ${SERVERS[*]}; do
    else
      POSTED_LINK=$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/$OPENDAPINDEX
    fi
+
+   # Selected convenience links for the notification. Do not enumerate the
+   # complete posted file list here.
+   postScenarioStatus=no
+   postHotstart=no
+   for _posted_file in "${FILES[@]}"; do
+      case $(basename -- "$_posted_file") in
+      scenario.status.json)
+         postScenarioStatus=yes
+         ;;
+      fort.68.nc)
+         postHotstart=yes
+         ;;
+      esac
+   done
+
+   # The authenticated THREDDS CLI endpoint mirrors fileServer/dodsC paths.
+   # Build authenticated command examples independently of scenario.status.json
+   # so run.properties always has a usable CLI download command when possible.
+   THREDDSCLIPREFIX=${DOWNLOADPREFIX/\/thredds\/fileServer/\/thredds\/cli}
+   THREDDSCLIPREFIX=${THREDDSCLIPREFIX/\/thredds\/dodsC/\/thredds\/cli}
+   THREDDSCLIKEY="${ASGS_TDS_CLI_KEY:-<ASGS_TDS_CLI_KEY>}"
+
+   cliRunPropertiesText="COMMAND-LINE DOWNLOAD
+---------------------
+wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties"
+   if [[ $THREDDSCLIPREFIX != "$DOWNLOADPREFIX" ]]; then
+      cliRunPropertiesURL="$THREDDSCLIPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties"
+      cliRunPropertiesText="COMMAND-LINE DOWNLOAD
+---------------------
+curl \
+  -H \"X-CLI-Key: $THREDDSCLIKEY\" \
+  -H \"X-Operator-Email: $ASGSADMIN\" \
+  \"$cliRunPropertiesURL\"
+
+wget \
+  --header=\"X-CLI-Key: $THREDDSCLIKEY\" \
+  --header=\"X-Operator-Email: $ASGSADMIN\" \
+  \"$cliRunPropertiesURL\""
+   fi
+
+   scenarioStatusText=""
+   if [[ $postScenarioStatus == yes ]]; then
+      scenarioStatusURL="$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/scenario.status.json"
+      scenarioStatusText="SCENARIO STATUS
+---------------
+The scenario status file is : $scenarioStatusURL"
+   fi
+
+   hotstartText=""
+   if [[ $postHotstart == yes ]]; then
+      hotstartURL="$DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/fort.68.nc"
+      # asgs_main.sh accepts ssh:// LASTSUBDIR URIs. The extra slash before
+      # OPENDAPDIR preserves an absolute remote path when it is converted
+      # internally to scp syntax.
+      LASTSUBDIR_URI="ssh://${OPENDAPHOST}/${OPENDAPDIR}"
+      hotstartText="HOTSTART
+--------
+The ADCIRC hotstart file is : $hotstartURL
+To hotstart ASGS directly from these posted results:
+HOTORCOLD=hotstart
+LASTSUBDIR=$LASTSUBDIR_URI"
+   fi
+
+   optionalNotificationText=""
+   if [[ -n $scenarioStatusText ]]; then
+      optionalNotificationText+=$'\n\n'"$scenarioStatusText"
+   fi
+   if [[ -n $hotstartText ]]; then
+      optionalNotificationText+=$'\n\n'"$hotstartText"
+   fi
    if [[ "$SCENARIO" == "asgs.instance.status" && -s "asgs.instance.status.json" ]]; then
       logfile=`basename $SYSLOG`
       subject="ADCIRC POSTED status of $HPCENV.$INSTANCENAME"
@@ -420,16 +506,11 @@ The results for cycle $CYCLE have been posted to $POSTED_LINK
 
 The run.properties file is : $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
 
-or wget the file with the following command
+$cliRunPropertiesText$optionalNotificationText
 
-wget $DOWNLOADPREFIX/$STORMNAMEPATH/$OPENDAPSUFFIX/run.properties
-
-or download over scp with the following command
-
+SSH/SCP ACCESS
+--------------
 scp $OPENDAPHOST:$OPENDAPDIR/run.properties .
-
-or list contents
-
 ssh $OPENDAPHOST "ls $OPENDAPDIR"
 END
 
@@ -611,7 +692,7 @@ SSHCMD
             fi
          done
       fi
-      for file in ${FILES[*]}; do
+      for file in "${FILES[@]}"; do
          echo "Processing $file (sendEmail? $sendEmail)" >> $SSHLOG 2>&1
          # send opendap posting notification email early if directed
          if [[ $file == "sendNotification" ]]; then
@@ -652,7 +733,7 @@ SSHCMD
             fi
          fi
 
-         chmod +r $file 2>> $SCENARIOLOG
+         chmod +r "$file" 2>> "$SCENARIOLOG"
          MSG="$SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}."
          if [ "$MANUAL" == 1 ]; then
             echo "$MSG"
@@ -669,7 +750,7 @@ SSHCMD
               echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $MSG" >> $SSHLOG
             fi
             unset MSG
-            scp $file ${OPENDAPHOST}:${OPENDAPDIR} >> $SCENARIOLOG 2>&1
+            scp -- "$file" "${OPENDAPHOST}:${OPENDAPDIR}/" >> "$SCENARIOLOG" 2>&1
             if [[ $? != 0 ]]; then
                threddsPostStatus=fail
                MSG="$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -814,7 +895,7 @@ SSHCMD
          # to OPENDAPBASEDIR
          partialPath=`dirname $partialPath`
       done
-      for file in ${FILES[*]}; do
+      for file in "${FILES[@]}"; do
          echo "Processing $file (sendEmail? $sendEmail)" >> $SSHLOG 2>&1
          # send opendap posting notification email early if directed
          if [[ $file = "sendNotification"  && $OPENDAPNOTIFY != "null" && $OPENDAPNOTIFY != "" ]]; then
@@ -836,7 +917,7 @@ SSHCMD
          fi
          chmod +r "$file" 2>> $SYSLOG
          echo "[$(date +'%Y-%h-%d-T%H:%M:%S%z')] $SCENARIO: $_THIS: Transferring $file to ${OPENDAPHOST}:${OPENDAPDIR}." >> $SSHLOG
-         rsync ${rsyncOptions} ./${file} ${OPENDAPHOST}:${OPENDAPDIR} >> $SSHLOG 2>&1
+         rsync ${rsyncOptions} -- "$file" "${OPENDAPHOST}:${OPENDAPDIR}/" >> "$SSHLOG" 2>&1
          if [[ $? != 0 ]]; then
             threddsPostStatus=fail
             MSG="$SCENARIO: $_THIS: Failed to transfer the file $file to ${OPENDAPHOST}:${OPENDAPDIR}."
@@ -876,7 +957,7 @@ SSHCMD
       fi
       unset MSG
       # use asgs sendmail if Operator has set it up
-      cat ${SCENARIODIR}/opendap_results_notify_${server}.txt | asgs-sendmail --subject "$subject" "$OPENDAPNOTIFY" 2>> ${SYSLOG} 2>&1
+      cat "${SCENARIODIR}/opendap_results_notify_${server}.txt" | asgs-sendmail --subject "$subject" --to "$OPENDAPNOTIFY" 2>> "$SYSLOG" 2>&1
       ERR=$?
       if [[ $ERR != $EXIT_SUCCESS ]]; then
         MSG="$_THIS: Failed to send email to '$OPENDAPNOTIFY'"
