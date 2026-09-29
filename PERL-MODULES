@@ -28,3 +28,4 @@ Try::ALRM
 Weather::NHC::TropicalCyclone
 Geo::Ellipsoid
 XML::Writer
+Excel::Writer::XLSX
