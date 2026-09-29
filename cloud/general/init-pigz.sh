@@ -31,9 +31,9 @@ PIGZ_DIR=pigz
 PIGZ_TGZ=${PIGZ_DIR}-${PIGZ_VERSION}.tar.gz
 cd $_ASGS_TMP
 
-#e.g., https://zlib.net/pigz/pigz-2.8.tar.gz
+#e.g., https://www.zlib.net/pigz/pigz-2.8.tar.gz
 if [ ! -e ${PIGZ_TGZ} ]; then
-  wget -4 https://zlib.net/${PIGZ_DIR}/${PIGZ_TGZ}
+  wget -4 https://www.zlib.net/${PIGZ_DIR}/${PIGZ_TGZ}
 fi
 
 rm -rf ./${PIGZ_DIR}-${PIGZ_VERSION} 2> /dev/null

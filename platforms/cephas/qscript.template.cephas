@@ -1,0 +1,322 @@
+#!/bin/bash
+# Cephas ...
+#----------------------------------------------------------------------------
+#                    S L U R M   D I R E C T I V E S
+#----------------------------------------------------------------------------
+
+#SBATCH --job-name="%jobtype%.%scenario%"
+#SBATCH --time=%walltime%
+#SBATCH --partition=%queuename%
+
+[% IF runinfo.parallelism == "serial" -%]
+[%# Preserve the existing ASGS serial-job behavior. -%]
+#SBATCH --ntasks=%ppn%
+#SBATCH --cpus-per-task=1
+
+[% ELSIF runinfo.parallelism == "parallel" -%]
+#SBATCH --ntasks=%totalcpu%
+#SBATCH --ntasks-per-node=%ppn%
+#SBATCH --cpus-per-task=1
+
+# Cephas has 40 physical cores per node, 20 per socket, with SMT disabled.
+# Allocate one MPI rank per physical core.
+#SBATCH --hint=nomultithread
+
+# MPI rank-to-node placement is controlled by SLURM_HOSTFILE and
+# srun --distribution=arbitrary in JOBLAUNCHER.
+# --nodes not specified due to being incompatible with arbitrary distribution
+[% END -%]
+[% IF runinfo.reservation && runinfo.reservation != "null" -%]
+#SBATCH --reservation=%reservation%
+[% END -%]
+[% IF runinfo.constraint && runinfo.constraint != "null" -%]
+#SBATCH --constraint=%constraint%
+[% END -%]
+[% IF runinfo.account && runinfo.account != "null" -%]
+#SBATCH --account=%account%
+[% END -%]
+[% IF runinfo.qos && runinfo.qos != "null" -%]
+#SBATCH --qos=%qos%
+[% END -%]
+
+#SBATCH --output=%advisdir%/%scenario%/%jobtype%.out
+#SBATCH --mail-type=FAIL,TIME_LIMIT
+#SBATCH --mail-user=%notifyuser%
+echo "------------------------------------------------------------------------"
+#
+#----------------------------------------------------------------------------
+#  I N I T I A L I Z E   D I R E C T O R Y   A N D   F I L E   N A M E S
+#----------------------------------------------------------------------------
+THIS=%jobtype%.%queuesyslc%  # name of this script for use in log messages
+SCRIPTDIR=%scriptdir%
+SYSLOG=%syslog%
+CYCLEDIR=%advisdir%
+CYCLE=$(basename %advisdir%)
+CYCLELOG=$CYCLEDIR/cycle.log
+SCENARIO=%scenario%
+SCENARIODIR=$CYCLEDIR/$SCENARIO
+SCENARIOLOG=$SCENARIODIR/scenario.log
+#
+cd $SCENARIODIR 2> >(awk -v this=$THIS -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk | tee -a $SYSLOG | tee -a $CYCLELOG | tee -a $SCENARIOLOG )
+#
+#----------------------------------------------------------------------------
+#        L O G   M E S S A G E S   T O   S T A R T   T H E   J O B
+#----------------------------------------------------------------------------
+echo "Starting in $SCENARIODIR with %queuesys% Job ID ${%JOBID%}; %queuesys% submit directory ${%JOBDIR%}; and %queuesys% submit host ${%JOBHOST%}."  2>&1 | awk -v this=$THIS -v level=INFO -f $SCRIPTDIR/monitoring/timestamp.awk | tee --append $SCENARIOLOG | tee --append $CYCLELOG | tee --append $SYSLOG
+
+# record which cluster nodes we have to scenario.log
+echo "INFO: $THIS: %JOBNODES%: $%JOBNODES%"   #QUEUEONLY
+echo "INFO: $THIS: hostname: "$(hostname)
+echo "INFO: $THIS: PATH : $PATH"
+echo "INFO: $THIS: LD_LIBRARY_PATH : $LD_LIBRARY_PATH"
+#
+#----------------------------------------------------------------------------
+#               W R I T E   J O B   P R O P E R T I E S
+#----------------------------------------------------------------------------
+#
+# add a serial number to the properties file for use in disambiguation,
+# indexing, and searching results
+jobtype="%jobtype%"
+if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+   echo "asgs.serialnumber : $(od -An -N2 -tx1 /dev/urandom | tr -d ' \n')-$RANDOM-$(date +%s%N)" >> run.properties
+fi
+# associate/record adcirc build information
+if [[ -e "%adcircdir%/../adcirc.bin.buildinfo.json" && ! -e "adcirc.bin.buildinfo.json" ]]; then
+   cp "%adcircdir%/../adcirc.bin.buildinfo.json" . 2>> $SYSLOG
+   echo "adcirc.file.metadata.build : adcirc.bin.buildinfo.json" >> run.properties
+fi
+# properties specific to the hpc
+echo "time.hpc.job.%jobtype%.start : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.jobid : ${%JOBID%}" >> $SCENARIO.run.properties
+echo "hpc.job.%jobtype%.nodelist : ( %JOBNODES% )" >> $SCENARIO.run.properties                #QUEUEONLY
+echo "hpc.job.%jobtype%.hostname : $HOSTNAME" >> $SCENARIO.run.properties                     #QUEUEONLY
+echo "hpc.job.%jobtype%.qnnodes : $%JOBNNODES%" >> $SCENARIO.run.properties                   #QUEUEONLY
+echo "hpc.job.%jobtype%.qntasks-per-node : $%JOBNTASKSPERNODE%" >> $SCENARIO.run.properties   #QUEUEONLY
+echo "hpc.job.%jobtype%.qntasks : $%JOBNTASKS%" >> $SCENARIO.run.properties                   #QUEUEONLY
+echo "hpc.job.%jobtype%.joblog : %advisdir%/%scenario%/%jobtype%.out" >> $SCENARIO.run.properties #QUEUEONLY
+#
+#----------------------------------------------------------------------------
+#              L A Y E R   S P E C I F I C A T I O N
+#----------------------------------------------------------------------------
+#
+createWind10mLayer="%wind10mlayer%"
+declare -a layers=( $SCENARIO )
+if [[ $createWind10mLayer == "yes" && $jobtype != "partmesh" && $jobtype != "prep20" && $jobtype != "prep13" ]]; then
+   layers=( wind10m ${layers[@]} )
+fi
+#
+#----------------------------------------------------------------------------
+#                 L O O P   O V E R   L A Y E R S
+#----------------------------------------------------------------------------
+#
+# monitorJobs() treats $jobtype.$SCENARIO.run.finish as authoritative. Defer
+# that marker until layer output has been renamed and the final unprefixed
+# NetCDF links have been recreated.
+shopt -s nullglob
+
+reportLayerStatus()
+{
+   local reportLayer=$1
+   local reportErrorValue=$2
+   local reportQualityCheck=$3
+   local reportRunSuffix=$4
+   local reportErrorMsg=$5
+   local statusTime
+
+   statusTime=$(date +'%Y-%h-%d-T%H:%M:%S%z')
+   if [[ $reportErrorValue -ne 0 || $reportQualityCheck -ne 0 ]]; then
+      echo "cycle $CYCLE: $SCENARIO: $THIS: $reportErrorMsg" 2>&1 | awk -v this=$THIS -v level=ERROR -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG" | tee --append "$CYCLELOG" | tee --append "$SYSLOG"
+      echo "\"$reportRunSuffix\" : \"$statusTime\", \"message\" : \"$reportErrorMsg\"" > "$jobtype.${reportLayer}.run.${reportRunSuffix}"  # <-OVERWRITE
+      echo "\"jobtype\" : \"$jobtype.$reportLayer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : null, \"error\" : \"$statusTime\"" >> jobs.status
+   else
+      echo "\"jobtype\" : \"$jobtype.$reportLayer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : null, \"finish\" : \"$statusTime\", \"error\" : null" >> jobs.status
+      echo "\"$reportRunSuffix\" : \"$statusTime\"" > "$jobtype.${reportLayer}.run.${reportRunSuffix}"
+   fi
+   echo "time.hpc.job.$jobtype.$reportLayer.${reportRunSuffix} : $statusTime" >> "$SCENARIO.run.properties"
+}
+
+scenarioStatusPending=no
+scenarioErrorValue=0
+scenarioErrorMsg=""
+scenarioRunSuffix="finish"
+scenarioQualityCheck=0
+
+for layer in "${layers[@]}"; do
+   if [[ -e "fort.15" || -L "fort.15" ]]; then
+      rm -f -- fort.15 2>> "$SCENARIOLOG"
+   fi
+   ln -s -- "${layer}.fort.15" fort.15 2>> "$SCENARIOLOG"
+   echo "Symbolically linking target '${layer}.fort.15' to name 'fort.15'."
+   # if this is not a prep job, untar the corresponding fort.15 files
+   # and link to the proper meteorological output files
+   if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+      # unpack subdomain fort.15 files for use in generating the layer
+      tar xvf "${layer}.fort.15.tar" 2>> "$SCENARIOLOG" 2>&1
+      # link to empty netcdf meteorological output files created in prep phase
+      layerFiles=( "${layer}".fort.7*.nc "${layer}".maxwvel*.nc "${layer}".minpr*.nc )
+      for layerFile in "${layerFiles[@]}"; do
+         linkName=${layerFile#${layer}.}
+         if [[ -e $linkName || -L $linkName ]]; then
+            rm -f -- "$linkName" 2>> "$SCENARIOLOG"
+         fi
+         ln -s -- "$layerFile" "$linkName" 2>> "$SCENARIOLOG"
+         echo "Symbolically linking target '$layerFile' to name '$linkName'."
+      done
+   fi
+   #
+   #       E X E C U T E   T H E   J O B
+   #
+   CMD="%cmd%"
+   if [[ $layer == "wind10m" || $SCENARIO == *"Wind10m" ]]; then
+      # the met only mode should not be run with the SWAN wave coupled executable
+      CMD=$(echo "$CMD" | sed 's?adcswan ?adcirc ?')
+   fi
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ${%JOBID%} starting in $SCENARIODIR with the following command: $CMD" 2>&1 | awk -v level=INFO -v this=$THIS -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG" | tee --append "$CYCLELOG" | tee --append "$SYSLOG"
+   echo "\"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"${%JOBID%}\"" > "$jobtype.${layer}.run.start" # <-OVERWRITE
+   echo "\"jobtype\" : \"$jobtype.$layer\", \"submit\" : null, \"jobid\" : \"${%JOBID%}\", \"start\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"finish\" : null, \"error\" : null" >> jobs.status
+   $CMD
+   ERROVALUE=$?  # capture exit status
+   #
+   #       C H E C K   S T A T U S   A N D   Q U A L I T Y   O F   R E S U L T S
+   #
+   ERROMSG=""
+   RUNSUFFIX="finish"
+   qualityCheck=0
+   if [[ $ERROVALUE -eq 0 ]]; then
+      if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+         # look for numerical instability errors in the stdout/stderr files
+         for file in adcirc.log "$SCENARIOLOG"; do
+            if [[ -e $file ]]; then
+               numMsg=$(grep WarnElev "$file" | wc -l)
+               if [[ $numMsg -eq 0 ]]; then
+                  echo "cycle $CYCLE: $SCENARIO: No numerical instability detected in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'." 2>&1 | awk -v level=INFO -v this=$THIS -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG"
+               else
+                  ERROVALUE=1
+                  ERROMSG="$ERROMSG Detected '$numMsg' numerical instability messages in '$file' after completion of '$jobtype.$layer' job '${%JOBID%}'. "
+                  RUNSUFFIX="error"
+               fi
+            fi
+         done
+      fi
+   else
+      ERROMSG="$ERROMSG The $jobtype.$layer job ended with an exit status that indicates an error occurred. "
+      RUNSUFFIX="error"
+   fi
+   #
+   # archive the subdomain fort.16 log files and adcirc.log file
+   if [[ ${jobtype:0:4} != "prep" && $jobtype != "partmesh" ]]; then
+      tar czf "${layer}.fort.16.tar.gz" ./PE*/fort.16 1> tar.log 2>> "$SCENARIOLOG"
+      cp adcirc.log "${layer}.adcirc.log" 2>> "$SCENARIOLOG"
+   fi
+   #
+   echo "cycle $CYCLE: $SCENARIO: $jobtype.$layer job ID '${%JOBID%}' finished in $SCENARIODIR with return value = $ERROVALUE" 2>&1 | awk -v level=INFO -v this=$THIS -f "$SCRIPTDIR/monitoring/timestamp.awk" | tee --append "$SCENARIOLOG" | tee --append "$CYCLELOG" | tee --append "$SYSLOG"
+   #
+   # Finalize this layer's output before publishing its status marker.
+   if [[ $jobtype == "prepall" || $jobtype == "prep15" ]]; then
+      if ! tar cvf "${layer}.fort.15.tar" PE*/fort.15 2>> "$SYSLOG" 2>&1; then
+         ERROVALUE=1
+         RUNSUFFIX="error"
+         ERROMSG="$ERROMSG Failed to archive the subdomain fort.15 files for layer '$layer'. "
+      fi
+      peFort15Files=( PE*/fort.15 )
+      if [[ ${#peFort15Files[@]} -gt 0 ]]; then
+         if ! rm -f -- "${peFort15Files[@]}" 2>> "$SYSLOG"; then
+            ERROVALUE=1
+            RUNSUFFIX="error"
+            ERROMSG="$ERROMSG Failed to remove the unpacked subdomain fort.15 files for layer '$layer'. "
+         fi
+      fi
+      layerOutputFiles=( fort.7*.nc maxwvel*.nc minpr*.nc )
+   else
+      # this is a model run; ascii output files are created at run time
+      # and must be copied to their layer-based file names
+      layerOutputFiles=( fort.7? maxwvel.63 minpr.63 )
+   fi
+   for f in "${layerOutputFiles[@]}"; do
+      # maxwvel.63 and minpr.63 are literal optional names rather than globs.
+      # Match the previous ls-based behavior by skipping either when absent.
+      if [[ ! -e $f && ! -L $f ]]; then
+         continue
+      fi
+      echo "Renaming '$f' to '${layer}.$f'."
+      if ! mv -- "$f" "${layer}.$f"; then
+         ERROVALUE=1
+         RUNSUFFIX="error"
+         ERROMSG="$ERROMSG Failed to rename '$f' to '${layer}.$f'. "
+      fi
+   done
+   #
+   # monitorJobs() watches the main scenario marker, so defer that layer's
+   # status until the final unprefixed links have been restored below.
+   if [[ $layer == "$SCENARIO" ]]; then
+      scenarioStatusPending=yes
+      scenarioErrorValue=$ERROVALUE
+      scenarioErrorMsg=$ERROMSG
+      scenarioRunSuffix=$RUNSUFFIX
+      scenarioQualityCheck=$qualityCheck
+   else
+      reportLayerStatus "$layer" "$ERROVALUE" "$qualityCheck" "$RUNSUFFIX" "$ERROMSG"
+   fi
+   echo "-----------------------------------------------------------------------"
+done
+#
+# Finalize by setting the symbolic links for the fort.15 file and
+# the meteorology output files to the full output
+# (i.e., those that include wind reduction).
+#
+# The $jobtype.$SCENARIO.run.finish marker is deliberately written only after
+# this section completes, so quality control cannot begin while fort.74.nc,
+# maxwvel.63.nc, or the other unprefixed links are being replaced.
+if [[ -e "fort.15" || -L "fort.15" ]]; then
+   if ! rm -f -- fort.15 2>> "$SCENARIOLOG"; then
+      scenarioErrorValue=1
+      scenarioRunSuffix="error"
+      scenarioErrorMsg="$scenarioErrorMsg Failed to remove the temporary fort.15 link. "
+   fi
+fi
+if ! ln -s -- "$SCENARIO.fort.15" fort.15 2>> "$SCENARIOLOG"; then
+   scenarioErrorValue=1
+   scenarioRunSuffix="error"
+   scenarioErrorMsg="$scenarioErrorMsg Failed to link '$SCENARIO.fort.15' to 'fort.15'. "
+else
+   echo "Symbolically linking target '$SCENARIO.fort.15' to name 'fort.15'."
+fi
+
+# Remove temporary unprefixed NetCDF symbolic links, if any.
+netcdfLinks=( fort.7*.nc maxwvel*.nc minpr*.nc )
+for file in "${netcdfLinks[@]}"; do
+   if [[ -L $file ]]; then
+      if ! rm -f -- "$file" 2>> "$SCENARIOLOG"; then
+         scenarioErrorValue=1
+         scenarioRunSuffix="error"
+         scenarioErrorMsg="$scenarioErrorMsg Failed to remove the temporary NetCDF link '$file'. "
+      fi
+   fi
+done
+
+# Link nowcast.fort.74.nc -> fort.74.nc, etc.
+scenarioMetFiles=( "${SCENARIO}".fort.7* "${SCENARIO}".maxwvel* "${SCENARIO}".minpr* )
+for file in "${scenarioMetFiles[@]}"; do
+   linkName=${file#${SCENARIO}.}
+   if [[ -e $linkName || -L $linkName ]]; then
+      scenarioErrorValue=1
+      scenarioRunSuffix="error"
+      scenarioErrorMsg="$scenarioErrorMsg Cannot create final NetCDF link '$linkName' because that path already exists. "
+      continue
+   fi
+   if ! ln -s -- "$file" "$linkName" 2>> "$SCENARIOLOG"; then
+      scenarioErrorValue=1
+      scenarioRunSuffix="error"
+      scenarioErrorMsg="$scenarioErrorMsg Failed to link '$file' to '$linkName'. "
+   else
+      echo "Symbolically linking target '$file' to name '$linkName'."
+   fi
+done
+#
+# Publish the main scenario status only after all output finalization is done.
+if [[ $scenarioStatusPending == "yes" ]]; then
+   reportLayerStatus "$SCENARIO" "$scenarioErrorValue" "$scenarioQualityCheck" "$scenarioRunSuffix" "$scenarioErrorMsg"
+else
+   reportLayerStatus "$SCENARIO" 1 0 error "The main scenario status was not recorded before output finalization."
+fi
+
