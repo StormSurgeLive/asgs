@@ -3,7 +3,7 @@
 # mesh_defaults.sh : Functions required for initializing
 # parameters that are mesh dependent.
 #----------------------------------------------------------------
-# Copyright(C) 2019--2025 Jason Fleming
+# Copyright(C) 2019--2026 Jason Fleming
 #
 # This file is part of the ADCIRC Surge Guidance System (ASGS).
 #
@@ -46,6 +46,9 @@ case $GRIDNAME in
       ;;
    "CPRA25v02a")
       INPUTDIR=$SCRIPTDIR/input/meshes/CPRA25
+      ;;
+   "CPRA26v03b")
+      INPUTDIR=$SCRIPTDIR/input/meshes/CPRA26
       ;;
    "AGT")
       # adcirc-global-test mesh, from ADCIRC test suite repository
