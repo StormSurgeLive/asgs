@@ -27,45 +27,57 @@ use warnings;
 
 use Email::Sender::Simple qw(sendmail);     # main email capability (receives TLS obj)
 use Email::Sender::Transport::SMTP::TLS;    # creates transport object
-use Email::Simple::Creator;                 # generates message itself (converts header and body from hash to text email)
-use Config::Tiny;                           # reads ini format ... converts to a perl hash
+use Email::Simple::Creator;                 # generates message itself
 use Try::Tiny;                              # exception handling (alternative to eval)
 use POSIX qw/strftime/;
-use Getopt::Long;
-use Util::H2O::More qw/h2o ini2h2o/;
+use Getopt::Long qw/GetOptionsFromArray/;
+use MIME::Base64 qw/encode_base64/;
+use File::Basename qw/basename/;
+use Util::H2O::More qw/h2o ini2h2o opt2h2o/;
+
 use constant EXIT_SUCCESS => 0;
 
-my $subject     = q{no subject};
-my $HOME        = ( getpwuid($<) )[7];
-my $config_file = qq{$HOME/asgs-global.conf};
+my $HOME = ( getpwuid($<) )[7];
 
-# $logfile default, assumes asgsh env, which has $SCRIPTDIR defined
-# so ideal default $logfile is /path/to/asgs/mail.log
-my $logfile = sprintf( qq{%s/mail.log}, $ENV{SCRIPTDIR} // $HOME );
-my $to;
+my @opt_spec = qw/
+    config|c=s
+    help|h
+    logfile|l=s
+    subject|s=s
+    to|t=s
+    attach|a=s@
+/;
 
-GetOptions(
-    "c|config=s"  => \$config_file,
-    "h|help"      => \&show_help,
-    "l|logfile=s" => \$logfile,
-    "s|subject=s" => \$subject,
-    "t|to=s"      => \$to,
-);
+my $opts = h2o {
+    config  => qq{$HOME/asgs-global.conf},
+    logfile => sprintf( qq{%s/mail.log}, $ENV{SCRIPTDIR} // $HOME ),
+    subject => q{no subject},
+    attach  => [],
+}, opt2h2o(@opt_spec);
+
+GetOptionsFromArray( \@ARGV, $opts, @opt_spec )
+    or die qq{invalid command line options; use --help\n};
+
+show_help() if $opts->help;
 
 # verify recipient email has been set via --to
-die qq{a recipient is required to be defined via --to\n} unless defined $to;
+die qq{a recipient is required to be defined via --to\n}
+    unless defined $opts->to;
 
-# make sure that $to is a comma delimited list of email addresses, accept a
-# space delimted list, but reform it to use commas
+# Accept either comma- or whitespace-delimited recipient lists and normalize
+# them to a comma-delimited string for the message header.
+my @to = grep { length } split /[\s,]+/, $opts->to;
+die qq{at least one recipient is required via --to\n} unless @to;
+$opts->to( join q{,}, @to );
 
-$to =~ s/,/ /g;             # turn all commas to spaces
-$to =~ s/ +/ /g;            # reduce all contiguous spaces of 2 or more, down to 1 space
-my @to = split / /, $to;    # split on single space
-$to = join q{,}, @to;       # recreate list of email addresses and delimit them by commas
+validate_header_value( q{subject}, $opts->subject );
+validate_header_value( q{to},      $opts->to );
 
-exit run();
+exit run($opts);
 
 sub run {
+    my $opts = shift;
+
     my @content = <STDIN>;
     my $content;
     if (@content) {
@@ -78,13 +90,53 @@ sub run {
         $content = q{empty message};
     }
 
-    my $config = ini2h2o $config_file;
+    my $config_file = $opts->config;
+
+    die qq{configuration file '$config_file' does not exist\n}
+        unless -e $config_file;
+    die qq{configuration file '$config_file' is not readable\n}
+        unless -r $config_file;
+
+    my $config = try {
+        ini2h2o $config_file;
+    }
+    catch {
+        die qq{unable to read configuration '$config_file': $_};
+    };
+
+    for my $field (qw/smtp_host smtp_username smtp_password from_address/) {
+        my $value = $config->email->$field;
+        die qq{missing required email configuration '$field'\n}
+            unless defined $value && length $value;
+    }
+
+    my $reply_to =
+           $config->email->reply_to_address
+        // $config->email->mail_reply_to
+        // $config->email->from_address;
+
+    validate_header_value( q{from_address},     $config->email->from_address );
+    validate_header_value( q{reply_to_address}, $reply_to );
+
+    validate_attachments( $opts->attach );
+
+    # check for subjects > 120 characters; longer subjects have historically
+    # proven less reliable for delivery in ASGS deployments
+    if ( length $opts->subject > 120 ) {
+        warn qq{(asgs-sendmail) WARNING: Length of --subject is > 120 characters, truncating ...\n};
+        $opts->subject( substr $opts->subject, 0, 120 );
+    }
 
     # create log message
-    my $logmsg = sprintf( qq{subject: "%s", to: "%s"}, $subject, $to );
+    my $logmsg = sprintf(
+        qq{subject: "%s", to: "%s", attachments: %d},
+        $opts->subject,
+        $opts->to,
+        scalar @{ $opts->attach },
+    );
 
     # WAL
-    logger( type => q{WAL}, file => $logfile, msg => $logmsg );
+    logger( type => q{WAL}, file => $opts->logfile, msg => $logmsg );
 
     my $transport = try {
         Email::Sender::Transport::SMTP::TLS->new(
@@ -96,52 +148,288 @@ sub run {
         );
     }
     catch {
-        logger( $logfile, qq{(FAILED) $logmsg - $_} );
-        logger( type => q{FAILED}, file => $logfile, msg => qq{$logmsg - $_} );
+        logger(
+            type => q{FAILED},
+            file => $opts->logfile,
+            msg  => qq{$logmsg - $_},
+        );
         die "Error sending email: $_";
     };
 
-    # check for subjects > 78 characters, which is the max line length according to the
-    # email RFC
-    if ( length $subject > 120 ) {
-        warn qq{(asgs-sendmail) WARNING: Length of --subject is > 120 characters, truncating ...\n};
-        $subject = substr $subject, 0, 120;
-    }
-
-    my $message = Email::Simple->create(
-        header => [
-            'Reply-To' => $config->email->reply_to_address // $config->email->from_address,
-            From       => $config->email->from_address,
-            To         => $to,
-            Subject    => $subject,
-        ],
-        body => $content,
+    my $message = create_message(
+        content     => $content,
+        config      => $config,
+        reply_to    => $reply_to,
+        to          => $opts->to,
+        subject     => $opts->subject,
+        attachments => $opts->attach,
     );
 
     try {
         sendmail( $message, { transport => $transport } );
-        logger( type => q{OK}, file => $logfile, msg => $logmsg );
+        logger( type => q{OK}, file => $opts->logfile, msg => $logmsg );
     }
     catch {
-        logger( type => q{FAIL}, file => $logfile, msg => qq{$logmsg - $_} );
+        logger(
+            type => q{FAIL},
+            file => $opts->logfile,
+            msg  => qq{$logmsg - $_},
+        );
         die "Error sending email: $_";
     };
+
     return EXIT_SUCCESS;
 }
 
+sub create_message {
+    my %args = @_;
+
+    my @headers = (
+        'Reply-To' => $args{reply_to},
+        From       => $args{config}->email->from_address,
+        To         => $args{to},
+        Subject    => $args{subject},
+    );
+
+    # Preserve the original, simple text/plain message path when no
+    # attachments were requested.
+    unless ( @{ $args{attachments} } ) {
+        return Email::Simple->create(
+            header => \@headers,
+            body   => $args{content},
+        );
+    }
+
+    my $boundary = sprintf(
+        q{=_ASGS_%d_%d_%09d},
+        time,
+        $$,
+        int( rand 1_000_000_000 ),
+    );
+
+    my $body = build_multipart_body(
+        $boundary,
+        $args{content},
+        $args{attachments},
+    );
+
+    return Email::Simple->create(
+        header => [
+            @headers,
+            'MIME-Version' => '1.0',
+            'Content-Type' => qq{multipart/mixed; boundary="$boundary"},
+        ],
+        body => $body,
+    );
+}
+
+sub build_multipart_body {
+    my ( $boundary, $content, $attachments ) = @_;
+
+    # SMTP/MIME uses CRLF line endings. The message body remains plain text;
+    # only the outer container becomes multipart/mixed when files are attached.
+    $content =~ s/\r\n/\n/g;
+    $content =~ s/\r/\n/g;
+    $content =~ s/\n/\r\n/g;
+
+    my $body = join q{},
+        qq{--$boundary\r\n},
+        qq{Content-Type: text/plain; charset=UTF-8\r\n},
+        qq{Content-Transfer-Encoding: 8bit\r\n},
+        qq{\r\n},
+        $content,
+        ( $content =~ /\r\n\z/ ? q{} : qq{\r\n} );
+
+    for my $file ( @{$attachments} ) {
+        my $filename = attachment_filename($file);
+        my $mime_type = content_type_for( $file, $filename );
+
+        open my $fh, q{<}, $file
+            or die qq{cannot open attachment '$file': $!\n};
+        binmode $fh;
+
+        local $/;
+        my $data = <$fh>;
+        $data = q{} unless defined $data;
+
+        close $fh
+            or die qq{cannot close attachment '$file': $!\n};
+
+        my $encoded = encode_base64($data);
+        $encoded =~ s/\r?\n/\r\n/g;
+
+        $body .= join q{},
+            qq{--$boundary\r\n},
+            qq{Content-Type: $mime_type; name="$filename"\r\n},
+            qq{Content-Transfer-Encoding: base64\r\n},
+            qq{Content-Disposition: attachment; filename="$filename"\r\n},
+            qq{\r\n},
+            $encoded,
+            ( $encoded =~ /\r\n\z/ ? q{} : qq{\r\n} );
+    }
+
+    $body .= qq{--$boundary--\r\n};
+
+    return $body;
+}
+
+sub validate_attachments {
+    my $attachments = shift;
+
+    for my $file ( @{$attachments} ) {
+        die qq{attachment '$file' does not exist\n}
+            unless -e $file;
+        die qq{attachment '$file' is not a regular file\n}
+            unless -f $file;
+        die qq{attachment '$file' is not readable\n}
+            unless -r $file;
+
+        # basename() is what will be exposed in MIME headers; validate it now.
+        attachment_filename($file);
+    }
+
+    return;
+}
+
+sub attachment_filename {
+    my $file = shift;
+    my $filename = basename($file);
+
+    die qq{attachment '$file' has an invalid filename\n}
+        if !length($filename) || $filename =~ /[\x00-\x1f\x7f]/;
+
+    # Quoted MIME parameter values permit backslash escaping.
+    $filename =~ s/\\/\\\\/g;
+    $filename =~ s/"/\\"/g;
+
+    return $filename;
+}
+
+sub content_type_for {
+    my ( $file, $filename ) = @_;
+
+    my %type_for_extension = (
+        # images
+        jpg        => q{image/jpeg},
+        jpeg       => q{image/jpeg},
+        png        => q{image/png},
+        gif        => q{image/gif},
+        webp       => q{image/webp},
+        svg        => q{image/svg+xml},
+
+        # documents and structured text
+        pdf        => q{application/pdf},
+        json       => q{application/json},
+        xml        => q{application/xml},
+        csv        => q{text/csv},
+        html       => q{text/html},
+        htm        => q{text/html},
+
+        # common text/configuration files
+        txt        => q{text/plain},
+        log        => q{text/plain},
+        dat        => q{text/plain},
+        properties => q{text/plain},
+        cfg        => q{text/plain},
+        conf       => q{text/plain},
+        ini        => q{text/plain},
+
+        # scientific data
+        nc         => q{application/x-netcdf},
+        h5         => q{application/x-hdf5},
+        hdf5       => q{application/x-hdf5},
+
+        # archives and compression
+        zip        => q{application/zip},
+        gz         => q{application/gzip},
+        tgz        => q{application/gzip},
+        tar        => q{application/x-tar},
+        bz2        => q{application/x-bzip2},
+        xz         => q{application/x-xz},
+
+        # geospatial
+        kml        => q{application/vnd.google-earth.kml+xml},
+        kmz        => q{application/vnd.google-earth.kmz},
+
+        # scripts/source commonly attached during ASGS debugging
+        sh         => q{text/x-shellscript},
+        bash       => q{text/x-shellscript},
+        pl         => q{text/x-perl},
+        pm         => q{text/x-perl},
+    );
+
+    if ( $filename =~ /\.([^.]+)\z/ ) {
+        my $extension = lc $1;
+        return $type_for_extension{$extension}
+            if exists $type_for_extension{$extension};
+    }
+
+    # ADCIRC files commonly use numeric suffixes (fort.14, fort.22,
+    # fort.63, fort.67, fort.68, maxele.63, etc.) rather than conventional
+    # extensions. Some are text and some may be binary, depending on the
+    # product and build/runtime options, so inspect a small sample.
+    if ( $filename =~ /\.\d+\z/ ) {
+        return looks_like_text($file)
+            ? q{text/plain}
+            : q{application/octet-stream};
+    }
+
+    return q{application/octet-stream};
+}
+
+sub looks_like_text {
+    my $file = shift;
+
+    open my $fh, q{<}, $file or return 0;
+    binmode $fh;
+
+    my $buffer = q{};
+    my $bytes = read $fh, $buffer, 8192;
+    close $fh;
+
+    return 0 unless defined $bytes;
+    return 1 if $bytes == 0;
+    return 0 if $buffer =~ /\x00/;
+
+    my $bad = () = $buffer =~ /[^\x09\x0a\x0d\x20-\x7e]/g;
+
+    return $bad < ( length($buffer) * 0.02 );
+}
+
+sub validate_header_value {
+    my ( $name, $value ) = @_;
+
+    die qq{$name contains an invalid newline\n}
+        if defined $value && $value =~ /[\r\n]/;
+
+    return $value;
+}
+
 sub show_help {
-    print qq{$0 --subject "subject line" --to recipient\@email.tdl < body.txt\n};
+    print qq{$0 --subject "subject line" --to recipient\@email.tld [--attach file] < body.txt\n};
     exit EXIT_SUCCESS;
 }
 
 sub logger {
     my %opts = @_;
     my $opts = h2o \%opts;    # make accessors
-    if ( open my $fh, q{>>}, $opts->file ) {
+    my $file = $opts->file;
+
+    if ( open my $fh, q{>>}, $file ) {
         my $timestamp = strftime( "%a %b %e %H:%M:%S %Y UTC", gmtime(time) );
-        printf $fh qq{%06d (%4s) [%s] %s\n}, $$, $opts->type, $timestamp, $opts->msg;
-        close $fh;
+        printf $fh qq{%06d (%4s) [%s] %s\n},
+            $$,
+            $opts->type,
+            $timestamp,
+            $opts->msg;
+
+        warn qq{asgs-sendmail: could not close log '$file': $!\n}
+            unless close $fh;
+
+        return;
     }
+
+    warn qq{asgs-sendmail: could not open log '$file': $!\n};
 }
 
 1;
@@ -150,30 +438,44 @@ __END__
 
 =head1 NAME
 
-  asgs-sendmail.pl
+asgs-sendmail - send ASGS notification email through an external SMTP server
 
-=head1 USAGE 
+=head1 SYNOPSIS
 
   # piped STDIN
-  cat body.txt | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld
-  some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld
+  cat body.txt | asgs-sendmail --subject "subject line" --to recipient@email.tld
 
-  # directed file contents in using '<', typical unix syntax
-  asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to recipient@email.tld < body.txt
+  some-utility | asgs-sendmail \
+      --subject "subject line" \
+      --to recipient@email.tld
 
-=head2 Multiple Recipients
+  # directed file contents using '<', typical Unix syntax
+  asgs-sendmail \
+      --subject "subject line" \
+      --to recipient@email.tld \
+      < body.txt
 
-The C<--to> options accepts a comma delimited list of email addresses:
-
-  some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to "recipient1@email.tld, recipient2@email.tld, ..., recipientN@email.tld"
-
-A list of email addresses that are separated by spaces (like the actual sendmail utility) is also supported
-
-  some-utility | asgs-sendmail.pl [-c override/default/conf] --subject "subject line" --to "recipient1@email.tld recipient2@email.tld ... recipientN@email.tld"
+  # attach one or more files
+  asgs-sendmail \
+      --subject "ASGS forecast products" \
+      --to "$ASGSADMIN" \
+      --attach scenario.status.json \
+      --attach maxele.63.png \
+      --attach fort.68.nc \
+      < notification.txt
 
 =head1 DESCRIPTION
 
-This utility is used to send emails using an external SMTP server.
+C<asgs-sendmail> sends ASGS notification email through an external SMTP
+server.
+
+The message body is plain text and is read from STDIN. When one or more
+C<--attach> options are supplied, the utility constructs a
+C<multipart/mixed> MIME message and base64-encodes each attachment. This
+attachment support does not require C<Email::MIME>.
+
+When no attachments are supplied, the original simple plain-text message path
+is retained.
 
 =head1 OPTIONS
 
@@ -183,7 +485,14 @@ This utility is used to send emails using an external SMTP server.
 
 =item C<-t|--to>
 
-One or more recipients must be defined. If more than one, pass in as a comma delimted string. See perldoc for more information (POD at the end of this file).
+One or more recipients must be defined. If more than one is supplied, the
+addresses may be comma- or whitespace-delimited.
+
+Examples:
+
+  --to recipient@example.org
+  --to "one@example.org,two@example.org"
+  --to "one@example.org two@example.org"
 
 =back
 
@@ -191,44 +500,134 @@ One or more recipients must be defined. If more than one, pass in as a comma del
 
 =over 4
 
+=item C<-a|--attach path/to/file>
+
+Attach a file to the message. This option may be specified more than once.
+
+  --attach scenario.status.json \
+  --attach run.properties \
+  --attach maxele.63.png
+
+The attachment must exist, be a regular file, and be readable.
+
+Attachment contents are base64-encoded. The MIME type is selected from the
+filename for common ASGS and scientific formats. Supported types include:
+
+  Images:
+    .jpg .jpeg .png .gif .webp .svg
+
+  Documents and structured text:
+    .pdf .json .xml .csv .html .htm
+
+  Plain text and configuration:
+    .txt .log .dat .properties .cfg .conf .ini
+
+  Scientific data:
+    .nc .h5 .hdf5
+
+  Archives and compressed files:
+    .zip .gz .tgz .tar .bz2 .xz
+
+  Geospatial:
+    .kml .kmz
+
+  Source and scripts:
+    .sh .bash .pl .pm
+
+ADCIRC products with numeric suffixes, such as C<fort.14>, C<fort.22>,
+C<fort.63>, C<fort.67>, C<fort.68>, and C<maxele.63>, are sampled to
+determine whether they are text. Text-like files are sent as C<text/plain>;
+otherwise they are sent as C<application/octet-stream>.
+
+Unknown attachment types are sent as C<application/octet-stream>.
+
 =item C<-c|--config path/to/config.file>
 
-Define a non-default configuration file. See below for the format involved in creating the configuration file used by this script.
+Define a non-default configuration file. See L</CONFIGURATION> for the format
+used by this script.
+
+=item C<-h|--help>
+
+Print a short usage line and exit.
 
 =item C<-l|--logfile path/to/log.file>
 
-Specifies a log file; assumes C<ASGS Shell Environment>, thus it
-defaults to C<$ENV{SCRIPTDIR}/mail.log>; if this environment variable is
-not defined, then it default to C<$HOME/mail.log>.
+Specifies a log file; assumes the C<ASGS Shell Environment>, thus it defaults
+to C<$ENV{SCRIPTDIR}/mail.log>. If this environment variable is not defined,
+it defaults to C<$HOME/mail.log>.
 
 =item C<-s|--subject>
 
-Defines subject thread. There is a default, but it's meaningless.
+Defines the subject line. There is a default, but it is intentionally generic.
 
-If the subject test is > 120 characters in length, the script issues a warning
-and truncates the subject text. This limit was determined through empiracle
-testing of what provided for the most reliable email delivery.
+If the subject text is greater than 120 characters in length, the script
+issues a warning and truncates it. This limit was determined through empirical
+testing of what provided the most reliable email delivery.
 
 =back
 
 =head1 CONFIGURATION
 
-By default, a configuration file located at C<$HOME/asgs-global.conf>
-is required. This file contains the necessary authoriziation information
-required for sending emails through an external SMTP server gateway.
-TLS (port 587) is a preferred transport for security reasons, but the
-underlying module supports SSL and unecrypted (port 25).
+By default, a configuration file located at C<$HOME/asgs-global.conf> is
+required. This file contains the authorization information required for
+sending email through an external SMTP server gateway. TLS on port 587 is the
+default transport configuration.
 
   [email]
   from_address=info@stormsurge.email
-  mail_reply_to=info@stormsurge.email
+  reply_to_address=info@stormsurge.email
   smtp_host=smtp.host.name
-  smtp_port=587 
+  smtp_port=587
   smtp_username=smtp-username
   smtp_password=smtp-password
 
+For backward compatibility, C<mail_reply_to> is also accepted when
+C<reply_to_address> is not present.
+
+=head1 ATTACHMENTS
+
+Attachments are implemented using the existing C<Email::Simple> and
+C<Email::Sender> stack together with C<MIME::Base64> and C<File::Basename>.
+No C<Email::MIME> dependency is required.
+
+Each C<--attach> value becomes a separate MIME part with
+C<Content-Disposition: attachment>. Binary and unknown files are safe to send
+because all attachment content is base64-encoded.
+
+The message body itself remains C<text/plain>; HTML message bodies and inline
+images are not currently implemented.
+
+=head1 SECURITY
+
+Header values supplied through the command line or configuration are rejected
+if they contain embedded newlines. Attachment filenames are reduced to their
+basename and control characters are rejected before they are placed in MIME
+headers.
+
+SMTP credentials remain sourced from the ASGS global configuration file and
+are not written to the mail log.
+
 =head1 LIMITATIONS
 
-Currently, the content of the body of the message must be provided
-via STDIN, this means it must be piped in via an external source.
-This source could be another program or an existing file.
+The message body must currently be provided through STDIN.
+
+Attachments are read into memory while the MIME message is assembled. SMTP
+server message-size limits also apply, so very large ADCIRC/NetCDF products
+may be better distributed through the existing ASGS THREDDS/OPeNDAP paths
+rather than attached directly to email.
+
+HTML message bodies, inline images, and C<Content-ID> references are not
+currently supported.
+
+=head1 DEPENDENCIES
+
+The attachment implementation intentionally avoids adding C<Email::MIME>.
+It uses C<MIME::Base64> and C<File::Basename> in addition to the modules
+already used by C<asgs-sendmail>.
+
+Command-line option storage is managed through C<Util::H2O::More>'s C<h2o>
+and C<opt2h2o> helpers while C<Getopt::Long::GetOptionsFromArray> remains
+visible so invalid command-line parsing can be detected.
+
+=cut
+

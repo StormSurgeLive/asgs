@@ -973,22 +973,36 @@ prepFile()
       # submit adcprep job, check to make sure queue script submission
       # succeeded, and if not, retry
       local jobSubmitInterval=60
-      while [ true ];  do
+      while [ true ]; do
          echo "time.hpc.job.${JOBTYPE}.submit : $(date +'%Y-%h-%d-T%H:%M:%S%z')" >> run.properties
-         # submit job , capture stdout from sbatch and direct it
-         # to scenario.log; capture stderr and send to all logs
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
-         if [[ $? == 0 ]]; then
+
+         # Submit job, capture stdout in jobID and scenario.log, and capture
+         # stderr in jobErr. Enable pipefail only for this pipeline so that
+         # a failed sbatch/qsub is not hidden by a successful tee.
+         (
+            set -o pipefail
+            $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr \
+               | tee -a scenario.log >jobID
+         )
+         submitStatus=$?
+
+         if [[ $submitStatus == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
-            awk -v this='asgs_main.sh>prep' -v level=ERROR -f $SCRIPTDIR/monitoring/timestamp.awk jobErr | tee -a ${SYSLOG} | tee -a $CYCLELOG | tee -a scenario.log
-            logMessage "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed; will retry in '$jobSubmitInterval' seconds."
-            consoleMessage "$W Submission of ${JOBTYPE}.${queuesyslc} failed. Waiting to retry."
-            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
-            spinner $jobSubmitInterval
+            awk -v this='asgs_main.sh>prep' -v level=ERROR \
+               -f $SCRIPTDIR/monitoring/timestamp.awk jobErr \
+               | tee -a ${SYSLOG} \
+               | tee -a $CYCLELOG \
+               | tee -a scenario.log
 
+            logMessage "$ENSTORM: $THIS: $SUBMITSTRING ${JOBTYPE}.${queuesyslc} failed with exit status '$submitStatus'; will retry in '$jobSubmitInterval' seconds."
+            consoleMessage "$W Submission of ${JOBTYPE}.${queuesyslc} failed. Waiting to retry."
+
+            echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$(date +'%Y-%h-%d-T%H:%M:%S%z')\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+
+            spinner $jobSubmitInterval
          fi
       done
       monitorJobs "$QUEUESYS" "${JOBTYPE}" "${ENSTORM}" "$WALLTIME"
@@ -1562,22 +1576,36 @@ submitJob()
       local jobSubmitInterval=60
       #
       # submit job, check to make sure qsub succeeded, and if not, retry (forever)
-      while [ true ];  do
+      while [ true ]; do
          DATETIME=$(date +'%Y-%h-%d-T%H:%M:%S%z')
          echo "time.hpc.job.${JOBTYPE}.submit : $DATETIME" >> ${STORMDIR}/run.properties
-         $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>>$SYSLOG >jobID
-         if [[ $? == 0 ]]; then
+
+         # Submit job, capture stdout in jobID and scenario.log, and capture
+         # stderr in jobErr. Enable pipefail only for this pipeline so that
+         # a failed sbatch/qsub is not hidden by a successful tee.
+         (
+            set -o pipefail
+            $SUBMITSTRING ${JOBTYPE}.${queuesyslc} 2>jobErr \
+               | tee -a scenario.log >jobID
+         )
+         submitStatus=$?
+
+         if [[ $submitStatus == 0 ]]; then
             ${SCRIPTDIR}/monitoring/captureJobID.sh $HPCENVSHORT
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : \"$(<jobID)\", \"start\" : null, \"finish\" : null, \"error\" : null" >> ${ADVISDIR}/${ENSTORM}/jobs.status
             break # job submission command returned a "success" status
          else
-            logMessage "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed: $(<jobErr); ASGS will retry in 60 seconds."
+            logMessage "$ENSTORM: $THIS: $SUBMITSTRING $ADVISDIR/$ENSTORM/${JOBTYPE}.${queuesys} failed with exit status '$submitStatus': $(<jobErr); ASGS will retry in '$jobSubmitInterval' seconds."
             consoleMessage "$W ${JOBTYPE}.${queuesys} job submission failed. Waiting to retry."
+
             echo "\"jobtype\" : \"$JOBTYPE\", \"submit\" : \"$DATETIME\", \"jobid\" : null, \"start\" : null, \"finish\" : null, \"error\" : null, \"error.message\" : \"$(<jobErr)\"" >> ${ADVISDIR}/${ENSTORM}/jobs.status
+
             writeScenarioFilesStatus  # final status update for files
+
             if [[ $enablePostStatus == "yes" ]]; then
                postScenarioStatus
             fi
+
             spinner $jobSubmitInterval
          fi
       done

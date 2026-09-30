@@ -176,7 +176,7 @@ writeProperties()
    echo "post.opendap.tds : ( ${TDS[@]} )" >> $STORMDIR_RUN_PROPERTIES
    echo "post.opendap.target : $TARGET" >> $STORMDIR_RUN_PROPERTIES
    echo "post.file.sshkey : $SSHKEY" >> $STORMDIR_RUN_PROPERTIES
-   if [ -n "$OPENDAPADDROOT" ]; then
+   if [[ -n "$OPENDAPADDROOT" ]]; then
      echo "post.opendap.addroot : ${OPENDAPADDROOT}" >> $STORMDIR_RUN_PROPERTIES
    fi
    echo "post.qualitycontrol.script : $QUALITYCONTROL" >> $STORMDIR_RUN_PROPERTIES
@@ -361,6 +361,9 @@ writeTropicalCycloneProperties()
    echo "forcing.tropicalcyclone.forecast.path.fdir : $FDIR" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tropicalcyclone.best.ftpsite : $FTPSITE" >> $STORMDIR_RUN_PROPERTIES
    echo "forcing.tropicalcyclone.best.path.hdir : $HDIR" >> $STORMDIR_RUN_PROPERTIES
+   if [[ -n "$ISREPLAY" ]]; then
+     echo "forcing.tropicalcyclone.isreplay : $ISREPLAY" >> $STORMDIR_RUN_PROPERTIES
+   fi
    # each scenario
    if [[ $RMAX != default ]]; then
       echo "forcing.tropicalcyclone.enstorm.variation.rmax : $RMAX" >> $STORMDIR_RUN_PROPERTIES
