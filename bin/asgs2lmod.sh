@@ -1,0 +1,887 @@
+#!/usr/bin/env bash
+#
+# asgs2lmod.sh
+#
+# Generate Lmod modulefiles for ASGS and all ADCIRC builds registered
+# with ASGS.
+#
+#----------------------------------------------------------------
+# Copyright(C) 2026--2026 Jason Fleming
+# Copyright(C) 2026--2026 Brett Estrade
+#
+# This file is part of the ADCIRC Surge Guidance System (ASGS).
+#
+# The ASGS is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ASGS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the ASGS.  If not, see <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------
+#
+# The ASGS module is independent of the ADCIRC modules. It makes the
+# ASGS Shell launcher ("asgsh") available in the normal user
+# environment.
+#
+# ADCIRC modules are generated from the files in:
+#
+#     $SCRIPTDIR/.adcirc-meta/
+#
+# Example generated modules:
+#
+#     asgs
+#     adcirc-v53.05.live.0
+#     adcirc-v55.02
+#     adcirc-v56.0.4.live.1
+#     adcirc-v56.2.1
+#
+# Typical use:
+#
+#     module load asgs
+#     module load adcirc-v56.0.4.live.1
+#
+
+set -euo pipefail
+
+PROGRAM=$(basename "$0")
+SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
+SCRIPTDIR=$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)
+
+ADCIRC_META_DIR="${ADCIRC_META_DIR:-$SCRIPTDIR/.adcirc-meta}"
+MODULE_DIR="${ASGS_LMOD_DIR:-$SCRIPTDIR/modulefiles}"
+
+FORCE=0
+INSTALL_USER_INIT=1
+
+USER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/asgs"
+USER_LMOD_INIT="$USER_CONFIG_DIR/lmod.sh"
+USER_BASHRC="${HOME}/.bashrc"
+
+BEGIN_MARKER="# >>> ASGS Lmod environment >>>"
+END_MARKER="# <<< ASGS Lmod environment <<<"
+
+usage()
+{
+    cat <<EOUSAGE
+Usage:
+  $PROGRAM [options]
+
+Generate Lmod modulefiles for ASGS and all ADCIRC builds registered
+with ASGS.
+
+Defaults:
+
+  ASGS directory:
+    $SCRIPTDIR
+
+  ADCIRC metadata directory:
+    $ADCIRC_META_DIR
+
+  Lmod modulefile directory:
+    $MODULE_DIR
+
+Options:
+
+  -m DIR
+  --metadata-dir DIR
+      ADCIRC metadata directory.
+
+  -o DIR
+  --module-dir DIR
+      Lmod modulefile output directory.
+
+  -f
+  --force
+      Replace existing generated modulefiles and replace the
+      ASGS-managed Lmod user initialization.
+
+      Only the ASGS-managed block in .bashrc is replaced. Other
+      contents of .bashrc are preserved.
+
+  --no-user-init
+      Generate modulefiles only. Do not install or update the
+      per-user shell initialization that adds the module directory
+      and loads the "asgs" module by default.
+
+  --user-init
+      Install the per-user shell initialization if it does not
+      already exist. This is the default.
+
+  -h
+  --help
+      Show this help.
+
+Generated modules include:
+
+  asgs
+
+and one module for each registered ADCIRC build, for example:
+
+  adcirc-v53.05.live.0
+  adcirc-v55.02
+  adcirc-v56.0.4.live.1
+  adcirc-v56.2.1
+
+The ASGS module is independent of all ADCIRC modules.
+
+By default, this script also configures the current user's Bash
+environment so that:
+
+  module use "$MODULE_DIR"
+
+is applied automatically and:
+
+  module load asgs
+
+is performed automatically.
+
+Therefore, after opening a new shell:
+
+  command -v asgsh
+
+should resolve without loading an ADCIRC module.
+
+ADCIRC versions remain explicitly selectable:
+
+  module load adcirc-v56.0.4.live.1
+
+Without --force, existing generated modulefiles and existing
+ASGS-managed user initialization are left unchanged.
+EOUSAGE
+}
+
+die()
+{
+    echo "$PROGRAM: ERROR: $*" >&2
+    exit 1
+}
+
+lua_quote()
+{
+    local value=${1-}
+
+    value=${value//\\/\\\\}
+    value=${value//\"/\\\"}
+    value=${value//$'\n'/\\n}
+    value=${value//$'\r'/}
+
+    printf '"%s"' "$value"
+}
+
+clear_meta_vars()
+{
+    unset \
+        ASGS_HOME \
+        ASGS_MACHINE_NAME \
+        NETCDFHOME \
+        ADCIRCBASE \
+        ADCIRCDIR \
+        SWANDIR \
+        ADCIRC_COMPILER \
+        ADCIRC_BUILD_INFO \
+        ADCIRC_GIT_BRANCH \
+        ADCIRC_GIT_URL \
+        ADCIRC_GIT_REPO \
+        ASGS_MAKEJOBS \
+        ADCIRC_MAKE_CMD \
+        SWAN_UTIL_BINS_MAKE_CMD \
+        ADCSWAN_MAKE_CMD \
+        ADCIRC_PROFILE_NAME \
+        ADCIRC_BINS \
+        ADCSWAN_BINS \
+        SWAN_UTIL_BINS \
+        2>/dev/null || true
+}
+
+write_asgs_module()
+{
+    local module_file="$MODULE_DIR/asgs.lua"
+    local tmp
+
+    if [[ -e "$module_file" && $FORCE -ne 1 ]]; then
+        echo "exists, leaving unchanged: asgs"
+        return 0
+    fi
+
+    local q_asgs_home
+    local q_asgsh
+
+    q_asgs_home=$(lua_quote "$SCRIPTDIR")
+    q_asgsh=$(lua_quote "$SCRIPTDIR/asgsh")
+
+    tmp="${module_file}.tmp.$$"
+
+    cat > "$tmp" <<EOMODULE
+-- -*- lua -*-
+--
+-- Generated by ASGS bin/asgs2lmod.sh
+--
+-- ADCIRC Surge Guidance System
+--
+
+help([==[
+ADCIRC Surge Guidance System (ASGS)
+
+ASGS installation:
+  $SCRIPTDIR
+
+This module makes the ASGS installation and ASGS Shell launcher
+available from a normal login shell.
+
+ASGS Shell:
+
+  asgsh
+
+The full pathname of the ASGS Shell launcher is also available as:
+
+  \$ASGSH
+
+ADCIRC builds are provided by separate Lmod modules such as:
+
+  module load adcirc-v56.0.4.live.1
+
+For commercial support options:
+
+  help@support.adcirc.live
+  https://adcirc.live
+]==])
+
+whatis("Name: ASGS")
+whatis("Description: ADCIRC Surge Guidance System")
+whatis("ASGS home: $SCRIPTDIR")
+whatis("ASGS Shell: $SCRIPTDIR/asgsh")
+
+prepend_path("PATH", ${q_asgs_home})
+
+setenv("ASGS_HOME", ${q_asgs_home})
+setenv("ASGSH", ${q_asgsh})
+EOMODULE
+
+    chmod 0644 "$tmp"
+    mv "$tmp" "$module_file"
+
+    echo "generated: asgs"
+}
+
+write_adcirc_module()
+{
+    local meta=$1
+
+    clear_meta_vars
+
+    #
+    # Files in .adcirc-meta are generated by ASGS and intentionally
+    # contain shell export statements describing one ADCIRC build.
+    #
+    # shellcheck disable=SC1090
+    source "$meta"
+
+    local required=(
+        ASGS_HOME
+        ASGS_MACHINE_NAME
+        NETCDFHOME
+        ADCIRCBASE
+        ADCIRCDIR
+        ADCIRC_COMPILER
+        ADCIRC_GIT_BRANCH
+        ADCIRC_PROFILE_NAME
+    )
+
+    local var
+
+    for var in "${required[@]}"; do
+        if [[ -z "${!var:-}" ]]; then
+            die "metadata file '$meta' does not define required variable '$var'"
+        fi
+    done
+
+    [[ -d "$ASGS_HOME" ]] ||
+        die "ASGS_HOME does not exist for '$ADCIRC_PROFILE_NAME': $ASGS_HOME"
+
+    [[ -d "$ADCIRCBASE" ]] ||
+        die "ADCIRCBASE does not exist for '$ADCIRC_PROFILE_NAME': $ADCIRCBASE"
+
+    [[ -d "$ADCIRCDIR" ]] ||
+        die "ADCIRCDIR does not exist for '$ADCIRC_PROFILE_NAME': $ADCIRCDIR"
+
+    [[ -d "$NETCDFHOME" ]] ||
+        die "NETCDFHOME does not exist for '$ADCIRC_PROFILE_NAME': $NETCDFHOME"
+
+    local module_name="adcirc-${ADCIRC_GIT_BRANCH}"
+    local module_file="${MODULE_DIR}/${module_name}.lua"
+
+    if [[ "$module_name" == *"/"* ||
+          "$module_name" =~ [[:space:]] ]]; then
+        die "ADCIRC branch produces an invalid Lmod module name: $module_name"
+    fi
+
+    if [[ -e "$module_file" && $FORCE -ne 1 ]]; then
+        printf 'exists, leaving unchanged: %-35s <- %s\n' \
+            "$module_name" \
+            "$(basename "$meta")"
+        return 0
+    fi
+
+    local netcdf_lib="$NETCDFHOME/lib"
+    local netcdf_include="$NETCDFHOME/include"
+
+    local q_machine
+    local q_netcdfhome
+    local q_netcdf_lib
+    local q_netcdf_include
+
+    local q_adcbase
+    local q_adcircdir
+    local q_swandir
+
+    local q_compiler
+    local q_build_info
+
+    local q_branch
+    local q_git_url
+    local q_git_repo
+
+    local q_profile
+
+    local q_adcirc_bins
+    local q_adcswan_bins
+    local q_swan_util_bins
+
+    q_machine=$(lua_quote "$ASGS_MACHINE_NAME")
+
+    q_netcdfhome=$(lua_quote "$NETCDFHOME")
+    q_netcdf_lib=$(lua_quote "$netcdf_lib")
+    q_netcdf_include=$(lua_quote "$netcdf_include")
+
+    q_adcbase=$(lua_quote "$ADCIRCBASE")
+    q_adcircdir=$(lua_quote "$ADCIRCDIR")
+    q_swandir=$(lua_quote "${SWANDIR:-}")
+
+    q_compiler=$(lua_quote "$ADCIRC_COMPILER")
+    q_build_info=$(lua_quote "${ADCIRC_BUILD_INFO:-}")
+
+    q_branch=$(lua_quote "$ADCIRC_GIT_BRANCH")
+    q_git_url=$(lua_quote "${ADCIRC_GIT_URL:-}")
+    q_git_repo=$(lua_quote "${ADCIRC_GIT_REPO:-}")
+
+    q_profile=$(lua_quote "$ADCIRC_PROFILE_NAME")
+
+    q_adcirc_bins=$(lua_quote "${ADCIRC_BINS:-}")
+    q_adcswan_bins=$(lua_quote "${ADCSWAN_BINS:-}")
+    q_swan_util_bins=$(lua_quote "${SWAN_UTIL_BINS:-}")
+
+    local tmp="${module_file}.tmp.$$"
+
+    cat > "$tmp" <<EOMODULE
+-- -*- lua -*-
+--
+-- Generated by ASGS bin/asgs2lmod.sh
+--
+-- Source ADCIRC metadata:
+--
+--   $meta
+--
+
+help([==[
+ADCIRC ${ADCIRC_GIT_BRANCH}
+
+ASGS ADCIRC profile:
+  ${ADCIRC_PROFILE_NAME}
+
+Compiler:
+  ${ADCIRC_COMPILER}
+
+Platform:
+  ${ASGS_MACHINE_NAME}
+
+ADCIRC installation:
+  ${ADCIRCBASE}
+
+ADCIRC executable directory:
+  ${ADCIRCDIR}
+
+This module was generated from ADCIRC build metadata registered
+with the ADCIRC Surge Guidance System (ASGS).
+
+The ASGS environment itself is provided independently by:
+
+  module load asgs
+
+For commercial support options:
+
+  help@support.adcirc.live
+  https://adcirc.live
+]==])
+
+whatis("Name: ${module_name}")
+whatis("ADCIRC version: ${ADCIRC_GIT_BRANCH}")
+whatis("ADCIRC profile: ${ADCIRC_PROFILE_NAME}")
+whatis("Compiler: ${ADCIRC_COMPILER}")
+whatis("Platform: ${ASGS_MACHINE_NAME}")
+
+--
+-- Only one ADCIRC build should be active at a time.
+--
+family("adcirc")
+
+--
+-- ADCIRC executables
+--
+prepend_path("PATH", ${q_adcircdir})
+
+--
+-- Libraries and includes required by the ASGS-built ADCIRC.
+--
+-- These match the environment exported by ASGS export-adcirc.
+--
+prepend_path("LD_LIBRARY_PATH", ${q_netcdf_lib})
+prepend_path("LD_INCLUDE_PATH", ${q_netcdf_include})
+
+--
+-- Build dependency root
+--
+setenv("NETCDFHOME", ${q_netcdfhome})
+
+--
+-- ADCIRC build paths
+--
+setenv("ADCIRCBASE", ${q_adcbase})
+setenv("ADCIRCDIR", ${q_adcircdir})
+setenv("SWANDIR", ${q_swandir})
+
+--
+-- ADCIRC build identity
+--
+setenv("ADCIRC_COMPILER", ${q_compiler})
+setenv("ADCIRC_BUILD_INFO", ${q_build_info})
+
+setenv("ADCIRC_GIT_BRANCH", ${q_branch})
+setenv("ADCIRC_GIT_URL", ${q_git_url})
+setenv("ADCIRC_GIT_REPO", ${q_git_repo})
+
+setenv("ADCIRC_PROFILE_NAME", ${q_profile})
+
+setenv("ASGS_MACHINE_NAME", ${q_machine})
+
+--
+-- Registered binaries
+--
+setenv("ADCIRC_BINS", ${q_adcirc_bins})
+setenv("ADCSWAN_BINS", ${q_adcswan_bins})
+setenv("SWAN_UTIL_BINS", ${q_swan_util_bins})
+EOMODULE
+
+    chmod 0644 "$tmp"
+    mv "$tmp" "$module_file"
+
+    printf 'generated: %-35s <- %s\n' \
+        "$module_name" \
+        "$(basename "$meta")"
+}
+
+install_user_init()
+{
+    if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
+        die "--user-init must be run as the user whose shell is being configured, not root"
+    fi
+
+    mkdir -p "$USER_CONFIG_DIR"
+
+    if [[ ! -e "$USER_BASHRC" ]]; then
+        touch "$USER_BASHRC"
+    fi
+
+    #
+    # Inspect the ASGS-managed .bashrc block.
+    #
+    local begin_count
+    local end_count
+    local begin_line=""
+    local end_line=""
+    local have_bashrc_block=0
+
+    begin_count=$(grep -Fxc "$BEGIN_MARKER" "$USER_BASHRC" || true)
+    end_count=$(grep -Fxc "$END_MARKER" "$USER_BASHRC" || true)
+
+    if [[ "$begin_count" -ne "$end_count" ||
+          "$begin_count" -gt 1 ||
+          "$end_count" -gt 1 ]]; then
+
+        echo "$PROGRAM: ERROR: malformed ASGS Lmod block in:" >&2
+        echo "  $USER_BASHRC" >&2
+        echo >&2
+        echo "Expected zero or one matching pair of:" >&2
+        echo "  $BEGIN_MARKER" >&2
+        echo "  $END_MARKER" >&2
+        echo >&2
+        echo "Please inspect the file before continuing." >&2
+        exit 1
+    fi
+
+    if [[ "$begin_count" -eq 1 && "$end_count" -eq 1 ]]; then
+        begin_line=$(
+            grep -nFx "$BEGIN_MARKER" "$USER_BASHRC" |
+                head -n 1 |
+                cut -d: -f1
+        )
+
+        end_line=$(
+            grep -nFx "$END_MARKER" "$USER_BASHRC" |
+                head -n 1 |
+                cut -d: -f1
+        )
+
+        if [[ -z "$begin_line" ||
+              -z "$end_line" ||
+              "$begin_line" -ge "$end_line" ]]; then
+
+            echo "$PROGRAM: ERROR: malformed ASGS Lmod block in:" >&2
+            echo "  $USER_BASHRC" >&2
+            echo >&2
+            echo "The ASGS Lmod begin/end markers are not in a valid order." >&2
+            echo "Please inspect the file before continuing." >&2
+            exit 1
+        fi
+
+        have_bashrc_block=1
+    fi
+
+    #
+    # Generate ~/.config/asgs/lmod.sh.
+    #
+    # Without --force, an existing file is left completely unchanged.
+    #
+    if [[ -e "$USER_LMOD_INIT" && $FORCE -ne 1 ]]; then
+
+        echo
+        echo "User Lmod initialization already exists; leaving unchanged:"
+        echo "  $USER_LMOD_INIT"
+
+    else
+
+        local init_tmp="${USER_LMOD_INIT}.tmp.$$"
+
+        cat > "$init_tmp" <<EOF
+#
+# Generated by ASGS bin/asgs2lmod.sh
+#
+# ASGS / ADCIRC Live Lmod environment
+#
+
+if [ -r /etc/profile.d/lmod.sh ]; then
+    . /etc/profile.d/lmod.sh
+elif [ -r /etc/profile.d/modules.sh ]; then
+    . /etc/profile.d/modules.sh
+fi
+
+if type module >/dev/null 2>&1; then
+    module use "$MODULE_DIR" >/dev/null 2>&1
+    module try-load asgs >/dev/null 2>&1
+fi
+EOF
+
+        chmod 0644 "$init_tmp"
+        mv "$init_tmp" "$USER_LMOD_INIT"
+
+        if [[ $FORCE -eq 1 ]]; then
+            echo
+            echo "Generated/replaced per-user Lmod initialization:"
+        else
+            echo
+            echo "Installed per-user Lmod initialization:"
+        fi
+
+        echo "  $USER_LMOD_INIT"
+    fi
+
+    #
+    # If our .bashrc block already exists and --force was not requested,
+    # leave .bashrc byte-for-byte unchanged.
+    #
+    if [[ $have_bashrc_block -eq 1 && $FORCE -ne 1 ]]; then
+
+        echo
+        echo "ASGS Lmod block already present; leaving unchanged:"
+        echo "  $USER_BASHRC"
+
+        return 0
+    fi
+
+    #
+    # Create a replacement copy while preserving the permissions of the
+    # existing .bashrc.
+    #
+    local tmp="${USER_BASHRC}.asgs2lmod.$$"
+    local filtered="${USER_BASHRC}.asgs2lmod.filtered.$$"
+
+    cp -p "$USER_BASHRC" "$tmp"
+
+    #
+    # With --force, remove the old well-formed managed block before
+    # adding the new one.
+    #
+    if [[ $have_bashrc_block -eq 1 ]]; then
+
+        awk \
+            -v begin="$BEGIN_MARKER" \
+            -v end="$END_MARKER" '
+            $0 == begin {
+                skipping = 1
+                next
+            }
+
+            $0 == end {
+                skipping = 0
+                next
+            }
+
+            !skipping {
+                print
+            }
+        ' "$tmp" > "$filtered"
+
+        chmod --reference="$USER_BASHRC" "$filtered"
+        mv "$filtered" "$tmp"
+    fi
+
+    #
+    # Add the managed block.
+    #
+    if [[ -s "$tmp" ]]; then
+        printf '\n' >> "$tmp"
+    fi
+
+    cat >> "$tmp" <<EOF
+$BEGIN_MARKER
+if [ -r "$USER_LMOD_INIT" ]; then
+    . "$USER_LMOD_INIT"
+fi
+$END_MARKER
+EOF
+
+    chmod --reference="$USER_BASHRC" "$tmp"
+    mv "$tmp" "$USER_BASHRC"
+
+    echo
+
+    if [[ $have_bashrc_block -eq 1 ]]; then
+        echo "Replaced ASGS Lmod block in:"
+    else
+        echo "Installed ASGS Lmod block in:"
+    fi
+
+    echo "  $USER_BASHRC"
+}
+
+#
+# Parse arguments.
+#
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -m|--metadata-dir)
+            [[ $# -ge 2 ]] ||
+                die "$1 requires a directory argument"
+
+            ADCIRC_META_DIR=$2
+            shift 2
+            ;;
+
+        -o|--module-dir)
+            [[ $# -ge 2 ]] ||
+                die "$1 requires a directory argument"
+
+            MODULE_DIR=$2
+            shift 2
+            ;;
+
+        -f|--force)
+            FORCE=1
+            shift
+            ;;
+
+        --user-init)
+            INSTALL_USER_INIT=1
+            shift
+            ;;
+
+        --no-user-init)
+            INSTALL_USER_INIT=0
+            shift
+            ;;
+
+        -h|--help)
+            usage
+            exit 0
+            ;;
+
+        *)
+            die "unknown argument: $1"
+            ;;
+    esac
+done
+
+#
+# Basic validation.
+#
+[[ -d "$SCRIPTDIR" ]] ||
+    die "ASGS directory does not exist: $SCRIPTDIR"
+
+[[ -x "$SCRIPTDIR/asgsh" ]] ||
+    die "ASGS Shell launcher does not exist or is not executable: $SCRIPTDIR/asgsh"
+
+[[ -d "$ADCIRC_META_DIR" ]] ||
+    die "ADCIRC metadata directory does not exist: $ADCIRC_META_DIR"
+
+mkdir -p "$MODULE_DIR"
+
+#
+# Find registered ADCIRC builds.
+#
+shopt -s nullglob
+meta_files=( "$ADCIRC_META_DIR"/* )
+shopt -u nullglob
+
+if (( ${#meta_files[@]} == 0 )); then
+    die "no ADCIRC metadata files found in $ADCIRC_META_DIR"
+fi
+
+#
+# Preflight all ADCIRC metadata before generating anything.
+#
+# This also catches a future case where two builds use the same
+# ADCIRC_GIT_BRANCH, such as different compiler builds of one version.
+#
+declare -A SEEN_MODULES
+
+registered=0
+
+for meta in "${meta_files[@]}"; do
+    [[ -f "$meta" ]] || continue
+
+    clear_meta_vars
+
+    # shellcheck disable=SC1090
+    source "$meta"
+
+    [[ -n "${ADCIRC_GIT_BRANCH:-}" ]] ||
+        die "ADCIRC_GIT_BRANCH is missing from $meta"
+
+    [[ -n "${ADCIRC_PROFILE_NAME:-}" ]] ||
+        die "ADCIRC_PROFILE_NAME is missing from $meta"
+
+    module_name="adcirc-${ADCIRC_GIT_BRANCH}"
+
+    if [[ -n "${SEEN_MODULES[$module_name]:-}" ]]; then
+        echo "$PROGRAM: ERROR: duplicate Lmod module name detected:" >&2
+        echo >&2
+        echo "  $module_name" >&2
+        echo >&2
+        echo "Generated by both:" >&2
+        echo >&2
+        echo "  ${SEEN_MODULES[$module_name]}" >&2
+        echo "  $meta" >&2
+        echo >&2
+        echo "This usually means more than one compiler/platform build" >&2
+        echo "exists for the same ADCIRC branch. Module naming must be" >&2
+        echo "made more specific before these can coexist." >&2
+        exit 1
+    fi
+
+    SEEN_MODULES[$module_name]=$meta
+
+    registered=$((registered + 1))
+done
+
+clear_meta_vars
+
+if (( registered == 0 )); then
+    die "no ADCIRC metadata files were found in $ADCIRC_META_DIR"
+fi
+
+echo "ASGS:"
+echo "  $SCRIPTDIR"
+echo
+echo "ADCIRC metadata:"
+echo "  $ADCIRC_META_DIR"
+echo
+echo "Lmod modulefiles:"
+echo "  $MODULE_DIR"
+echo
+echo "Registered ADCIRC builds:"
+echo "  $registered"
+echo
+
+#
+# Generate the independent ASGS module.
+#
+write_asgs_module
+
+#
+# Generate one ADCIRC module per registered build.
+#
+for meta in "${meta_files[@]}"; do
+    [[ -f "$meta" ]] || continue
+    write_adcirc_module "$meta"
+done
+
+clear_meta_vars
+
+#
+# Configure the current user's normal Bash environment unless explicitly
+# disabled.
+#
+if [[ $INSTALL_USER_INIT -eq 1 ]]; then
+    install_user_init
+fi
+
+echo
+echo "ASGS/Lmod integration complete."
+echo
+echo "Available modulefile directory:"
+echo
+echo "  $MODULE_DIR"
+echo
+
+if [[ $INSTALL_USER_INIT -eq 1 ]]; then
+    echo "ASGS is configured to load automatically in new Bash shells."
+    echo
+    echo "To activate the configuration in this shell now:"
+    echo
+    echo "  source \"$USER_BASHRC\""
+else
+    echo "User shell initialization was not modified."
+    echo
+    echo "To enable these modules manually:"
+    echo
+    echo "  module use \"$MODULE_DIR\""
+    echo "  module load asgs"
+fi
+
+echo
+echo "Verify ASGS:"
+echo
+echo "  module list"
+echo "  command -v asgsh"
+echo "  echo \"\$ASGSH\""
+echo
+echo "List available ADCIRC modules:"
+echo
+echo "  module avail adcirc"
+echo
+echo "Load an ADCIRC version:"
+echo
+echo "  module load adcirc-v56.0.4.live.1"
+echo
+echo "Verify the selected ADCIRC:"
+echo
+echo "  command -v adcirc"
+echo "  command -v padcirc"
+echo "  command -v adcprep"
+echo "  echo \"\$ADCIRC_PROFILE_NAME\""
+echo
