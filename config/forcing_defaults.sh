@@ -145,7 +145,14 @@ gfsLatLonGrid['dlat']='0.1'
 #
 # set variables to be used in json template
 declare -g -A rrfs
-rrfs['BaseURL']=https://noaa-rrfs-pds.s3.amazonaws.com/rrfs_a
+# Pre-implementation data location starting August 12, 2026:
+# https://nomads.ncep.noaa.gov/pub/data/nccf/com/rrfs/para/
+# https://nomads.ncep.noaa.gov/pub/data/nccf/com/refs/para/
+# Post-implementation data location November 3, 2026:
+# https://nomads.ncep.noaa.gov/pub/data/nccf/com/rrfs/prod/
+# https://nomads.ncep.noaa.gov/pub/data/nccf/com/refs/prod/
+RRFSBACKSITE="nomads.ncep.noaa.gov"          # forecast data from NCEP
+RRFSBACKDIR="/pub/data/nccf/com/rrfs/para"   # contains the RRFS files
 rrfs['PollingInterval']=5  # minutes
 rrfs['LookAhead']=30       # how far in the future (from currentCycle) to look ahead for new data (days)
 rrfs['ForecastLength']=84  # hours of RRFS forecast to run
