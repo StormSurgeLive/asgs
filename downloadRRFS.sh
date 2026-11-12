@@ -81,7 +81,73 @@ performQualityChecksRRFS()
     return 0
 }
 
-
+# NOMADS RRFS download helpers. Return nonzero on any incomplete transfer.
+rrfsNomadsURL() {
+    local day="$1" hour="$2" name="$3"
+    printf '%s/rrfs.%s/%s/%s' "${rrfs['BaseURL']%/}" "$day" "$hour" "$name"
+}
+rrfsFetchIndex() {
+    local url="$1" dest="$2" tmp="${2}.part"
+    mkdir -p "$(dirname "$dest")" || return 1
+    [[ -s "$dest" ]] && return 0
+    rm -f "$tmp"
+    curl --http1.1 --fail --location --silent --show-error --connect-timeout 30 --max-time 180 \
+        --output "$tmp" "$url" || { rm -f "$tmp"; return 1; }
+    # Require a conventional wgrib2 inventory (not an HTML error page).
+    awk -F: 'NR==1 {if ($1 !~ /^[0-9]+$/ || $2 !~ /^[0-9]+$/) exit 1; ok=1} END {if (!ok) exit 1}' "$tmp" || { rm -f "$tmp"; return 1; }
+    mv -f "$tmp" "$dest"
+}
+rrfsFetchField() {
+    local url="$1" index="$2" variable="$3" pattern="$4" dest="$5"
+    local match count start next end total code size tmp="${5}.part" header="${5}.headers"
+    [[ -s "$dest" ]] && { wgrib2 "$dest" -inv /dev/null >/dev/null 2>&1 && return 0; rm -f "$dest"; }
+    # Require exactly one inventory match, avoiding accidental multi-range requests.
+    match=$(awk -F: -v pat="$pattern" 'index($0,pat)>0 {print NR":"$2}' "$index")
+    count=$(printf '%s\n' "$match" | grep -c '^[0-9]')
+    [[ "$count" == 1 ]] || { echo "RRFS: expected one $variable field, found $count in $index" >&2; return 1; }
+    local line=${match%%:*}
+    start=${match#*:}
+    next=$(awk -F: -v n="$line" 'NR==n+1 {print $2; exit}' "$index")
+    if [[ -n "$next" ]]; then
+        end=$((next-1))
+    else
+        # Last GRIB message: request to EOF; curl supports open-ended ranges.
+        end=''
+    fi
+    [[ "$start" =~ ^[0-9]+$ ]] || return 1
+    rm -f "$tmp" "$header"
+    code=$(curl --http1.1 --silent --show-error --location --connect-timeout 30 --max-time 240 \
+        --range "${start}-${end}" --dump-header "$header" --output "$tmp" \
+        --write-out '%{http_code}' "$url") || { rm -f "$tmp" "$header"; return 1; }
+    if [[ "$code" != 206 ]] || ! grep -qi '^content-range: bytes ' "$header"; then
+        echo "RRFS: expected HTTP 206 for $variable, received $code from $url" >&2
+        rm -f "$tmp" "$header"; return 1
+    fi
+    if ! wgrib2 "$tmp" -inv /dev/null >/dev/null 2>&1; then
+        echo "RRFS: invalid GRIB2 field $variable from $url" >&2
+        rm -f "$tmp" "$header"; return 1
+    fi
+    mv -f "$tmp" "$dest"; rm -f "$header"
+}
+# Standard three-hourly NOWCAST analyses use f000 at 00/03/06/09/12/15/18/21 UTC.
+# Other hourly cycles may have subh files, but the NOWCAST does not use them.
+# Keep the subh naming support for any explicitly requested forecast product.
+rrfsFileName() {
+    local cycle_hour="$1" forecast_hour="$2"
+    local product="${rrfs['Product']:-2dfld}"
+    local resolution="${rrfs['Resolution']:-3km}"
+    local domain="${rrfs['Domain']:-conus}"
+    local suffix=''
+    case "$cycle_hour" in
+        00|03|06|09|12|15|18|21) ;;
+        01|02|04|05|07|08|10|11|13|14|16|17|19|20|22|23)
+            suffix='.subh'
+            [[ "$forecast_hour" == 000 ]] && forecast_hour=001
+            ;;
+        *) echo "RRFS: invalid cycle hour '$cycle_hour'" >&2; return 1 ;;
+    esac
+    printf 'rrfs.t%sz.%s.%s%s.f%s.%s.grib2' "$cycle_hour" "$product" "$resolution" "$suffix" "$forecast_hour" "$domain"
+}
 
 downloadRRFS()
 {
@@ -102,6 +168,9 @@ downloadRRFS()
     fi
     # create log file for this script
     downloadRrfsLog=$instanceRrfsDir/downloadRRFS.sh.log
+    # Set rrfs[BaseURL] to the directory containing rrfs.YYYYMMDD/HH.
+    # Operational default; override in ASGS configuration if NOMADS layout changes.
+    rrfs['BaseURL']="${rrfs['BaseURL']:-https://nomads.ncep.noaa.gov/pub/data/nccf/com/rrfs/prod}"
     # epoch seconds associated with cold start and hotstart times
     csEpochSeconds=$(TZ=UTC date -u -d "${CSDATE:0:4}-${CSDATE:4:2}-${CSDATE:6:2} ${CSDATE:8:2}:00:00" "+%s" 2>>$SYSLOG)
     hsEpochSeconds=$((csEpochSeconds + ${HSTIME%.*}))
@@ -196,33 +265,33 @@ downloadRRFS()
             declare -a cycleList
             for d in $(seq 0 ${rrfs['LookAhead']}); do
                 cycleDate=$( TZ=UTC date --date="${lastCycle:0:8} +$d day" +"%Y%m%d" )
-                for h in 00 06 12 18; do
+                for h in 00 03 06 09 12 15 18 21; do
                     # don't need it if it is before the current hotstart time
                     if [[ $cycleDate$h -lt $lastCycle ]]; then
                         continue
                     fi
-                    indexFileName=rrfs.t${h}z.natlev.3km.f000.na.grib2.idx
+                    indexFileName=$(rrfsFileName "$h" 000).idx
                     if [[ -e $instanceRrfsDir/$cycleDate/$h/$indexFileName ]]; then
                         cycleList+=( $cycleDate$h )
                     else
                         # check to see if the grib2 index file is available from NCEP
                         # be a good citizen and just ask for the http header
-                        curlCommand="curl --silent --head ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
+                        curlCommand="curl --http1.1 --silent --head $(rrfsNomadsURL "$cycleDate" "$h" "$indexFileName")"
                         indexFileStatus=$($curlCommand | head -n 1 | tr -d '\r')
                         if [[ ! $indexFileStatus =~ "200" ]]; then
                             appMessage "Could not find the grib2 index file on the remote web server; the HTTP status was '$indexFileStatus' using the curl command '$curlCommand'." $downloadRrfsLog
                             break 2
                         fi
                         # this index file has been posted, apparently; download it
-                        curlCommand="curl --connect-timeout 30 --max-time 60 --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$h/$indexFileName"
-                        appMessage "curlCommand=$curlCommand" $downloadRrfsLog
-                        $curlCommand 2>> $SYSLOG
+                        curlCommand="rrfsFetchIndex $(rrfsNomadsURL "$cycleDate" "$h" "$indexFileName") $indexFileName"
+                        appMessage "curlCommand=$curlCommand" "$downloadRrfsLog"
+                        rrfsFetchIndex "$(rrfsNomadsURL "$cycleDate" "$h" "$indexFileName")" "$indexFileName" 2>> $SYSLOG
                         exitCode=$?
                         if [[ $exitCode != 0 ]]; then
                             appMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'." $downloadRrfsLog
                             break 2
                         else
-                            performQualityChecksRRFS $indexFileName indexFile
+                            test -s "$indexFileName"
                             if [[ $? -ne 0 ]]; then
                                 break 2
                             fi
@@ -231,10 +300,8 @@ downloadRRFS()
                         # place it in the local cache
                         cycleList+=( $cycleDate$h )
                         if [[ ! -e $instanceRrfsDir/$cycleDate/$h/$indexFileName ]]; then
-                            if [[ ! -d $instanceRrfsDir/$cycleDate/$h ]]; then
-                                mkdir -p $instanceRrfsDir/$cycleDate/$h 2>> $SYSLOG
-                                mv $indexFileName $instanceRrfsDir/$cycleDate/$h 2>> $SYSLOG
-                            fi
+                            mkdir -p "$instanceRrfsDir/$cycleDate/$h" 2>> "$SYSLOG"
+                            mv "$indexFileName" "$instanceRrfsDir/$cycleDate/$h/" 2>> "$SYSLOG"
                         fi
                     fi
                 done
@@ -309,10 +376,11 @@ downloadRRFS()
         #   G E T    H O U R L Y   N O W C A S T
         #     G R I B 2   I N D E X   F I L E S
         #
-        msg="$THIS: Downloading hourly RRFS nowcast grib2 files through cycle '$thisCycle'."
+        msg="$THIS: Downloading three-hourly RRFS analysis grib2 files through cycle '$thisCycle'."
         logMessage "$msg"
         consoleMessage "$I $msg"
-        numHourlyCycles=$(( ((${#cycleList[@]} - 1 ) * 6 ) + 1 ))
+        # Cycle hours are zero-padded strings; use 10# in arithmetic to avoid octal interpretation.
+        numHourlyCycles=${#cycleList[@]}
         for c in ${cycleList[@]:0:${#cycleList[@]}-1} ; do
             cycleDate=${c:0:8}
             cycleHour=${c:8:2}
@@ -321,22 +389,22 @@ downloadRRFS()
             if [[ $c == $thisCycle ]]; then
                 break
             fi
-            # need the index files for the nowcast or "analysis" at each hour
+            # need the f000 analysis index at each selected three-hour cycle
             # between the cycle times
-            for h in $(seq 0 5); do
-                hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
+            for h in 0; do
+                hh=$(printf "%02d" $(( 10#$cycleHour + h )) )
+                indexFileName=$(rrfsFileName "$hh" 000).idx
                 if [[ ! -e $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
                     # check to see if it is available from NCEP
-                    curlCommand="curl --connect-timeout 30 --max-time 60 --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
-                    appMessage "curlCommand=$curlCommand" $downloadRrfsLog
-                    $curlCommand
+                    curlCommand="rrfsFetchIndex $(rrfsNomadsURL "$cycleDate" "$hh" "$indexFileName") $indexFileName"
+                    appMessage "curlCommand=$curlCommand" "$downloadRrfsLog"
+                    rrfsFetchIndex "$(rrfsNomadsURL "$cycleDate" "$hh" "$indexFileName")" "$indexFileName"
                     exitCode=$?
                     if [[ $exitCode != 0 ]]; then
                         logMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'."
                         break 2
                     else
-                        performQualityChecksRRFS $indexFileName indexFile
+                        test -s "$indexFileName"
                         if [[ $? -ne 0 ]]; then
                             break 2
                         fi
@@ -381,17 +449,17 @@ downloadRRFS()
             for c in ${cycleList[@]} ; do
                 cycleDate=${c:0:8}
                 cycleHour=${c:8:2}
-                # need the index files for the nowcast or "analysis" at each hour
+                # need the f000 analysis index at each selected three-hour cycle
                 # between the cycle times
-                for h in $(seq 0 5); do
+                for h in 0; do
                     # on the last cycle we only need the data for the
                     # cycle time itself, not the hourly data after that
                     if [[ $c == ${cycleList[-1]} && $h -gt 0 ]]; then
                         break
                     fi
-                    hh=$(printf "%02d" $(( $cycleHour + $h )) )
+                    hh=$(printf "%02d" $(( 10#$cycleHour + h )) )
                     indexFileDir=$instanceRrfsDir/$cycleDate/$hh
-                    indexFileName=rrfs.t${hh}z.natlev.3km.f000.na.grib2.idx
+                    indexFileName=$(rrfsFileName "$hh" 000).idx
                     if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
                         awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > $r 2>> $SYSLOG
                         paste -d "" $indexFileDir/$indexFileName $r > $indexFileDir/$indexFileName.range 2>> $SYSLOG
@@ -401,10 +469,10 @@ downloadRRFS()
                         byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range | grep -Eo '[0-9]*-[0-9]*')
                         grib2FileName=${indexFileName%.idx}
                         if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
-                            curlCommand="curl --range $byteRange --connect-timeout 30 --max-time 60 --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
-                            appMessage "curlCommand=$curlCommand" $downloadRrfsLog
-                            $curlCommand
-                            performQualityChecksRRFS $v.$grib2FileName grib2File
+                            curlCommand="rrfsFetchField $(rrfsNomadsURL "$cycleDate" "$hh" "$grib2FileName") $indexFileDir/$indexFileName $v ${rrfsVar[$v]} $v.$grib2FileName"
+                            appMessage "curlCommand=$curlCommand" "$downloadRrfsLog"
+                            rrfsFetchField "$(rrfsNomadsURL "$cycleDate" "$hh" "$grib2FileName")" "$indexFileDir/$indexFileName" "$v" "${rrfsVar[$v]}" "$v.$grib2FileName"
+                            wgrib2 "$v.$grib2FileName" -inv /dev/null >/dev/null 2>&1
                             if [[ $? -ne 0 ]]; then
                                 rm $v.$grib2FileName 2>> $SYSLOG
                                 break 3
@@ -419,7 +487,7 @@ downloadRRFS()
                     done
                     # concatenate into a single grib2 file so that UGRD and VGRD can be
                     # regridded and reprojected as vectors
-                    if [[ ! -s $grib2FileName ]]; then
+                    if [[ ! -s $indexFileDir/$grib2FileName ]]; then
                         cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName
                     fi
                 done
@@ -453,14 +521,14 @@ downloadRRFS()
             for c in ${cycleList[@]} ; do
                 cycleDate=${c:0:8}
                 cycleHour=${c:8:2}
-                for h in $(seq 0 5); do
+                for h in 0; do
                     # on the last cycle we only need the data for the
                     # cycle time itself, not the hourly data after that
                     if [[ $c == ${cycleList[-1]} && $h -gt 0 ]]; then
-                        break 2
+                        break
                     fi
-                    hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                    origFile=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f000.na.grib2
+                    hh=$(printf "%02d" $(( 10#$cycleHour + h )) )
+                    origFile=$instanceRrfsDir/$cycleDate/$hh/$(rrfsFileName "$hh" 000)
                     latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
                     # if this file has not been regridded, or the regridded file
                     # is 0 length
@@ -500,23 +568,27 @@ downloadRRFS()
         # form the file names of the first, second, and last grib2 files
         # to extract timing information
         firstCycleHour=${cycleList[0]:8:2}
-        firstFile=$instanceRrfsDir/${cycleList[0]:0:8}/${cycleList[0]:8:2}/rrfs.t${cycleList[0]:8:2}z.natlev.3km.f000.na.grib2
-        secondCycleHour=$(printf "%02d" $(( ${firstCycleHour} + 1 )) )
-        secondFile=$instanceRrfsDir/${cycleList[0]:0:8}/${secondCycleHour}/rrfs.t${secondCycleHour}z.natlev.3km.f000.na.grib2
-        lastFile=$instanceRrfsDir/${cycleList[-1]:0:8}/${cycleList[-1]:8:2}/rrfs.t${cycleList[-1]:8:2}z.natlev.3km.f000.na.grib2
+        firstFile=$instanceRrfsDir/${cycleList[0]:0:8}/${cycleList[0]:8:2}/$(rrfsFileName "${cycleList[0]:8:2}" 000)
+        # Use the next cycle, which also handles the 21Z-to-00Z date rollover.
+        if [[ ${#cycleList[@]} -lt 2 ]]; then
+            fatal "$THIS: At least two 3-hourly analyses are required to determine WTIMINC."
+        fi
+        secondCycleHour=${cycleList[1]:8:2}
+        secondFile=$instanceRrfsDir/${cycleList[1]:0:8}/${secondCycleHour}/$(rrfsFileName "$secondCycleHour" 000)
+        lastFile=$instanceRrfsDir/${cycleList[-1]:0:8}/${cycleList[-1]:8:2}/$(rrfsFileName "${cycleList[-1]:8:2}" 000)
         #
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
         d=$(wgrib2 $firstFile -match "UGRD" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
         owiWinPre["startDateTime"]=$d
         owiStartEpochSeconds=$(TZ=UTC date -u -d "${d:0:4}-${d:4:2}-${d:6:2} ${d:8:2}:00:00" "+%s" 2>>$SYSLOG)
-        sdate=$(date --date="${d:0:4}-${d:4:2}-${d:6:2} ${d:8:10}:00:00" '+%s' 2>>$SYSLOG)
+        sdate=$(TZ=UTC date -u --date="${d:0:4}-${d:4:2}-${d:6:2} ${d:8:10}:00:00" '+%s' 2>>$SYSLOG)
         #
         # determine the WTIMINC (time increment between data sets in seconds,
         # needed for the ADCIRC fort.15 file)
         d=$(wgrib2 $secondFile -match "UGRD" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
-        ndate=$(date --date="${d:0:4}-${d:4:2}-${d:6:2} ${d:8:10}:00:00" '+%s' 2>>$SYSLOG)
-        WTIMINC=$(( (ndate - sdate) )) # seconds
+        ndate=$(TZ=UTC date -u --date="${d:0:4}-${d:4:2}-${d:6:2} ${d:8:10}:00:00" '+%s' 2>>$SYSLOG)
+        WTIMINC=$(( (ndate - sdate) )) # seconds (normally 10800 for three-hourly analyses)
         #
         # determine the NWBS (number of blank snaps between the
         # hotstart time and the start of the OWI WIN/PRE data)
@@ -552,14 +624,14 @@ downloadRRFS()
         for c in ${cycleList[@]} ; do
             cycleDate=${c:0:8}
             cycleHour=${c:8:2}
-            for h in $(seq 0 5); do
+            for h in 0; do
                 # on the last cycle we only need the data for the
                 # cycle time itself, not the hourly data after that
                 if [[ $c == ${cycleList[-1]} && $h -gt 0 ]]; then
-                    break 2
+                    break
                 fi
-                hh=$(printf "%02d" $(( $cycleHour + $h )) )
-                f=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f000.na.grib2.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
+                hh=$(printf "%02d" $(( 10#$cycleHour + h )) )
+                f=$instanceRrfsDir/$cycleDate/$hh/$(rrfsFileName "$hh" 000).latlon_lonSpec.${lonSpec}_latSpec.$latSpec
                 d=$(wgrib2 $f -match 'PRES' 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
                 headerLine="$(printf "iLat=%4diLong=%4dDX=%6.3fDY=%6.3fSWLat=%8.3fSWLon=%8.3fDT=%8d00" ${rrfsLatLonGrid['nlat']} ${rrfsLatLonGrid['nlon']} ${rrfsLatLonGrid['dlon']} ${rrfsLatLonGrid['dlat']} $SWLat $SWLon $d)"
                 winPreTimes+=( $d"00" )
@@ -682,7 +754,7 @@ downloadRRFS()
         logMessage "$msg"
         consoleMessage "$I $msg"
         cycleDate=${CYCLE:0:8}
-        hh=$(printf "%02d" ${CYCLE:8:2})
+        hh=$(printf "%02d" $(( 10#${CYCLE:8:2} )) )
         succeeded=0
         tries=0
         r=$instanceRrfsDir/ranges
@@ -695,27 +767,27 @@ downloadRRFS()
                 succeeded=0
             fi
             unset downloaded have
-            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
+            for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))) ; do
                 hhh=$(printf "%03d" $h)
-                indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
+                indexFileName=$(rrfsFileName "$hh" "$hhh").idx
                 if [[ ! -s $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
                     # check to see if the grib2 index file is available
                     # be a good citizen and just ask for the http header
-                    curlCommand="curl --silent --head ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
+                    curlCommand="curl --http1.1 --silent --head $(rrfsNomadsURL "$cycleDate" "$hh" "$indexFileName")"
                     indexFileStatus=$($curlCommand | head -n 1 | tr -d '\r')
                     if [[ ! $indexFileStatus =~ "200" ]]; then
                         appMessage "Could not find the grib2 index file on the remote web server; the HTTP status was '$indexFileStatus' using the curl command '$curlCommand'." $downloadRrfsLog
                         break
                     fi
-                    curlCommand="curl --connect-timeout 30 --max-time 60 --silent -O ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$indexFileName"
-                    appMessage "curlCommand=$curlCommand" $downloadRrfsLog
-                    $curlCommand
+                    curlCommand="rrfsFetchIndex $(rrfsNomadsURL "$cycleDate" "$hh" "$indexFileName") $indexFileName"
+                    appMessage "curlCommand=$curlCommand" "$downloadRrfsLog"
+                    rrfsFetchIndex "$(rrfsNomadsURL "$cycleDate" "$hh" "$indexFileName")" "$indexFileName"
                     exitCode=$?
                     if [[ $exitCode != 0 ]]; then
                         appMessage "The curl command '$curlCommand' to download the RRFS index file has failed with exit code '$exitCode'." $downloadRrfsLog
                         break
                     else
-                        performQualityChecksRRFS $indexFileName indexFile
+                        test -s "$indexFileName"
                         if [[ $? -ne 0 ]]; then
                             break
                         fi
@@ -758,10 +830,10 @@ downloadRRFS()
             fi
             unset downloaded
             unset have
-            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
+            for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))) ; do
                 hhh=$(printf "%03d" $h)
                 indexFileDir=$instanceRrfsDir/$cycleDate/$hh
-                indexFileName=rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2.idx
+                indexFileName=$(rrfsFileName "$hh" "$hhh").idx
                 if [[ ! -e $indexFileDir/$indexFileName.range ]]; then
                     awk 'BEGIN { FS=":" ; startRange=0 } NR==1 { startRange=$2 } NR>1 { print "range="startRange"-"($2-1) ; startRange=$2 }' $indexFileDir/$indexFileName > $r 2>> $SYSLOG
                     paste -d "" $indexFileDir/$indexFileName $r > $indexFileDir/$indexFileName.range 2>> $SYSLOG
@@ -771,10 +843,10 @@ downloadRRFS()
                     byteRange=$(grep "${rrfsVar[$v]}" $indexFileDir/$indexFileName.range 2>>$SYSLOG | grep -Eo '[0-9]*-[0-9]*')
                     grib2FileName=${indexFileName%.idx}
                     if [[ ! -e $indexFileDir/$v.$grib2FileName ]]; then
-                        curlCommand="curl --range $byteRange --connect-timeout 30 --max-time 60 --silent -o $v.$grib2FileName ${rrfs['BaseURL']}/rrfs.$cycleDate/$hh/$grib2FileName 2>> $SYSLOG"
-                        appMessage "curlCommand=$curlCommand" $downloadRrfsLog
-                        $curlCommand
-                        performQualityChecksRRFS $v.$grib2FileName grib2File
+                        curlCommand="rrfsFetchField $(rrfsNomadsURL "$cycleDate" "$hh" "$grib2FileName") $indexFileDir/$indexFileName $v ${rrfsVar[$v]} $v.$grib2FileName"
+                            appMessage "curlCommand=$curlCommand" "$downloadRrfsLog"
+                            rrfsFetchField "$(rrfsNomadsURL "$cycleDate" "$hh" "$grib2FileName")" "$indexFileDir/$indexFileName" "$v" "${rrfsVar[$v]}" "$v.$grib2FileName"
+                        wgrib2 "$v.$grib2FileName" -inv /dev/null >/dev/null 2>&1
                         if [[ $? -ne 0 ]]; then
                             rm $v.$grib2FileName 2>> $SYSLOG
                             break 2
@@ -789,7 +861,7 @@ downloadRRFS()
                 done
                 # concatenate into a single grib2 file so that UGRD and VGRD can be
                 # regridded and reprojected as vectors
-                if [[ ! -s $indexFileDir/grib2FileName ]]; then
+                if [[ ! -s $indexFileDir/$grib2FileName ]]; then
                     cat $indexFileDir/UGRD.$grib2FileName $indexFileDir/VGRD.$grib2FileName $indexFileDir/PRES.$grib2FileName > $indexFileDir/$grib2FileName 2>>$SYSLOG
                 fi
             done
@@ -817,9 +889,9 @@ downloadRRFS()
                 spinner 60
                 succeeded=0
             fi
-            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
+            for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))) ; do
                 hhh=$(printf "%03d" $h)
-                origFile=$instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f${hhh}.na.grib2
+                origFile=$instanceRrfsDir/$cycleDate/$hh/$(rrfsFileName "$hh" "$hhh")
                 latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
                 # if this file has not been regridded, or the regridded file
                 # is 0 length
@@ -854,7 +926,11 @@ downloadRRFS()
         logMessage "$msg"
         consoleMessage "$I $msg"
         # make a list of the files available
-        rrfsFileList=( $(ls $instanceRrfsDir/$cycleDate/$hh/rrfs.t${hh}z.natlev.3km.f???.na.grib2.latlon_lonSpec.${lonSpec}_latSpec.$latSpec | sort) )
+        rrfsFileList=()
+        for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))); do
+            hhh=$(printf '%03d' "$h")
+            rrfsFileList+=( "$instanceRrfsDir/$cycleDate/$hh/$(rrfsFileName "$hh" "$hhh").latlon_lonSpec.${lonSpec}_latSpec.$latSpec" )
+        done
         # grab the start time (YYYYMMDDHH) of the files from the
         # inventory in the first file
         owiWinPre["startDateTime"]=$(wgrib2 ${rrfsFileList[0]} -match "PRES" 2>> $SYSLOG | cut -d : -f 3 | cut -d = -f 2)
