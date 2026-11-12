@@ -767,7 +767,7 @@ downloadRRFS()
                 succeeded=0
             fi
             unset downloaded have
-            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
+            for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))) ; do
                 hhh=$(printf "%03d" $h)
                 indexFileName=$(rrfsFileName "$hh" "$hhh").idx
                 if [[ ! -s $instanceRrfsDir/$cycleDate/$hh/$indexFileName ]]; then
@@ -830,7 +830,7 @@ downloadRRFS()
             fi
             unset downloaded
             unset have
-            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
+            for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))) ; do
                 hhh=$(printf "%03d" $h)
                 indexFileDir=$instanceRrfsDir/$cycleDate/$hh
                 indexFileName=$(rrfsFileName "$hh" "$hhh").idx
@@ -889,7 +889,7 @@ downloadRRFS()
                 spinner 60
                 succeeded=0
             fi
-            for h in $(seq 0 ${rrfs['ForecastLength']}) ; do
+            for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))) ; do
                 hhh=$(printf "%03d" $h)
                 origFile=$instanceRrfsDir/$cycleDate/$hh/$(rrfsFileName "$hh" "$hhh")
                 latLonFile=${origFile}.latlon_lonSpec.${lonSpec}_latSpec.$latSpec
@@ -927,7 +927,7 @@ downloadRRFS()
         consoleMessage "$I $msg"
         # make a list of the files available
         rrfsFileList=()
-        for h in $(seq 0 "${rrfs['ForecastLength']}"); do
+        for h in $(seq 0 $(( ${rrfs['ForecastLength']} - 1 ))); do
             hhh=$(printf '%03d' "$h")
             rrfsFileList+=( "$instanceRrfsDir/$cycleDate/$hh/$(rrfsFileName "$hh" "$hhh").latlon_lonSpec.${lonSpec}_latSpec.$latSpec" )
         done
