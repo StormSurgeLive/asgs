@@ -758,7 +758,7 @@ downloadRRFS()
         succeeded=0
         tries=0
         r=$instanceRrfsDir/ranges
-        while [[ $succeeded -lt  ${rrfs['ForecastLength']} ]]; do
+        while [[ $succeeded -le ${rrfs['ForecastLength']} ]]; do
             if [[ $tries -ne 0 ]]; then
                 msg="$THIS: Tried '$tries' time(s) and failed to download all meteorological forecast data for cycle '$CYCLE'. Waiting 60 seconds before trying again."
                 logMessage "$msg"
