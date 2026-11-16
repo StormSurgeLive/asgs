@@ -152,7 +152,7 @@ declare -g -A rrfs
 # https://nomads.ncep.noaa.gov/pub/data/nccf/com/rrfs/prod/
 # https://nomads.ncep.noaa.gov/pub/data/nccf/com/refs/prod/
 RRFSBACKSITE="nomads.ncep.noaa.gov"          # forecast data from NCEP
-RRFSBACKDIR="/pub/data/nccf/com/rrfs/para"   # contains the RRFS files
+RRFSBACKDIR="/pub/data/nccf/com/rrfs/prod"   # contains the RRFS files
 rrfs['PollingInterval']=5  # minutes
 rrfs['LookAhead']=30       # how far in the future (from currentCycle) to look ahead for new data (days)
 rrfs['ForecastLength']=84  # hours of RRFS forecast to run
